@@ -23,8 +23,7 @@ import os
 from airflow import DAG, AirflowException
 from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.contrib.operators.ssh_operator import SSHOperator
-from airflow.contrib.operators.sftp_operator import SFTPOperator
-from airflow.contrib.operators.sftp_operator import SFTPOperation
+from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
 
 
 default_args = {
