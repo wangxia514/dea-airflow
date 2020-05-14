@@ -71,7 +71,7 @@ with dag:
     sftp_s2_to_s3_rolling_script = SFTPOperator(
         task_id='sftp_s2_to_s3_rolling_script',
         local_filepath=os.path.abspath('./scripts/s2_to_s3_rolling.py'),
-        remote_filepath=dag.params['workdir']+'/s2_to_s3_rolling.py',
+        remote_filepath=dag.params['workdir'] + '/s2_to_s3_rolling.py',
         operation=SFTPOperation.PUT,
         create_intermediate_dirs=True,
     )
