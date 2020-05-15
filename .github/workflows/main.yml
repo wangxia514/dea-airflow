@@ -21,6 +21,6 @@ jobs:
 
     - name: Install Airflow and Lint
       run: |
-        pip install airflow[all] pylint pylint-airflow
+        pip install apache-airflow[all] pylint pylint-airflow
         pylint --load-plugins=pylint_airflow dags
 
