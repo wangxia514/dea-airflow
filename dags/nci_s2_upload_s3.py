@@ -56,7 +56,8 @@ dag = DAG(
     tags=['nci', 'sentinel_2'],
     params={
         'workdir':
-            '/g/data/v10/work/s2_nbar_rolling_archive/ts_nodash_{}_{}'.format(
+            '/g/data/v10/work/s2_nbar_rolling_archive/{}_{}_{}'.format(
+                datetime.now().strftime("%FT%H%M"),
                 default_args['params']['enddate'],
                 default_args['params']['numdays']
             )
