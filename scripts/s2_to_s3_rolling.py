@@ -93,7 +93,7 @@ def replace_metadata(yaml_file, s3_bucket, s3_metadata_path):
     temp_metadata['original_id'] = temp_metadata['id']
     temp_metadata['software_versions'].update({
         's2_to_s3_rolling': {
-            'repo': 'https://github.com/GeoscienceAustralia/dea-orchestration/',
+            'repo': 'https://github.com/GeoscienceAustralia/dea-airflow/',
             'version': '1.0.0'}
     })
 
