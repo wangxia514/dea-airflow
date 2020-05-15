@@ -24,5 +24,6 @@ jobs:
       - run: conda --version
       - run: which python
       - run: |
-          pip install apache-airflow[all] pylint pylint-airflow
+          pip install apache-airflow[aws,kubernetes,postgres,redis,ssh,celery]
+          pip install pylint pylint-airflow
           pylint --load-plugins=pylint_airflow dags
