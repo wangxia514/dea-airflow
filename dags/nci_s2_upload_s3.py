@@ -84,7 +84,7 @@ with dag:
         create_intermediate_dirs=True,
     )
     # Excecute script to upload sentinel-2 data to s3 bucket
-    aws_conn = AwsHook(aws_conn_id='dea_public_data_upload')
+    aws_conn = AwsHook(aws_conn_id='dea_public_data_dev_upload')
     execute_s2_to_s3_script = SSHOperator(
         task_id='execute_s2_to_s3_script',
         command=dedent("""
