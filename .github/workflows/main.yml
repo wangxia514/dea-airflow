@@ -5,6 +5,13 @@ on:
     paths:
       - 'dags/**'
       - '.github/workflows/**'
+  pull_request:
+    branches:
+      - master
+      - develop
+    paths:
+      - 'dags/**'
+      - '.github/workflows/**'
 
 jobs:
   build:
