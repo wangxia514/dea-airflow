@@ -26,4 +26,4 @@ jobs:
       - run: |
           pip install apache-airflow[aws,kubernetes,postgres,redis,ssh,celery]
           pip install pylint pylint-airflow
-          pylint --load-plugins=pylint_airflow dags
+          PYTHONPATH=plugins pylint --load-plugins=pylint_airflow --disable=C,W --disable=similarities dags
