@@ -67,7 +67,7 @@ dag = DAG(
 
 with dag:
     # Creating working directory
-    # '/g/data/v10/work/s2_nbar_rolling_archive/ts_nodash_<end_date>_<num_days>'
+    # '/g/data/v10/work/s2_nbar_rolling_archive/<current_date>_<end_date>_<num_days>'
     create_nci_work_dir = SSHOperator(
         task_id='create_nci_work_dir',
         command=dedent('''
@@ -79,7 +79,7 @@ with dag:
     # Uploading s2_to_s3_rolling.py script to NCI
     sftp_s2_to_s3_script = SFTPOperator(
         task_id='sftp_s2_to_s3_script',
-        local_filepath=os.path.abspath('./scripts/s2_to_s3_rolling.py'),
+        local_filepath=os.environ.get('AIRFLOW_HOME')+'/scripts/s2_to_s3_rolling.py',
         remote_filepath=dag.params['workdir'] + '/s2_to_s3_rolling.py',
         operation=SFTPOperation.PUT,
         create_intermediate_dirs=True,
