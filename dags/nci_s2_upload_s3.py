@@ -23,6 +23,7 @@ from textwrap import dedent
 import os
 
 from airflow import DAG
+from airflow import configuration
 from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
@@ -79,7 +80,7 @@ with dag:
     # Uploading s2_to_s3_rolling.py script to NCI
     sftp_s2_to_s3_script = SFTPOperator(
         task_id='sftp_s2_to_s3_script',
-        local_filepath=os.environ.get('AIRFLOW_HOME')+'/scripts/s2_to_s3_rolling.py',
+        local_filepath=os.path.dirname(configuration.get('core', 'dags_folder')) + '/scripts/s2_to_s3_rolling.py',
         remote_filepath=dag.params['workdir'] + '/s2_to_s3_rolling.py',
         operation=SFTPOperation.PUT,
         create_intermediate_dirs=True,
