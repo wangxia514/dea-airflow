@@ -13,8 +13,11 @@ This DAG takes following input parameters:
  * s3bucket: Name of the S3 bucket (e.g. 'dea-public-data-dev')
  * numdays: Number of days to process before the end date (e.g. '1')
  * enddate: End date for processing (e.g. '2020-02-21')
- * doupdate: Check to update granules if already exist.
-             Set 'yes' to update else 'no' or don't set (e.g. 'no')
+ * doupdate: Check to update granules and metadata. Select update option as below:
+                'sync_granule_metadata' to update granules with metadata;
+                'sync_granule' to update granules without metadata;
+                'sync_metadata' to update only metadata;
+                'no' or don't set to avoid update.
 
 """
 
@@ -22,12 +25,10 @@ from datetime import datetime, timedelta
 from textwrap import dedent
 import os
 
-from airflow import DAG
-from airflow import configuration
+from airflow import DAG, configuration
 from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
-
 
 default_args = {
     'owner': 'Sachit Rajbhandari',
@@ -65,7 +66,6 @@ dag = DAG(
     }
 )
 
-
 with dag:
     # Creating working directory
     # '/g/data/v10/work/s2_nbar_rolling_archive/<current_date>_<end_date>_<num_days>'
@@ -80,7 +80,9 @@ with dag:
     # Uploading s2_to_s3_rolling.py script to NCI
     sftp_s2_to_s3_script = SFTPOperator(
         task_id='sftp_s2_to_s3_script',
-        local_filepath=os.path.dirname(configuration.get('core', 'dags_folder')) + '/scripts/s2_to_s3_rolling.py',
+        local_filepath=os.path.dirname(
+            configuration.get('core', 'dags_folder')
+        ) + '/scripts/s2_to_s3_rolling.py',
         remote_filepath=dag.params['workdir'] + '/s2_to_s3_rolling.py',
         operation=SFTPOperation.PUT,
         create_intermediate_dirs=True,

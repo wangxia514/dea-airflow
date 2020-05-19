@@ -107,7 +107,7 @@ def replace_metadata(yaml_file, s3_bucket, s3_metadata_path):
 
 
 
-def sync_dates(num_days, s3_bucket, end_date, update=False):
+def sync_dates(num_days, s3_bucket, end_date, update='no'):
     # Since all file paths are of the form:
     # /g/data/if87/datacube/002/S2_MSI_ARD/packaged/YYYY-mm-dd/<granule>
     # we can simply list all the granules per date and sync them
@@ -141,9 +141,19 @@ def sync_dates(num_days, s3_bucket, end_date, update=False):
                 already_processed = check_granule_exists(s3_bucket, s3_metadata_path)
 
                 # Maybe todo: include a flag to force replace
-                if not already_processed or update:
-                    sync_success = sync_granule(granule, s3_bucket)
-                    if sync_success:
+                # Check if already processed and apply sync action accordingly
+                if not already_processed and update == 'no':
+                    sync_action = 'sync_granule_metadata'
+                else:
+                    sync_action = update
+
+                if sync_action != 'no':
+                    if sync_action == 'sync_granule_metadata' or sync_action == 'sync_granule':
+                        sync_success = sync_granule(granule, s3_bucket)
+                    else:
+                        sync_success = True
+
+                    if sync_success and (sync_action == 'sync_metadata' or sync_action == 'sync_granule_metadata'):
                         # Replace the metadata with a deterministic ID
                         replace_metadata(yaml_file, s3_bucket, s3_metadata_path)
                         LOG.info("Finished processing and uploaded metadata to {}".format(
@@ -168,8 +178,6 @@ if __name__ == '__main__':
         update = sys.argv[4]
     except IndexError:
         update = 'no'
-
-    update = update == 'yes'
 
     LOG.info("Syncing {} days back from {} into the {} bucket and update is {}".format(
         num_days, end_date, s3_bucket, update
