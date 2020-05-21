@@ -20,8 +20,10 @@ services:
       - postgres
     environment:
       - LOAD_EX=n
+      - FERNET_KEY=qGkEfLspbOnKo2E5Q9OUzR2qBlKcc_5J3dltA7a-JjA=
       - EXECUTOR=Local
       - AIRFLOW__SMTP__SMTP_HOST=maildev
+      - AIRFLOW__CORE__ENABLE_XCOM_PICKLING=False
     logging:
       options:
         max-size: 10m
