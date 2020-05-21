@@ -75,6 +75,11 @@ def sync_granule(granule, _s3_bucket):
 
     return_code = subprocess.call(command, shell=True)
 
+    if return_code == 0:
+        LOG.info("Finished processing of granule -  %s", granule)
+    else:
+        LOG.info("Failed processing of granule - %s", granule)
+
     # If the return code is zero, we have success.
     return return_code == 0
 
@@ -115,6 +120,8 @@ def replace_metadata(yaml_file, _s3_bucket, s3_metadata_path):
     s3_resource.Object(key=s3_metadata_path).put(
         Body=yaml.dump(temp_metadata, default_flow_style=False, Dumper=yaml.CSafeDumper)
     )
+
+    LOG.info("Finished uploaded metadata %s to %s", yaml_file, s3_metadata_path)
 
 
 def sync_dates(_num_days, _s3_bucket, _end_date, _update='no'):
@@ -170,7 +177,7 @@ def sync_dates(_num_days, _s3_bucket, _end_date, _update='no'):
                     if sync_success and (sync_action in ('sync_metadata', 'sync_granule_metadata')):
                         # Replace the metadata with a deterministic ID
                         replace_metadata(yaml_file, _s3_bucket, s3_metadata_path)
-                        LOG.info("Finished processing and uploaded metadata to %s",
+                        LOG.info("Finished processing and/or uploaded metadata to %s",
                                  s3_metadata_path)
                     else:
                         LOG.error("Failed to sync data... skipping")
@@ -202,6 +209,22 @@ def generate_log_report(file_path, _pbs_id):
         "no_metadata_not_sync": {
             "keyword": "Metadata is missing, not syncing",
             "desc": "Metadata is missing so not syncing"
+        },
+        "finished_processing_granule": {
+            "keyword": "Finished processing of granule - ",
+            "desc": "Finished processing of granule"
+        },
+        "failed_processing_granule": {
+            "keyword": "Failed processing of granule",
+            "desc": "Failed processing of granule"
+        },
+        "finished_metadata_upload": {
+            "keyword": "Finished uploaded metadata",
+            "desc": "Finished uploaded metadata"
+        },
+        "finished_processing_metadata_upload": {
+            "keyword": "Finished processing and/or uploaded metadata to",
+            "desc": "Finished processing and/or uploaded metadata"
         }
     }
 
