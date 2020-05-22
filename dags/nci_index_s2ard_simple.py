@@ -39,7 +39,7 @@ with DAG('nci_index_s2ard',
         
         cd /g/data/if87/datacube/002/S2_MSI_ARD/packaged
 
-        find $(find . -maxdepth 1 -newerct '{{ prev_ds }}' ! -newerct '{{ ds }}') -name '*.yaml' -exec datacube -v dataset add '{}' \+
+        find $(find . -maxdepth 1 -newerct '{{ prev_ds }}' ! -newerct '{{ ds }}') -name '*.yaml' -exec datacube -v dataset add --no-verify-lineage '{}' \+
         
         '''),
     )
