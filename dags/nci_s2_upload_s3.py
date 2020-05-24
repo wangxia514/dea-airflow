@@ -2,32 +2,53 @@
 # Sentinel-2 data routine upload to S3 bucket
 
 This DAG runs tasks on Gadi at the NCI. This DAG routinely sync Sentinel-2
-data to S3 bucket. It:
+data from NCI to AWS S3 bucket. It:
 
- * Create necessary working folder at NCI
- * Uploads Sentinel-2 to S3 rolling script to NCI work folder
- * Executes uploaded rolling script to upload Sentinel-2 data to S3 bucket
+ * Create necessary working folder at `NCI`.
+ * Uploads `Sentinel-2 to S3 rolling` script to NCI work folder.
+ * Executes uploaded rolling script to upload `Sentinel-2` data to AWS `S3` bucket.
+ * Generates log report on task execution.
+    Log file location: `<work_dir>/log_report_<PBS_id>.txt`
 
 This DAG takes following input parameters from "nci_s2_upload_s3_config" variable:
 
- * start_date: Start date for DAG run (e.g. '2020-5-8')
- * end_date: End date for DAG run (e.g. '2020-5-8')
- * catchup: Set to "True" for back fill else "False"
- * schedule_interval: Set "" for no schedule (e.g '@daily'),
- * ssh_conn_id: Provide SSH Connection ID (e.g. "lpgs_gadi")
- * aws_conn_id: Provid AWS Conection ID (e.g. "dea_public_data_dev_upload")
- * s3bucket: Name of the S3 bucket (e.g. 'dea-public-data-dev')
- * numdays: Number of days to process before the end date (e.g. '1')
- * enddate: End date for processing (e.g. '2020-02-21')
- * doupdate: Check to update granules and metadata. Select update option as below:
-                'sync_granule_metadata' to update granules with metadata;
-                'sync_granule' to update granules without metadata;
-                'sync_metadata' to update only metadata;
-                'no' or don't set to avoid update.
+ * `start_date`: Start date for DAG run.
+ * `end_date`: End date for DAG run.
+ * `catchup`: Set to "True" for back fill else "False".
+ * `schedule_interval`: Set "" for no schedule else provide schedule cron or preset (@once, @daily).
+ * `ssh_conn_id`: Provide SSH Connection ID.
+ * `aws_conn_id`: Provide AWS Conection ID.
+ * `s3bucket`: Name of the S3 bucket.
+ * `numdays`: Number of days to process before the end date.
+ * `enddate`: End date for processing.
+ * `doupdate`: Select update option as below to enable replace granules and metadata.
+            If update option is not provided, granules and metadata are not synced
+            if they already exists in S3 bucket
+    * `'sync_granule_metadata'` to update granules with metadata;
+    * `'sync_granule' to update'` granules without metadata;
+    * `'sync_metadata'` to update only metadata;
+    * `'no'` or don't set to avoid update.
 
+**EXAMPLE** *- Variable in JSON format with key name "nci_s2_upload_s3_config":*
+
+    {
+        "nci_s2_upload_s3_config":
+        {
+            "start_date": "2020-5-8",
+            "end_date": "",
+            "catchup": "False",
+            "schedule_interval" : "",
+            "ssh_conn_id": "lpgs_gadi",
+            "aws_conn_id": "dea_public_data_dev_upload",
+            "s3bucket": "dea-public-data-dev",
+            "numdays": "1",
+            "enddate": "2020-02-21",
+            "doupdate": "no"
+        }
+    }
 """
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 from textwrap import dedent
 import os
 
@@ -39,25 +60,44 @@ from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
 
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
-dag_config = Variable.get("nci_s2_upload_s3_config", deserialize_json=True)
+# Read and load variable into dict
+VARIABLE_NAME = "nci_s2_upload_s3_config"
+dag_config = Variable.get(VARIABLE_NAME, deserialize_json=True)
 
-print(dag_config)
+
+def get_parameter_value_from_variable(_dag_config, parameter_name, default_value=''):
+    """
+    Return parameter value from variable
+    :param _dag_config: Name of the variable
+    :param parameter_name: Parameter name
+    :param default_value: Default value if parameter is empty
+    :return: Parameter value for provided parameter name
+    """
+    if parameter_name in _dag_config and _dag_config[parameter_name]:
+        parameter_value = _dag_config[parameter_name]
+    elif default_value != '':
+        parameter_value = default_value
+    else:
+        raise Exception("Add necessary parameter '{}' in "
+                        "variable '{}'".format(parameter_name, VARIABLE_NAME))
+    return parameter_value
+
 
 default_args = {
     'owner': 'Sachit Rajbhandari',
-    'start_date': dag_config['start_date'] if dag_config['start_date'] else None,
-    'end_date': dag_config['end_date'] if dag_config['end_date'] else None,
+    'start_date': get_parameter_value_from_variable(dag_config, 'start_date', datetime.today()),
+    'end_date': get_parameter_value_from_variable(dag_config, 'end_date', None),
     'retries': 0,
     'retry_delay': timedelta(minutes=1),
-    'email_on_failure': False,
+    'email_on_failure': True,
     'email': 'sachit.rajbhandari@ga.gov.au',
-    'ssh_conn_id': dag_config['ssh_conn_id'],
-    'aws_conn_id': dag_config['aws_conn_id'],
+    'ssh_conn_id': get_parameter_value_from_variable(dag_config, 'ssh_conn_id'),
+    'aws_conn_id': get_parameter_value_from_variable(dag_config, 'aws_conn_id'),
     'params': {
-        's3bucket': dag_config['s3bucket'],
-        'numdays': dag_config['numdays'] if dag_config['numdays'] else '0',
-        'enddate': dag_config['enddate'] if dag_config['enddate'] else 'today',
-        'doupdate': dag_config['doupdate'] if dag_config['doupdate'] else 'no',
+        's3bucket': get_parameter_value_from_variable(dag_config, 's3bucket'),
+        'numdays': get_parameter_value_from_variable(dag_config, 'numdays', '0'),
+        'enddate': get_parameter_value_from_variable(dag_config, 'enddate', 'today'),
+        'doupdate': get_parameter_value_from_variable(dag_config, 'doupdate', 'no')
     }
 }
 
@@ -66,8 +106,8 @@ dag = DAG(
     'nci_s2_upload_s3',
     doc_md=__doc__,
     default_args=default_args,
-    catchup=dag_config['catchup'] if dag_config['catchup'] == "True" else False,
-    schedule_interval=dag_config['schedule_interval'] if dag_config['schedule_interval'] else None,
+    catchup=get_parameter_value_from_variable(dag_config, 'catchup', False),
+    schedule_interval=get_parameter_value_from_variable(dag_config, 'schedule_interval', None),
     template_searchpath='templates/',
     max_active_runs=1,
     default_view='graph',
