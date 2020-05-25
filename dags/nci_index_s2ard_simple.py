@@ -79,6 +79,7 @@ with DAG('nci_index_s2ard',
         # Whereas using the following took 1m40s for the same 120 days.
         # Using `find ${dates[@]} -maxdepth 2 -name 'ARD-METADATA.yaml' | wc -l` as a command with the 
 
+        echo Indexing datasets from ${dates[@]}
         find ${dates[@]} -maxdepth 1 -mindepth 1 | sed 's|$|/ARD-METADATA.yaml|' | xargs datacube dataset add
         
         '''),
