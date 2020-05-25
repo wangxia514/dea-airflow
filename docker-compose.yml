@@ -20,7 +20,9 @@ services:
       - postgres
     environment:
       - LOAD_EX=n
-      - FERNET_KEY=qGkEfLspbOnKo2E5Q9OUzR2qBlKcc_5J3dltA7a-JjA=
+      # Uncomment and add fernet key to encrypt/decrypt secrets. For details see
+      # https://airflow.readthedocs.io/en/stable/howto/secure-connections.html
+      # - FERNET_KEY=<insert-fernet-key-here>
       - EXECUTOR=Local
       - AIRFLOW__SMTP__SMTP_HOST=maildev
       - AIRFLOW__CORE__ENABLE_XCOM_PICKLING=False
