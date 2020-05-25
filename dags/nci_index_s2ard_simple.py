@@ -76,7 +76,7 @@ with DAG('nci_index_s2ard',
         
         # This entire process takes around 2.5 seconds for a 120 day period, in testing on 2020-05-25 on gadi.
         
-        # Whereas using the following takes multiple minutes for the same 120 days.
+        # Whereas using the following took 1m40s for the same 120 days.
         # Using `find ${dates[@]} -maxdepth 2 -name 'ARD-METADATA.yaml' | wc -l` as a command with the 
 
         find ${dates[@]} -maxdepth 1 -mindepth 1 | sed 's|$|/ARD-METADATA.yaml|' | xargs datacube dataset add
