@@ -75,7 +75,7 @@ with dag:
     BOOTSTRAP = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
-        cmds=["datacube", "system", "check"],
+        cmds=["datacube", "product", "list"],
         labels={"step": "bootstrap"},
         name="odc-bootstrap",
         task_id="bootstrap-task",
