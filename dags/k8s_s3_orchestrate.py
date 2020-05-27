@@ -88,7 +88,7 @@ with dag:
         cmds=["s3-to-dc"],
         # Assume kube2iam role via annotations
         # TODO: Pass this via DAG parameters
-        annotations={"iam.amazonaws.com/role": "dea-dev-eks-wms"},
+        annotations={"iam.amazonaws.com/role": "dea-dev-eks-ows"},
         # TODO: Collect form JSON used to trigger DAG
         arguments=[
             # "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
