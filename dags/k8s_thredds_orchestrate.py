@@ -42,7 +42,7 @@ DEFAULT_ARGS = {
     "retry_delay": timedelta(minutes=5),
     "env_vars": {
         # TODO: Pass these via templated params in DAG Run
-        "DB_HOSTNAME": "database.local",
+        "DB_HOSTNAME": "database-write.local",
         "DB_DATABASE": "ows-index",
     },
     # Use K8S secrets to send DB Creds
@@ -53,7 +53,7 @@ DEFAULT_ARGS = {
     ],
 }
 
-INDEXER_IMAGE = "opendatacube/datacube-index:v0.0.4"
+INDEXER_IMAGE = "opendatacube/datacube-index:0.0.5"
 OWS_IMAGE = "opendatacube/ows:0.14.1"
 EXPLORER_IMAGE = "opendatacube/dashboard:2.1.6"
 
