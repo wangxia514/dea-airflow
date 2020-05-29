@@ -1,3 +1,6 @@
+"""
+# Index (Sync) new Collection 2 ARD Datasets on the NCI
+"""
 from datetime import datetime, timedelta
 
 from airflow import DAG

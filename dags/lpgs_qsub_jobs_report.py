@@ -1,7 +1,9 @@
+"""
+Another test DAG
+"""
 from datetime import timedelta
 from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
-from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.operators.bash_operator import BashOperator
 from airflow.contrib.hooks.ssh_hook import SSHHook
@@ -16,7 +18,7 @@ default_args = {
 }
 
 dag = DAG(
-    'testing_ssh_qstat',
+    'lpgs_qsub_jobs_report',
     default_args=default_args,
     schedule_interval=timedelta(days=1)
 )
@@ -36,6 +38,9 @@ example_bash_task = BashOperator(
 
 
 def my_python_callable(*args, **kwargs):
+    """
+    Mock
+    """
     print('foo')
 
 

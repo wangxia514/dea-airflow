@@ -1,13 +1,16 @@
+"""
+# Experimental Test DAG
+
+A bit of a playground for new development.
+"""
 from airflow import DAG
 from datetime import datetime
 
 from airflow.contrib.operators.ssh_operator import SSHOperator
-from airflow.operators.bash_operator import BashOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.email_operator import EmailOperator
-from airflow.operators.python_operator import ShortCircuitOperator
 
-from operators.ssh_operators import TemplateToSFTPOperator, ShortCircuitSSHOperator
+from operators.ssh_operators import ShortCircuitSSHOperator, TemplateToSFTPOperator
 
 default_args = {
     'owner': 'Damien Ayers',
@@ -66,11 +69,11 @@ with dag:
     #     bash_command="echo Input is: {{ dag_run.conf.hello }}"
     #
     # )
-    # upload_template_var = TemplateToSFTPOperator(
-    #     task_id='upload_template_var',
-    #     ssh_conn_id='omad_localhost',
-    #     remote_filepath='/home/omad/{{ ds }}test.txt',
-    #     file_contents="testtemplate.jinja2",
-    #     create_intermediate_dirs=False,
-    #     file_mode=0o644,
-    # )
+    upload_template_var = TemplateToSFTPOperator(
+        task_id='upload_template_var',
+        ssh_conn_id='omad_localhost',
+        remote_filepath='/home/omad/{{ ds }}test.txt',
+        file_contents="testtemplate.jinja2",
+        create_intermediate_dirs=False,
+        file_mode=0o644,
+    )

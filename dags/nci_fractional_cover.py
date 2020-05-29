@@ -1,3 +1,6 @@
+"""
+# Produce and Index Fractional Cover on the NCI
+"""
 from datetime import datetime, timedelta
 
 from airflow import DAG
@@ -41,11 +44,11 @@ with dag:
 
     COMMON = """
         {% set work_dir = '/g/data/v10/work/' + params.product + '/' + ts_nodash %}
-        
+
         module use /g/data/v10/public/modules/modulefiles;
         module load {{ params.module }};
-        
-    """
+
+        """
 
     for product in fc_products:
         generate_tasks = SSHOperator(
@@ -84,9 +87,9 @@ with dag:
               # based on number of tasks.
               # Although, if we run regularaly, it should be pretty consistent.
               # Last time I checked, FC took about 30s per tile (task).
-              
+
               cd {{work_dir}}
-              
+
               qsub -N {{ params.product}}_{{ params.year }} \
               -q {{ params.queue }} \
               -W umask=33 \

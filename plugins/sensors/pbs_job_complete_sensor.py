@@ -1,9 +1,13 @@
+"""
+Implements an Airflow Sensor for awaiting the completion of a PBS Job
+"""
 import json
 from base64 import b64decode
 from json import JSONDecodeError
 from logging import getLogger
 
 from airflow import AirflowException
+from airflow.configuration import conf
 from airflow.sensors.base_sensor_operator import BaseSensorOperator
 from airflow.utils.decorators import apply_defaults
 
@@ -12,13 +16,20 @@ from common.ssh import SSHRunMixin
 log = getLogger(__name__)
 
 
-def maybe_decode_base64(data):
-    # The SSHOperator will base64 encode output stored in XCOM, if pickling of xcom vals is disabled
-    # For now, lets sniff the value and base64 decode it if necessary
-    if data.endswith('='):
-        return b64decode(data).decode('utf8').strip()
+def maybe_decode_xcom(data):
+    """Prepare XCom data passed from an SSHOperator
+
+    If pickling of XCom values is disabled (optional setting now, but the
+    default come Airflow 2.0) The SSHOperator will base64 encode output stored
+    in XCOM.
+
+    This function does the reverse of code in the SSHOperator
+    """
+    enable_pickling = conf.getboolean("core", "enable_xcom_pickling")
+    if enable_pickling:
+        return data.strip()
     else:
-        return data
+        return b64decode(data).decode('utf8').strip()
 
 
 # Putting the SSHMixin first, so that it hopefully consumes it's __init__ arguments
@@ -41,7 +52,7 @@ class PBSJobSensor(SSHRunMixin, BaseSensorOperator):
         super().__init__(mode=mode, poke_interval=poke_interval, timeout=timeout, *args, **kwargs)
         self.log.info('Inside PBSJobSensor Init Function')
 
-        self.pbs_job_id = maybe_decode_base64(pbs_job_id)
+        self.pbs_job_id = maybe_decode_xcom(pbs_job_id)
         self.log.info('Using pbs_job_id: %s', self.pbs_job_id)
 
     def poke(self, context):

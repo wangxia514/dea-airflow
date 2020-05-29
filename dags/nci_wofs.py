@@ -1,3 +1,6 @@
+"""
+# Produce WOfS on the NCI
+"""
 from datetime import datetime, timedelta
 
 from airflow import DAG
@@ -36,13 +39,13 @@ with dag:
           {% set work_dir = '/g/data/v10/work/wofs_albers/' + ts_nodash %}
           module use /g/data/v10/public/modules/modulefiles;
           module load {{ params.module }};
-          
+
           APP_CONFIG=/g/data/v10/public/modules/{{params.module}}/wofs/config/wofs_albers.yaml
     """
-    generate_tasks = SSHOperator(
+    generate_wofs_tasks = SSHOperator(
         task_id='generate_wofs_tasks',
         command=COMMON + """
-        
+
             mkdir -p {{work_dir}}
             cd {{work_dir}}
             datacube --version
@@ -52,7 +55,7 @@ with dag:
         timeout=60 * 60 * 2,
     )
 
-    test_tasks = SSHOperator(
+    test_wofs_tasks = SSHOperator(
         task_id='test_wofs_tasks',
         command=COMMON + """
             cd {{work_dir}}
@@ -93,4 +96,4 @@ with dag:
     )
     completed = DummyOperator(task_id='submitted_to_pbs')
 
-    start >> generate_tasks >> test_tasks >> submit_wofs_job >> wait_for_completion >> completed
+    start >> generate_wofs_tasks >> test_wofs_tasks >> submit_wofs_job >> wait_for_completion >> completed

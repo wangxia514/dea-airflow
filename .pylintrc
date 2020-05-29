@@ -3,7 +3,8 @@ load-plugins=pylint_airflow
 
 [MESSAGES CONTROL]
 disable=all
-enable=print-statement,
+enable=E,
+       print-statement,
        parameter-unpacking,
        unpacking-in-except,
        old-raise-syntax,
@@ -74,7 +75,6 @@ enable=print-statement,
        deprecated-sys-function,
        exception-escape,
        useless-import-alias,
-       mixed-dependency-directions
        unused-xcom,
        basehook-top-level,
        duplicate-dag-name,
@@ -82,6 +82,13 @@ enable=print-statement,
        duplicate-dependency,
        dag-with-cycles,
        task-no-dag,
+       # Desireable Airflow Conventions
+       match-dagid-filename,
+       mixed-dependency-directions,
+       missing-docstring,
+       # different-operator-varname-taskid, # A nice idea, but no good for dynamically generating tasks
+
+
 
 [SIMILARITIES]
 
