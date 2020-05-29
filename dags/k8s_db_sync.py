@@ -36,7 +36,22 @@ DEFAULT_ARGS = {
     # 'pool': 'backfill',
     # 'priority_weight': 10,
     # 'end_date': datetime(2016, 1, 1),
+    "env_vars": {
+        "AWS_DEFAULT_REGION": "ap-southeast-2",
+        # TODO: Pass these via templated params in DAG Run
+        "DB_HOSTNAME": "database-write.local",
+    },
+    # Use K8S secrets to send DB Creds
+    # Lift secrets into environment variables for datacube
+    "secrets": [
+        Secret("env", "DB_USERNAME", "replicator-db", "postgres-username"),
+        Secret("env", "PGPASSWORD", "replicator-db", "postgres-password"),
+    ]
 }
+
+# Point to Geoscience Australia / OpenDataCube Dockerhub
+S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:latest"
+EXPLORER_IMAGE = "opendatacube/dashboard:2.1.6"
 
 dag = DAG(
     "k8s_db_sync",
@@ -45,7 +60,7 @@ dag = DAG(
     catchup=False,
     concurrency=1,
     tags=["k8s"],
-    schedule_interval=timedelta(minutes=5),
+    schedule_interval=timedelta(hours=12),
 )
 
 
@@ -68,10 +83,42 @@ with dag:
         provide_context=True,
         python_callable=backup_announce,
     )
+    
     # Download PostgreSQL backup from S3 to within K8S storage
-    RESTORE_RDS_S3 = DummyOperator(task_id="restore_rds_s3")
+    RESTORE_RDS_S3 = KubernetesPodOperator(
+        namespace="processing",
+        image=S3_TO_RDS_IMAGE,
+        # TODO: Pass this via DAG parameters
+        annotations={"iam.amazonaws.com/role": "dea-dev-eks-db-sync"},
+        cmds=["/code/s3-to-rds.sh", "{{ ds_nodash }}", "s3://nci-db-dump/prod"],
+        labels={"step": "s3-to-rds"},
+        name="s3-to-rds",
+        task_id="s3-to-rds",
+        get_logs=True,
+    )
+
+    # Restore dynamic indices skipped in the previous step
+    DYNAMIC_INDICES = KubernetesPodOperator(
+        namespace="processing",
+        image=EXPLORER_IMAGE,
+        cmds=["datacube -v", "system", "init","--lock-table"],
+        labels={"step": "restore_indices"},
+        name="odc-indices",
+        task_id="odc-indices",
+        get_logs=True,
+    )
+
     # Restore to a local db and link it to explorer codebase and run summary
-    SUMMARIZE_DATACUBE = DummyOperator(task_id="summarize_datacube")
+    SUMMARIZE_DATACUBE = KubernetesPodOperator(
+        namespace="processing",
+        image=EXPLORER_IMAGE,
+        cmds=["cubedash-gen", "--init", "--all"],
+        labels={"step": "summarize_datacube"},
+        name="summarize-datacube",
+        task_id="summarize-datacube",
+        get_logs=True,
+    )
+    
     # Get API responses from Explorer and ensure product count summaries match
     AUDIT_EXPLORER = DummyOperator(task_id="audit_explorer")
     # Transfer Data via Explorer STAC API to Resto PostgreSQL DB
@@ -83,7 +130,8 @@ with dag:
     START >> S3_BACKUP_SENSE
     S3_BACKUP_SENSE >> RESTORE_RDS_S3
     S3_BACKUP_SENSE >> ANNOUNCE_BACKUP_ARRIVAL
-    RESTORE_RDS_S3 >> SUMMARIZE_DATACUBE
+    RESTORE_RDS_S3 >> DYNAMIC_INDICES
+    DYNAMIC_INDICES >> SUMMARIZE_DATACUBE
     SUMMARIZE_DATACUBE >> AUDIT_EXPLORER
     RESTORE_RDS_S3 >> ETL_RESTO
     ETL_RESTO >> AUDIT_RESTO
