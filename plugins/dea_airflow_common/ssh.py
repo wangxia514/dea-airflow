@@ -1,3 +1,10 @@
+"""
+This module defines a Helper mixin class for running commands
+over SSH Connections.
+
+TODO: It would probably make sense to integrate this into a new SSHHook
+TODO: And then try to push it upstream as it's useful functionality
+"""
 from select import select
 
 from airflow import AirflowException
@@ -6,6 +13,7 @@ from airflow.utils.decorators import apply_defaults
 
 
 class SSHRunMixin:
+    """Mixin class to use when defining a new Airflow Operator that operates over SSH"""
     @apply_defaults
     def __init__(self,
                  ssh_conn_id=None,
@@ -20,6 +28,11 @@ class SSHRunMixin:
         self.ssh_conn_id = ssh_conn_id
 
     def run_ssh_command_and_return_output(self, command) -> (int, str):
+        """
+        Open and SSH Connection and execute a command
+
+        Returns the exit status and output from stdout
+        """
         # Copied from ssh_operator.py . It's not reusable from there.
         try:
             if self.ssh_conn_id:
