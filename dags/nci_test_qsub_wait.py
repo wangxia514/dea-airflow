@@ -1,3 +1,6 @@
+"""
+# Test DAG for submitting PBS Jobs and awaiting their completion
+"""
 from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
 
@@ -17,10 +20,11 @@ with DAG('nci_test_qsub_wait',
          default_args=default_args,
          catchup=False,
          schedule_interval=None,
-         template_searchpath='templates/'
+         template_searchpath='templates/',
+         doc_md=__doc__,
          ) as dag:
-    submit_job = SSHOperator(
-        task_id=f'submit_pbs_job',
+    submit_pbs_job = SSHOperator(
+        task_id=f'submit_foo_pbs_job',
         ssh_conn_id='lpgs_gadi',
         command="""
           {% set work_dir = '~/airflow_testing/' -%}
@@ -52,4 +56,4 @@ with DAG('nci_test_qsub_wait',
         pbs_job_id="{{ ti.xcom_pull(task_ids='submit_pbs_job') }}"
     )
 
-    submit_job >> wait_for_completion
+    submit_pbs_job >> wait_for_completion

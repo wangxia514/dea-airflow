@@ -50,6 +50,11 @@ TIMEOUT = timedelta(days=1)
 
 
 def task_to_fail():
+    """Make a Task into a manual Check
+
+    Raise an exception with a message asking for this Task to be manually marked
+    as successful.
+    """
     raise AirflowException("Please change this step to success to continue")
 
 

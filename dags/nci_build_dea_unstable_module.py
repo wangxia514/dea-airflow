@@ -30,8 +30,8 @@ dag = DAG(
 )
 
 with dag:
-    build_env_task = SSHOperator(
-        task_id=f'build_dea_unstable_module',
+    build_dea_unstable_module = SSHOperator(
+        task_id='build_dea_unstable_module',
         ssh_conn_id='lpgs_gadi',
         command="""
         cd ~/dea-orchestration/
@@ -65,4 +65,4 @@ with dag:
         mime_charset='utf-8',
     )
 
-    build_env_task >> [send_email]
+    build_dea_unstable_module >> [send_email]

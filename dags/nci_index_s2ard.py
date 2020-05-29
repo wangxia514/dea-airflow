@@ -1,3 +1,6 @@
+"""
+# Unused (was formerly for indexing S2ARD)
+"""
 from datetime import datetime, timedelta
 
 from airflow import DAG
@@ -41,7 +44,7 @@ SYNC_COMMAND = """
       dea-sync -vvv --cache-folder {{sync_cache_dir}} -j 4 --update-locations --index-missing {{ sync_path }}"
 """
 
-with DAG('nci_sync_s2ard',
+with DAG('nci_index_s2ard',
          default_args=default_args,
          catchup=False,
          # schedule_interval=timedelta(days=1),
