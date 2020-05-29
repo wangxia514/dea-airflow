@@ -9,4 +9,6 @@ DAG's can be locally edited and validated. Development can be done in `conda` or
 ```bash
 pip install apache-airflow[aws,kubernetes,postgres,redis,ssh,celery]
 pip install pylint pylint-airflow
+
+pylint dags plugins
 ```
