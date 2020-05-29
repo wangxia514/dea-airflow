@@ -11,7 +11,7 @@ from airflow.configuration import conf
 from airflow.sensors.base_sensor_operator import BaseSensorOperator
 from airflow.utils.decorators import apply_defaults
 
-from common.ssh import SSHRunMixin
+from dea_airflow_common.ssh import SSHRunMixin
 
 log = getLogger(__name__)
 

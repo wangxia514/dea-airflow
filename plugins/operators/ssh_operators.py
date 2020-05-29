@@ -11,7 +11,7 @@ from airflow.contrib.operators.sftp_operator import _make_intermediate_dirs
 from airflow.models import BaseOperator, SkipMixin
 from airflow.utils.decorators import apply_defaults
 
-from common.ssh import SSHRunMixin
+from dea_airflow_common.ssh import SSHRunMixin
 
 
 class ShortCircuitSSHOperator(SSHRunMixin, BaseOperator, SkipMixin):
