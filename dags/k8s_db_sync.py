@@ -89,7 +89,7 @@ with dag:
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
         # TODO: Pass this via DAG parameters
-        annotations={"iam.amazonaws.com/role": "dea-dev-eks-db-sync"},
+        annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-processing-dbsync"},
         cmds=["/code/s3-to-rds.sh", "{{ ds_nodash }}", "s3://nci-db-dump/prod"],
         labels={"step": "s3-to-rds"},
         name="s3-to-rds",
