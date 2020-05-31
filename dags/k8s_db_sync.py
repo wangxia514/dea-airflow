@@ -97,6 +97,7 @@ with dag:
         # TODO: Pass this via DAG parameters
         annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-processing-dbsync"},
         cmds=["/code/s3-to-rds.sh", "{{ ds_nodash }}", "s3://nci-db-dump/prod"],
+        image_pull_policy="Always",
         labels={"step": "s3-to-rds"},
         name="s3-to-rds",
         task_id="s3-to-rds",
