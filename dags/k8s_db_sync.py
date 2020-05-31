@@ -38,13 +38,17 @@ DEFAULT_ARGS = {
     # 'end_date': datetime(2016, 1, 1),
     "env_vars": {
         "AWS_DEFAULT_REGION": "ap-southeast-2",
-        # TODO: Pass these via templated params in DAG Run
         "DB_HOSTNAME": "database-write.local",
+        # The run day's DB
+        "DB_DATABASE" : "nci_{{ ds_nodash }}"
     },
     # Use K8S secrets to send DB Creds
     # Lift secrets into environment variables for datacube
     "secrets": [
         Secret("env", "DB_USERNAME", "replicator-db", "postgres-username"),
+        # For Datacube to use
+        Secret("env", "DB_PASSWORD", "replicator-db", "postgres-password"),
+        # For psql to use
         Secret("env", "PGPASSWORD", "replicator-db", "postgres-password"),
     ]
 }
@@ -65,6 +69,8 @@ dag = DAG(
 
 
 def backup_announce(**kwargs):
+    """Python function to announce backup arrival
+    """
     print("A new db dump is here!!")
 
 file_prefix="105-{{ ds_nodash }}"
