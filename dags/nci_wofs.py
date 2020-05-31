@@ -1,5 +1,5 @@
 """
-# Produce WOfS on the NCI
+# Produce WOfS on the NCI via PBS
 """
 from datetime import datetime, timedelta
 
