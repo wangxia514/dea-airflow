@@ -102,7 +102,7 @@ with dag:
         annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-processing-dbsync"},
         cmds=["/code/s3-to-rds.sh"],
         # Accept DB_NAME, S3_KEY only
-        args=[DB_DATABASE, S3_KEY],
+        arguments=[DB_DATABASE, S3_KEY],
         # TODO: Need to version the helper image properly once stable
         image_pull_policy="Always",
         # TODO: Need PVC to use as scratch space since Nodes don't have enough storage
