@@ -23,6 +23,11 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.contrib.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 
+# Templated DAG arguments
+DB_DATABASE = "nci_{{ ds_nodash }}"
+FILE_PREFIX = "105-{{ ds_nodash }}"
+S3_KEY = f"s3://nci-db-dump/prod/{FILE_PREFIX}-datacube.pgdump"
+
 DEFAULT_ARGS = {
     "owner": "Tisham Dhar",
     "depends_on_past": False,
@@ -40,7 +45,7 @@ DEFAULT_ARGS = {
         "AWS_DEFAULT_REGION": "ap-southeast-2",
         "DB_HOSTNAME": "database-write.local",
         # The run day's DB
-        "DB_DATABASE" : "nci_{{ ds_nodash }}"
+        "DB_DATABASE": DB_DATABASE,
     },
     # Use K8S secrets to send DB Creds
     # Lift secrets into environment variables for datacube
@@ -50,7 +55,7 @@ DEFAULT_ARGS = {
         Secret("env", "DB_PASSWORD", "replicator-db", "postgres-password"),
         # For psql to use
         Secret("env", "PGPASSWORD", "replicator-db", "postgres-password"),
-    ]
+    ],
 }
 
 # Point to Geoscience Australia / OpenDataCube Dockerhub
@@ -73,31 +78,34 @@ def backup_announce(**kwargs):
     """
     print("A new db dump is here!!")
 
-file_prefix="105-{{ ds_nodash }}"
 
 with dag:
     START = DummyOperator(task_id="nci_rds_sync")
     # Wait for S3 Key
     S3_BACKUP_SENSE = S3KeySensor(
-        task_id='s3_backup_sense',
-        poke_interval=60*30,
-        bucket_key=f"s3://nci-db-dump/prod/{file_prefix}-datacube.pgdump",
-        aws_conn_id="aws_nci_db_backup"
+        task_id="s3_backup_sense",
+        poke_interval=60 * 30,
+        bucket_key=S3_KEY,
+        aws_conn_id="aws_nci_db_backup",
     )
     ANNOUNCE_BACKUP_ARRIVAL = PythonOperator(
         task_id="announce_backup_arrival",
         provide_context=True,
         python_callable=backup_announce,
     )
-    
+
     # Download PostgreSQL backup from S3 to within K8S storage
     RESTORE_RDS_S3 = KubernetesPodOperator(
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
         # TODO: Pass this via DAG parameters
         annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-processing-dbsync"},
-        cmds=["/code/s3-to-rds.sh", "{{ ds_nodash }}", "s3://nci-db-dump/prod"],
+        cmds=["/code/s3-to-rds.sh"],
+        # TODO: Untangle NCI specific code from container, accept DB_NAME, S3_KEY only
+        args=["{{ ds_nodash }}", "s3://nci-db-dump/prod"],
+        # TODO: Need to version the helper image properly once stable
         image_pull_policy="Always",
+        # TODO: Need PVC to use as scratch space since Nodes don't have enough storage
         labels={"step": "s3-to-rds"},
         name="s3-to-rds",
         task_id="s3-to-rds",
@@ -108,7 +116,7 @@ with dag:
     DYNAMIC_INDICES = KubernetesPodOperator(
         namespace="processing",
         image=EXPLORER_IMAGE,
-        cmds=["datacube -v", "system", "init","--lock-table"],
+        cmds=["datacube -v", "system", "init", "--lock-table"],
         labels={"step": "restore_indices"},
         name="odc-indices",
         task_id="odc-indices",
@@ -125,7 +133,7 @@ with dag:
         task_id="summarize-datacube",
         get_logs=True,
     )
-    
+
     # Get API responses from Explorer and ensure product count summaries match
     AUDIT_EXPLORER = DummyOperator(task_id="audit_explorer")
     # Transfer Data via Explorer STAC API to Resto PostgreSQL DB
