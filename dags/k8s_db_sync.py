@@ -116,7 +116,8 @@ with dag:
     DYNAMIC_INDICES = KubernetesPodOperator(
         namespace="processing",
         image=EXPLORER_IMAGE,
-        cmds=["datacube -v", "system", "init", "--lock-table"],
+        cmds=["datacube"],
+        arguments=["-v", "system", "init", "--lock-table"],
         labels={"step": "restore_indices"},
         name="odc-indices",
         task_id="odc-indices",
@@ -127,7 +128,8 @@ with dag:
     SUMMARIZE_DATACUBE = KubernetesPodOperator(
         namespace="processing",
         image=EXPLORER_IMAGE,
-        cmds=["cubedash-gen", "--init", "--all"],
+        cmds=["cubedash-gen"],
+        arguments=["--init", "--all"],
         labels={"step": "summarize_datacube"},
         name="summarize-datacube",
         task_id="summarize-datacube",
