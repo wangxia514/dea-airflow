@@ -25,6 +25,7 @@ from airflow.operators.dummy_operator import DummyOperator
 
 # Templated DAG arguments
 DB_DATABASE = "nci_{{ ds_nodash }}"
+DB_HOSTNAME = "database-write.local"
 FILE_PREFIX = "105-{{ ds_nodash }}"
 S3_KEY = f"s3://nci-db-dump/prod/{FILE_PREFIX}-datacube.pgdump"
 
@@ -43,7 +44,7 @@ DEFAULT_ARGS = {
     # 'end_date': datetime(2016, 1, 1),
     "env_vars": {
         "AWS_DEFAULT_REGION": "ap-southeast-2",
-        "DB_HOSTNAME": "database-write.local",
+        "DB_HOSTNAME": DB_HOSTNAME,
         # The run day's DB
         "DB_DATABASE": DB_DATABASE,
     },
@@ -124,6 +125,27 @@ with dag:
         get_logs=True,
     )
 
+    # Enable PostGIS for explorer to use on the restored DB
+    ENABLE_POSTGRES = KubernetesPodOperator(
+        namespace="processing",
+        image=S3_TO_RDS_IMAGE,
+        cmds=["psql"],
+        arguments=[
+            "-h",
+            "$(DB_HOSTNAME)",
+            "-U",
+            "$(DB_USERNAME)",
+            "-d",
+            "$(DB_DATABASE)",
+            "-c",
+            "CREATE EXTENSION IF NOT EXISTS postgis;",
+        ],
+        labels={"step": "enable_postgres"},
+        name="enable-postgres",
+        task_id="enable-postgres",
+        get_logs=True,
+    )
+
     # Restore to a local db and link it to explorer codebase and run summary
     SUMMARIZE_DATACUBE = KubernetesPodOperator(
         namespace="processing",
@@ -148,6 +170,8 @@ with dag:
     S3_BACKUP_SENSE >> RESTORE_RDS_S3
     S3_BACKUP_SENSE >> ANNOUNCE_BACKUP_ARRIVAL
     RESTORE_RDS_S3 >> DYNAMIC_INDICES
+    RESTORE_RDS_S3 >> ENABLE_POSTGRES
+    ENABLE_POSTGRES >> SUMMARIZE_DATACUBE
     DYNAMIC_INDICES >> SUMMARIZE_DATACUBE
     SUMMARIZE_DATACUBE >> AUDIT_EXPLORER
     RESTORE_RDS_S3 >> ETL_RESTO
