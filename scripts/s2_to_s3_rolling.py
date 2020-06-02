@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""Sync data into AWS S3 bucket"""
+"""
+Script to sync Sentinel-2 data from NCI to AWS S3 bucket
+"""
 
-import datetime
+from datetime import datetime as dt, timedelta
+from pathlib import Path
 import logging
-import os
 import subprocess
-import sys
-import re
 
+import click
 import boto3
 import botocore
 import yaml
@@ -26,9 +27,15 @@ S3_PATH = 'L2/sentinel-2-nbar/S2MSIARD_NBAR'
 
 
 def find_granules(_num_days, _end_date, root_path=NCI_DIR):
-    """Find granules for the date range specified above. Format is yyyy-mm-dd/granule"""
+    """
+    Find granules for the date range specified above. Format is yyyy-mm-dd/granule
+    :param _num_days: Number of days to process before the end date.
+    :param _end_date: End date for processing granules.
+    :param root_path: Root path of Sentinel-2 Data in NCI
+    :return: List of granules
+    """
     # Find the dates between the input date and today, inclusive, formatted like the directories
-    dates = [(_end_date - datetime.timedelta(days=x)
+    dates = [(_end_date - timedelta(days=x)
               ).strftime("%Y-%m-%d") for x in range(_num_days + 1)]
 
     # The list of folders will be returned and will contain all the granules available for
@@ -36,16 +43,21 @@ def find_granules(_num_days, _end_date, root_path=NCI_DIR):
     list_of_granules = []
 
     for date in dates:
-        dir_for_date = os.path.join(root_path, date)
-        if os.path.exists(dir_for_date):
-            granules = [date + "/" + name for name in os.listdir(dir_for_date)]
+        dir_for_date = Path(root_path).joinpath(date)
+        if Path(dir_for_date).exists():
+            granules = [date + "/" + name.name for name in Path(dir_for_date).iterdir()]
             list_of_granules += granules
 
     return list_of_granules
 
 
 def check_granule_exists(_s3_bucket, s3_metadata_path):
-    """Check if granaule already exists in S3 bucket"""
+    """
+    Check if granaule already exists in S3 bucket
+    :param _s3_bucket: name of s3 bucket to store granules
+    :param s3_metadata_path: Path of metadata file
+    :return:
+    """
     s3_resource = boto3.resource('s3')
 
     try:
@@ -59,8 +71,13 @@ def check_granule_exists(_s3_bucket, s3_metadata_path):
 
 
 def sync_granule(granule, _s3_bucket):
-    """Run AWS sync command to sync granules to S3 bucket"""
-    local_path = os.path.join(NCI_DIR, granule)
+    """
+    Run AWS sync command to sync granules to S3 bucket
+    :param granule: name of the granule
+    :param _s3_bucket: name of the s3 bucket
+    :return: Returns code zero, if success.
+    """
+    local_path = Path(NCI_DIR).joinpath(granule)
     s3_path = "s3://{s3_bucket}/{s3_path}/{granule}".format(
         s3_bucket=_s3_bucket,
         s3_path=S3_PATH,
@@ -85,7 +102,12 @@ def sync_granule(granule, _s3_bucket):
 
 
 def replace_metadata(yaml_file, _s3_bucket, s3_metadata_path):
-    """Replace metadata with additional info"""
+    """
+    Replace metadata with additional info
+    :param yaml_file: metadata file in NCI
+    :param _s3_bucket: name of s3 bucket
+    :param s3_metadata_path: path of metadata file in s3
+    """
     s3_resource = boto3.resource("s3").Bucket(_s3_bucket)
 
     with open(yaml_file) as config_file:
@@ -124,19 +146,22 @@ def replace_metadata(yaml_file, _s3_bucket, s3_metadata_path):
     LOG.info("Finished uploaded metadata %s to %s", yaml_file, s3_metadata_path)
 
 
-def sync_dates(_num_days, _s3_bucket, _end_date, _update='no'):
-    """"Sync granules to S3 bucket for specified dates"""
+def sync_dates(_num_days, _end_date, _s3_bucket, _update='no'):
+    """
+    Sync granules to S3 bucket for specified dates
+    :param _num_days: Number of days to process before the end date.
+    :param _end_date: End date for processing granules.
+    :param _s3_bucket: Name of the S3 bucket
+    :param _update: Option for granule/metadata update
+    ('sync_granule_metadata' or 'sync_granule' or 'sync_metadata' or 'no')
+    """
     # Since all file paths are of the form:
     # /g/data/if87/datacube/002/S2_MSI_ARD/packaged/YYYY-mm-dd/<granule>
     # we can simply list all the granules per date and sync them
-    if _end_date == 'today':
-        datetime_end = datetime.datetime.today()
-    else:
-        datetime_end = datetime.datetime.strptime(_end_date, "%Y-%m-%d")
+    datetime_end = dt.today() if _end_date == 'today' else dt.strptime(_end_date, "%Y-%m-%d")
 
     # Get list of granules
     list_of_granules = find_granules(_num_days, datetime_end)
-
     LOG.info("Found %s files to process", len(list_of_granules))
 
     # For each granule, sync it if it needs syncing
@@ -149,7 +174,7 @@ def sync_dates(_num_days, _s3_bucket, _end_date, _update='no'):
                 granule=granule
             )
             # Checking if metadata file exists
-            if os.path.exists(yaml_file):
+            if Path(yaml_file).exists():
                 # s3://dea-public-data
                 # /L2/sentinel-2-nbar/S2MSIARD_NBAR/2017-07-02
                 # /S2A_OPER_MSI_ARD_TL_SGS__20170702T022539_A010581_T54LTL_N02.05
@@ -163,10 +188,7 @@ def sync_dates(_num_days, _s3_bucket, _end_date, _update='no'):
 
                 # Maybe todo: include a flag to force replace
                 # Check if already processed and apply sync action accordingly
-                if not already_processed and _update == 'no':
-                    sync_action = 'sync_granule_metadata'
-                else:
-                    sync_action = _update
+                sync_action = 'sync_granule_metadata' if not already_processed else _update
 
                 if sync_action != 'no':
                     if sync_action in ('sync_granule_metadata', 'sync_granule'):
@@ -189,104 +211,25 @@ def sync_dates(_num_days, _s3_bucket, _end_date, _update='no'):
         LOG.warning("Didn't find any granules to process...")
 
 
-def generate_log_report(file_path, _pbs_id):
-    """Generate log report from existing log files"""
-    log_files = ["{}/{}.ER".format(file_path, _pbs_id), "{}/{}.OU".format(file_path, _pbs_id)]
-    export_file = "{}/log_report_{}.txt".format(file_path, _pbs_id)
-    log_error_list = {
-        "processing": {
-            "keyword": "Processing",
-            "desc": "Granules processed"
-        },
-        "failed": {
-            "keyword": "Failed to sync data... skipping",
-            "desc": "Failed to sync data... skipping"
-        },
-        "metadata_not_sync": {
-            "keyword": "Metadata exists, not syncing",
-            "desc": "Metadata exists but not syncing"
-        },
-        "no_metadata_not_sync": {
-            "keyword": "Metadata is missing, not syncing",
-            "desc": "Metadata is missing so not syncing"
-        },
-        "finished_processing_granule": {
-            "keyword": "Finished processing of granule - ",
-            "desc": "Finished processing of granule"
-        },
-        "failed_processing_granule": {
-            "keyword": "Failed processing of granule",
-            "desc": "Failed processing of granule"
-        },
-        "finished_metadata_upload": {
-            "keyword": "Finished uploaded metadata",
-            "desc": "Finished uploaded metadata"
-        },
-        "finished_processing_metadata_upload": {
-            "keyword": "Finished processing and/or uploaded metadata to",
-            "desc": "Finished processing and/or uploaded metadata"
-        }
-    }
-
-    match_list_all = parse_log_data(log_files, log_error_list, read_line=True)
-    write_log_report(export_file, log_error_list, match_list_all)
-
-
-def parse_log_data(log_files, log_error_list, read_line=True):
-    """Parse logged data to generate report"""
-    match_list_all = {}
-    for log_file in log_files:
-        with open(log_file, "r") as file:
-            if read_line:
-                for line in file:
-                    for name, regex in log_error_list.items():
-                        for match in re.finditer(regex["keyword"], line, re.S):
-                            match_list_all.setdefault(name, []).append(line)
-            else:
-                data = file.read()
-                for name, regex in log_error_list.items():
-                    match_list = []
-                    for match in re.finditer(regex["keyword"], data, re.S):
-                        match_text = match.group()
-                        match_list.append(match_text)
-                    match_list_all[name] = match_list
-        file.close()
-    return match_list_all
-
-
-def write_log_report(export_file, log_error_list, match_list_all):
-    """Writes log report into file"""
-    with open(export_file, "w+") as file:
-        file.write("LOG REPORT SUMMARY:\n")
-        for name, value in match_list_all.items():
-            txt = "{} - COUNT: {}".format(log_error_list[name]['desc'], len(value))
-            file.write(txt + "\n")
-        file.write("\nLOG REPORT DETAILS:")
-        for name, value in match_list_all.items():
-            file.write("\n::: " + log_error_list[name]['desc'] + " :::\n")
-            for text in value:
-                file.write(text)
-    file.close()
+@click.command()
+@click.option("--numdays", '-n', type=int, required=True)
+@click.option("--enddate", '-d', type=str, required=True)
+@click.option("--s3bucket", '-b', type=str, required=True)
+@click.option('--doupdate', '-u',
+              type=click.Choice(['granule_metadata', 'granule', 'metadata', 'no'], case_sensitive=True),
+              default='no')
+def main(numdays, enddate, s3bucket, doupdate):
+    """
+    Script to sync Sentinel-2 data from NCI to AWS S3 bucket
+    :param numdays: Number of days to process before the end date.
+    :param enddate: End date for processing granules.
+    :param s3bucket: Name of the S3 bucket
+    :param doupdate: Option for granule/metadata update
+    """
+    sync_dates(numdays, enddate, s3bucket, doupdate)
+    LOG.info("Syncing %s days back from %s into the %s bucket and update is %s",
+             numdays, enddate, s3bucket, doupdate)
 
 
 if __name__ == '__main__':
-    # Arg 1 is action
-    action = sys.argv[1]
-    if action == "log":
-        # Arg 2 is path, 3 is pbs_id
-        path = sys.argv[2]
-        pbs_id = sys.argv[3]
-        LOG.info("Analysing log in path %s with PBS ID (%s)", path, pbs_id)
-        generate_log_report(path, pbs_id)
-    else:
-        # Arg 2 is numdays, 3 is bucket, 4 is enddate, 5 is do_update
-        num_days = int(sys.argv[2])
-        s3_bucket = sys.argv[3]
-        end_date = sys.argv[4]
-        try:
-            DO_UPDATE = sys.argv[5]
-        except IndexError:
-            DO_UPDATE = 'no'
-        LOG.info("Syncing %s days back from %s into the %s bucket and update is %s",
-                 num_days, end_date, s3_bucket, DO_UPDATE)
-        sync_dates(num_days, s3_bucket, end_date, DO_UPDATE)
+    main()
