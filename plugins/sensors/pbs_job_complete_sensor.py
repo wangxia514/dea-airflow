@@ -1,11 +1,11 @@
 """
 Implements an Airflow Sensor for awaiting the completion of a PBS Job
 """
-import json
 from base64 import b64decode
 from json import JSONDecodeError
 from logging import getLogger
 
+import json
 from airflow import AirflowException
 from airflow.configuration import conf
 from airflow.sensors.base_sensor_operator import BaseSensorOperator
@@ -29,7 +29,7 @@ def maybe_decode_xcom(data):
     if enable_pickling:
         return data.strip()
     else:
-        return b64decode(data).decode('utf8').strip()
+        return b64decode(data.encode('utf-8')).decode('utf-8').strip()
 
 
 # Putting the SSHMixin first, so that it hopefully consumes it's __init__ arguments
@@ -52,8 +52,11 @@ class PBSJobSensor(SSHRunMixin, BaseSensorOperator):
         super().__init__(mode=mode, poke_interval=poke_interval, timeout=timeout, *args, **kwargs)
         self.log.info('Inside PBSJobSensor Init Function')
 
-        self.pbs_job_id = maybe_decode_xcom(pbs_job_id)
+        self.pbs_job_id = pbs_job_id
         self.log.info('Using pbs_job_id: %s', self.pbs_job_id)
+
+    def pre_execute(self, context):
+        self.pbs_job_id = maybe_decode_xcom(self.pbs_job_id)
 
     def poke(self, context):
         # qstat json output incorrectly attempts to escape single quotes
