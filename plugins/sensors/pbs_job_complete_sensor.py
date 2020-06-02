@@ -90,7 +90,6 @@ class PBSJobSensor(SSHRunMixin, BaseSensorOperator):
         if job_state == 'F':
             exit_status = result['Jobs'][self.pbs_job_id]['Exit_status']
             if exit_status == 0:
-                context['ti'].xcom_push(key='pbs_job_id', value=self.pbs_job_id)
                 return True
             else:
                 # TODO: I thought this would stop retries, but it doesn't. We need to either set
