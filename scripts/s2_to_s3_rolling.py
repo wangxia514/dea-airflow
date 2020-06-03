@@ -153,7 +153,7 @@ def sync_dates(_num_days, _end_date, _s3_bucket, _update='no'):
     :param _end_date: End date for processing granules.
     :param _s3_bucket: Name of the S3 bucket
     :param _update: Option for granule/metadata update
-    ('sync_granule_metadata' or 'sync_granule' or 'sync_metadata' or 'no')
+    ('granule_metadata' or 'granule' or 'metadata' or 'no')
     """
     # Since all file paths are of the form:
     # /g/data/if87/datacube/002/S2_MSI_ARD/packaged/YYYY-mm-dd/<granule>
@@ -188,25 +188,27 @@ def sync_dates(_num_days, _end_date, _s3_bucket, _update='no'):
 
                 # Maybe todo: include a flag to force replace
                 # Check if already processed and apply sync action accordingly
-                sync_action = 'sync_granule_metadata' if not already_processed else _update
+                sync_action = 'granule_metadata' if not already_processed else _update
 
                 if sync_action != 'no':
-                    if sync_action in ('sync_granule_metadata', 'sync_granule'):
+                    if sync_action in ('granule_metadata', 'granule'):
                         sync_success = sync_granule(granule, _s3_bucket)
                     else:
                         sync_success = True
 
-                    if sync_success and (sync_action in ('sync_metadata', 'sync_granule_metadata')):
+                    if sync_success and (sync_action in ('metadata', 'granule_metadata')):
                         # Replace the metadata with a deterministic ID
                         replace_metadata(yaml_file, _s3_bucket, s3_metadata_path)
                         LOG.info("Finished processing and/or uploaded metadata to %s",
                                  s3_metadata_path)
                     else:
                         LOG.error("Failed to sync data... skipping")
+                        raise ValueError("Failed to sync data... skipping")
                 else:
                     LOG.warning("Metadata exists, not syncing %s", granule)
             else:
                 LOG.error("Metadata is missing, not syncing %s", granule)
+                raise ValueError("Metadata is missing, not syncing %s", granule)
     else:
         LOG.warning("Didn't find any granules to process...")
 
