@@ -18,7 +18,7 @@ default_args = {
     'params': {
         'project': 'v10',
         'queue': 'normal',
-        'module': 'dea/20200602',
+        'module': 'dea/20200603',
         'year': '2020'
     }
 }
