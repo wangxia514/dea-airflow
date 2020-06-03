@@ -34,11 +34,14 @@ def maybe_decode_xcom(data):
 
 # Putting the SSHMixin first, so that it hopefully consumes it's __init__ arguments
 class PBSJobSensor(SSHRunMixin, BaseSensorOperator):
-    """
-    Wait for completion of a PBS job on a remote SSH host.
+    """Wait for completion of a PBS job on a remote SSH host.
+
+    Pushes the PBS job result into XCOM for access in future Tasks. Useful for
+    finding the log file path, or for recording job efficiency.
 
     :param pbs_job_id: The PBS Job Id to await completion of (templated)
     :type pbs_job_id: str
+
     """
     template_fields = ('pbs_job_id',)
 
@@ -88,7 +91,11 @@ class PBSJobSensor(SSHRunMixin, BaseSensorOperator):
 
         job_state = result['Jobs'][self.pbs_job_id]['job_state']
         if job_state == 'F':
-            exit_status = result['Jobs'][self.pbs_job_id]['Exit_status']
+            pbs_result = result['Jobs'][self.pbs_job_id]
+            exit_status = pbs_result['Exit_status']
+
+            self.xcom_push(context, 'return_value', pbs_result)
+
             if exit_status == 0:
                 return True
             else:

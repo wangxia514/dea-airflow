@@ -37,6 +37,7 @@ with dag:
 
     COMMON = """
           {% set work_dir = '/g/data/v10/work/wofs_albers/' + ts_nodash %}
+          set -eux
           module use /g/data/v10/public/modules/modulefiles;
           module load {{ params.module }};
 
@@ -89,11 +90,26 @@ with dag:
         do_xcom_push=True,
         timeout=60 * 20,
     )
-    wait_for_completion = PBSJobSensor(
-        task_id=f'wait_for_wofs_albers',
+    wait_for_wofs_albers = PBSJobSensor(
+        task_id='wait_for_wofs_albers',
         pbs_job_id="{{ ti.xcom_pull(task_ids='%s') }}" % submit_task_id,
         timeout=60 * 60 * 24 * 7,
     )
-    completed = DummyOperator(task_id='submitted_to_pbs')
+    check_for_errors = SSHOperator(
+        task_id='check_for_errors',
+        command=COMMON + """
+        error_dir={{ ti.xcom_pull(task_ids='wait_for_wofs_albers')['Error_Path'] }}
+        echo error_dir: $error_dir
 
-    start >> generate_wofs_tasks >> test_wofs_tasks >> submit_wofs_job >> wait_for_completion >> completed
+        # Invert the return value of grep, we want to fail IF something matches
+        echo Checking for any errors or failures in PBS output
+        ! grep -i 'Task failed' $error_dir/*.ER
+
+        # I would like to match on 'ERROR' too, but there are spurious redis related errors
+
+        """,
+        timeout=60 * 20,
+    )
+
+    start >> generate_wofs_tasks >> test_wofs_tasks >> submit_wofs_job >> wait_for_wofs_albers
+    wait_for_wofs_albers >> check_for_errors
