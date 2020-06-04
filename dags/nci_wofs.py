@@ -76,12 +76,15 @@ with dag:
           cd {{work_dir}}
 
           qsub -N wofs_albers \
-          -q {{ params.queue }} \
-          -W umask=33 \
-          -l wd,walltime=5:00:00,mem=190GB,ncpus=48 -m abe \
-          -l storage=gdata/v10+gdata/fk4+gdata/rs0+gdata/if87 \
-          -M nci.monitor@dea.ga.gov.au \
-          -P {{ params.project }} -o {{ work_dir }} -e {{ work_dir }} \
+               -q {{ params.queue }} \
+               -W umask=33 \
+               -l wd,walltime=5:00:00,mem=190GB,ncpus=48 \
+               -m abe \
+               -l storage=gdata/v10+gdata/fk4+gdata/rs0+gdata/if87 \
+               -M nci.monitor@dea.ga.gov.au \
+               -P {{ params.project }} \
+               -o {{ work_dir }} \
+               -e {{ work_dir }} \
           -- /bin/bash -l -c \
               "module use /g/data/v10/public/modules/modulefiles/; \
               module load {{ params.module }}; \
@@ -98,14 +101,19 @@ with dag:
     check_for_errors = SSHOperator(
         task_id='check_for_errors',
         command=COMMON + """
-        error_dir={{ ti.xcom_pull(task_ids='wait_for_wofs_albers')['Error_Path'] }}
+        error_dir={{ ti.xcom_pull(task_ids='wait_for_wofs_albers')['Error_Path'].split(':')[1] }}
         echo error_dir: $error_dir
 
-        # Invert the return value of grep, we want to fail IF something matches
         echo Checking for any errors or failures in PBS output
-        ! grep -i 'Task failed' $error_dir/*.ER
 
-        # I would like to match on 'ERROR' too, but there are spurious redis related errors
+        task_failed_lines=$(grep -ci 'Task failed' $error_dir/*.ER)
+        if [[ $task_failed_lines != "0" ]]; then
+            grep -i 'Task failed' $error_dir/*.ER
+            exit ${task_failed_lines}
+        fi
+
+        # TODO: I would like to match on 'ERROR' too, but there are spurious redis related errors
+        # TODO: There's also a json-lines output file we can check.
 
         """,
         timeout=60 * 20,
