@@ -74,12 +74,6 @@ dag = DAG(
 )
 
 
-def backup_announce(**kwargs):
-    """Python function to announce backup arrival
-    """
-    print("A new db dump is here!!")
-
-
 with dag:
     START = DummyOperator(task_id="nci_rds_sync")
     # Wait for S3 Key
@@ -88,11 +82,6 @@ with dag:
         poke_interval=60 * 30,
         bucket_key=S3_KEY,
         aws_conn_id="aws_nci_db_backup",
-    )
-    ANNOUNCE_BACKUP_ARRIVAL = PythonOperator(
-        task_id="announce_backup_arrival",
-        provide_context=True,
-        python_callable=backup_announce,
     )
 
     # Download PostgreSQL backup from S3 to within K8S storage
@@ -126,6 +115,11 @@ with dag:
     )
 
     # Enable PostGIS for explorer to use on the restored DB
+    # This will fail without superuser. Keep retrying slowly
+    # and wait for user to notice and manually do it then it should
+    # pass
+    # TODO: Use some other means e.g. new DB from templates with PostGIS
+    # preinstalled
     ENABLE_POSTGRES = KubernetesPodOperator(
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
@@ -140,6 +134,8 @@ with dag:
             "-c",
             "CREATE EXTENSION IF NOT EXISTS postgis;",
         ],
+        retries = 12,
+        retry_delay = timedelta(hours=1),
         labels={"step": "enable_postgres"},
         name="enable-postgres",
         task_id="enable-postgres",
@@ -158,23 +154,37 @@ with dag:
         get_logs=True,
     )
 
+    # Hand ownership back to explorer DB user
+    CHANGE_DB_OWNER = KubernetesPodOperator(
+        namespace="processing",
+        image=S3_TO_RDS_IMAGE,
+        cmds=["/code/change_db_owner.sh"],
+        # TODO: Avoid hardcoding ?
+        arguments=[
+            "explorer"
+        ],
+        labels={"step": "change_db_owner"},
+        name="change-db-owner",
+        task_id="change-db-owner",
+        get_logs=True,
+    )
+
+    # Change DB connection config of application pods and spin up fresh ones
+    # TODO: Currently manual find a smooth way to automate
+    SPIN_PODS = DummyOperator(task_id="spin_pods")
+
     # Get API responses from Explorer and ensure product count summaries match
     AUDIT_EXPLORER = DummyOperator(task_id="audit_explorer")
-    # Transfer Data via Explorer STAC API to Resto PostgreSQL DB
-    ETL_RESTO = DummyOperator(task_id="etl_resto")
-    # Ensure RESTO gives expected results
-    AUDIT_RESTO = DummyOperator(task_id="audit_resto")
     COMPLETE = DummyOperator(task_id="all_done")
 
     START >> S3_BACKUP_SENSE
     S3_BACKUP_SENSE >> RESTORE_RDS_S3
-    S3_BACKUP_SENSE >> ANNOUNCE_BACKUP_ARRIVAL
     RESTORE_RDS_S3 >> DYNAMIC_INDICES
     RESTORE_RDS_S3 >> ENABLE_POSTGRES
     ENABLE_POSTGRES >> SUMMARIZE_DATACUBE
     DYNAMIC_INDICES >> SUMMARIZE_DATACUBE
-    SUMMARIZE_DATACUBE >> AUDIT_EXPLORER
-    RESTORE_RDS_S3 >> ETL_RESTO
-    ETL_RESTO >> AUDIT_RESTO
+    SUMMARIZE_DATACUBE >> CHANGE_DB_OWNER
+
+    CHANGE_DB_OWNER >> SPIN_PODS
+    SPIN_PODS >> AUDIT_EXPLORER
     AUDIT_EXPLORER >> COMPLETE
-    AUDIT_RESTO >> COMPLETE
