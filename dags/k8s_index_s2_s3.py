@@ -1,0 +1,93 @@
+"""
+# S3 to Datacube Indexing
+
+DAG to run indexing for Sentinel-2 data on S3 into AWS DB.
+
+This DAG uses k8s executors and pre-existing pods in cluster with relevant tooling
+and configuration installed.
+"""
+from datetime import datetime, timedelta
+
+from airflow import DAG
+from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+from airflow.contrib.kubernetes.secret import Secret
+from airflow.operators.dummy_operator import DummyOperator
+
+
+DEFAULT_ARGS = {
+    "owner": "Sachit Rajbhandari",
+    "depends_on_past": False,
+    "start_date": datetime(2020, 2, 21),
+    "email": ["sachit.rajbhandari@ga.gov.au"],
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "retries": 0,
+    "retry_delay": timedelta(minutes=5),
+    "env_vars": {
+        "AWS_DEFAULT_REGION": "ap-southeast-2",
+        # TODO: Pass these via templated params in DAG Run
+        "DB_HOSTNAME": "database-write.local",
+        "DB_DATABASE": "ows-index",
+    },
+    # Use K8S secrets to send DB Creds
+    # Lift secrets into environment variables for datacube
+    "secrets": [
+        Secret("env", "DB_USERNAME", "ows-db", "postgres-username"),
+        Secret("env", "DB_PASSWORD", "ows-db", "postgres-password"),
+    ],
+}
+
+
+INDEXER_IMAGE = "opendatacube/datacube-index:0.0.5"
+
+
+dag = DAG(
+    "k8s_index_s2_s3",
+    doc_md=__doc__,
+    default_args=DEFAULT_ARGS,
+    schedule_interval=None,
+    catchup=False,
+    tags=['k8s', 'sentinel_2']
+)
+
+
+with dag:
+    START = DummyOperator(task_id="s3_index_publish")
+
+    # TODO: Bootstrap if targeting a Blank DB
+    # TODO: Initialize Datacube
+    # TODO: Add metadata types
+    # TODO: Add products
+    BOOTSTRAP = KubernetesPodOperator(
+        namespace="processing",
+        image=INDEXER_IMAGE,
+        cmds=["datacube", "product", "list"],
+        labels={"step": "bootstrap"},
+        name="odc-bootstrap",
+        task_id="bootstrap-task",
+        get_logs=True,
+    )
+
+    INDEXING = KubernetesPodOperator(
+        namespace="processing",
+        image=INDEXER_IMAGE,
+        cmds=["s3-to-dc"],
+        # Assume kube2iam role via annotations
+        # TODO: Pass this via DAG parameters
+        annotations={"iam.amazonaws.com/role": "dea-dev-eks-wms"},
+        # TODO: Collect form JSON used to trigger DAG
+        arguments=[
+            "s3://dea-public-data-dev/L2/sentinel-2-nbar/S2MSIARD_NBAR//**/*.yaml",
+            "s2_ard_nbar"
+        ],
+        labels={"step": "s3-to-rds"},
+        name="datacube-index",
+        task_id="indexing-task",
+        get_logs=True,
+    )
+
+    COMPLETE = DummyOperator(task_id="all_done")
+
+    START >> BOOTSTRAP
+    BOOTSTRAP >> INDEXING
+    INDEXING >> COMPLETE
