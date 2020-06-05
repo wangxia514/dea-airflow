@@ -88,7 +88,7 @@ with dag:
           -- /bin/bash -l -c \
               "module use /g/data/v10/public/modules/modulefiles/; \
               module load {{ params.module }}; \
-              datacube-wofs run -v --input-filename {{work_dir}}/tasks.pickle --celery pbs-launch"
+              datacube-wofs run -v --input-filename {{work_dir}}/tasks.pickle --parallel 48"
         """,
         do_xcom_push=True,
         timeout=60 * 20,
