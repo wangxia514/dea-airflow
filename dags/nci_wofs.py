@@ -78,7 +78,7 @@ with dag:
           qsub -N wofs_albers \
                -q {{ params.queue }} \
                -W umask=33 \
-               -l wd,walltime=5:00:00,mem=190GB,ncpus=48 \
+               -l wd,walltime=15:00:00,mem=3GB,ncpus=1 \
                -m abe \
                -l storage=gdata/v10+gdata/fk4+gdata/rs0+gdata/if87 \
                -M nci.monitor@dea.ga.gov.au \
@@ -88,7 +88,7 @@ with dag:
           -- /bin/bash -l -c \
               "module use /g/data/v10/public/modules/modulefiles/; \
               module load {{ params.module }}; \
-              datacube-wofs run -v --input-filename {{work_dir}}/tasks.pickle --parallel 48"
+              datacube-wofs run -v --input-filename {{work_dir}}/tasks.pickle"
         """,
         do_xcom_push=True,
         timeout=60 * 20,
