@@ -69,6 +69,7 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     catchup=False,
     concurrency=1,
+    max_active_runs=1,
     tags=["k8s"],
     schedule_interval=timedelta(hours=12),
 )
