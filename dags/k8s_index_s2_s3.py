@@ -5,6 +5,12 @@ DAG to run indexing for Sentinel-2 data on S3 into AWS DB.
 
 This DAG uses k8s executors and pre-existing pods in cluster with relevant tooling
 and configuration installed.
+
+The DAG has to be parameterized with index date as below.
+
+    {
+        "index_date": "2020-05-01"
+    }
 """
 from datetime import datetime, timedelta
 
@@ -39,7 +45,7 @@ DEFAULT_ARGS = {
 
 
 INDEXER_IMAGE = "opendatacube/datacube-index:0.0.5"
-
+EXPLORER_IMAGE = "opendatacube/dashboard:2.1.6"
 
 dag = DAG(
     "k8s_index_s2_s3",
@@ -68,6 +74,20 @@ with dag:
         get_logs=True,
     )
 
+    ADD_PRODUCT = KubernetesPodOperator(
+        namespace="processing",
+        image=INDEXER_IMAGE,
+        cmds=["datacube", "product", "add"],
+        arguments=[
+            "https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/"
+            "9c12bb30bff1f81ccd2a94e2c5052288688c55d1/products/ga_s2_ard_nbar/ga_s2_ard_nbar_granule.yaml"
+        ],
+        labels={"step": "add-product"},
+        name="odc-add-product",
+        task_id="add-product-task",
+        get_logs=True,
+    )
+
     INDEXING = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
@@ -77,8 +97,9 @@ with dag:
         annotations={"iam.amazonaws.com/role": "dea-dev-eks-wms"},
         # TODO: Collect form JSON used to trigger DAG
         arguments=[
-            "s3://dea-public-data-dev/L2/sentinel-2-nbar/S2MSIARD_NBAR//**/*.yaml",
-            "s2_ard_nbar"
+            "s3://dea-public-data-dev/L2/sentinel-2-nbar/S2MSIARD_NBAR/{{ dag_run.conf.index_date }}/*/*.yaml",
+            "ga_s2a_ard_nbar_granule",
+            "ga_s2b_ard_nbar_granule",
         ],
         labels={"step": "s3-to-rds"},
         name="datacube-index",
@@ -86,8 +107,24 @@ with dag:
         get_logs=True,
     )
 
+    SUMMARY = KubernetesPodOperator(
+        namespace="processing",
+        image=EXPLORER_IMAGE,
+        cmds=["cubedash-gen", "--force-refresh", "--refresh-stats"],
+        arguments=[
+            "ga_s2a_ard_nbar_granule",
+            "ga_s2b_ard_nbar_granule",
+        ],
+        labels={"step": "explorer"},
+        name="explorer-summary",
+        task_id="explorer-summary-task",
+        get_logs=True,
+    )
+
     COMPLETE = DummyOperator(task_id="all_done")
 
     START >> BOOTSTRAP
-    BOOTSTRAP >> INDEXING
-    INDEXING >> COMPLETE
+    BOOTSTRAP >> ADD_PRODUCT
+    ADD_PRODUCT >> INDEXING
+    INDEXING >> SUMMARY
+    SUMMARY >> COMPLETE
