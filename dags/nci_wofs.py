@@ -78,7 +78,7 @@ with dag:
           qsub -N wofs_albers \
                -q {{ params.queue }} \
                -W umask=33 \
-               -l wd,walltime=15:00:00,mem=3GB,ncpus=1 \
+               -l wd,walltime=5:00:00,mem=190GB,ncpus=48 \
                -m abe \
                -l storage=gdata/v10+gdata/fk4+gdata/rs0+gdata/if87 \
                -M nci.monitor@dea.ga.gov.au \
