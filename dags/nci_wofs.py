@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
-from airflow.operators.dummy_operator import DummyOperator
 
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
@@ -33,14 +32,12 @@ dag = DAG(
 )
 
 with dag:
-    start = DummyOperator(task_id='start')
-
     COMMON = """
           {% set work_dir = '/g/data/v10/work/wofs_albers/' + ts_nodash %}
-          set -eux
           module use /g/data/v10/public/modules/modulefiles;
           module load {{ params.module }};
 
+          set -eux
           APP_CONFIG=/g/data/v10/public/modules/{{params.module}}/wofs/config/wofs_albers.yaml
     """
     generate_wofs_tasks = SSHOperator(
@@ -60,7 +57,8 @@ with dag:
         task_id='test_wofs_tasks',
         command=COMMON + """
             cd {{work_dir}}
-            datacube-wofs check-existing -vv --dry-run --input-filename tasks.pickle
+            datacube-wofs inspect-taskfile tasks.pickle
+            datacube-wofs check-existing --input-filename tasks.pickle
         """,
         timeout=60 * 20,
     )
@@ -89,7 +87,7 @@ with dag:
               "module use /g/data/v10/public/modules/modulefiles/; \
               module load {{ params.module }}; \
               module load openmpi; \
-              mpirun datacube-wofs mpi-run -v --input-filename {{work_dir}}/tasks.pickle"
+              mpirun datacube-wofs run-mpi -v --input-filename {{work_dir}}/tasks.pickle"
         """,
         do_xcom_push=True,
         timeout=60 * 20,
@@ -120,5 +118,5 @@ with dag:
         timeout=60 * 20,
     )
 
-    start >> generate_wofs_tasks >> test_wofs_tasks >> submit_wofs_job >> wait_for_wofs_albers
+    generate_wofs_tasks >> test_wofs_tasks >> submit_wofs_job >> wait_for_wofs_albers
     wait_for_wofs_albers >> check_for_errors
