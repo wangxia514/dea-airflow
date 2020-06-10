@@ -60,7 +60,7 @@ with dag:
         task_id='test_wofs_tasks',
         command=COMMON + """
             cd {{work_dir}}
-            datacube-wofs check-existing -vv --dry-run --input-filename tasks.pickle
+            datacube-wofs check-existing --dry-run --input-filename tasks.pickle
         """,
         timeout=60 * 20,
     )
