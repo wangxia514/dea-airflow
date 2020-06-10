@@ -94,7 +94,7 @@ with dag:
         cmds=["s3-to-dc"],
         # Assume kube2iam role via annotations
         # TODO: Pass this via DAG parameters
-        annotations={"iam.amazonaws.com/role": "dea-dev-eks-wms"},
+        annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-processing-index"},
         # TODO: Collect form JSON used to trigger DAG
         arguments=[
             "s3://dea-public-data-dev/L2/sentinel-2-nbar/S2MSIARD_NBAR/{{ dag_run.conf.index_date }}/*/*.yaml",
@@ -107,24 +107,9 @@ with dag:
         get_logs=True,
     )
 
-    SUMMARY = KubernetesPodOperator(
-        namespace="processing",
-        image=EXPLORER_IMAGE,
-        cmds=["cubedash-gen", "--force-refresh", "--refresh-stats"],
-        arguments=[
-            "ga_s2a_ard_nbar_granule",
-            "ga_s2b_ard_nbar_granule",
-        ],
-        labels={"step": "explorer"},
-        name="explorer-summary",
-        task_id="explorer-summary-task",
-        get_logs=True,
-    )
-
     COMPLETE = DummyOperator(task_id="all_done")
 
     START >> BOOTSTRAP
     BOOTSTRAP >> ADD_PRODUCT
     ADD_PRODUCT >> INDEXING
-    INDEXING >> SUMMARY
-    SUMMARY >> COMPLETE
+    INDEXING >> COMPLETE
