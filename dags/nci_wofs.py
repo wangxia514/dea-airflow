@@ -60,7 +60,7 @@ with dag:
         task_id='test_wofs_tasks',
         command=COMMON + """
             cd {{work_dir}}
-            datacube-wofs run -vv --dry-run --input-filename tasks.pickle
+            datacube-wofs check-existing -vv --dry-run --input-filename tasks.pickle
         """,
         timeout=60 * 20,
     )
@@ -71,7 +71,7 @@ with dag:
           # TODO Should probably use an intermediate task here to calculate job size
           # based on number of tasks.
           # Although, if we run regularaly, it should be pretty consistent.
-          # Last time I checked, FC took about 30s per tile (task).
+          # Last time I checked, WOfS takes about 15s per tile (task).
 
           cd {{work_dir}}
 
@@ -88,7 +88,8 @@ with dag:
           -- /bin/bash -l -c \
               "module use /g/data/v10/public/modules/modulefiles/; \
               module load {{ params.module }}; \
-              datacube-wofs run -v --input-filename {{work_dir}}/tasks.pickle"
+              module load openmpi; \
+              mpirun datacube-wofs mpi-run -v --input-filename {{work_dir}}/tasks.pickle"
         """,
         do_xcom_push=True,
         timeout=60 * 20,
