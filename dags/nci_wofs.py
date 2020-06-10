@@ -87,7 +87,7 @@ with dag:
               "module use /g/data/v10/public/modules/modulefiles/; \
               module load {{ params.module }}; \
               module load openmpi; \
-              mpirun datacube-wofs mpi-run -v --input-filename {{work_dir}}/tasks.pickle"
+              mpirun datacube-wofs run-mpi -v --input-filename {{work_dir}}/tasks.pickle"
         """,
         do_xcom_push=True,
         timeout=60 * 20,
