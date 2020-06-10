@@ -104,7 +104,7 @@ dag = DAG(
     default_args=default_args,
     catchup=get_parameter_value_from_variable(dag_config, 'catchup', False),
     schedule_interval=get_parameter_value_from_variable(dag_config, 'schedule_interval', None),
-    max_active_runs=3,
+    max_active_runs=1,
     default_view='graph',
     tags=['nci', 'sentinel_2'],
 )
