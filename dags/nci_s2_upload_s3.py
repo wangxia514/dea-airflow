@@ -11,13 +11,13 @@ data from NCI to AWS S3 bucket. It:
 
 This DAG takes following input parameters:
 
- * `start_date`: Start date for DAG run `datetime(2017, 7, 1)`.
+ * `start_date`: Start date for DAG run `datetime(2019, 12, 6)`.
  * `end_date`: End date for DAG run `datetime(2020, 5, 31)`.
  * `catchup`: Set to `[True]` for back fill else `[False]`.
  * `schedule_interval`: Set `None` for no schedule else provide schedule cron or preset `"@daily"`.
  * `ssh_conn_id`: Provide SSH Connection ID `"lpgs_gadi"`.
- * `aws_conn_id`: Provide AWS Conection ID `"dea_public_data_dev_upload"`.
- * `s3bucket`: Name of the S3 bucket. `"dea-public-data-dev"`
+ * `aws_conn_id`: Provide AWS Conection ID `"dea_public_data_upload"`.
+ * `s3bucket`: Name of the S3 bucket. `"dea-public-data"`
  * `numdays`: Number of days to process before the execution date. `"0"`
  * `doupdate`: Select update option as below to replace granules and metadata.
                If update option is not provided, granules and metadata are not
@@ -41,16 +41,16 @@ from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
 
 default_args = {
     'owner': 'Sachit Rajbhandari',
-    'start_date': datetime(2020, 4, 21),
+    'start_date': datetime(2019, 12, 6),
     'end_date': datetime(2020, 5, 31),
     'retries': 1,
     'retry_delay': timedelta(minutes=5),
     'email_on_failure': True,
     'email': 'sachit.rajbhandari@ga.gov.au',
     'ssh_conn_id': 'lpgs_gadi',
-    'aws_conn_id': 'dea_public_data_dev_upload',
+    'aws_conn_id': 'dea_public_data_upload',
     'params': {
-        's3bucket': 'dea-public-data-dev',
+        's3bucket': 'dea-public-data',
         'numdays': '0',
         'doupdate': 'no'
     }
