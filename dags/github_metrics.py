@@ -1,7 +1,11 @@
 import logging
 
+from psycopg2.extras import Json
+import psycopg2
 import requests
 from airflow import DAG
+from airflow import secrets
+from airflow.contrib.hooks.ssh_hook import SSHHook
 from airflow.hooks.postgres_hook import PostgresHook
 from airflow.operators.postgres_operator import PostgresOperator
 from airflow.operators.python_operator import PythonOperator
@@ -18,29 +22,62 @@ repos = [
 ]
 
 
-def _record_statistics(postgres_conn_id):
+def _record_statistics(ts, postgres_conn_id, ssh_conn_id, **context):
+    # Can't use PostgresHook because our TCP port is likely to be dynamic
+    # because we are connecting through an SSH Tunnel
+    pg_secret = secrets.get_connections(postgres_conn_id)
+
+    ssh_conn = SSHHook(ssh_conn_id=ssh_conn_id)
+    tunnel = ssh_conn.get_tunnel(remote_port=pg_secret.port, remote_host=pg_secret.host)
+
     stats_retriever = GitHubStatsRetriever()
-    pg = PostgresHook(postgres_conn_id=postgres_conn_id)
 
-    for owner, repo in repos:
-        stats = stats_retriever.get_repo_stats(owner, repo)
+    with tunnel:
+        conn = psycopg2.connect(f"host=localhost "
+                                "user={pg_secret.login} "
+                                "port={tunnel.local_bind_port} "
+                                "password={pg_secret.password}")
 
-        # Munge into a format acceptable for PostGres
+        ensure_pg_table(conn)
+
+        for owner, repo in repos:
+            stats = stats_retriever.get_repo_stats(owner, repo)
+
+            save_record_to_pg(conn, ts, f'{owner}/{repo}', stats)
 
 
+def ensure_pg_table(conn):
+    cur = conn.cursor()
+    cur.execute("""CREATE TABLE IF NOT EXISTS gh_metrics_raw (
+    timestamp timestamp,
+    repo text,
+    data jsonb,
+    PRIMARY KEY (timestamp, repo));""")
+    cur.close()
 
-dag = DAG(dag_id='github_metrics')
+def save_record_to_pg(conn, timestamp, repo, record):
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO gh_metrics_raw (timestamp, repo, data) VALUES(%s, %s, %s)
+        ON CONFLICT DO NOTHING
+    """, [timestamp, repo, Json(record)])
+    cur.close()
+
+
+dag = DAG(
+    dag_id='github_metrics',
+    start_date='2020-06-15'
+)
 
 
 with dag:
-    # Make sure that the table we want to write into exists
-    prepare_postgresql = PostgresOperator(
-        task_id='prepare_postgresql'
-    )
-
     record_statistics = PythonOperator(
         task_id='record_statistics',
-        python_callable=_record_statistics
+        python_callable=_record_statistics,
+        params=dict(postgres_conn_id='lpgs_pg',
+                    ssh_conn_id='lpgs_gadi'
+        ),
+        provide_context=True
     )
 
 class GitHubStatsRetriever:
@@ -147,72 +184,3 @@ class GitHubStatsRetriever:
                 "GH GraphQL query failed to run by returning code of {}. {}".format(request.status_code, query))
 
 
-ES_GH_MAPPING_DOC = {
-    "properties": {
-        "nameWithOwner": {"type": "keyword"},
-        "name": {"type": "keyword"},
-        "id": {"type": "keyword"},
-        "diskUsage": {"type": "integer"},
-        "forkCount": {"type": "integer"},
-        "pushedAt": {"type": "date"},
-        "stargazers": {
-            "properties": {
-                "totalCount": {"type": "integer"}
-            }
-        },
-        "watchers": {
-            "properties": {
-                "totalCount": {"type": "integer"}
-            }
-        },
-        "issues": {
-            "properties": {
-                "totalCount": {"type": "integer"}
-            }
-        },
-        "openIssues": {
-            "properties": {
-                "totalCount": {"type": "integer"}
-            }
-        },
-        "closedIssues": {
-            "properties": {
-                "totalCount": {"type": "integer"}
-            }
-        },
-        "pullRequests": {
-            "properties": {
-                "totalCount": {"type": "integer"}
-            }
-        },
-        "openPullRequests": {
-            "properties": {
-                "totalCount": {"type": "integer"}
-            }
-        },
-        "branches": {
-            "properties": {
-                "totalCount": {"type": "integer"}
-            }
-        },
-        "collaborators": {
-            "properties": {
-                "totalCount": {"type": "integer"}
-            }
-        },
-        "releases": {
-            "properties": {
-                "totalCount": {"type": "integer"}
-            }
-        },
-        "commits": {
-            "properties": {
-                "history": {
-                    "properties": {
-                        "totalCount": {"type": "integer"}
-                    }
-                }
-            }
-        }
-    }
-}
