@@ -24,7 +24,7 @@ For the `HttpSensor` to work a new [connection](/admin/connection/new) is needed
 * `Schema `: https
 * `Port`: 443
 """
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 # The DAG object; we'll need this to instantiate a DAG
 from airflow import DAG
@@ -32,7 +32,6 @@ from airflow import DAG
 # Operators; we need this to operate!
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.operators.sensors import HttpSensor
-from airflow.utils.dates import days_ago
 
 # [END import_module]
 
@@ -42,7 +41,7 @@ from airflow.utils.dates import days_ago
 default_args = {
     'owner': 'Robert Gurtler',
     'depends_on_past': False,
-    'start_date': days_ago(1),
+    'start_date': datetime(2020, 6, 16),
     'email': ['robert.gurtler@ga.gov.au'],
     'email_on_failure': False,
     'email_on_retry': False,
@@ -52,8 +51,8 @@ default_args = {
 # [END default_args]
 
 # Docker images
-curl_svc_image = "curlimages/curl:7.70.0"
-eggloader_svc_image = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dea-access/egg-dataloader:latest"
+CURL_SVC_IMAGE = "curlimages/curl:7.70.0"
+EGGLOADER_SVC_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dea-access/egg-dataloader:latest"
 
 # [START instantiate_dag]
 pipeline = DAG(
@@ -92,12 +91,11 @@ with pipeline:
 
     # [START task_http_egg_svc_check]
     task_http_egg_svc_check = KubernetesPodOperator(
-        namespace='airflow',
+        namespace='processing',
         name='dea-access-egg-svc-check',
         task_id='http_egg_svc_sensor_check',
-        hostnetwork=False,
         image_pull_policy='IfNotPresent',
-        image=curl_svc_image,
+        image=CURL_SVC_IMAGE,
         is_delete_operator_pod=True,
         arguments=["--verbose", "http://{{ params.egg_svc_name }}:9200"],
         labels={
@@ -108,12 +106,11 @@ with pipeline:
 
     # [START task_dataloader]
     task_dataloader = KubernetesPodOperator(
-        namespace='airflow',
+        namespace='processing',
         name="dea-access-dataloader",
         task_id='dataloader',
-        hostnetwork=False,
         image_pull_policy='IfNotPresent',
-        image=eggloader_svc_image,
+        image=EGGLOADER_SVC_IMAGE,
         is_delete_operator_pod=True,
         labels={
           'runner': 'airflow',
