@@ -70,22 +70,26 @@ with dag:
         create_intermediate_dirs=True
     )
     # Execute script to upload sentinel-2 data to s3 bucket
-    aws_conn = AwsHook(aws_conn_id=dag.default_args['aws_conn_id'])
+    aws_hook = AwsHook(aws_conn_id=dag.default_args['aws_conn_id'])
     execute_s2_to_s3_script = SSHOperator(
         task_id='execute_s2_to_s3_script',
         command=dedent(COMMON + """
+            {% set aws_creds = params.aws_hook.get_credentials() -%}
             cd {{ work_dir }}
 
             # echo on and exit on fail
-            set -eux
+            set -eu
 
             # Load the latest stable DEA module
             module use /g/data/v10/public/modules/modulefiles
             module load dea
 
+            # Be verbose and echo what we run
+            set -x
+
             # Export AWS Access key/secret from Airflow connection module
-            export AWS_ACCESS_KEY_ID={{params.aws_conn.access_key}}
-            export AWS_SECRET_ACCESS_KEY={{params.aws_conn.secret_key}}
+            export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
+            export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
 
             python3 '{{ work_dir }}/s2_to_s3_rolling.py' \
                     -n '{{ var.json.nci_s2_upload_s3_config.numdays }}' \
@@ -94,7 +98,7 @@ with dag:
                     -u '{{ var.json.nci_s2_upload_s3_config.doupdate }}'
         """),
         remote_host='gadi-dm.nci.org.au',
-        params={'aws_conn': aws_conn.get_credentials()},
+        params={'aws_hook': aws_hook},
         timeout=60 * 10
     )
     # Deletes working folder and uploaded script file
