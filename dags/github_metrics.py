@@ -1,5 +1,16 @@
+"""
+# Record available Metrics from DEA and ODC GitHub Repositories
+
+GitHub only stores these metrics for 14 days, and most of them
+are much more interesting over the longer term.
+
+They are written into a PostgreSQL table as JSON-B for later analysis.
+
+For inspiration on a potentially nicer implementation see https://github.com/vparekh94/test_ssh_tunnel/tree/master/
+"""
 import logging
 
+from datetime import datetime
 from psycopg2.extras import Json
 import psycopg2
 import requests
@@ -12,61 +23,90 @@ from airflow.operators.python_operator import PythonOperator
 
 LOG = logging.getLogger(__name__)
 
-repos = [
+TRACKED_REPOS = [
     ("opendatacube", "datacube-core"),
     ("opendatacube", "datacube-stats"),
     ("opendatacube", "datacube-explorer"),
     ("opendatacube", "datacube-ows"),
     ("opendatacube", "dea-proto"),
     ("GeoscienceAustralia", "digitalearthau"),
+    ("GeoscienceAustralia", "wofs"),
+    ("GeoscienceAustralia", "fc"),
+    ("GeoscienceAustralia", "dea-cogger"),
 ]
 
+def log(text):
+    print(text)
+    with open('/home/omad/log.txt', 'a') as f:
+        f.write(str(text) + '\n')
 
 def _record_statistics(ts, postgres_conn_id, ssh_conn_id, **context):
     # Can't use PostgresHook because our TCP port is likely to be dynamic
     # because we are connecting through an SSH Tunnel
-    pg_secret = secrets.get_connections(postgres_conn_id)
+    pg_secret, = secrets.get_connections(postgres_conn_id)
+    gh_token, = secrets.get_connections('github_metrics_token')
 
     ssh_conn = SSHHook(ssh_conn_id=ssh_conn_id)
     tunnel = ssh_conn.get_tunnel(remote_port=pg_secret.port, remote_host=pg_secret.host)
 
-    stats_retriever = GitHubStatsRetriever()
-
+    tunnel.start()
     with tunnel:
-        conn = psycopg2.connect(f"host=localhost "
-                                "user={pg_secret.login} "
-                                "port={tunnel.local_bind_port} "
-                                "password={pg_secret.password}")
+        log(f"Connected SSH Tunnel: {tunnel}")
+        # Airflow conflates dbname and schema, even though they are very different in PG
+        constr = f"host=localhost user={pg_secret.login} dbname={pg_secret.schema} "\
+                 f"port={tunnel.local_bind_port} password={pg_secret.password}"
+        # It's important to wrap this connection in a try/finally block, otherwise
+        # we can cause a deadlock with the SSHTunnel
+        conn = psycopg2.connect(constr)
+        try:
+            log(f"Connected to Postgres: {conn}")
 
-        ensure_pg_table(conn)
+            cur = conn.cursor()
+            # ensure_pg_table(cur)
 
-        for owner, repo in repos:
-            stats = stats_retriever.get_repo_stats(owner, repo)
+            stats_retriever = GitHubStatsRetriever(gh_token.password)
 
-            save_record_to_pg(conn, ts, f'{owner}/{repo}', stats)
+            for owner, repo in TRACKED_REPOS:
+                log(f"Recording repo stats for {owner}/{repo}")
+                stats = stats_retriever.get_repo_stats(owner, repo)
+                log(stats)
+
+                save_record_to_pg(cur, ts, f'{owner}/{repo}', stats)
+
+            conn.commit()
+            log("Transaction committed")
+            cur.close()
+        finally:
+            conn.close()
 
 
-def ensure_pg_table(conn):
-    cur = conn.cursor()
-    cur.execute("""CREATE TABLE IF NOT EXISTS gh_metrics_raw (
-    timestamp timestamp,
-    repo text,
-    data jsonb,
-    PRIMARY KEY (timestamp, repo));""")
-    cur.close()
+def ensure_pg_table(cur):
+    cur.execute("SELECT * from agdc.dataset_type LIMIT 1;")
+    log(cur.fetchone())
+    cur.execute("""CREATE TABLE IF NOT EXISTS metrics.gh_metrics_raw (
+                   timestamp timestamp,
+                   repo text,
+                   data jsonb,
+                   PRIMARY KEY (timestamp, repo));""")
 
-def save_record_to_pg(conn, timestamp, repo, record):
-    cur = conn.cursor()
+def save_record_to_pg(cur, timestamp, repo, record):
     cur.execute("""
-        INSERT INTO gh_metrics_raw (timestamp, repo, data) VALUES(%s, %s, %s)
-        ON CONFLICT DO NOTHING
+        INSERT INTO metrics.gh_metrics_raw (timestamp, repo, data) VALUES(%s, %s, %s)
+        ON CONFLICT DO NOTHING;
     """, [timestamp, repo, Json(record)])
-    cur.close()
 
+default_args = {
+    'owner': 'dayers',
+    'start_date': datetime(2020, 6, 15)
+}
 
 dag = DAG(
     dag_id='github_metrics',
-    start_date='2020-06-15'
+    catchup=False,
+    default_args=default_args,
+    schedule_interval='@daily',
+    default_view='graph',
+    tags=['nci'],
 )
 
 
@@ -74,10 +114,10 @@ with dag:
     record_statistics = PythonOperator(
         task_id='record_statistics',
         python_callable=_record_statistics,
-        params=dict(postgres_conn_id='lpgs_pg',
+        op_kwargs=dict(postgres_conn_id='lpgs_pg',
                     ssh_conn_id='lpgs_gadi'
         ),
-        provide_context=True
+        provide_context=True,
     )
 
 class GitHubStatsRetriever:
@@ -156,7 +196,10 @@ class GitHubStatsRetriever:
         }
 
         response = self.gh_graphql_query(query, variables)
-        return response['data']['repository']
+        if 'data' in response:
+            return response['data']['repository']
+        else:
+            raise Exception("Invalid response", response)
 
     def get_repo_traffic(self, owner, repo):
         LOG.info('Requesting GitHub Repo Traffic information for %s/%s', owner, repo)
