@@ -8,7 +8,7 @@ data from NCI to AWS S3 bucket. It:
  * Executes uploaded rolling script to upload `Sentinel-2` data to AWS `S3` bucket.
  * Cleans working folder at `NCI` after upload completion.
 
-This DAG takes following configuration:
+This DAG has following configuration:
 
  * `start_date`: Start date for DAG run `datetime(2020, 12, 6)`.
  * `end_date`: End date for DAG run `datetime(2020, 5, 31)`.
@@ -16,9 +16,16 @@ This DAG takes following configuration:
  * `schedule_interval`: Set `@daily` to schedule upload daily.
  * `ssh_conn_id`: Provide SSH Connection ID `"lpgs_gadi"`.
  * `aws_conn_id`: Provide AWS Conection ID `"dea_public_data_upload"`.
+
+This DAG takes following input parameters from `nci_s2_upload_s3_config` variable:
+
  * `s3bucket`: Name of the S3 bucket. `"dea-public-data"`
  * `numdays`: Number of days to process before the execution date selected is `"0"`
- * `doupdate`: Selected `'no'` to avoid update of existing granules/metadata .
+ * `doupdate`: Select update option as below to replace granules and metadata.
+    * `'granule_metadata'` to update granules and metadata;
+    * `'granule' to update'` granules without metadata;
+    * `'metadata'` to update only metadata;
+    * `'no'` or don't set to avoid update of existing granules/metadata..
 """
 from datetime import datetime, timedelta
 from textwrap import dedent
@@ -40,11 +47,6 @@ default_args = {
     'email': 'sachit.rajbhandari@ga.gov.au',
     'ssh_conn_id': 'lpgs_gadi',
     'aws_conn_id': 'dea_public_data_dev_upload',
-    'params': {
-        's3bucket': 'dea-public-data-dev',
-        'numdays': '0',
-        'doupdate': 'no'
-    }
 }
 
 
@@ -61,10 +63,10 @@ dag = DAG(
 
 
 with dag:
-    WORK_DIR = "/g/data/v10/work/s2_nbar_rolling_archive/{{ ds }}_{{ params.numdays }}"
+    WORK_DIR = "/g/data/v10/work/s2_nbar_rolling_archive/{{ ds }}_{{ var.json.nci_s2_upload_s3_config.numdays }}"
     COMMON = """
             {% set work_dir = '/g/data/v10/work/s2_nbar_rolling_archive/' 
-            + ds +'_' + params.numdays -%}
+            + ds +'_' + var.json.nci_s2_upload_s3_config.numdays -%}
             """
     # Uploading s2_to_s3_rolling.py script to NCI
     sftp_s2_to_s3_script = SFTPOperator(
@@ -95,10 +97,10 @@ with dag:
             export AWS_SECRET_ACCESS_KEY={{params.aws_conn.secret_key}}
 
             python3 '{{ work_dir }}/s2_to_s3_rolling.py' \
-                    -n '{{ params.numdays }}' \
+                    -n '{{ var.json.nci_s2_upload_s3_config.numdays }}' \
                     -d '{{ ds }}' \
-                    -b '{{ params.s3bucket }}' \
-                    -u '{{ params.doupdate }}'
+                    -b '{{ var.json.nci_s2_upload_s3_config.s3bucket }}' \
+                    -u '{{ var.json.nci_s2_upload_s3_config.doupdate }}'
         """),
         remote_host='gadi-dm.nci.org.au',
         params={'aws_conn': aws_conn.get_credentials()},
