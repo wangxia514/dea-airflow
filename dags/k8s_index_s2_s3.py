@@ -44,7 +44,7 @@ DEFAULT_ARGS = {
 
 
 INDEXER_IMAGE = "opendatacube/datacube-index:0.0.5"
-EXPLORER_IMAGE = "opendatacube/dashboard:2.1.6"
+EXPLORER_IMAGE = "opendatacube/explorer:2.1.9"
 
 dag = DAG(
     "k8s_index_s2_s3",
