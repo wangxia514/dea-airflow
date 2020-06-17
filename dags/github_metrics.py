@@ -35,16 +35,18 @@ TRACKED_REPOS = [
     ("GeoscienceAustralia", "dea-cogger"),
 ]
 
+
 def log(text):
     print(text)
-    with open('/home/omad/log.txt', 'a') as f:
-        f.write(str(text) + '\n')
+    with open("/home/omad/log.txt", "a") as f:
+        f.write(str(text) + "\n")
+
 
 def _record_statistics(ts, postgres_conn_id, ssh_conn_id, **context):
     # Can't use PostgresHook because our TCP port is likely to be dynamic
     # because we are connecting through an SSH Tunnel
-    pg_secret, = secrets.get_connections(postgres_conn_id)
-    gh_token, = secrets.get_connections('github_metrics_token')
+    (pg_secret,) = secrets.get_connections(postgres_conn_id)
+    (gh_token,) = secrets.get_connections("github_metrics_token")
 
     ssh_conn = SSHHook(ssh_conn_id=ssh_conn_id)
     tunnel = ssh_conn.get_tunnel(remote_port=pg_secret.port, remote_host=pg_secret.host)
@@ -53,8 +55,10 @@ def _record_statistics(ts, postgres_conn_id, ssh_conn_id, **context):
     with tunnel:
         log(f"Connected SSH Tunnel: {tunnel}")
         # Airflow conflates dbname and schema, even though they are very different in PG
-        constr = f"host=localhost user={pg_secret.login} dbname={pg_secret.schema} "\
-                 f"port={tunnel.local_bind_port} password={pg_secret.password}"
+        constr = (
+            f"host=localhost user={pg_secret.login} dbname={pg_secret.schema} "
+            f"port={tunnel.local_bind_port} password={pg_secret.password}"
+        )
         # It's important to wrap this connection in a try/finally block, otherwise
         # we can cause a deadlock with the SSHTunnel
         conn = psycopg2.connect(constr)
@@ -71,7 +75,7 @@ def _record_statistics(ts, postgres_conn_id, ssh_conn_id, **context):
                 stats = stats_retriever.get_repo_stats(owner, repo)
                 log(stats)
 
-                save_record_to_pg(cur, ts, f'{owner}/{repo}', stats)
+                save_record_to_pg(cur, ts, f"{owner}/{repo}", stats)
 
             conn.commit()
             log("Transaction committed")
@@ -83,42 +87,46 @@ def _record_statistics(ts, postgres_conn_id, ssh_conn_id, **context):
 def ensure_pg_table(cur):
     cur.execute("SELECT * from agdc.dataset_type LIMIT 1;")
     log(cur.fetchone())
-    cur.execute("""CREATE TABLE IF NOT EXISTS metrics.gh_metrics_raw (
+    cur.execute(
+        """CREATE TABLE IF NOT EXISTS metrics.gh_metrics_raw (
                    timestamp timestamp,
                    repo text,
                    data jsonb,
-                   PRIMARY KEY (timestamp, repo));""")
+                   PRIMARY KEY (timestamp, repo));"""
+    )
+
 
 def save_record_to_pg(cur, timestamp, repo, record):
-    cur.execute("""
+    cur.execute(
+        """
         INSERT INTO metrics.gh_metrics_raw (timestamp, repo, data) VALUES(%s, %s, %s)
         ON CONFLICT DO NOTHING;
-    """, [timestamp, repo, Json(record)])
+    """,
+        [timestamp, repo, Json(record)],
+    )
 
-default_args = {
-    'owner': 'dayers',
-    'start_date': datetime(2020, 6, 15)
-}
+
+default_args = {"owner": "dayers", "start_date": datetime(2020, 6, 15)}
 
 dag = DAG(
-    dag_id='github_metrics',
+    dag_id="github_metrics",
     catchup=False,
     default_args=default_args,
-    schedule_interval='@daily',
-    default_view='graph',
-    tags=['nci'],
+    schedule_interval="@daily",
+    default_view="graph",
+    tags=["nci"],
+    doc_md=__doc__,
 )
 
 
 with dag:
     record_statistics = PythonOperator(
-        task_id='record_statistics',
+        task_id="record_statistics",
         python_callable=_record_statistics,
-        op_kwargs=dict(postgres_conn_id='lpgs_pg',
-                    ssh_conn_id='lpgs_gadi'
-        ),
+        op_kwargs=dict(postgres_conn_id="lpgs_pg", ssh_conn_id="lpgs_gadi"),
         provide_context=True,
     )
+
 
 class GitHubStatsRetriever:
     """
@@ -139,13 +147,13 @@ class GitHubStatsRetriever:
         """
         stats = self.get_graphql_stats(owner, repo)
 
-        stats['traffic'] = self.get_repo_traffic(owner, repo)
+        stats["traffic"] = self.get_repo_traffic(owner, repo)
 
         return stats
 
     def get_graphql_stats(self, owner, repo):
         # language=GraphQL
-        query = '''
+        query = """
             query RepoStats($owner: String!, $repo: String!) {
               repository(owner:$owner, name:$repo) {
                 name
@@ -189,23 +197,20 @@ class GitHubStatsRetriever:
                 }
               }
             }
-        '''
-        variables = {
-            "owner": owner,
-            "repo": repo
-        }
+        """
+        variables = {"owner": owner, "repo": repo}
 
         response = self.gh_graphql_query(query, variables)
-        if 'data' in response:
-            return response['data']['repository']
+        if "data" in response:
+            return response["data"]["repository"]
         else:
             raise Exception("Invalid response", response)
 
     def get_repo_traffic(self, owner, repo):
-        LOG.info('Requesting GitHub Repo Traffic information for %s/%s', owner, repo)
+        LOG.info("Requesting GitHub Repo Traffic information for %s/%s", owner, repo)
         gh_headers = {"Authorization": "token " + self.token}
-        url_prefix = f'https://api.github.com/repos/{owner}/{repo}/traffic/'
-        parts = ['popular/referrers', 'popular/paths', 'views', 'clones']
+        url_prefix = f"https://api.github.com/repos/{owner}/{repo}/traffic/"
+        parts = ["popular/referrers", "popular/paths", "views", "clones"]
 
         traffic = {}
         for part in parts:
@@ -217,13 +222,16 @@ class GitHubStatsRetriever:
     def gh_graphql_query(self, query, variables):
         # A simple function to use requests.post to make the API call. Note the json= section.
         gh_headers = {"Authorization": "token " + self.token}
-        request = requests.post('https://api.github.com/graphql',
-                                json={'query': query, 'variables': variables},
-                                headers=gh_headers)
+        request = requests.post(
+            "https://api.github.com/graphql",
+            json={"query": query, "variables": variables},
+            headers=gh_headers,
+        )
         if request.status_code == 200:
             return request.json()
         else:
             raise Exception(
-                "GH GraphQL query failed to run by returning code of {}. {}".format(request.status_code, query))
-
-
+                "GH GraphQL query failed to run by returning code of {}. {}".format(
+                    request.status_code, query
+                )
+            )
