@@ -7,6 +7,13 @@ are much more interesting over the longer term.
 They are written into a PostgreSQL table as JSON-B for later analysis.
 
 For inspiration on a potentially nicer implementation see https://github.com/vparekh94/test_ssh_tunnel/tree/master/
+
+## Expects
+Connections:
+- `lpgs_pg` for connecting to remote PostgreSQL server
+- `lpgs_gadi` for setting up SSH tunnel to PostgreSQL
+- `github_metrics_token` containing a GitHub token with public repo permissions
+
 """
 import logging
 
