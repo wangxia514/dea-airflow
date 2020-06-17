@@ -45,8 +45,6 @@ TRACKED_REPOS = [
 
 def log(text):
     print(text)
-    with open("/home/omad/log.txt", "a") as f:
-        f.write(str(text) + "\n")
 
 
 def _record_statistics(ts, postgres_conn_id, ssh_conn_id, **context):
