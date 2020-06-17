@@ -3,16 +3,21 @@
 """
 ### DEA Access dataloader
 
-The dataloader is run weekly to update the Kuberneties (k8s) DEA Access elasticsearch container (egg),
-with the latest allCountries.zip from [geonames.org](https://download.geonames.org/export/dump/).
+The dataloader is run weekly to update the Kuberneties (k8s) DEA Access elasticsearch container (egg), with the latest allCountries.zip from [geonames.org](https://download.geonames.org/export/dump/).
 
-Two health checks are made in the `pipeline` before downloading the zip and attemtpting to update using the latest `allCountries.zip` file.
+Two health checks are made in the `pipeline` before downloading the zip and attempting to update using the latest `allCountries.zip` file.
 
 #### Purely for informational purposes
 
 * `Branch`: NEMO
 * `Division`: PSC
 * `Section`: OPS
+
+#### Docker image notes
+
+`EGGLOADER_SVC_IMAGE` is build as part of the `dea-access-egg` service and is pushed to a private repo in AWS ECR (*see core team for access*). The Dockerfile is located at `components\egg\Dockerfile.loader` and part of a private repo `jjrom/dea-access` at this time. Updates to the `components\egg\Dockerfile.loader` file rebuilds and pushes the image to `538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dea-access/egg-dataloader:latest`
+
+`CURL_SVC_IMAGE` is the [official docker image](https://hub.docker.com/r/curlimages/curl) for curl. Using todays (June 2020) latest release `curlimages/curl:7.70.0`
 
 #### Airflow dependencies
 
