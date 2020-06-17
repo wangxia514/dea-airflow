@@ -86,6 +86,7 @@ def sync_granule(granule, _s3_bucket):
 
     # Remove any data that shouldn't be there and exclude the metadata and NBART
     command = "aws s3 sync {local_path} {s3_path} " \
+              "--no-progress " \
               "--delete " \
               "--exclude NBART/* " \
               "--exclude ARD-METADATA.yaml".format(local_path=local_path, s3_path=s3_path)
