@@ -38,7 +38,7 @@ def save_record_to_pg(conn, record):
     cur = conn.cursor()
     cur.execute(
         """
-        INSERT INTO gh_metrics_raw (timestamp, repo, data) VALUES(%s, %s, %s)
+        INSERT INTO metrics.gh_metrics_raw (timestamp, repo, data) VALUES(%s, %s, %s)
         ON CONFLICT DO NOTHING
     """,
         [record["@timestamp"], record["nameWithOwner"], Json(record)],
@@ -67,7 +67,7 @@ def main():
 
 
 def get_pg_connection():
-    conn = psycopg2.connect("host=localhost user=omad")
+    conn = psycopg2.connect("host=dea-db.nci.org.au")
     return conn
 
 
