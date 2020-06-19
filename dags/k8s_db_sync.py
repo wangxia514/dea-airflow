@@ -109,6 +109,7 @@ with dag:
         image=EXPLORER_IMAGE,
         cmds=["datacube"],
         arguments=["-v", "system", "init", "--lock-table"],
+        retry_delay = timedelta(minutes=20),
         labels={"step": "restore_indices"},
         name="odc-indices",
         task_id="odc-indices",
