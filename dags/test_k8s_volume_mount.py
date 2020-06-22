@@ -106,22 +106,34 @@ tolerations = [
      }
 ]
 
-k = KubernetesPodOperator(namespace='default',
-                          image="ubuntu:16.04",
-                          cmds=["bash", "-cx"],
-                          arguments=["echo", "10"],
-                          labels={"foo": "bar"},
-                          secrets=[secret_file, secret_env, secret_all_keys],
-                          ports=[port],
-                          volumes=[volume],
-                          volume_mounts=[volume_mount],
-                          name="test",
-                          task_id="task",
-                          affinity=affinity,
-                          is_delete_operator_pod=True,
-                          hostnetwork=False,
-                          tolerations=tolerations,
-                          configmaps=configmaps,
-                          init_containers=[init_container],
-                          priority_class_name="medium",
-                          )
+k = 
+
+dag = DAG(
+    'k8s_test_volume',
+    catchup=False,
+    schedule_interval=None
+)
+
+with dag:
+    KUBERNETES = KubernetesPodOperator(
+        namespace='processing',
+        image="ubuntu:16.04",
+        cmds=["bash", "-cx"],
+        arguments=["echo", "10"],
+        labels={"foo": "bar"},
+        secrets=[secret_file, secret_env, secret_all_keys],
+        ports=[port],
+        volumes=[volume],
+        volume_mounts=[volume_mount],
+        name="test",
+        task_id="task",
+        affinity=affinity,
+        is_delete_operator_pod=True,
+        hostnetwork=False,
+        tolerations=tolerations,
+        configmaps=configmaps,
+        init_containers=[init_container],
+        priority_class_name="medium",
+    )
+
+    KUBERNETES
