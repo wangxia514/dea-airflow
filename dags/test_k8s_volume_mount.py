@@ -106,8 +106,6 @@ tolerations = [
      }
 ]
 
-k = 
-
 dag = DAG(
     'k8s_test_volume',
     catchup=False,
