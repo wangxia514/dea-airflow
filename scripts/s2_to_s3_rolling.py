@@ -207,12 +207,12 @@ def sync_dates(_num_days, _end_date, _s3_bucket, _update='no'):
                                  s3_metadata_path)
                     else:
                         LOG.error("Failed to sync data... skipping")
-                        error_list.append("Failed to sync data... skipping {}".format(granule))
+                        error_list.append(f"Failed to sync {granule} because of an error in the sync command")
                 else:
                     LOG.warning("Metadata exists, not syncing %s", granule)
             else:
                 LOG.error("Metadata is missing, not syncing %s", granule)
-                error_list.append("Metadata is missing, not syncing {}".format(granule))
+                error_list.append(f"Failed to sync {granule} because of missing metadata file")
     else:
         LOG.warning("Didn't find any granules to process...")
 
