@@ -71,7 +71,7 @@ dag = DAG(
     concurrency=1,
     max_active_runs=1,
     tags=["k8s"],
-    schedule_interval=timedelta(hours=12),
+    schedule_interval=timedelta(days=7),
 )
 
 
