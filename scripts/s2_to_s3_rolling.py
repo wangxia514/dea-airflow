@@ -14,7 +14,7 @@ import botocore
 import yaml
 from odc.index import odc_uuid
 
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
 handler = logging.StreamHandler()
 handler.setFormatter(formatter)
 LOG = logging.getLogger("s3_to_s3_rolling")
@@ -156,6 +156,9 @@ def sync_dates(_num_days, _end_date, _s3_bucket, _update='no'):
     :param _update: Option for granule/metadata update
     ('granule_metadata' or 'granule' or 'metadata' or 'no')
     """
+    # Initialise error list
+    error_list = []
+
     # Since all file paths are of the form:
     # /g/data/if87/datacube/002/S2_MSI_ARD/packaged/YYYY-mm-dd/<granule>
     # we can simply list all the granules per date and sync them
@@ -204,14 +207,18 @@ def sync_dates(_num_days, _end_date, _s3_bucket, _update='no'):
                                  s3_metadata_path)
                     else:
                         LOG.error("Failed to sync data... skipping")
-                        raise ValueError("Failed to sync data... skipping")
+                        error_list.append(f"Failed to sync {granule} because of an error in the sync command")
                 else:
                     LOG.warning("Metadata exists, not syncing %s", granule)
             else:
                 LOG.error("Metadata is missing, not syncing %s", granule)
-                raise ValueError("Metadata is missing, not syncing %s", granule)
+                error_list.append(f"Failed to sync {granule} because of missing metadata file")
     else:
         LOG.warning("Didn't find any granules to process...")
+
+    # Raise exception if there was any error during upload process
+    if error_list:
+        raise ValueError("\n".join(error_list))
 
 
 @click.command()
