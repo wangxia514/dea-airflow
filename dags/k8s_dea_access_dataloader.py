@@ -61,7 +61,7 @@ EGGLOADER_SVC_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dea-acc
 
 # [START instantiate_dag]
 pipeline = DAG(
-    'ks8_dea_access_dataloader',
+    'k8s_dea_access_dataloader',
     doc_md=__doc__,
     default_args=default_args,
     description='DEA Access dataloader',
