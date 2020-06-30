@@ -90,4 +90,58 @@ with DAG('nci_db_backup',
 
     )
 
+    run_csv_dump = SSHOperator(
+        task_id='dump_tables_to_csv',
+        command=COMMON + dedent("""
+            set -euo pipefail
+            IFS=$'\n\t'
+
+            tables=(
+                metadata_type
+                dataset_type
+                dataset_location
+                dataset_source
+                dataset
+            )
+
+            output_dir=$TMPDIR/pg_csvs_{{ ds_nodash }}
+            cd ${output_dir}
+
+            for table in ${tables[@]}; do
+                echo Dumping $table
+                psql --quiet -c "\\copy $table to stdout with (format csv)" | gzip -c - > $table.csv.gz
+
+
+            done
+
+
+        """)
+    )
+
+    upload_csvs_to_s3 = SSHOperator(
+        task_id='upload_csvs_to_s3',
+        params={
+            'aws_conn': aws_conn.get_credentials(),
+        },
+        command=COMMON + dedent('''
+            export AWS_ACCESS_KEY_ID={{params.aws_conn.access_key}}
+            export AWS_SECRET_ACCESS_KEY={{params.aws_conn.secret_key}}
+
+
+            output_dir=$TMPDIR/pg_csvs_{{ ds_nodash }}
+            aws s3 cp *  s3://nci-db-dump/csv/{{ ds_nodash }}/ --content-encoding gzip
+
+            # Upload md5sums last, as a marker that it's complete.
+            md5sum * > md5sums
+            aws s3 cp md5sums s3://nci-db-dump/csv/{{ execution_date.strftime("%Y-%m-%d") }}/
+
+            # Remove the CSV directory
+            cd ..
+            rm -rf ${output_dir}
+
+        ''')
+
+    )
+
     run_backup >> upload_to_s3
+    run_csv_dump >> upload_csvs_to_s3

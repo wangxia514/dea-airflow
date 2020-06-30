@@ -101,13 +101,16 @@ with dag:
         task_id='check_for_errors',
         command=COMMON + """
         error_dir={{ ti.xcom_pull(task_ids='wait_for_wofs_albers')['Error_Path'].split(':')[1] }}
-        echo error_dir: $error_dir
+        echo error_dir: ${error_dir}
+
+        # Helper function to not error if the grep search term is not found
+        c1grep() { grep "$@" || test $? = 1; }
 
         echo Checking for any errors or failures in PBS output
 
-        task_failed_lines=$(grep -ci 'Task failed' $error_dir/*.ER)
+        task_failed_lines=$(c1grep -ci 'Task failed' ${error_dir}/*.ER)
         if [[ $task_failed_lines != "0" ]]; then
-            grep -i 'Task failed' $error_dir/*.ER
+            grep -i 'Task failed' ${error_dir}/*.ER
             exit ${task_failed_lines}
         fi
 
