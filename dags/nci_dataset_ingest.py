@@ -89,7 +89,7 @@ with ingest_dag:
         -N ing_{{params.ing_product}}_{{params.year}} \
         -q {{params.queue}} \
         -W umask=33 \
-        -l wd,walltime=15:00:00 -m abe \
+        -l wd,walltime=5:00:00 -m abe \
         -l ncpus=48,mem=190gb \
         -l storage=gdata/v10+gdata/fk4+gdata/rs0+gdata/if87 \
         -P {{ params.project }} -o {{ work_dir }} -e {{ work_dir }} \
