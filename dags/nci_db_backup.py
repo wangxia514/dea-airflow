@@ -97,11 +97,11 @@ with DAG('nci_db_backup',
             IFS=$'\n\t'
 
             tables=(
-                metadata_type
-                dataset_type
-                dataset_location
-                dataset_source
-                dataset
+                agdc.metadata_type
+                agdc.dataset_type
+                agdc.dataset_location
+                agdc.dataset_source
+                agdc.dataset
             )
 
             output_dir=$TMPDIR/pg_csvs_{{ ds_nodash }}
