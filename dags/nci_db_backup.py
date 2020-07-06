@@ -105,7 +105,7 @@ with DAG('nci_db_backup',
             )
 
             output_dir=$TMPDIR/pg_csvs_{{ ds_nodash }}
-            mkdir ${output_dir}
+            mkdir -p ${output_dir}
             cd ${output_dir}
 
             for table in ${tables[@]}; do
