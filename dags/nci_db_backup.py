@@ -110,7 +110,7 @@ with DAG('nci_db_backup',
 
             for table in ${tables[@]}; do
                 echo Dumping $table
-                psql --quiet -c "\\copy $table to stdout with (format csv)" | gzip -c - > $table.csv.gz
+                psql --quiet -c "\\copy $table to stdout with (format csv)" -h agdc-db.nci.org.au | gzip -c - > $table.csv.gz
 
 
             done
