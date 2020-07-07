@@ -130,6 +130,8 @@ with DAG('nci_db_backup',
 
 
             output_dir=$TMPDIR/pg_csvs_{{ ds_nodash }}
+            cd ${output_dir}
+
             aws s3 cp *  s3://nci-db-dump/csv/{{ ds_nodash }}/ --content-encoding gzip
 
             # Upload md5sums last, as a marker that it's complete.
