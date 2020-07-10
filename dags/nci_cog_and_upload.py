@@ -146,7 +146,7 @@ with dag:
             task_id=submit_task_id,
             command=dedent(COMMON + """
                 cd {{work_dir}}
-                mkdir out
+                mkdir -p out
                 
                 qsub <<EOF
                 #!/bin/bash
