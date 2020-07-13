@@ -97,19 +97,20 @@ with DAG('nci_db_backup',
             IFS=$'\n\t'
 
             tables=(
-                metadata_type
-                dataset_type
-                dataset_location
-                dataset_source
-                dataset
+                agdc.metadata_type
+                agdc.dataset_type
+                agdc.dataset_location
+                agdc.dataset_source
+                agdc.dataset
             )
 
             output_dir=$TMPDIR/pg_csvs_{{ ds_nodash }}
+            mkdir -p ${output_dir}
             cd ${output_dir}
 
             for table in ${tables[@]}; do
                 echo Dumping $table
-                psql --quiet -c "\\copy $table to stdout with (format csv)" | gzip -c - > $table.csv.gz
+                psql --quiet -c "\\copy $table to stdout with (format csv)" -h agdc-db.nci.org.au -d datacube | gzip -c - > $table.csv.gz
 
 
             done
@@ -129,7 +130,9 @@ with DAG('nci_db_backup',
 
 
             output_dir=$TMPDIR/pg_csvs_{{ ds_nodash }}
-            aws s3 cp *  s3://nci-db-dump/csv/{{ ds_nodash }}/ --content-encoding gzip
+            cd ${output_dir}
+
+            aws s3 cp . s3://nci-db-dump/csv/{{ ds_nodash }}/ --content-encoding gzip --recursive --no-progress
 
             # Upload md5sums last, as a marker that it's complete.
             md5sum * > md5sums

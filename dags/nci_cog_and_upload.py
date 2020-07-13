@@ -22,6 +22,7 @@ from textwrap import dedent
 from airflow import DAG, AirflowException
 from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.contrib.operators.ssh_operator import SSHOperator
+from airflow.models import Variable
 from airflow.operators.python_operator import PythonOperator
 
 from operators.ssh_operators import ShortCircuitSSHOperator
@@ -32,10 +33,9 @@ DEST = os.environ.get(
     "s3://dea-public-data/"
 )
 
-NCI_MODULE = os.environ.get(
-    "NCI_MODULE",
-    'dea/unstable'
-)
+# Default to the stable dea module on the NCI, but can be changed
+# using an Airflow variable
+NCI_MODULE = Variable.get("nci_module", "dea")
 
 # TODO: This is duplicated from the configuration file for dea-cogger
 # It's much better to specify a more specific path in S3 otherwise sync
@@ -127,26 +127,26 @@ with dag:
             params={'product': product},
         )
         # Thanks https://stackoverflow.com/questions/48580341/how-to-add-manual-tasks-in-an-apache-airflow-dag
-        manual_sign_off = PythonOperator(
-            task_id=f"manual_sign_off_{product}",
-            python_callable=task_to_fail,
-            retries=1,
-            retry_delay=TIMEOUT,
-        )
-        manual_sign_off.doc_md = dedent("""
-                ## Instructions
-                Perform some manual checks that the number of COGs to be generated seems to be about right.
+        # manual_sign_off = PythonOperator(
+        #     task_id=f"manual_sign_off_{product}",
+        #     python_callable=task_to_fail,
+        #     retries=1,
+        #     retry_delay=TIMEOUT,
+        # )
+        # manual_sign_off.doc_md = dedent("""
+        #         ## Instructions
+        #         Perform some manual checks that the number of COGs to be generated seems to be about right.
                 
-                You can also do spot checks that files don't already exist in S3.
+        #         You can also do spot checks that files don't already exist in S3.
                 
-                Once you're happy, mark this job as **Success** for the DAG to continue running.
-            """)
+        #         Once you're happy, mark this job as **Success** for the DAG to continue running.
+        #     """)
         submit_task_id = f'submit_cog_convert_job_{product}'
         submit_bulk_cog_convert = SSHOperator(
             task_id=submit_task_id,
             command=dedent(COMMON + """
                 cd {{work_dir}}
-                mkdir out
+                mkdir -p out
                 
                 qsub <<EOF
                 #!/bin/bash
@@ -246,6 +246,6 @@ with dag:
             params={'product': product},
         )
 
-        download_s3_inventory >> generate_work_list >> check_for_work >> manual_sign_off >> submit_bulk_cog_convert
+        download_s3_inventory >> generate_work_list >> check_for_work >> submit_bulk_cog_convert
         submit_bulk_cog_convert >> wait_for_cog_convert >> validate_cogs >> wait_for_validate_job
         wait_for_validate_job >> upload_to_s3 >> delete_nci_cogs
