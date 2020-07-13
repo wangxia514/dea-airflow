@@ -74,7 +74,7 @@ default_args = {
 # [END default_args]
 
 # Docker images
-CURL_SVC_IMAGE   = "curlimages/curl:7.70.0"
+CURL_SVC_IMAGE   = "curlimages/curl:7.71.1"
 STAC2RESTO_IMAGE = "cyrusbt5/resto-stac2resto"
 
 # Set kubernetes secret
