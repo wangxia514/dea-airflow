@@ -17,7 +17,7 @@ from odc.index import odc_uuid
 formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
 handler = logging.StreamHandler()
 handler.setFormatter(formatter)
-LOG = logging.getLogger("s3_to_s3_rolling")
+LOG = logging.getLogger("s2_to_s3_rolling")
 LOG.setLevel(logging.DEBUG)
 LOG.addHandler(handler)
 
@@ -86,7 +86,7 @@ def sync_granule(granule, _s3_bucket):
 
     # Remove any data that shouldn't be there and exclude the metadata and NBART
     command = "aws s3 sync {local_path} {s3_path} " \
-              "--no-progress " \
+              "--only-show-errors " \
               "--delete " \
               "--exclude NBART/* " \
               "--exclude ARD-METADATA.yaml".format(local_path=local_path, s3_path=s3_path)
