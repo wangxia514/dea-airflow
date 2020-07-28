@@ -18,14 +18,6 @@ This DAG takes following input parameters from `nci_c3_upload_s3_config` variabl
  * `doupdate`: If this flag is set then do a fresh sync of data and
     replace the metadata. `"--force-update"`
 
-    {
-        "s3bucket": "dea-public-data-dev",
-        "s3baseurl": "http://dea-public-data-dev.s3-ap-southeast-2.amazonaws.com",
-        "explorerbaseurl": "https://explorer.prod.dea.ga.gov.au",
-        "snstopic": "arn:aws:sns:ap-southeast-2:451924316694:landsat-collection-3-dev-topic",
-        "doupdate": ""
-    }
-
 """
 from datetime import datetime, timedelta
 from textwrap import dedent
@@ -52,13 +44,13 @@ LIST_SCENES_COMMAND = """
     # Be verbose and echo what we run
     set -x
     
-    args="-h 130.56.244.105 datacube -t -A -F,"
+    args="-h dea-db.nci.org.au datacube -t -A -F,"
     query="SELECT dsl.uri_body, ds.archived FROM agdc.dataset ds 
     INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id 
     INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref 
     WHERE dst.name='{{ params.product }}' 
-    AND (ds.added > TO_DATE('{{ ds }}', 'YYYY-MM-DD') - interval '3 day' 
-    OR ds.archived > TO_DATE('{{ ds }}', 'YYYY-MM-DD') - interval '3 day') 
+    AND (ds.added > TO_DATE('{{ ds }}', 'YYYY-MM-DD') - interval '10 day' 
+    OR ds.archived > TO_DATE('{{ ds }}', 'YYYY-MM-DD') - interval '10 day') 
     ;"
     output_file={{ work_dir }}/{{ params.product }}.csv
     psql ${args} -c "${query}" -o ${output_file}

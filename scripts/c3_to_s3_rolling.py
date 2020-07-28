@@ -11,16 +11,19 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import urljoin
+from typing import Dict
+from uuid import UUID
 
+import requests
 from botocore.exceptions import ClientError
 import boto3
 import click
+from jsonschema import validate
 from ruamel.yaml import YAML
 
 from eodatasets3 import verify, serialise
-from eodatasets3.scripts import tostac
+from eodatasets3.model import DatasetDoc
 from datacube.utils.geometry import Geometry, CRS
-from odc.index import odc_uuid
 
 formatter = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
 handler = logging.StreamHandler()
@@ -34,7 +37,7 @@ LOG.addHandler(handler)
 # Todo: Create a separate json file
 ga_ls_ard_3_stac_item = {
     "stac_version": "1.0.0-beta.2",
-    "stac_extensions": ["eo", "view", "proj"],
+    "stac_extensions": ["eo"],
     "assets": {
         "nbar_nir": {
             "eo:bands": [{"name": "nbar_nir"}],
@@ -226,10 +229,6 @@ MAPPING_EO3_TO_STAC = {
 def convert_value_to_stac_type(key: str, value):
     """
     Convert return type as per STAC specification
-    :param key: Name of the field
-    :param value: Value of the field
-    :return: Converted value with required type in STAC
-
     """
     # In STAC spec, "instruments" have [String] type
     if key == "eo:instrument":
@@ -238,58 +237,66 @@ def convert_value_to_stac_type(key: str, value):
         return value
 
 
-def create_stac(dataset, input_metadata, output_path, stac_data, stac_base_url, explorer_base_url):
+def create_stac(
+    dataset: DatasetDoc,
+    input_metadata: Path,
+    output_path: Path,
+    stac_data: dict,
+    stac_base_url: str,
+    explorer_base_url: str,
+    do_validate: bool,
+) -> dict:
     """
-    Create STAC metadata
-
-    :param dataset: Dict of the metadata content
-    :param input_metadata: Path of the Input metadata file
-    :param output_path: Path of the STAC output file
-    :param stac_data: Dict of the static STAC content
-    :param stac_base_url: Base URL for STAC file
-    :param explorer_base_url: Base URL for ODC Explorer
-    :return: Dict of the STAC content
+    Creates a STAC document
     """
 
-    geom = Geometry(dataset["geometry"], CRS(dataset["crs"]))
+    stac_ext = ["eo", "view", "projection"]
+    stac_ext.extend(stac_data.get("stac_extensions", []))
+
+    geom = Geometry(dataset.geometry, CRS(dataset.crs))
     wgs84_geometry = geom.to_crs(CRS("epsg:4326"), math.inf)
     item_doc = dict(
         stac_version="1.0.0-beta.2",
-        stac_extensions=["eo", "view", "proj"],
-        id=dataset["id"],
+        stac_extensions=sorted(set(stac_ext)),
         type="Feature",
+        id=dataset.id,
         bbox=wgs84_geometry.boundingbox,
         geometry=wgs84_geometry.json,
         properties={
             **{
                 MAPPING_EO3_TO_STAC.get(key, key): convert_value_to_stac_type(key, val)
-                for key, val in dataset["properties"].items()
+                for key, val in dataset.properties.items()
             },
-            "odc:product": dataset["product"]["name"],
-            "proj:epsg": dataset["crs"].lstrip("epsg:"),
-            "proj:shape": dataset["grids"]["default"]["shape"],
-            "proj:transform": dataset["grids"]["default"]["transform"],
+            "odc:product": dataset.product.name,
+            "proj:epsg": int(dataset.crs.lstrip("epsg:")) if dataset.crs else None,
+            "proj:shape": dataset.grids["default"].shape,
+            "proj:transform": dataset.grids["default"].transform,
         },
+        # TODO: Currently assuming no name collisions.
         assets={
             **{
                 name: (
                     {
                         **stac_data.get("assets", {}).get(name, {}),
-                        "href": urljoin(stac_base_url, m["path"]),
-                        "proj.shape": dataset["grids"][m.get("grid", "default")]["shape"],
-                        "proj.transform": dataset["grids"][m.get("grid", "default")]["transform"],
+                        "href": urljoin(stac_base_url, m.path),
+                        "proj.shape": dataset.grids[
+                            m.grid if m.grid else "default"
+                        ].shape,
+                        "proj.transform": dataset.grids[
+                            m.grid if m.grid else "default"
+                        ].transform,
                     }
                 )
-                for name, m in dataset["measurements"].items()
+                for name, m in dataset.measurements.items()
             },
             **{
                 name: (
                     {
                         **stac_data.get("assets", {}).get(name, {}),
-                        "href": urljoin(stac_base_url, m["path"]),
+                        "href": urljoin(stac_base_url, m.path),
                     }
                 )
-                for name, m in dataset["accessories"].items()
+                for name, m in dataset.accessories.items()
             },
         },
         links=[
@@ -304,20 +311,57 @@ def create_stac(dataset, input_metadata, output_path, stac_data, stac_base_url, 
                 "href": urljoin(stac_base_url, input_metadata.name),
             },
             {
-                "title": "Open Data Cube Product",
-                "rel": "odc_product",
+                "title": "Open Data Cube Product Overview",
+                "rel": "product_overview",
                 "type": "text/html",
-                "href": urljoin(explorer_base_url, f"product/{dataset['product']['name']}"),
+                "href": urljoin(explorer_base_url, f"product/{dataset.product.name}"),
             },
             {
                 "title": "Open Data Cube Explorer",
                 "rel": "alternative",
                 "type": "text/html",
-                "href": urljoin(explorer_base_url, f"dataset/{dataset['id']}"),
+                "href": urljoin(explorer_base_url, f"dataset/{dataset.id}"),
             },
         ],
     )
+    if do_validate:
+        validate_stac(item_doc)
     return item_doc
+
+
+def json_fallback(o):
+    if isinstance(o, datetime):
+        return f"{o.isoformat()}Z"
+
+    if isinstance(o, UUID):
+        return str(o)
+
+    raise TypeError(
+        f"Unhandled type for json conversion: "
+        f"{o.__class__.__name__!r} "
+        f"(object {o!r})"
+    )
+
+
+def validate_stac(item_doc: Dict):
+    # Validates STAC content against schema of STAC item and STAC extensions
+    stac_content = json.loads(json.dumps(item_doc, indent=4, default=json_fallback))
+    schema_urls = [
+        f"https://schemas.stacspec.org/"
+        f"v{item_doc.get('stac_version')}"
+        f"/item-spec/json-schema/item.json#"
+    ]
+    for extension in item_doc.get("stac_extensions", []):
+        schema_urls.append(
+            f"https://schemas.stacspec.org/"
+            f"v{item_doc.get('stac_version')}"
+            f"/extensions/{extension}"
+            f"/json-schema/schema.json#"
+        )
+
+    for schema_url in schema_urls:
+        schema_json = requests.get(schema_url).json()
+        validate(stac_content, schema_json)
 
 
 def find_granules(file_path):
@@ -370,7 +414,7 @@ def upload_s3_resource(s3_bucket, s3_file, obj):
 
 def load_s3_resource(s3_bucket, s3_file):
     """
-    Donwload S3 resource object in provided s3 path
+    Download S3 resource object in provided s3 path
 
     :param s3_bucket: Name of s3 bucket
     :param s3_file: Path of file in S3
@@ -473,11 +517,6 @@ def update_metadata(nci_metadata_file, s3_bucket, s3_base_url, explorer_base_url
     with nci_metadata_file_path.open("r") as f:
         temp_metadata = yaml.load(f)
 
-    # Add original UUID to new field 'original_id'
-    temp_metadata["original_id"] = temp_metadata["id"]
-
-    # Create a new deterministic dataset ID
-    temp_metadata['id'] = str(odc_uuid("c3_to_s3_rolling", "1.0.0", [temp_metadata['id']]))
 
     # Deleting Nbar related metadata
     # Because Landsat 8 is different, we need to check if the fields exist
@@ -526,14 +565,15 @@ def update_metadata(nci_metadata_file, s3_bucket, s3_base_url, explorer_base_url
     stac_data = ga_ls_ard_3_stac_item if ga_ls_ard_3_stac_item else {}
     stac_url_path = f"{s3_base_url if s3_base_url else boto3.client('s3').meta.endpoint_url}/{s3_path}/"
     item_doc = create_stac(
-        temp_metadata,
+        serialise.from_doc(temp_metadata),
         nci_metadata_file_path,
         stac_output_file_path,
         stac_data,
         stac_url_path,
-        explorer_base_url
+        explorer_base_url,
+        True,
     )
-    stac_dump = json.dumps(item_doc, indent=4, default=tostac.json_fallback)
+    stac_dump = json.dumps(item_doc, indent=4, default=json_fallback)
 
     # Write stac json to buffer
     with io.BytesIO() as temp_stac:

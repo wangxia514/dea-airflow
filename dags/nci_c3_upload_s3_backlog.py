@@ -18,14 +18,6 @@ This DAG takes following input parameters from `nci_c3_upload_s3_config` variabl
  * `doupdate`: If this flag is set then do a fresh sync of data and
     replace the metadata. `"--force-update"`
 
-    {
-        "s3bucket": "dea-public-data-dev",
-        "s3baseurl": "http://dea-public-data-dev.s3-ap-southeast-2.amazonaws.com",
-        "explorerbaseurl": "https://explorer.prod.dea.ga.gov.au",
-        "snstopic": "arn:aws:sns:ap-southeast-2:451924316694:landsat-collection-3-dev-topic",
-        "doupdate": ""
-    }
-
 """
 from datetime import datetime, timedelta
 from textwrap import dedent
@@ -52,7 +44,7 @@ LIST_SCENES_COMMAND = """
     # Be verbose and echo what we run
     set -x
     
-    args="-h 130.56.244.105 datacube -t -A -F,"
+    args="-h dea-db.nci.org.au datacube -t -A -F,"
     query="SELECT dsl.uri_body 
     FROM agdc.dataset ds 
     INNER JOIN agdc.dataset_type dst 
@@ -101,8 +93,8 @@ RUN_UPLOAD_SCRIPT = """
 
 default_args = {
     "owner": "Sachit Rajbhandari",
-    "start_date": datetime(2020, 5, 1),
-    "end_date": datetime(2020, 5, 4),
+    "start_date": datetime(2020, 1, 1),
+    "end_date": datetime(2020, 1, 14),
     "retries": 0,
     "retry_delay": timedelta(minutes=5),
     "email_on_failure": True,
