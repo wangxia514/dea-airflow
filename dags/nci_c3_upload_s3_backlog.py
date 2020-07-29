@@ -28,7 +28,8 @@ from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
 
-product = "ga_ls8c_ard_3"
+collection3_products = ["ga_ls5t_ard_3", "ga_ls7e_ard_3", "ga_ls8c_ard_3"]
+
 
 LIST_SCENES_COMMAND = """
     mkdir -p {{ work_dir }};
@@ -93,8 +94,8 @@ RUN_UPLOAD_SCRIPT = """
 
 default_args = {
     "owner": "Sachit Rajbhandari",
-    "start_date": datetime(2020, 1, 1),
-    "end_date": datetime(2020, 1, 14),
+    "start_date": datetime(2013, 5, 1),
+    "end_date": datetime(2013, 5, 31),
     "retries": 0,
     "retry_delay": timedelta(minutes=5),
     "email_on_failure": True,
@@ -117,57 +118,58 @@ dag = DAG(
 
 
 with dag:
-    WORK_DIR = f'/g/data/v10/work/c3_upload_s3/{product}/{"{{ ds }}"}'
-    COMMON = """
-            {% set work_dir = '/g/data/v10/work/c3_upload_s3/' 
-            + params.product  +'/' + ds -%}
-            """
-    # List all the scenes to be uploaded to S3 bucket
-    list_scenes = SSHOperator(
-        task_id=f"list_{product}_scenes",
-        ssh_conn_id="lpgs_gadi",
-        command=dedent(COMMON + LIST_SCENES_COMMAND),
-        params={"product": product},
-        do_xcom_push=False,
-        timeout=90,  # For running SSH Commands
-    )
-    # Uploading c3_to_s3_rolling.py script to NCI
-    sftp_c3_to_s3_script = SFTPOperator(
-        task_id=f"sftp_c3_to_s3_script_{product}",
-        local_filepath=Path(Path(configuration.get("core", "dags_folder")).parent)
-        .joinpath("scripts/c3_to_s3_rolling.py")
-        .as_posix(),
-        remote_filepath="{}/c3_to_s3_rolling.py".format(WORK_DIR),
-        operation=SFTPOperation.PUT,
-        create_intermediate_dirs=True,
-    )
-    # Execute script to upload Landsat collection 3 data to s3 bucket
-    aws_hook = AwsHook(aws_conn_id=dag.default_args["aws_conn_id"])
-    execute_c3_to_s3_script = SSHOperator(
-        task_id=f"execute_c3_to_s3_script_{product}",
-        command=dedent(COMMON + RUN_UPLOAD_SCRIPT),
-        remote_host="gadi-dm.nci.org.au",
-        params={
-            "aws_hook": aws_hook,
-            "product": product,
-            "nci_dir": "/g/data/xu18/ga/",
-            "s3_path": "analysis-ready-data",
-        },
-        timeout=60 * 10,
-    )
-    # Deletes working folder and uploaded script file
-    clean_nci_work_dir = SSHOperator(
-        task_id=f"clean_nci_work_dir_{product}",
-        # Remove work dir after aws s3 sync
-        command=dedent(
-            COMMON
-            + """
-                set -eux
-                rm -vrf "{{ work_dir }}"
-            """
-        ),
-        params={"product": product},
-    )
-    list_scenes >> sftp_c3_to_s3_script
-    sftp_c3_to_s3_script >> execute_c3_to_s3_script
-    execute_c3_to_s3_script >> clean_nci_work_dir
+    for product in collection3_products:
+        WORK_DIR = f'/g/data/v10/work/c3_upload_s3/{product}/{"{{ ds }}"}'
+        COMMON = """
+                {% set work_dir = '/g/data/v10/work/c3_upload_s3/' 
+                + params.product  +'/' + ds -%}
+                """
+        # List all the scenes to be uploaded to S3 bucket
+        list_scenes = SSHOperator(
+            task_id=f"list_{product}_scenes",
+            ssh_conn_id="lpgs_gadi",
+            command=dedent(COMMON + LIST_SCENES_COMMAND),
+            params={"product": product},
+            do_xcom_push=False,
+            timeout=90,  # For running SSH Commands
+        )
+        # Uploading c3_to_s3_rolling.py script to NCI
+        sftp_c3_to_s3_script = SFTPOperator(
+            task_id=f"sftp_c3_to_s3_script_{product}",
+            local_filepath=Path(Path(configuration.get("core", "dags_folder")).parent)
+            .joinpath("scripts/c3_to_s3_rolling.py")
+            .as_posix(),
+            remote_filepath="{}/c3_to_s3_rolling.py".format(WORK_DIR),
+            operation=SFTPOperation.PUT,
+            create_intermediate_dirs=True,
+        )
+        # Execute script to upload Landsat collection 3 data to s3 bucket
+        aws_hook = AwsHook(aws_conn_id=dag.default_args["aws_conn_id"])
+        execute_c3_to_s3_script = SSHOperator(
+            task_id=f"execute_c3_to_s3_script_{product}",
+            command=dedent(COMMON + RUN_UPLOAD_SCRIPT),
+            remote_host="gadi-dm.nci.org.au",
+            params={
+                "aws_hook": aws_hook,
+                "product": product,
+                "nci_dir": "/g/data/xu18/ga/",
+                "s3_path": "analysis-ready-data",
+            },
+            timeout=60 * 10,
+        )
+        # Deletes working folder and uploaded script file
+        clean_nci_work_dir = SSHOperator(
+            task_id=f"clean_nci_work_dir_{product}",
+            # Remove work dir after aws s3 sync
+            command=dedent(
+                COMMON
+                + """
+                    set -eux
+                    rm -vrf "{{ work_dir }}"
+                """
+            ),
+            params={"product": product},
+        )
+        list_scenes >> sftp_c3_to_s3_script
+        sftp_c3_to_s3_script >> execute_c3_to_s3_script
+        execute_c3_to_s3_script >> clean_nci_work_dir
