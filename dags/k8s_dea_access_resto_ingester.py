@@ -50,7 +50,7 @@ from datetime import datetime, timedelta
 # The DAG object; we'll need this to instantiate a DAG
 from airflow import DAG
 
-from airflow.contrib.kubernetes.secret import Secret
+from airflow.kubernetes.secret import Secret
 
 # Operators; we need this to operate!
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
