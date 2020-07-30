@@ -14,14 +14,9 @@ and configuration installed.
 The DAG has to be parameterized with Thredds catalog root and Target products as below.
 The lineage indexing strategy also has to be passed in.
 
-
-    {
-        "params" : "--auto-add-lineage",
-        "thredds_catalog": "http://dapds00.nci.org.au/thredds/catalog/if87/2018-11-29/",
-        "products": "s2a_ard_granule s2a_level1c_granule s2b_ard_granule s2b_level1c_granule"
-    }
-
-
+    "params" : "--auto-add-lineage",
+    "thredds_catalog": "http://dapds00.nci.org.au/thredds/catalog/if87/2018-11-29/",
+    "products": "s2a_ard_granule s2a_level1c_granule s2b_ard_granule s2b_level1c_granule"
 """
 from datetime import datetime, timedelta
 
