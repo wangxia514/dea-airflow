@@ -49,8 +49,8 @@ LIST_SCENES_COMMAND = """
     INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id 
     INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref 
     WHERE dst.name='{{ params.product }}' 
-    AND (ds.added > TO_DATE('{{ ds }}', 'YYYY-MM-DD') - interval '10 day' 
-    OR ds.archived > TO_DATE('{{ ds }}', 'YYYY-MM-DD') - interval '10 day') 
+    AND (ds.added > TO_DATE('{{ ds }}', 'YYYY-MM-DD') - interval '1 day' 
+    OR ds.archived > TO_DATE('{{ ds }}', 'YYYY-MM-DD') - interval '1 day') 
     ;"
     output_file={{ work_dir }}/{{ params.product }}.csv
     psql ${args} -c "${query}" -o ${output_file}
@@ -104,7 +104,7 @@ dag = DAG(
     doc_md=__doc__,
     default_args=default_args,
     catchup=False,
-    schedule_interval=None,
+    schedule_interval="@daily",
     max_active_runs=1,
     default_view="graph",
     tags=["nci", "landsat_c3"],
