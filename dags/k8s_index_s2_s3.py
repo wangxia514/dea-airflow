@@ -8,9 +8,7 @@ and configuration installed.
 
 The DAG has to be parameterized with index date as below.
 
-    {
-        "index_date": "2020-05-01"
-    }
+    "index_date": "2020-05-01"
 """
 from datetime import datetime, timedelta
 
