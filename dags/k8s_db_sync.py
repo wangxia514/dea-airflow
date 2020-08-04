@@ -20,7 +20,7 @@ from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
-from airflow.contrib.kubernetes.secret import Secret
+from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 
 # Templated DAG arguments

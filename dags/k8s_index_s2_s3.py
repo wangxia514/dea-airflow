@@ -8,15 +8,13 @@ and configuration installed.
 
 The DAG has to be parameterized with index date as below.
 
-    {
-        "index_date": "2020-05-01"
-    }
+    "index_date": "2020-05-01"
 """
 from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
-from airflow.contrib.kubernetes.secret import Secret
+from airflow.kubernetes.secret import Secret
 
 
 DEFAULT_ARGS = {
