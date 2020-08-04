@@ -13,18 +13,15 @@ and configuration installed.
 
 The DAG has to be parameterized with S3_Glob and Target product as below.
 
-
-    {
-        "s3_glob": "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
-        "product": "cemp_insar_alos_displacement"
-    }
+    "s3_glob": "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
+    "product": "cemp_insar_alos_displacement"
 
 """
 from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
-from airflow.contrib.kubernetes.secret import Secret
+from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 
 
