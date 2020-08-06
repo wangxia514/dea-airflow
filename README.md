@@ -1,10 +1,10 @@
-# Geoscience Australia DEA Airflow DAG's repository
+# Geoscience Australia DEA Airflow DAGs repository
 
 ## Development
 
-### Local Editing of DAG's
+### Local Editing of DAGs
 
-DAG's can be locally edited and validated. Development can be done in `conda` or `venv` according to developer preference. Grab everything airflow and write DAG's. Use `autopep8` and `pylint` to achieve import validation and consistent formatting as the CI pipeline for this repository matures.
+DAG's can be locally edited and validated. Development can be done in `conda` or `venv` according to developer preference. Grab everything airflow and write DAGs. Use `autopep8` and `pylint` to achieve import validation and consistent formatting as the CI pipeline for this repository matures.
 
 ```bash
 pip install apache-airflow[aws,kubernetes,postgres,redis,ssh,celery]
