@@ -104,7 +104,7 @@ with DAG('nci_db_backup',
                 agdc.dataset
             )
 
-            output_dir=$TMPDIR/pg_csvs_${datetime}
+            output_dir=$TMPDIR/pg_csvs_${datestring}
             mkdir -p ${output_dir}
             cd ${output_dir}
 
@@ -127,14 +127,14 @@ with DAG('nci_db_backup',
             export AWS_SECRET_ACCESS_KEY={{params.aws_conn.secret_key}}
 
 
-            output_dir=$TMPDIR/pg_csvs_${datetime}
+            output_dir=$TMPDIR/pg_csvs_${datestring}
             cd ${output_dir}
 
-            aws s3 sync ./ s3://nci-db-dump/csv/${datetime}/ --content-encoding gzip --no-progress
+            aws s3 sync ./ s3://nci-db-dump/csv/${datestring}/ --content-encoding gzip --no-progress
 
             # Upload md5sums last, as a marker that it's complete.
             md5sum * > md5sums
-            aws s3 cp md5sums s3://nci-db-dump/csv/${datetime}/
+            aws s3 cp md5sums s3://nci-db-dump/csv/${datestring}/
 
             # Remove the CSV directory
             cd ..
