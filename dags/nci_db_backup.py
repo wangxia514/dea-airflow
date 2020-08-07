@@ -112,9 +112,7 @@ with DAG('nci_db_backup',
                 echo Dumping $table
                 psql --quiet -c "\\copy $table to stdout with (format csv)" -h ${host} -d datacube | gzip -c - > $table.csv.gz
 
-
             done
-
 
         """)
     )
