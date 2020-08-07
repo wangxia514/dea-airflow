@@ -44,20 +44,20 @@ with DAG('nci_db_backup',
 
         cd /g/data/v10/agdc/backup/archive
 
-        host=105
-        file_prefix="105-{{ ds_nodash }}"
-        
+        host=dea-db.nci.org.au
+        datestring=$(date +%Y%m%d)
+        file_prefix="${host}-${datestring}"
     ''')
 
     run_backup = SSHOperator(
         task_id='run_backup',
         command=COMMON + dedent("""
-            args="-U agdc_backup -h 130.56.244.${host} -p 5432"
+            args="-U agdc_backup -h ${host} -p 5432"
 
             set -x
 
             # Cleanup previous failures
-            rm -rf "105"*-datacube-partial.pgdump
+            rm -rf "${file_prefix}"*-datacube-partial.pgdump
 
             # Dump
             pg_dump ${args} guest > "${file_prefix}-guest.sql"
@@ -104,13 +104,13 @@ with DAG('nci_db_backup',
                 agdc.dataset
             )
 
-            output_dir=$TMPDIR/pg_csvs_{{ ds_nodash }}
+            output_dir=$TMPDIR/pg_csvs_${datetime}
             mkdir -p ${output_dir}
             cd ${output_dir}
 
             for table in ${tables[@]}; do
                 echo Dumping $table
-                psql --quiet -c "\\copy $table to stdout with (format csv)" -h agdc-db.nci.org.au -d datacube | gzip -c - > $table.csv.gz
+                psql --quiet -c "\\copy $table to stdout with (format csv)" -h ${host} -d datacube | gzip -c - > $table.csv.gz
 
 
             done
@@ -129,14 +129,14 @@ with DAG('nci_db_backup',
             export AWS_SECRET_ACCESS_KEY={{params.aws_conn.secret_key}}
 
 
-            output_dir=$TMPDIR/pg_csvs_{{ ds_nodash }}
+            output_dir=$TMPDIR/pg_csvs_${datetime}
             cd ${output_dir}
 
-            aws s3 cp . s3://nci-db-dump/csv/{{ ds_nodash }}/ --content-encoding gzip --recursive --no-progress
+            aws s3 sync ./ s3://nci-db-dump/csv/${datetime}/ --content-encoding gzip --no-progress
 
             # Upload md5sums last, as a marker that it's complete.
             md5sum * > md5sums
-            aws s3 cp md5sums s3://nci-db-dump/csv/{{ execution_date.strftime("%Y-%m-%d") }}/
+            aws s3 cp md5sums s3://nci-db-dump/csv/${datetime}/
 
             # Remove the CSV directory
             cd ..
