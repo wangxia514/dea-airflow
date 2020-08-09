@@ -82,9 +82,12 @@ with DAG('nci_db_backup',
         command=COMMON + dedent('''
             export AWS_ACCESS_KEY_ID={{params.aws_conn.access_key}}
             export AWS_SECRET_ACCESS_KEY={{params.aws_conn.secret_key}}
-            
-            s3_dump_file=s3://nci-db-dump/prod/"${file_prefix}-datacube.pgdump"
-            aws s3 cp "${file_prefix}-datacube.pgdump" "${s3_dump_file}"
+
+            # Upload a zipped file, because it's better for network traffic and saves $
+            gzip -c "${file_prefix}-datacube.pgdump" > "${file_prefix}-datacube.pgdump.gz"
+            s3_dump_file=s3://nci-db-dump/prod/"${file_prefix}-datacube.pgdump.gz"
+            aws s3 cp "${file_prefix}-datacube.pgdump.gz" "${s3_dump_file}"
+            rm "${file_prefix}-datacube.pgdump.gz"
 
         ''')
 
@@ -104,7 +107,7 @@ with DAG('nci_db_backup',
                 agdc.dataset
             )
 
-            output_dir=$TMPDIR/pg_csvs_${datetime}
+            output_dir=$TMPDIR/pg_csvs_${datestring}
             mkdir -p ${output_dir}
             cd ${output_dir}
 
@@ -112,9 +115,7 @@ with DAG('nci_db_backup',
                 echo Dumping $table
                 psql --quiet -c "\\copy $table to stdout with (format csv)" -h ${host} -d datacube | gzip -c - > $table.csv.gz
 
-
             done
-
 
         """)
     )
@@ -129,14 +130,14 @@ with DAG('nci_db_backup',
             export AWS_SECRET_ACCESS_KEY={{params.aws_conn.secret_key}}
 
 
-            output_dir=$TMPDIR/pg_csvs_${datetime}
+            output_dir=$TMPDIR/pg_csvs_${datestring}
             cd ${output_dir}
 
-            aws s3 sync ./ s3://nci-db-dump/csv/${datetime}/ --content-encoding gzip --no-progress
+            aws s3 sync ./ s3://nci-db-dump/csv/${datestring}/ --content-encoding gzip --no-progress
 
             # Upload md5sums last, as a marker that it's complete.
             md5sum * > md5sums
-            aws s3 cp md5sums s3://nci-db-dump/csv/${datetime}/
+            aws s3 cp md5sums s3://nci-db-dump/csv/${datestring}/
 
             # Remove the CSV directory
             cd ..
