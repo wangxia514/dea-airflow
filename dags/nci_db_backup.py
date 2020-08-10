@@ -31,7 +31,7 @@ with DAG('nci_db_backup',
          default_args=default_args,
          catchup=False,
          schedule_interval="@daily",
-         concurrency=1,
+         max_active_runs=1,
          tags=['nci'],
          ) as dag:
 
@@ -83,11 +83,8 @@ with DAG('nci_db_backup',
             export AWS_ACCESS_KEY_ID={{params.aws_conn.access_key}}
             export AWS_SECRET_ACCESS_KEY={{params.aws_conn.secret_key}}
 
-            # Upload a zipped file, because it's better for network traffic and saves $
-            gzip -c "${file_prefix}-datacube.pgdump" > "${file_prefix}-datacube.pgdump.gz"
-            s3_dump_file=s3://nci-db-dump/prod/"${file_prefix}-datacube.pgdump.gz"
-            aws s3 cp "${file_prefix}-datacube.pgdump.gz" "${s3_dump_file}"
-            rm "${file_prefix}-datacube.pgdump.gz"
+            s3_dump_file=s3://nci-db-dump/prod/"${file_prefix}-datacube.pgdump"
+            aws s3 cp "${file_prefix}-datacube.pgdump" "${s3_dump_file}"
 
         ''')
 
