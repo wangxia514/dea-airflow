@@ -205,7 +205,7 @@ ga_ls_ard_3_stac_item = {
             "roles": ["thumbnail"]
         },
         "checksum:sha1": {"type": "text/plain"},
-        "metadata:processor": {"type": "text/plain", "roles": ["metadata"]}
+        "metadata:processor": {"type": "text/yaml", "roles": ["metadata"]}
     }
 }
 
@@ -279,10 +279,10 @@ def create_stac(
                     {
                         **stac_data.get("assets", {}).get(name, {}),
                         "href": urljoin(stac_base_url, m.path),
-                        "proj.shape": dataset.grids[
+                        "proj:shape": dataset.grids[
                             m.grid if m.grid else "default"
                         ].shape,
-                        "proj.transform": dataset.grids[
+                        "proj:transform": dataset.grids[
                             m.grid if m.grid else "default"
                         ].transform,
                     }
@@ -308,6 +308,7 @@ def create_stac(
             {
                 "title": "Source Dataset YAML",
                 "rel": "derived_from",
+                "type": "text/yaml",
                 "href": urljoin(stac_base_url, input_metadata.name),
             },
             {
