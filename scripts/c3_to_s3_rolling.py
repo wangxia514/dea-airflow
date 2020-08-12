@@ -307,7 +307,7 @@ def create_stac(
             },
             {
                 "title": "Source Dataset YAML",
-                "rel": "derived_from",
+                "rel": "odc_yaml",
                 "type": "text/yaml",
                 "href": urljoin(stac_base_url, input_metadata.name),
             },
@@ -489,6 +489,43 @@ def upload_checksum(nci_metadata_file_path, checksum_file_path, new_checksum_lis
         upload_s3_resource(s3_bucket, s3_checksum_file, temp_checksum.getvalue())
 
 
+def get_common_message_attributes(stac_doc: Dict) -> Dict:
+    """
+    Returns common message attributes dict
+    :param stac_doc: STAC dict
+    :return: common message attributes dict
+    """
+    return {
+        "product": {
+            "DataType": "String",
+            "StringValue": stac_doc["properties"]["odc:product"],
+        },
+        "datetime": {
+            "DataType": "String",
+            "StringValue": stac_doc["properties"]["datetime"],
+        },
+        "cloudcover": {
+            "DataType": "Number",
+            "StringValue": str(stac_doc["properties"]["eo:cloud_cover"]),
+        },
+        "bbox.ll_lon": {
+            "DataType": "Number",
+            "StringValue": str(stac_doc["bbox"][0]),
+        },
+        "bbox.ll_lat": {
+            "DataType": "Number",
+            "StringValue": str(stac_doc["bbox"][1]),
+        },
+        "bbox.ur_lon": {
+            "DataType": "Number",
+            "StringValue": str(stac_doc["bbox"][2]),
+        },
+        "bbox.ur_lat": {
+            "DataType": "Number",
+            "StringValue": str(stac_doc["bbox"][3]),
+        },
+    }
+
 def update_metadata(nci_metadata_file, s3_bucket, s3_base_url, explorer_base_url, sns_topic, s3_path):
     """
     Uploads updated metadata with nbar element removed, updated checksum file, STAC doc created
@@ -594,16 +631,15 @@ def update_metadata(nci_metadata_file, s3_bucket, s3_base_url, explorer_base_url
             )
 
     # Publish message containing STAC metadata to SNS Topic
-    message_attributes = {
-        "collection": {
-            "DataType": "String",
-            "StringValue": item_doc["properties"]["odc:product"],
-        },
-        "action": {
-            "DataType": "String",
-            "StringValue": "ADDED",
-        },
-    }
+    message_attributes = get_common_message_attributes(json.loads(stac_dump))
+    message_attributes.update(
+        {
+            "action": {
+                "DataType": "String",
+                "StringValue": "ADDED",
+            }
+        }
+    )
     try:
         publish_sns(sns_topic, stac_dump, message_attributes)
         LOG.info(f"Finished publishing SNS Message to SNS Topic {sns_topic}")
@@ -735,16 +771,15 @@ def sync_granules(file_path, nci_dir, s3_root_path, s3_bucket, s3_base_url, expl
                         LOG.info(f"Finished S3 archive of granule - {granule}")
 
                         # Publish message containing STAC metadata to SNS Topic
-                        message_attributes = {
-                            "collection": {
-                                "DataType": "String",
-                                "StringValue": stac_dump["properties"]["odc:product"],
-                            },
-                            "action": {
-                                "DataType": "String",
-                                "StringValue": "ARCHIVED",
-                            },
-                        }
+                        message_attributes = get_common_message_attributes(stac_dump)
+                        message_attributes.update(
+                            {
+                                "action": {
+                                    "DataType": "String",
+                                    "StringValue": "ARCHIVED",
+                                }
+                            }
+                        )
                         try:
                             publish_sns(sns_topic, json.dumps(stac_dump), message_attributes)
                             LOG.info(f"Finished publishing SNS Message to SNS Topic {sns_topic}")
