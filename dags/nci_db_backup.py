@@ -84,7 +84,7 @@ with DAG('nci_db_backup',
             export AWS_SECRET_ACCESS_KEY={{params.aws_conn.secret_key}}
 
             s3_dump_file=s3://nci-db-dump/prod/"${file_prefix}-datacube.pgdump"
-            aws s3 cp "${file_prefix}-datacube.pgdump" "${s3_dump_file}"
+            aws s3 cp "${file_prefix}-datacube.pgdump" "${s3_dump_file}" --no-progress
 
         ''')
 
