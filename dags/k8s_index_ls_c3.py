@@ -24,8 +24,8 @@ DEFAULT_ARGS = {
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "aws_conn_id": "dea_public_data_upload",
-    "add_sqs_queue": "dea-dev-eks-landsat-c3-add",
-    "archive_sqs_queue": "dea-dev-eks-landsat-c3-archive",
+    "index_sqs_queue": "dea-dev-eks-landsat-c3-indexing",
+    "archive_sqs_queue": "dea-dev-eks-landsat-c3-archiving",
     "products": "ga_ls5t_ard_3 ga_ls7e_ard_3 ga_ls8c_ard_3",
     "env_vars": {
         # TODO: Change to dev DB credentials
@@ -64,7 +64,7 @@ with dag:
         arguments=["sqs-to-dc",
                    "--odc-metadata-link",
                    "--skip-lineage",
-                   dag.default_args['add_sqs_queue'],
+                   dag.default_args['index_sqs_queue'],
                    dag.default_args['products']],
         labels={"step": "sqs-dc-indexing"},
         name="datacube-index",
