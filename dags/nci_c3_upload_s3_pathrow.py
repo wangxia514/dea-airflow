@@ -20,12 +20,12 @@ This DAG takes following input parameters from `nci_c3_upload_s3_config` variabl
 
 This DAG takes following additional runtime parameters from `dag_run.conf`:
 
- * `pathsrows`: PathRow value of the scene. `'091089', '090089'`
+ * `pathrows`: Path/Row value of the scene. `091089 090089`
  * `startdate`: Start date of the scene acquisition to sync. `2006-01-01`
  * `enddate`: End date of the scene acquisition to sync. `2006-12-31`
 
-Here, `pathsrows` is a mandatory parameter while `startdate`and `enddate` if provided,
-syncs takes place for specified period otherwise for all available period.
+Here, `pathrows` is a mandatory parameter while `startdate` and `enddate` is optional. If provided,
+syncs takes place for specified period otherwise for all the available period.
 
 """
 from datetime import datetime, timedelta
@@ -52,32 +52,30 @@ LIST_SCENES_COMMAND = """
     
     # Be verbose and echo what we run
     set -x
-    
-    pathrow="{{ dag_run.conf.pathsrows }}"
+
+    pathrows="{{ dag_run.conf.pathrows }}"
     startdate="{{ dag_run.conf.startdate }}"
     enddate="{{ dag_run.conf.enddate }}"
-    if [ -z "${pathrow}" ]
+    if [ -z "${pathrows}" ]
     then
-        echo "Mandatory parameter pathrow is missing!"
+        echo "Mandatory parameter pathrows is missing!"
         exit 1
     else
-        condition=" AND ds.metadata -> 'properties' ->> 'odc:region_code' IN (${pathrow}) "
-        if [ \(! -z "${startdate}" \) -a \(! -z ${enddate}\) ]
-        then
-            condition+=" AND TO_DATE(ds.metadata -> 'properties' ->> 'datetime', 'YYYY-MM-DD') 
-            BETWEEN  TO_DATE('${startdate})', 'YYYY-MM-DD') 
-            AND TO_DATE('${enddate})', 'YYYY-MM-DD') "
-        fi
-    
-        args="-h dea-db.nci.org.au datacube -t -A -F,"
-        query="SELECT dsl.uri_body FROM agdc.dataset ds 
-        INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id 
-        INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref 
-        WHERE dst.name='{{ params.product }}' 
-        ${condition}
-        ;"
+        dt_args=""
+        [[ ! -z ${startdate} && ! -z ${enddate} ]] && dt_args="time in [${startdate}, ${enddate}]"
+        
         output_file={{ work_dir }}/{{ params.product }}.csv
-        psql ${args} -c "${query}" -o ${output_file}
+        # Making sure to remove existing output file before we append location_url into this file for each pathrows
+        [ -f "${output_file}" ] && rm ${output_file}
+        
+        for pathrow in ${pathrows}
+        do
+            datacube dataset search \
+            product={{ params.product }} \
+            "region_code=\\""${pathrow}"\\"" \
+            ${dt_args} \
+            -f csv | sed 1d | cut -d "," -f4 >> ${output_file}
+        done
         cat ${output_file} | wc -l | xargs echo "Total scenes to be processed:"
     fi
 """
