@@ -20,7 +20,7 @@ This DAG takes following input parameters from `nci_c3_upload_s3_config` variabl
 
 This DAG takes following additional runtime parameters from `dag_run.conf`:
 
- * `pathrows`: Path/Row value of the scene. `091089 090089`
+ * `pathrows`: Path/Row value of the scene. `'091089', '090089'`
  * `startdate`: Start date of the scene acquisition to sync. `2006-01-01`
  * `enddate`: End date of the scene acquisition to sync. `2006-12-31`
 
@@ -60,22 +60,25 @@ LIST_SCENES_COMMAND = """
     then
         echo "Mandatory parameter pathrows is missing!"
         exit 1
-    else
-        dt_args=""
-        [[ ! -z ${startdate} && ! -z ${enddate} ]] && dt_args="time in [${startdate}, ${enddate}]"
-        
+    else      
+        condition=" AND ds.metadata -> 'properties' ->> 'odc:region_code' IN (${pathrows}) "
+        if [[ ! -z ${startdate} && ! -z ${enddate} ]]
+        then
+            condition+=" AND TO_DATE(ds.metadata -> 'properties' ->> 'datetime', 'YYYY-MM-DD') 
+            BETWEEN  TO_DATE('${startdate})', 'YYYY-MM-DD') 
+            AND TO_DATE('${enddate})', 'YYYY-MM-DD') "
+        fi
+    
+        args="-h dea-db.nci.org.au datacube -t -A -F,"
+        query="SELECT dsl.uri_body FROM agdc.dataset ds 
+        INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id 
+        INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref 
+        WHERE dst.name='{{ params.product }}' 
+        AND ds.archived IS NULL
+        ${condition}
+        ;"
         output_file={{ work_dir }}/{{ params.product }}.csv
-        # Making sure to remove existing output file before we append location_url into this file for each pathrows
-        [ -f "${output_file}" ] && rm ${output_file}
-        
-        for pathrow in ${pathrows}
-        do
-            datacube dataset search \
-            product={{ params.product }} \
-            "region_code=\\""${pathrow}"\\"" \
-            ${dt_args} \
-            -f csv | sed 1d | cut -d "," -f4 >> ${output_file}
-        done
+        psql ${args} -c "${query}" -o ${output_file}
         cat ${output_file} | wc -l | xargs echo "Total scenes to be processed:"
     fi
 """
