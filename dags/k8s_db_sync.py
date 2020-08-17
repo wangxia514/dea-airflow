@@ -26,12 +26,13 @@ from airflow.operators.dummy_operator import DummyOperator
 # Templated DAG arguments
 DB_DATABASE = "nci_{{ ds_nodash }}"
 DB_HOSTNAME = "database-write.local"
-FILE_PREFIX = "105-{{ ds_nodash }}"
+FILE_PREFIX = "dea-db.nci.org.au-{{ ds_nodash }}"
 S3_KEY = f"s3://nci-db-dump/prod/{FILE_PREFIX}-datacube.pgdump"
 
 DEFAULT_ARGS = {
     "owner": "Tisham Dhar",
     "depends_on_past": False,
+    "is_delete_operator_pod": True,
     "start_date": datetime(2020, 2, 1),
     "email": ["tisham.dhar@ga.gov.au"],
     "email_on_failure": False,
