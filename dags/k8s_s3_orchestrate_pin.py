@@ -117,7 +117,7 @@ with dag:
         get_logs=True,
         init_container=k8s.V1Container(
             image=OWS_CONFIG_IMAGE,
-            cmds=["cp"],
+            command=["cp"],
             args=["-f", OWS_CFG_IMAGEPATH, OWS_CFG_PATH],
             volume_mounts=["ows-config-volume"],
             name="mount-ows-config"
