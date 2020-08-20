@@ -57,7 +57,7 @@ DEFAULT_ARGS = {
 OWS_IMAGE = "opendatacube/ows:1.8.1"
 OWS_CONFIG_IMAGE = "geoscienceaustralia/dea-datakube-config:1.5.1"
 
-
+OWS_CFG_IMAGEPATH = "/opt/dea-config/dev/services/wms/ows/ows_cfg.py"
 
 # for main container mount
 ows_cfg_mount = VolumeMount('ows-config-volume',
@@ -73,7 +73,7 @@ ows_cfg_volume = Volume(name='ows-config-volume', configs=ows_cfg_volume_config)
 
 # for init container mount
 cfg_image_mount = k8s.V1VolumeMount(
-      mount_path='/opt',
+      mount_path='/env/config',
       name='ows-config-volume',
       sub_path=None,
       read_only=False
@@ -81,11 +81,11 @@ cfg_image_mount = k8s.V1VolumeMount(
 
 config_container = k8s.V1Container(
         image=OWS_CONFIG_IMAGE,
-        # command=["cp"],
-        # args=[OWS_CFG_IMAGEPATH, "/opt/ows_cfg.py"],
+        command=["cp"],
+        args=["/opt/dea-config/dev/services/wms/ows/ows_cfg.py", "/env/config/ows_cfg.py"],
         volume_mounts=[cfg_image_mount],
         name="mount-ows-config",
-        # working_dir="/opt"
+        working_dir="/opt"
     )
 dag = DAG(
     "k8s_ows_pod_pin",
