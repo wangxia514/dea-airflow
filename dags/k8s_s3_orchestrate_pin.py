@@ -64,17 +64,18 @@ cfg_image_mount = k8s.V1VolumeMount('ows-config-image',
                                     read_only=True)
 
 ows_cfg_mount = VolumeMount('ows-config-volume',
-                        mount_path='/env/config',
-                        sub_path=None,
-                        read_only=True)
+                            mount_path='/env',
+                            sub_path='/config',
+                            read_only=True)
 
 ows_cfg_volume_config= {
     'persistentVolumeClaim':
-      {
-        'claimName': 'ows-config-volume'
-      }
-    }
-ows_cfg_volume = Volume(name='ows-config-volume', configs=ows_cfg_volume_config)
+        {
+            'claimName': 'ows-config-volume'
+        }
+}
+
+ows_cfg_volume = Volume(name='ows-config-volume',                   configs=ows_cfg_volume_config)
 
 
 config_container = k8s.V1Container(
