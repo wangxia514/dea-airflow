@@ -25,6 +25,7 @@ from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 import kubernetes.client.models as k8s
 from airflow.kubernetes.volume_mount import VolumeMount
+from airflow.kubernetes.volume import Volume
 
 DEFAULT_ARGS = {
     "owner": "Pin Jin",
@@ -67,6 +68,15 @@ ows_cfg_mount = VolumeMount('ows-config-volume',
                         sub_path=None,
                         read_only=True)
 
+ows_cfg_volume_config= {
+    'persistentVolumeClaim':
+      {
+        'claimName': 'ows-config-volume'
+      }
+    }
+ows_cfg_volume = Volume(name='ows-config-volume', configs=volume_config)
+
+
 config_container = k8s.V1Container(
         image=OWS_CONFIG_IMAGE,
         command=["cp"],
@@ -99,6 +109,7 @@ with dag:
         name="ows-update-ranges",
         task_id="update-ranges-task",
         get_logs=True,
+        volumes=[ows_cfg_volume],
         volume_mounts=[ows_cfg_mount],
         init_containers=[config_container]
     )
