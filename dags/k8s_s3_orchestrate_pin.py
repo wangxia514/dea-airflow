@@ -57,7 +57,7 @@ DEFAULT_ARGS = {
 OWS_IMAGE = "opendatacube/ows:1.8.1"
 OWS_CONFIG_IMAGE = "geoscienceaustralia/dea-datakube-config:1.5.1"
 
-OWS_CFG_IMAGEPATH = "/opt/dea-config/dev/services/wms/ows/ows_cfg.py""
+OWS_CFG_IMAGEPATH = "/opt/dea-config/dev/services/wms/ows/ows_cfg.py"
 
 # for main container mount
 ows_cfg_mount = VolumeMount('ows-config-volume',
