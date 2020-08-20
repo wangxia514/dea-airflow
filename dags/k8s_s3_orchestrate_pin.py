@@ -58,27 +58,31 @@ OWS_CONFIG_IMAGE = "geoscienceaustralia/dea-datakube-config:1.5.1"
 OWS_CFG_PATH = "/env/config/ows_cfg.py"
 OWS_CFG_IMAGEPATH = "/opt/dea-config/dev/services/wms/ows/ows_cfg.py"
 
+
+# for main container mount
+ows_cfg_mount = VolumeMount('ows-config-volume',
+                            mount_path='/env/config',
+                            sub_path=None,
+                            read_only=True)
+
+
+ows_cfg_volume_config= {
+    'persistentVolumeClaim':
+        {
+            'claimName': 'ows-config-volume'
+        }
+}
+
+ows_cfg_volume = Volume(name='ows-config-volume', configs=ows_cfg_volume_config)
+
+
+# for init container mount
 cfg_image_mount = k8s.V1VolumeMount(
       mount_path='/opt',
-      name='cfg-image-volume',
+      name='ows-config-volume',
       sub_path=None,
       read_only=True
 )
-
-# ows_cfg_mount = VolumeMount('ows-config-volume',
-#                             mount_path='/env/config',
-#                             sub_path=None,
-#                             read_only=True)
-
-# ows_cfg_volume_config= {
-#     'ConfigMap':
-#         {
-#             'claimName': 'ows-config-volume'
-#         }
-# }
-
-# ows_cfg_volume = Volume(name='ows-config-volume', configs=ows_cfg_volume_config)
-
 
 config_container = k8s.V1Container(
         image=OWS_CONFIG_IMAGE,
@@ -104,13 +108,13 @@ with dag:
         namespace="processing",
         image=OWS_IMAGE,
         cmds=["ls"],
-        arguments=["/opt"],
+        arguments=["/env/config"],
         labels={"step": "ows"},
         name="ows-update-ranges",
         task_id="update-ranges-task",
         get_logs=True,
-        # volumes=[ows_cfg_volume],
-        # volume_mounts=[ows_cfg_mount],
+        volumes=[ows_cfg_volume],
+        volume_mounts=[ows_cfg_mount],
         init_containers=[config_container]
     )
 
