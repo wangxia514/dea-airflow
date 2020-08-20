@@ -63,7 +63,7 @@ OWS_CFG_IMAGEPATH = "/opt/dea-config/dev/services/wms/ows/ows_cfg.py"
 ows_cfg_mount = VolumeMount('ows-config-volume',
                             mount_path='/env/config',
                             sub_path=None,
-                            read_only=True)
+                            read_only=False)
 
 
 ows_cfg_volume_config= {}
@@ -76,7 +76,7 @@ cfg_image_mount = k8s.V1VolumeMount(
       mount_path='/opt',
       name='ows-config-volume',
       sub_path=None,
-      read_only=True
+      read_only=False
 )
 
 config_container = k8s.V1Container(
