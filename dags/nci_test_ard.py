@@ -15,8 +15,8 @@ default_args = {
     'start_date': datetime(2020, 2, 17),
     'retries': 0,
     'retry_delay': timedelta(minutes=1),
-    #'ssh_conn_id': 'lpgs_gadi',
-    'ssh_conn_id': 'dsg547',
+    'ssh_conn_id': 'lpgs_gadi',
+    #'ssh_conn_id': 'dsg547',
     'params': {
         'project': 'v10',
         'queue': 'normal',
@@ -43,10 +43,10 @@ with dag:
 
     COMMON = """
         #  ts_nodash timestamp no dashes.
-        #{% set log_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/logdir' %}
-        #{% set work_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/workdir' %}
-        {% set log_dir = '/home/547/dsg547/dump/airflow/' + ts_nodash + '/logdir' %}
-        {% set work_dir = '/home/547/dsg547/dump/airflow/' + ts_nodash + '/workdir' %}
+        {% set log_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/logdir' %}
+        {% set work_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/workdir' %}
+        #{% set log_dir = '/home/547/dsg547/dump/airflow/' + ts_nodash + '/logdir' %}
+        #{% set work_dir = '/home/547/dsg547/dump/airflow/' + ts_nodash + '/workdir' %}
         """
 
     product = 'used_by_params'
