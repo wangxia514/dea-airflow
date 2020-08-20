@@ -66,12 +66,7 @@ ows_cfg_mount = VolumeMount('ows-config-volume',
                             read_only=True)
 
 
-ows_cfg_volume_config= {
-    'persistentVolumeClaim':
-        {
-            'claimName': 'ows-config-volume'
-        }
-}
+ows_cfg_volume_config= {}
 
 ows_cfg_volume = Volume(name='ows-config-volume', configs=ows_cfg_volume_config)
 
