@@ -57,6 +57,24 @@ OWS_CONFIG_IMAGE = "geoscienceaustralia/dea-datakube-config:1.5.1"
 OWS_CFG_PATH = "/env/config/ows_cfg.py"
 OWS_CFG_IMAGEPATH = "/opt/dea-config/dev/services/wms/ows/ows_cfg.py"
 
+cfg_image_mount = VolumeMount('ows-config-image',
+                        mount_path='/opt',
+                        sub_path=None,
+                        read_only=True)
+
+ows_cfg_mount = VolumeMount('ows-config-volume',
+                        mount_path='/env/config',
+                        sub_path=None,
+                        read_only=True)
+
+config_container = k8s.V1Container(
+        image=OWS_CONFIG_IMAGE,
+        command=["cp"],
+        args=["-f", OWS_CFG_IMAGEPATH, OWS_CFG_PATH],
+        volume_mounts=[cfg_image_mount, ows_cfg_mount],
+        name="mount-ows-config",
+        working_dir="/opt"
+    )
 dag = DAG(
     "k8s_ows_pod_pin",
     doc_md=__doc__,
@@ -70,15 +88,7 @@ dag = DAG(
 with dag:
     START = DummyOperator(task_id="s3_index_publish")
 
-    cfg_image_mount = VolumeMount('ows-config-image',
-                            mount_path='/opt',
-                            sub_path=None,
-                            read_only=True)
 
-    ows_cfg_mount = VolumeMount('ows-config-volume',
-                            mount_path='/env/config',
-                            sub_path=None,
-                            read_only=True)
 
     UPDATE_RANGES = KubernetesPodOperator(
         namespace="processing",
@@ -90,14 +100,7 @@ with dag:
         task_id="update-ranges-task",
         get_logs=True,
         VolumeMount=[ows_cfg_mount],
-        init_container=k8s.V1Container(
-            image=OWS_CONFIG_IMAGE,
-            command=["cp"],
-            args=["-f", OWS_CFG_IMAGEPATH, OWS_CFG_PATH],
-            volume_mounts=[cfg_image_mount, ows_cfg_mount],
-            name="mount-ows-config",
-            working_dir="/opt"
-        )
+        init_container=[config_container]
     )
 
     COMPLETE = DummyOperator(task_id="all_done")
