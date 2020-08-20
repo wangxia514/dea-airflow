@@ -70,11 +70,15 @@ dag = DAG(
 with dag:
     START = DummyOperator(task_id="s3_index_publish")
 
-    volume_mount = VolumeMount('ows-config-volume',
+    cfg_image_mount = VolumeMount('ows-config-image',
                             mount_path='/opt',
                             sub_path=None,
                             read_only=True)
 
+    ows_cfg_mount = VolumeMount('ows-config-volume',
+                            mount_path='/env/config',
+                            sub_path=None,
+                            read_only=True)
 
     UPDATE_RANGES = KubernetesPodOperator(
         namespace="processing",
@@ -85,11 +89,12 @@ with dag:
         name="ows-update-ranges",
         task_id="update-ranges-task",
         get_logs=True,
+        VolumeMount=[ows_cfg_mount],
         init_container=k8s.V1Container(
             image=OWS_CONFIG_IMAGE,
             command=["cp"],
             args=["-f", OWS_CFG_IMAGEPATH, OWS_CFG_PATH],
-            volume_mounts=[volume_mount],
+            volume_mounts=[cfg_image_mount],
             name="mount-ows-config"
         )
     )
