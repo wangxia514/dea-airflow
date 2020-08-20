@@ -170,7 +170,7 @@ with dag:
         get_logs=True,
         volumes=[ows_cfg_volume],
         volume_mounts=[ows_cfg_mount],
-        init_containers=[config_container]
+        init_containers=[config_container],
         is_delete_operator_pod=True,
     )
 
