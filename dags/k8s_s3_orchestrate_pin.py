@@ -99,7 +99,7 @@ with dag:
         name="ows-update-ranges",
         task_id="update-ranges-task",
         get_logs=True,
-        VolumeMount=[ows_cfg_mount],
+        volume_mounts=[ows_cfg_mount],
         init_containers=[config_container]
     )
 
