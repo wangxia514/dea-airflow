@@ -58,33 +58,34 @@ OWS_CONFIG_IMAGE = "geoscienceaustralia/dea-datakube-config:1.5.1"
 OWS_CFG_PATH = "/env/config/ows_cfg.py"
 OWS_CFG_IMAGEPATH = "/opt/dea-config/dev/services/wms/ows/ows_cfg.py"
 
-# cfg_image_mount = k8s.V1VolumeMount('ows-config-image',
-#                                     mount_path='/opt',
-#                                     sub_path=None,
-#                                     read_only=True)
+cfg_image_mount = k8s.V1VolumeMount(
+      mount_path='/opt',
+      name='cfg-image-volume',
+      sub_path=None,
+      read_only=True
+)
 
-ows_cfg_mount = VolumeMount('ows-config-volume',
-                            mount_path='/env/config',
-                            sub_path=None,
-                            read_only=True)
+# ows_cfg_mount = VolumeMount('ows-config-volume',
+#                             mount_path='/env/config',
+#                             sub_path=None,
+#                             read_only=True)
 
-ows_cfg_volume_config= {
-    'persistentVolumeClaim':
-        {
-            'claimName': 'ows-config-volume'
-        }
-}
+# ows_cfg_volume_config= {
+#     'ConfigMap':
+#         {
+#             'claimName': 'ows-config-volume'
+#         }
+# }
 
-ows_cfg_volume = Volume(name='ows-config-volume', configs=ows_cfg_volume_config)
+# ows_cfg_volume = Volume(name='ows-config-volume', configs=ows_cfg_volume_config)
 
 
 config_container = k8s.V1Container(
         image=OWS_CONFIG_IMAGE,
         command=["ls"],
         args=["/opt"],
-        # volume_mounts=[cfg_image_mount],
+        volume_mounts=[cfg_image_mount],
         name="mount-ows-config",
-        working_dir="/opt"
     )
 dag = DAG(
     "k8s_ows_pod_pin",
@@ -103,13 +104,13 @@ with dag:
         namespace="processing",
         image=OWS_IMAGE,
         cmds=["ls"],
-        arguments=["/env"],
+        arguments=["/opt"],
         labels={"step": "ows"},
         name="ows-update-ranges",
         task_id="update-ranges-task",
         get_logs=True,
-        volumes=[ows_cfg_volume],
-        volume_mounts=[ows_cfg_mount],
+        # volumes=[ows_cfg_volume],
+        # volume_mounts=[ows_cfg_mount],
         init_containers=[config_container]
     )
 
