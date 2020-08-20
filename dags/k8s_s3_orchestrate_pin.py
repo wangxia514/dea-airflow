@@ -24,6 +24,7 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 import kubernetes.client.models as k8s
+from airflow.kubernetes.volume_mount import VolumeMount
 
 DEFAULT_ARGS = {
     "owner": "Pin Jin",
@@ -50,16 +51,14 @@ DEFAULT_ARGS = {
     ],
 }
 
-INDEXER_IMAGE = "opendatacube/datacube-index:0.0.5"
 OWS_IMAGE = "opendatacube/ows:1.8.1"
 OWS_CONFIG_IMAGE = "geoscienceaustralia/dea-datakube-config:1.5.1"
-EXPLORER_IMAGE = "opendatacube/explorer:2.1.9"
 
 OWS_CFG_PATH = "/env/config/ows_cfg.py"
-OWS_CFG_IMAGEPATH = "dea-config/dev/services/wms/ows/ows_cfg.py"
+OWS_CFG_IMAGEPATH = "/opt/dea-config/dev/services/wms/ows/ows_cfg.py"
 
 dag = DAG(
-    "k8s_s3_orchestrate_pin",
+    "k8s_ows_pod_pin",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
@@ -71,40 +70,11 @@ dag = DAG(
 with dag:
     START = DummyOperator(task_id="s3_index_publish")
 
-    # TODO: Bootstrap if targeting a Blank DB
-    # TODO: Initialize Datacube
-    # TODO: Add metadata types
-    # TODO: Add products
-    BOOTSTRAP = KubernetesPodOperator(
-        namespace="processing",
-        image=INDEXER_IMAGE,
-        cmds=["datacube", "product", "list"],
-        labels={"step": "bootstrap"},
-        name="odc-bootstrap",
-        task_id="bootstrap-task",
-        get_logs=True,
-    )
+    volume_mount = VolumeMount('ows-config-volume',
+                            mount_path='/opt',
+                            sub_path=None,
+                            read_only=True)
 
-    INDEXING = KubernetesPodOperator(
-        namespace="processing",
-        image=INDEXER_IMAGE,
-        cmds=["s3-to-dc"],
-        # Assume kube2iam role via annotations
-        # TODO: Pass this via DAG parameters
-        annotations={"iam.amazonaws.com/role": "dea-dev-eks-ows"},
-        # TODO: Collect form JSON used to trigger DAG
-        arguments=[
-            # "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
-            # "cemp_insar_alos_displacement",
-            # Jinja templates for arguments
-            "{{ dag_run.conf.s3_glob }}",
-            "{{ dag_run.conf.product }}"
-        ],
-        labels={"step": "s3-to-rds"},
-        name="datacube-index",
-        task_id="indexing-task",
-        get_logs=True,
-    )
 
     UPDATE_RANGES = KubernetesPodOperator(
         namespace="processing",
@@ -119,20 +89,9 @@ with dag:
             image=OWS_CONFIG_IMAGE,
             command=["cp"],
             args=["-f", OWS_CFG_IMAGEPATH, OWS_CFG_PATH],
-            volume_mounts=["ows-config-volume"],
+            volume_mounts=[volume_mount],
             name="mount-ows-config"
         )
-    )
-
-    SUMMARY = KubernetesPodOperator(
-        namespace="processing",
-        image=EXPLORER_IMAGE,
-        cmds=["cubedash-gen"],
-        arguments=["--help"],
-        labels={"step": "explorer"},
-        name="explorer-summary",
-        task_id="explorer-summary-task",
-        get_logs=True,
     )
 
     COMPLETE = DummyOperator(task_id="all_done")
