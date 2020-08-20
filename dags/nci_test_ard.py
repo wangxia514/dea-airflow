@@ -29,7 +29,7 @@ default_args = {
 # tags is in airflow >1.10.8
 # My local env is airflow 1.10.10...
 dag = DAG(
-    'nci_ard_lpgs',
+    'nci_test_ard',
     default_args=default_args,
     catchup=False,
     schedule_interval=None,
