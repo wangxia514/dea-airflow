@@ -104,7 +104,7 @@ with dag:
         namespace="processing",
         image=OWS_IMAGE,
         cmds=["ls"],
-        arguments=[/env/config/dea-config"],
+        arguments=["/env/config/dea-config"],
         labels={"step": "ows"},
         name="ows-update-ranges",
         task_id="update-ranges-task",
