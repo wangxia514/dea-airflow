@@ -81,14 +81,14 @@ with dag:
                   ard-scene-select --workdir {{ work_dir }} \
                   --pkgdir {{ work_dir }} --logdir {{ log_dir }} \
                   --env {{ params.wagl_env }}  \
-                   --project {{ params.project }} \
-                   --walltime 05:00:00"
+                  --project {{ params.project }} \
+                  --walltime 05:00:00 \
+                  --run-ard"
         """,
         timeout=60 * 20,
         do_xcom_push=True,
     )
     # Note: {{ params.index_arg }}  is removed so the results are not indexed
-    # ARD processing isn't started
 
     wait_for_completion = PBSJobSensor(
         task_id=f'wait_for_completion',
