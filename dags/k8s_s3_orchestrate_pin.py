@@ -27,7 +27,7 @@ import kubernetes.client.models as k8s
 from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.kubernetes.volume import Volume
 
-OWS_CFG_PATH = "/env/config/dea-config/dev/services/wms/ows/ows_cfg.py"
+OWS_CFG_PATH = "/env/config/ows_cfg.py"
 
 DEFAULT_ARGS = {
     "owner": "Pin Jin",
@@ -57,7 +57,7 @@ DEFAULT_ARGS = {
 OWS_IMAGE = "opendatacube/ows:1.8.1"
 OWS_CONFIG_IMAGE = "geoscienceaustralia/dea-datakube-config:1.5.1"
 
-OWS_CFG_IMAGEPATH = "/opt/dea-config/dev/services/wms/ows/ows_cfg.py"
+OWS_CFG_IMAGEPATH = "/opt/dea-config/dev/services/wms/ows/ows_cfg.py""
 
 # for main container mount
 ows_cfg_mount = VolumeMount('ows-config-volume',
@@ -82,7 +82,7 @@ cfg_image_mount = k8s.V1VolumeMount(
 config_container = k8s.V1Container(
         image=OWS_CONFIG_IMAGE,
         command=["cp"],
-        args=["/opt/dea-config/dev/services/wms/ows/ows_cfg.py", "/env/config/ows_cfg.py"],
+        args=[OWS_CFG_IMAGEPATH, OWS_CFG_PATH],
         volume_mounts=[cfg_image_mount],
         name="mount-ows-config",
         working_dir="/opt"
@@ -103,8 +103,8 @@ with dag:
     UPDATE_RANGES = KubernetesPodOperator(
         namespace="processing",
         image=OWS_IMAGE,
-        cmds=["ls"],
-        arguments=["-la", "/env/config"],
+        cmds=["head"],
+        arguments=["-n", "50", OWS_CFG_PATH],
         labels={"step": "ows"},
         name="ows-update-ranges",
         task_id="update-ranges-task",
