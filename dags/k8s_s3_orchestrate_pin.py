@@ -80,8 +80,8 @@ ows_cfg_volume = Volume(name='ows-config-volume',                   configs=ows_
 
 config_container = k8s.V1Container(
         image=OWS_CONFIG_IMAGE,
-        command=["cp"],
-        args=["-f", OWS_CFG_IMAGEPATH, OWS_CFG_PATH],
+        # command=["cp"],
+        # args=["-f", OWS_CFG_IMAGEPATH, OWS_CFG_PATH],
         # volume_mounts=[cfg_image_mount],
         name="mount-ows-config",
         working_dir="/opt"
