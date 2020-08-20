@@ -109,8 +109,8 @@ with dag:
     UPDATE_RANGES = KubernetesPodOperator(
         namespace="processing",
         image=OWS_IMAGE,
-        cmds=["datacube-ows-update"],
-        arguments=["--help"],
+        cmds=["head"],
+        arguments=["-n", "50", OWS_CFG_PATH],
         labels={"step": "ows"},
         name="ows-update-ranges",
         task_id="update-ranges-task",
