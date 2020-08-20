@@ -94,8 +94,9 @@ with dag:
             image=OWS_CONFIG_IMAGE,
             command=["cp"],
             args=["-f", OWS_CFG_IMAGEPATH, OWS_CFG_PATH],
-            volume_mounts=[cfg_image_mount],
-            name="mount-ows-config"
+            volume_mounts=[cfg_image_mount, ows_cfg_mount],
+            name="mount-ows-config",
+            working_dir="/opt"
         )
     )
 
