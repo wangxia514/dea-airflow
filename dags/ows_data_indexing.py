@@ -182,7 +182,7 @@ with dag:
             "--no-init-database",
             "--refresh-stats",
             "--force-refresh",
-            "s2_l2a"
+            "s2a_nrt_granule"
         ],
         secrets=EXPLORER_SECRETS,
         labels={"step": "explorer"},
