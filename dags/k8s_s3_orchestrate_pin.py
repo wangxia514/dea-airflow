@@ -82,7 +82,7 @@ cfg_image_mount = k8s.V1VolumeMount(
 config_container = k8s.V1Container(
         image=OWS_CONFIG_IMAGE,
         command=["cp"],
-        args=[OWS_CFG_IMAGEPATH, "/opt"],
+        args=[OWS_CFG_IMAGEPATH, "/opt/ows_cfg.py"],
         volume_mounts=[cfg_image_mount],
         name="mount-ows-config",
     )
