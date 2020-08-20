@@ -27,6 +27,8 @@ import kubernetes.client.models as k8s
 from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.kubernetes.volume import Volume
 
+OWS_CFG_PATH = "/env/config/dea-config/dev/services/wms/ows/ows_cfg.py"
+
 DEFAULT_ARGS = {
     "owner": "Pin Jin",
     "depends_on_past": False,
@@ -41,7 +43,7 @@ DEFAULT_ARGS = {
         # TODO: Pass these via templated params in DAG Run
         "DB_HOSTNAME": "database-write.local",
         "DB_DATABASE": "ows-index",
-        "WMS_CONFIG_PATH": "/env/config/ows_cfg.py",
+        "WMS_CONFIG_PATH": OWS_CFG_PATH,
         "DATACUBE_OWS_CFG": "config.ows_cfg.ows_cfg"
     },
     # Use K8S secrets to send DB Creds
@@ -55,8 +57,6 @@ DEFAULT_ARGS = {
 OWS_IMAGE = "opendatacube/ows:1.8.1"
 OWS_CONFIG_IMAGE = "geoscienceaustralia/dea-datakube-config:1.5.1"
 
-OWS_CFG_PATH = "/env/config/ows_cfg.py"
-OWS_CFG_IMAGEPATH = "/opt/dea-config/dev/services/wms/ows/ows_cfg.py"
 
 
 # for main container mount
@@ -81,11 +81,11 @@ cfg_image_mount = k8s.V1VolumeMount(
 
 config_container = k8s.V1Container(
         image=OWS_CONFIG_IMAGE,
-        command=["cp"],
-        args=[OWS_CFG_IMAGEPATH, "/opt/ows_cfg.py"],
+        # command=["cp"],
+        # args=[OWS_CFG_IMAGEPATH, "/opt/ows_cfg.py"],
         volume_mounts=[cfg_image_mount],
         name="mount-ows-config",
-        working_dir="/opt"
+        # working_dir="/opt"
     )
 dag = DAG(
     "k8s_ows_pod_pin",
@@ -103,8 +103,8 @@ with dag:
     UPDATE_RANGES = KubernetesPodOperator(
         namespace="processing",
         image=OWS_IMAGE,
-        cmds=["ls"],
-        arguments=["/env/config"],
+        cmds=["head"],
+        arguments=["-n", "50", OWS_CFG_PATH],
         labels={"step": "ows"},
         name="ows-update-ranges",
         task_id="update-ranges-task",
