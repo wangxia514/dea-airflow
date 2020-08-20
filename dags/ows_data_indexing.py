@@ -24,6 +24,10 @@ from textwrap import dedent
 import kubernetes.client.models as k8s
 
 OWS_CFG_PATH = "/env/config/ows_cfg.py"
+INDEXING_PRODUCTS = "s2a_nrt_granule s2b_nrt_granule"
+ARCHIVE_PRODUCTS = INDEXING_PRODUCTS
+UPDATE_EXTENT_PRODUCTS = "s2_nrt_granule_nbar_t"
+SQS_QUEUE_NAME = "dea-dev-eks-ows"
 
 DEFAULT_ARGS = {
     "owner": "Pin Jin",
@@ -99,36 +103,47 @@ OWS_BASH_COMMAND = [
     "-c",
     dedent("""
         datacube-ows-update --views;
-        datacube-ows-update s2_nrt_granule_nbar_t;
-    """)
+        for product in %s; do
+            datacube-ows-update $product;
+        done;
+    """)%(UPDATE_EXTENT_PRODUCTS)
+]
+
+EXPLORER_BASH_COMMAND = [
+    "bash",
+    "-c",
+    dedent("""
+        for product in %s; do
+            cubedash-gen --no-init-database --refresh-stats --force-refresh $product;
+        done;
+    """)%(INDEXING_PRODUCTS)
 ]
 
 INDEXING_BASH_COMMAND = [
     "bash",
     "-c",
     dedent("""
-        sqs-to-dc dea-dev-eks-ows s2a_nrt_granule;
-        sqs-to-dc dea-dev-eks-ows s2b_nrt_granule;
-    """)
+        for product in %s; do
+            sqs-to-dc %s $product;
+        done;
+    """)%(INDEXING_PRODUCTS, SQS_QUEUE_NAME)
 ]
 
 ARCHIVE_BASH_COMMAND = [
     "bash",
     "-c",
     dedent("""
-        datacube dataset search -f csv "product=s2a_nrt_granule time in [$(date -d '-365 day' +%F), $(date -d '-91 day' +%F)]" > /tmp/to_kill.csv;
-        cat /tmp/to_kill.csv | awk -F',' '{print $1}' | sed '1d' > /tmp/to_kill.list;
-        wc -l /tmp/to_kill.list;
-        cat /tmp/to_kill.list | xargs datacube dataset archive
-        datacube dataset search -f csv "product=s2b_nrt_granule time in [$(date -d '-365 day' +%F), $(date -d '-91 day' +%F)]" > /tmp/to_kill.csv;
-        cat /tmp/to_kill.csv | awk -F',' '{print $1}' | sed '1d' > /tmp/to_kill.list;
-        wc -l /tmp/to_kill.list;
-        cat /tmp/to_kill.list | xargs datacube dataset archive
-    """)
+        for product in %s; do
+            datacube dataset search -f csv "product=$product time in [$(date -d '-365 day' +%F), $(date -d '-91 day' +%F)]" > /tmp/to_kill.csv;
+            cat /tmp/to_kill.csv | awk -F',' '{print $1}' | sed '1d' > /tmp/to_kill.list;
+            wc -l /tmp/to_kill.list;
+            cat /tmp/to_kill.list | xargs datacube dataset archive
+        done;
+    """)%(ARCHIVE_PRODUCTS)
 ]
 
 dag = DAG(
-    "sentinel-2_indexing",
+    "sentinel-2_nrt_indexing",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval='0 */1 * * *',
@@ -140,7 +155,7 @@ with dag:
     INDEXING = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
-        image_pull_policy='Always',
+        image_pull_policy='IfNotPresent',
         arguments=INDEXING_BASH_COMMAND,
         labels={"step": "sqs-to-rds"},
         name="datacube-index",
@@ -177,13 +192,7 @@ with dag:
     EXPLORER_SUMMARY = KubernetesPodOperator(
         namespace="processing",
         image=EXPLORER_IMAGE,
-        arguments=[
-            "cubedash-gen",
-            "--no-init-database",
-            "--refresh-stats",
-            "--force-refresh",
-            "s2a_nrt_granule"
-        ],
+        arguments=EXPLORER_BASH_COMMAND,
         secrets=EXPLORER_SECRETS,
         labels={"step": "explorer"},
         name="explorer-summary",
