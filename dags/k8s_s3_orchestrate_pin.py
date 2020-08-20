@@ -100,7 +100,7 @@ with dag:
         task_id="update-ranges-task",
         get_logs=True,
         VolumeMount=[ows_cfg_mount],
-        init_container=[config_container]
+        init_containers=[config_container]
     )
 
     COMPLETE = DummyOperator(task_id="all_done")
