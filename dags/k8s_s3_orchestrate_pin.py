@@ -86,7 +86,7 @@ config_container = k8s.V1Container(
         # args=[OWS_CFG_IMAGEPATH, "/opt/ows_cfg.py"],
         volume_mounts=[cfg_image_mount],
         name="mount-ows-config",
-        workdir="/opt"
+        working_dir="/opt"
     )
 dag = DAG(
     "k8s_ows_pod_pin",
