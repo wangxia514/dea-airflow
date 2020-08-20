@@ -75,7 +75,7 @@ ows_cfg_volume_config= {
         }
 }
 
-ows_cfg_volume = Volume(name='ows-config-volume',                   configs=ows_cfg_volume_config)
+ows_cfg_volume = Volume(name='ows-config-volume', configs=ows_cfg_volume_config)
 
 
 config_container = k8s.V1Container(
@@ -99,8 +99,6 @@ dag = DAG(
 with dag:
     START = DummyOperator(task_id="s3_index_publish")
 
-
-
     UPDATE_RANGES = KubernetesPodOperator(
         namespace="processing",
         image=OWS_IMAGE,
@@ -110,7 +108,7 @@ with dag:
         name="ows-update-ranges",
         task_id="update-ranges-task",
         get_logs=True,
-        # volumes=[ows_cfg_volume],
+        volumes=[ows_cfg_volume],
         volume_mounts=[ows_cfg_mount],
         init_containers=[config_container]
     )
