@@ -103,8 +103,8 @@ with dag:
     UPDATE_RANGES = KubernetesPodOperator(
         namespace="processing",
         image=OWS_IMAGE,
-        cmds=["head"],
-        arguments=["-n", "50", OWS_CFG_PATH],
+        cmds=["ls"],
+        arguments=[/env/config/dea-config"],
         labels={"step": "ows"},
         name="ows-update-ranges",
         task_id="update-ranges-task",
