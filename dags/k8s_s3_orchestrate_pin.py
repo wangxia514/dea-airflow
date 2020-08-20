@@ -104,14 +104,14 @@ with dag:
     UPDATE_RANGES = KubernetesPodOperator(
         namespace="processing",
         image=OWS_IMAGE,
-        cmds=["head"],
-        arguments=["-n", "50", OWS_CFG_PATH],
+        cmds=["ls"],
+        arguments=["/opt"],
         labels={"step": "ows"},
         name="ows-update-ranges",
         task_id="update-ranges-task",
         get_logs=True,
-        volumes=[ows_cfg_volume],
-        volume_mounts=[ows_cfg_mount],
+        # volumes=[ows_cfg_volume],
+        # volume_mounts=[ows_cfg_mount],
         init_containers=[config_container]
     )
 
