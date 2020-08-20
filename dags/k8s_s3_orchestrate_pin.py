@@ -74,7 +74,7 @@ ows_cfg_volume_config= {
         'claimName': 'ows-config-volume'
       }
     }
-ows_cfg_volume = Volume(name='ows-config-volume', configs=volume_config)
+ows_cfg_volume = Volume(name='ows-config-volume', configs=ows_cfg_volume_config)
 
 
 config_container = k8s.V1Container(
