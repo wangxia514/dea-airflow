@@ -23,12 +23,19 @@ from textwrap import dedent
 
 import kubernetes.client.models as k8s
 
+# ENVIRONMENT CONFIGURATION
 OWS_CFG_PATH = "/env/config/ows_cfg.py"
 INDEXING_PRODUCTS = "s2a_nrt_granule s2b_nrt_granule"
 ARCHIVE_PRODUCTS = INDEXING_PRODUCTS
+ARCHIVE_CONDITION = "[$(date -d '-365 day' +%F), $(date -d '-91 day' +%F)]"
 UPDATE_EXTENT_PRODUCTS = "s2_nrt_granule_nbar_t"
 SQS_QUEUE_NAME = "dea-dev-eks-ows"
+SECRET_AWS_NAME = "indexing-aws-creds-dev"
+SECRET_EXPLORER_NAME = "explorer-db"
+SECRET_OWS_NAME = "ows-db"
+DB_DATABASE = "ows"
 
+# DAG CONFIGURATION
 DEFAULT_ARGS = {
     "owner": "Pin Jin",
     "depends_on_past": False,
@@ -41,25 +48,26 @@ DEFAULT_ARGS = {
     "env_vars": {
         # TODO: Pass these via templated params in DAG Run
         "DB_HOSTNAME": "database-write.local",
-        "DB_DATABASE": "africa",
+        "DB_DATABASE": DB_DATABASE,
         "WMS_CONFIG_PATH": OWS_CFG_PATH,
         "DATACUBE_OWS_CFG": "config.ows_cfg.ows_cfg"
     },
     # Lift secrets into environment variables
     "secrets": [
-        Secret("env", "DB_USERNAME", "ows-db", "postgres-username"),
-        Secret("env", "DB_PASSWORD", "ows-db", "postgres-password"),
-        Secret("env", "AWS_DEFAULT_REGION", "indexing-aws-creds-dev", "AWS_DEFAULT_REGION"),
-        Secret("env", "AWS_ACCESS_KEY_ID", "indexing-aws-creds-dev", "AWS_ACCESS_KEY_ID"),
-        Secret("env", "AWS_SECRET_ACCESS_KEY", "indexing-aws-creds-dev", "AWS_SECRET_ACCESS_KEY"),
+        Secret("env", "DB_USERNAME", SECRET_OWS_NAME, "postgres-username"),
+        Secret("env", "DB_PASSWORD", SECRET_OWS_NAME, "postgres-password"),
+        Secret("env", "AWS_DEFAULT_REGION", SECRET_AWS_NAME, "AWS_DEFAULT_REGION"),
+        Secret("env", "AWS_ACCESS_KEY_ID", SECRET_AWS_NAME, "AWS_ACCESS_KEY_ID"),
+        Secret("env", "AWS_SECRET_ACCESS_KEY", SECRET_AWS_NAME, "AWS_SECRET_ACCESS_KEY"),
     ],
 }
 
 EXPLORER_SECRETS = [
-    Secret("env", "DB_USERNAME", "explorer-db", "postgres-username"),
-    Secret("env", "DB_PASSWORD", "explorer-db", "postgres-password")
+    Secret("env", "DB_USERNAME", SECRET_EXPLORER_NAME, "postgres-username"),
+    Secret("env", "DB_PASSWORD", SECRET_EXPLORER_NAME, "postgres-password")
 ]
 
+# IMAGES USED FOR THIS DAG
 INDEXER_IMAGE = "opendatacube/datacube-index:0.0.8"
 
 OWS_IMAGE = "opendatacube/ows:1.8.1"
@@ -68,6 +76,7 @@ OWS_CFG_IMAGEPATH = "/opt/dea-config/dev/services/wms/ows/ows_cfg.py"
 
 EXPLORER_IMAGE = "opendatacube/dashboard:2.1.9"
 
+# MOUNT OWS_CFG via init_container
 # for main container mount
 ows_cfg_mount = VolumeMount('ows-config-volume',
                             mount_path='/env/config',
@@ -98,6 +107,7 @@ config_container = k8s.V1Container(
     )
 
 
+# BASH COMMANDS FOR EACH CONTAINER
 OWS_BASH_COMMAND = [
     "bash",
     "-c",
@@ -134,14 +144,15 @@ ARCHIVE_BASH_COMMAND = [
     "-c",
     dedent("""
         for product in %s; do
-            datacube dataset search -f csv "product=$product time in [$(date -d '-365 day' +%F), $(date -d '-91 day' +%F)]" > /tmp/to_kill.csv;
+            datacube dataset search -f csv "product=$product time in %s" > /tmp/to_kill.csv;
             cat /tmp/to_kill.csv | awk -F',' '{print $1}' | sed '1d' > /tmp/to_kill.list;
             wc -l /tmp/to_kill.list;
             cat /tmp/to_kill.list | xargs datacube dataset archive
         done;
-    """)%(ARCHIVE_PRODUCTS)
+    """)%(ARCHIVE_PRODUCTS, ARCHIVE_CONDITION)
 ]
 
+# THE DAG
 dag = DAG(
     "sentinel-2_nrt_indexing",
     doc_md=__doc__,
