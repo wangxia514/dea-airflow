@@ -54,6 +54,7 @@ DEFAULT_ARGS = {
     ],
 }
 
+INDEXER_IMAGE = "opendatacube/datacube-index:0.0.7"
 OWS_IMAGE = "opendatacube/ows:1.8.1"
 OWS_CONFIG_IMAGE = "geoscienceaustralia/dea-datakube-config:1.5.1"
 
@@ -100,6 +101,27 @@ dag = DAG(
 with dag:
     START = DummyOperator(task_id="s3_index_publish")
 
+    INDEXING = KubernetesPodOperator(
+        namespace="processing",
+        image=INDEXER_IMAGE,
+        cmds=["s3-to-dc"],
+        # Assume kube2iam role via annotations
+        # TODO: Pass this via DAG parameters
+        annotations={"iam.amazonaws.com/role": "dea-dev-eks-orchestration"},
+        # TODO: Collect form JSON used to trigger DAG
+        arguments=[
+            # "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
+            # "cemp_insar_alos_displacement",
+            # Jinja templates for arguments
+            "{{ dag_run.conf.s3_glob }}",
+            "{{ dag_run.conf.product }}"
+        ],
+        labels={"step": "s3-to-rds"},
+        name="datacube-index",
+        task_id="indexing-task",
+        get_logs=True,
+    )
+
     UPDATE_RANGES = KubernetesPodOperator(
         namespace="processing",
         image=OWS_IMAGE,
@@ -122,5 +144,5 @@ with dag:
     # INDEXING >> SUMMARY
     # UPDATE_RANGES >> COMPLETE
     # SUMMARY >> COMPLETE
-    START >> UPDATE_RANGES
-    UPDATE_RANGES >> COMPLETE
+    START >> INDEXING
+    INDEXING >> COMPLETE
