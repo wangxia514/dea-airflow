@@ -104,7 +104,7 @@ with dag:
     BOOTSTRAP = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
-        cmds=["datacube", "product", "list"],
+        cmds=["datacube", "--help"],
         labels={"step": "bootstrap"},
         name="datacube-index",
         task_id="bootstrap-task",

@@ -189,7 +189,7 @@ with dag:
         name="datacube-index",
         task_id="indexing-task",
         get_logs=True,
-        # is_delete_operator_pod=True,
+        is_delete_operator_pod=True,
     )
 
     ARCHIVE_EXTRANEOUS_DS = KubernetesPodOperator(
