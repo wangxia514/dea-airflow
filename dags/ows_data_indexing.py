@@ -5,8 +5,25 @@ DAG to periodically index Sentinel-2 data. Eventually it could
 update explorer and ows schemas in RDS after a given Dataset has been
 indexed.
 
+- Run Explorer summaries
+- Run ows update ranges for NRT products
+- Run ows update ranges for NRT multi-products
+
 This DAG uses k8s executors and in cluster with relevant tooling
 and configuration installed.
+
+The DAG has to be parameterized with S3_Glob and Target product as below.
+
+    "indexing_products": "s2a_nrt_granule s2b_nrt_granule"
+    "archive_products": "s2a_nrt_granule s2b_nrt_granule"
+    "archive_condition": "[$(date -d '-365 day' +%f), $(date -d '-91 day' +%f)]"
+    "update_extent_products": "s2_nrt_granule_nbar_t"
+    "sqs_queue_name": "dea-dev-eks-ows"
+    "indexing_role": "dea-dev-eks-orchestration"
+    "secret_aws_name": "processing-aws-creds-dev"
+    "secret_explorer_name": "explorer-db"
+    "secret_ows_name": "ows-db"
+    "db_database": "ows"
 
 """
 from datetime import datetime, timedelta
