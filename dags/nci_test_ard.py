@@ -15,14 +15,16 @@ default_args = {
     'start_date': datetime(2020, 2, 17),
     'retries': 0,
     'retry_delay': timedelta(minutes=1),
-    'ssh_conn_id': 'lpgs_gadi',
-    #'ssh_conn_id': 'dsg547',
+    #'ssh_conn_id': 'lpgs_gadi',
+    'ssh_conn_id': 'dsg547',
     'params': {
         'project': 'v10',
         'queue': 'normal',
-        'module_ass': 'ard-scene-select-py3-dea/20200814',
-        'index_arg': '--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env',
+        'module_ass': 'ard-scene-select-py3-dea/20200821',
+        #'index_arg': '--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env',
+        'index_arg': '--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/index-test-odc.env',
         'wagl_env': '/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env',
+        'config_file': '/g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf'
     }
 }
 
@@ -43,10 +45,10 @@ with dag:
 
     COMMON = """
         #  ts_nodash timestamp no dashes.
-        {% set log_dir = '/home/547/dsg547/dump/airflow/' + ts_nodash + '/logdir' %}
-        {% set work_dir = '/home/547/dsg547/dump/airflow/' + ts_nodash + '/workdir' %}
         {% set log_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/logdir' %}
         {% set work_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/workdir' %}
+        {% set log_dir = '/home/547/dsg547/dump/airflow/' + ts_nodash + '/logdir' %}
+        {% set work_dir = '/home/547/dsg547/dump/airflow/' + ts_nodash + '/workdir' %}
         """
 
     product = 'used_by_params'
@@ -59,6 +61,39 @@ with dag:
         params={},
         task_id=f'set_up',
         timeout=60 * 20,
+    )
+
+    # An example of remotely starting a qsub job (all it does is ls)
+    submit_task_id = f'submit_ard_dev_odc'
+    submit_ard_dev_odc = SSHOperator(
+        task_id=submit_task_id,
+        command=COMMON + """
+        mkdir -p {{ log_dir }} # this is silent, this is good
+        mkdir -p {{ work_dir }} # this is silent, this is good
+        qsub -N ard_scene_select \
+              -q  {{ params.queue }}  \
+              -W umask=33 \
+              -l wd,walltime=0:30:00,mem=15GB,ncpus=1 -m abe \
+              -l storage=gdata/v10+scratch/v10+gdata/if87+gdata/fj7+scratch/fj7+scratch/u46+gdata/u46 \
+              -P  {{ params.project }} -o {{ log_dir }} -e {{ log_dir }}  \
+              -- /bin/bash -l -c \
+                  "module use /g/data/v10/public/modules/modulefiles/; \
+                  module use /g/data/v10/private/modules/modulefiles/; \
+                  module load {{ params.module_ass }}; \
+                  ard-scene-select \
+                  --config {{ params.config_file }} \
+                  --products '["usgs_ls8c_level1_1"]' \
+                  --workdir {{ work_dir }} \
+                  --pkgdir {{ work_dir }} \
+                  --logdir {{ log_dir }} \
+                  --env {{ params.wagl_env }}  \
+                  --project {{ params.project }} \
+                  --walltime 02:30:00 \
+                  --run-ard \
+                  {{ params.index_arg }} "
+        """,
+        timeout=60 * 20,
+        do_xcom_push=True,
     )
 
     # An example of remotely starting a qsub job (all it does is ls)
@@ -78,7 +113,8 @@ with dag:
                   "module use /g/data/v10/public/modules/modulefiles/; \
                   module use /g/data/v10/private/modules/modulefiles/; \
                   module load {{ params.module_ass }}; \
-                  ard-scene-select --workdir {{ work_dir }} \
+                  ard-scene-select \
+                  --workdir {{ work_dir }} \
                   --pkgdir {{ work_dir }} --logdir {{ log_dir }} \
                   --env {{ params.wagl_env }}  \
                   --project {{ params.project }} \
@@ -99,5 +135,6 @@ with dag:
     ls_task = SSHOperator(command="ls",
         task_id=f'ls_task',
         timeout=60 * 20,)
-    
-    start >> set_up >> submit_ard_non_prod >> wait_for_completion >> completed
+
+    start >> set_up >> submit_ard_dev_odc >> wait_for_completion >> completed
+    #start >> set_up >> submit_ard_non_prod >> wait_for_completion >> completed
