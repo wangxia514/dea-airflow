@@ -58,8 +58,6 @@ DEFAULT_ARGS = {
         Secret("env", "DB_USERNAME", SECRET_OWS_NAME, "postgres-username"),
         Secret("env", "DB_PASSWORD", SECRET_OWS_NAME, "postgres-password"),
         Secret("env", "AWS_DEFAULT_REGION", SECRET_AWS_NAME, "AWS_DEFAULT_REGION"),
-        Secret("env", "AWS_ACCESS_KEY_ID", SECRET_AWS_NAME, "AWS_ACCESS_KEY_ID"),
-        Secret("env", "AWS_SECRET_ACCESS_KEY", SECRET_AWS_NAME, "AWS_SECRET_ACCESS_KEY"),
     ],
 }
 
