@@ -30,6 +30,7 @@ ARCHIVE_PRODUCTS = INDEXING_PRODUCTS
 ARCHIVE_CONDITION = "[$(date -d '-365 day' +%F), $(date -d '-91 day' +%F)]"
 UPDATE_EXTENT_PRODUCTS = "s2_nrt_granule_nbar_t"
 SQS_QUEUE_NAME = "dea-dev-eks-ows"
+INDEXING_ROLE = "dea-dev-eks-orchestration"
 SECRET_AWS_NAME = "processing-aws-creds-dev"
 SECRET_EXPLORER_NAME = "explorer-db"
 SECRET_OWS_NAME = "ows-db"
@@ -179,6 +180,7 @@ with dag:
         namespace="processing",
         image=INDEXER_IMAGE,
         arguments=ARCHIVE_BASH_COMMAND,
+        annotations={"iam.amazonaws.com/role": INDEXING_ROLE},
         labels={"step": "ds-arch"},
         name="datacube-dataset-archive",
         task_id="archive-nrt-datasets",
