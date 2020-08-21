@@ -101,6 +101,16 @@ dag = DAG(
 with dag:
     START = DummyOperator(task_id="s3_index_publish")
 
+    BOOTSTRAP = KubernetesPodOperator(
+        namespace="processing",
+        image=INDEXER_IMAGE,
+        cmds=["datacube", "product", "list"],
+        labels={"step": "bootstrap"},
+        name="datacube-index",
+        task_id="bootstrap-task",
+        get_logs=True,
+    )
+
     INDEXING = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
@@ -144,5 +154,6 @@ with dag:
     # INDEXING >> SUMMARY
     # UPDATE_RANGES >> COMPLETE
     # SUMMARY >> COMPLETE
-    START >> INDEXING
+    START >> BOOTSTRAP
+    BOOTSTRAP >> INDEXING
     INDEXING >> COMPLETE
