@@ -31,7 +31,7 @@ from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
 default_args = {
     'owner': 'Sachit Rajbhandari',
     'start_date': datetime(2019, 12, 6),
-    'end_date': datetime(2020, 8, 12),
+    'end_date': datetime(2020, 8, 19),
     'retries': 1,
     'retry_delay': timedelta(minutes=5),
     'email_on_failure': True,
