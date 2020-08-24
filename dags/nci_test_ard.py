@@ -22,9 +22,11 @@ default_args = {
         'queue': 'normal',
         'module_ass': 'ard-scene-select-py3-dea/20200821',
         #'index_arg': '--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env',
-        'index_arg': '--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/index-test-odc.env',
+        #'index_arg': '--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/index-test-odc.env',
+        'index_arg': '',
         'wagl_env': '/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env',
-        'config_file': '/g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf'
+        #'config_arg': '',
+        'config_arg': '--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf',
     }
 }
 
@@ -81,7 +83,7 @@ with dag:
                   module use /g/data/v10/private/modules/modulefiles/; \
                   module load {{ params.module_ass }}; \
                   ard-scene-select \
-                  --config {{ params.config_file }} \
+                {{ params.config_arg }} \
                   --products '["usgs_ls8c_level1_1"]' \
                   --workdir {{ work_dir }} \
                   --pkgdir {{ work_dir }} \
