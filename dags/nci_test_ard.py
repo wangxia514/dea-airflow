@@ -23,9 +23,9 @@ default_args = {
         'module_ass': 'ard-scene-select-py3-dea/20200821',
         #'index_arg': '--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env',
         #'index_arg': '--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/index-test-odc.env',
-        'index_arg': '',
+        'index_arg': '',  # no indexing
         'wagl_env': '/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env',
-        #'config_arg': '',
+        #'config_arg': '',  # production run
         'config_arg': '--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf',
     }
 }
@@ -49,8 +49,8 @@ with dag:
         #  ts_nodash timestamp no dashes.
         {% set log_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/logdir' %}
         {% set work_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/workdir' %}
-        {% set log_dir = '/home/547/dsg547/dump/airflow/' + ts_nodash + '/logdir' %}
-        {% set work_dir = '/home/547/dsg547/dump/airflow/' + ts_nodash + '/workdir' %}
+        {% set log_dir = '/g/data/u46/users/dsg547/results_airflow/' + ts_nodash + '/logdir' %}
+        {% set work_dir = '/g/data/u46/users/dsg547/results_airflow/' + ts_nodash + '/workdir' %}
         """
 
     product = 'used_by_params'
