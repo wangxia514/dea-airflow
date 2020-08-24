@@ -95,7 +95,7 @@ RUN_UPLOAD_SCRIPT = """
 default_args = {
     "owner": "Sachit Rajbhandari",
     "start_date": datetime(2013, 5, 1),
-    "end_date": datetime(2013, 5, 31),
+    "end_date": datetime(2013, 6, 10),
     "retries": 0,
     "retry_delay": timedelta(minutes=5),
     "email_on_failure": True,
@@ -119,10 +119,10 @@ dag = DAG(
 
 with dag:
     for product in collection3_products:
-        WORK_DIR = f'/g/data/v10/work/c3_upload_s3/{product}/{"{{ ds }}"}'
+        WORK_DIR = f'/g/data/v10/work/c3_upload_s3/{product}/{"{{ ts_nodash }}"}'
         COMMON = """
                 {% set work_dir = '/g/data/v10/work/c3_upload_s3/' 
-                + params.product  +'/' + ds -%}
+                + params.product  +'/' + ts_nodash -%}
                 """
         # List all the scenes to be uploaded to S3 bucket
         list_scenes = SSHOperator(
