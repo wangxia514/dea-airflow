@@ -49,8 +49,10 @@ LIST_SCENES_COMMAND = """
     INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id 
     INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref 
     WHERE dst.name='{{ params.product }}' 
-    AND (ds.added > TO_DATE('{{ ds }}', 'YYYY-MM-DD') - interval '1 day' 
-    OR ds.archived > TO_DATE('{{ ds }}', 'YYYY-MM-DD') - interval '1 day') 
+    AND (ds.added BETWEEN TO_DATE('{{ ds }}', 'YYYY-MM-DD') - interval '1 day' 
+    AND TO_DATE('{{ ds }}', 'YYYY-MM-DD') 
+    OR ds.archived BETWEEN TO_DATE('{{ ds }}', 'YYYY-MM-DD') - interval '1 day' 
+    AND TO_DATE('{{ ds }}', 'YYYY-MM-DD') )
     ;"
     output_file={{ work_dir }}/{{ params.product }}.csv
     psql ${args} -c "${query}" -o ${output_file}
