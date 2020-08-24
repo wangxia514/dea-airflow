@@ -98,36 +98,6 @@ with dag:
         do_xcom_push=True,
     )
 
-    # An example of remotely starting a qsub job (all it does is ls)
-    submit_task_id = f'submit_ard_non_prod'
-    submit_ard_non_prod = SSHOperator(
-        task_id=submit_task_id,
-        command=COMMON + """
-        mkdir -p {{ log_dir }} # this is silent, this is good
-        mkdir -p {{ work_dir }} # this is silent, this is good
-        qsub -N ard_scene_select \
-              -q  {{ params.queue }}  \
-              -W umask=33 \
-              -l wd,walltime=0:30:00,mem=15GB,ncpus=1 -m abe \
-              -l storage=gdata/v10+scratch/v10+gdata/if87+gdata/fj7+scratch/fj7+scratch/u46+gdata/u46 \
-              -P  {{ params.project }} -o {{ log_dir }} -e {{ log_dir }}  \
-              -- /bin/bash -l -c \
-                  "module use /g/data/v10/public/modules/modulefiles/; \
-                  module use /g/data/v10/private/modules/modulefiles/; \
-                  module load {{ params.module_ass }}; \
-                  ard-scene-select \
-                  --workdir {{ work_dir }} \
-                  --pkgdir {{ work_dir }} --logdir {{ log_dir }} \
-                  --env {{ params.wagl_env }}  \
-                  --project {{ params.project }} \
-                  --walltime 05:00:00 \
-                  --run-ard"
-        """,
-        timeout=60 * 20,
-        do_xcom_push=True,
-    )
-    # Note: {{ params.index_arg }}  is removed so the results are not indexed
-
     wait_for_completion = PBSJobSensor(
         task_id=f'wait_for_completion',
         pbs_job_id="{{ ti.xcom_pull(task_ids='%s') }}" % submit_task_id,
