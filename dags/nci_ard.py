@@ -1,5 +1,10 @@
 """
 # Produce Landsat C3 ARD on the NCI
+
+The DAG kicks off ard_scene_select which filters the landsat l1 scenes to send to ARD to process.
+It also starts the ARD processing.  ARD processing indexes the ARD output scenes.
+
+The logs are written to NCI.
 """
 from datetime import datetime, timedelta
 
@@ -34,6 +39,7 @@ default_args = {
 # My local env is airflow 1.10.10...
 dag = DAG(
     'nci_ard',
+    doc_md=__doc__,
     default_args=default_args,
     catchup=False,
     schedule_interval=None,
