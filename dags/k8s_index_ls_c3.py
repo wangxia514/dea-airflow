@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
-
+from airflow.operators.dummy_operator import DummyOperator
 
 DEFAULT_ARGS = {
     "owner": "Sachit Rajbhandari",
@@ -28,9 +28,8 @@ DEFAULT_ARGS = {
     "archive_sqs_queue": "dea-dev-eks-landsat-c3-archiving",
     "products": "ga_ls5t_ard_3 ga_ls7e_ard_3 ga_ls8c_ard_3",
     "env_vars": {
-        # TODO: Change to dev DB credentials
         "DB_HOSTNAME": "db-writer",
-        "DB_DATABASE": "ows-index",
+        "DB_DATABASE": "ows",
     },
     # Lift secrets into environment variables
     "secrets": [
@@ -42,8 +41,8 @@ DEFAULT_ARGS = {
     ],
 }
 
-# TODO: Need to change to new image
-INDEXER_IMAGE = "opendatacube/datacube-index:0.0.8"
+# TODO: Need to change to final release image
+INDEXER_IMAGE = "opendatacube/datacube-index:0.0.8-54-gcad48c9"
 
 
 dag = DAG(
@@ -56,16 +55,20 @@ dag = DAG(
 )
 
 with dag:
+    START = DummyOperator(task_id="start-tasks")
 
     INDEXING = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
         image_pull_policy='Always',
         arguments=["sqs-to-dc",
-                   "--odc-metadata-link",
+                   "--stac",
                    "--skip-lineage",
+                   "--limit",  # TODO: remove limit after testing
+                   "1",
                    dag.default_args['index_sqs_queue'],
-                   dag.default_args['products']],
+                   dag.default_args['products']
+                   ],
         labels={"step": "sqs-dc-indexing"},
         name="datacube-index",
         task_id="indexing-task",
@@ -78,8 +81,10 @@ with dag:
         image=INDEXER_IMAGE,
         image_pull_policy='Always',
         arguments=["sqs-to-dc",
-                   "--odc-metadata-link",
                    "--archive",
+                   "--limit", # TODO: remove limit after testing
+                   "1",
+
                    dag.default_args['archive_sqs_queue'],
                    dag.default_args['products']],
         labels={"step": "sqs-dc-archiving"},
@@ -89,4 +94,7 @@ with dag:
         is_delete_operator_pod=True,
     )
 
-    INDEXING >> ARCHIVING
+    COMPLETE = DummyOperator(task_id="tasks-complete")
+
+    START >> INDEXING >> COMPLETE
+    START >> ARCHIVING >> COMPLETE
