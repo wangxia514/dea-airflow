@@ -29,7 +29,7 @@ DEFAULT_ARGS = {
     "products": "ga_ls5t_ard_3 ga_ls7e_ard_3 ga_ls8c_ard_3",
     "env_vars": {
         # TODO: Change to dev DB credentials
-        "DB_HOSTNAME": "database-write.local",
+        "DB_HOSTNAME": "db-writer",
         "DB_DATABASE": "ows-index",
     },
     # Lift secrets into environment variables
