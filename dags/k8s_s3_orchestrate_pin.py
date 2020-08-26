@@ -41,7 +41,7 @@ DEFAULT_ARGS = {
     "env_vars": {
         "AWS_DEFAULT_REGION": "ap-southeast-2",
         # TODO: Pass these via templated params in DAG Run
-        "DB_HOSTNAME": "database-write.local",
+        "DB_HOSTNAME": "db-writer",
         "DB_DATABASE": "ows-index",
         "WMS_CONFIG_PATH": OWS_CFG_PATH,
         "DATACUBE_OWS_CFG": "config.ows_cfg.ows_cfg"

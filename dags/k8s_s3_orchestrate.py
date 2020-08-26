@@ -36,7 +36,7 @@ DEFAULT_ARGS = {
     "env_vars": {
         "AWS_DEFAULT_REGION": "ap-southeast-2",
         # TODO: Pass these via templated params in DAG Run
-        "DB_HOSTNAME": "database-write.local",
+        "DB_HOSTNAME": "db-writer",
         "DB_DATABASE": "ows-index",
     },
     # Use K8S secrets to send DB Creds
