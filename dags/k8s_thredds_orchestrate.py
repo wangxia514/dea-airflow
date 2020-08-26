@@ -38,7 +38,7 @@ DEFAULT_ARGS = {
     "retry_delay": timedelta(minutes=5),
     "env_vars": {
         # TODO: Pass these via templated params in DAG Run
-        "DB_HOSTNAME": "database-write.local",
+        "DB_HOSTNAME": "db-writer",
         "DB_DATABASE": "ows-index",
     },
     # Use K8S secrets to send DB Creds

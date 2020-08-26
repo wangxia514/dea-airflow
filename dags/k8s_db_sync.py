@@ -25,7 +25,7 @@ from airflow.operators.dummy_operator import DummyOperator
 
 # Templated DAG arguments
 DB_DATABASE = "nci_{{ ds_nodash }}"
-DB_HOSTNAME = "database-write.local"
+DB_HOSTNAME = "db-writer"
 FILE_PREFIX = "105-{{ ds_nodash }}"
 S3_KEY = f"s3://nci-db-dump/prod/{FILE_PREFIX}-datacube.pgdump"
 
