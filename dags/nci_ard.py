@@ -1,7 +1,7 @@
 """
 # Produce Landsat C3 ARD on the NCI
 
-The DAG kicks off ard_scene_select which filters the landsat l1 scenes to send to ARD to process.
+The DAG starts ard_scene_select which filters the landsat l1 scenes to send to ARD to process.
 It also starts the ARD processing.  ARD processing indexes the ARD output scenes.
 
 The logs are written to NCI.
