@@ -17,7 +17,7 @@ from sensors.pbs_job_complete_sensor import PBSJobSensor
 default_args = {
     'owner': 'Duncan Gray',
     'depends_on_past': False,  # Very important, will cause a single failure to propagate forever
-    'start_date': datetime(2020, 2, 17),
+    'start_date': datetime(2020, 8, 26),
     'retries': 0,
     'retry_delay': timedelta(minutes=1),
     'ssh_conn_id': 'lpgs_gadi',
