@@ -6,24 +6,17 @@ import csv
 import io
 import json
 import logging
-import math
 import subprocess
-from datetime import datetime
 from pathlib import Path
-from urllib.parse import urljoin
 from typing import Dict
-from uuid import UUID
+from toolz import dicttoolz
 
-import requests
 from botocore.exceptions import ClientError
 import boto3
 import click
-from jsonschema import validate
-from ruamel.yaml import YAML
 
 from eodatasets3 import verify, serialise
-from eodatasets3.model import DatasetDoc
-from datacube.utils.geometry import Geometry, CRS
+from eodatasets3.scripts.tostac import dc_to_stac, json_fallback
 
 formatter = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
 handler = logging.StreamHandler()
@@ -31,338 +24,6 @@ handler.setFormatter(formatter)
 LOG = logging.getLogger("c3_to_s3_rolling")
 LOG.setLevel(logging.DEBUG)
 LOG.addHandler(handler)
-
-
-# STAC content for Landsat collection 3 data
-# Todo: Create a separate json file
-ga_ls_ard_3_stac_item = {
-    "stac_version": "1.0.0-beta.2",
-    "stac_extensions": ["eo"],
-    "assets": {
-        "nbar_nir": {
-            "eo:bands": [{"name": "nbar_nir"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "nbar_red": {
-            "eo:bands": [{"name": "nbar_red"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "oa_fmask": {
-            "eo:bands": [{"name": "oa_fmask"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "nbar_blue": {
-            "eo:bands": [{"name": "nbar_blue"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "nbart_nir": {
-            "eo:bands": [{"name": "nbart_nir"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "nbart_red": {
-            "eo:bands": [{"name": "nbart_red"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "nbar_green": {
-            "eo:bands": [{"name": "nbar_green"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "nbart_blue": {
-            "eo:bands": [{"name": "nbart_blue"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "nbar_swir_1": {
-            "eo:bands": [{"name": "nbar_swir_1"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "nbar_swir_2": {
-            "eo:bands": [{"name": "nbar_swir_2"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "nbart_green": {
-            "eo:bands": [{"name": "nbart_green"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "nbart_swir_1": {
-            "eo:bands": [{"name": "nbart_swir_1"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "nbart_swir_2": {
-            "eo:bands": [{"name": "nbart_swir_2"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "oa_time_delta": {
-            "eo:bands": [{"name": "oa_time_delta"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "oa_solar_zenith": {
-            "eo:bands": [{"name": "oa_solar_zenith"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "oa_exiting_angle": {
-            "eo:bands": [{"name": "oa_exiting_angle"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "oa_solar_azimuth": {
-            "eo:bands": [{"name": "oa_solar_azimuth"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "oa_incident_angle": {
-            "eo:bands": [{"name": "oa_incident_angle"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "oa_relative_slope": {
-            "eo:bands": [{"name": "oa_relative_slope"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "oa_satellite_view": {
-            "eo:bands": [{"name": "oa_satellite_view"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "oa_nbar_contiguity": {
-            "eo:bands": [{"name": "oa_nbar_contiguity"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "oa_nbart_contiguity": {
-            "eo:bands": [{"name": "oa_nbart_contiguity"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "oa_relative_azimuth": {
-            "eo:bands": [{"name": "oa_relative_azimuth"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "oa_azimuthal_exiting": {
-            "eo:bands": [{"name": "oa_azimuthal_exiting"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "oa_satellite_azimuth": {
-            "eo:bands": [{"name": "oa_satellite_azimuth"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "oa_azimuthal_incident": {
-            "eo:bands": [{"name": "oa_azimuthal_incident"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "oa_combined_terrain_shadow": {
-            "eo:bands": [{"name": "oa_combined_terrain_shadow"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "nbar_panchromatic": {
-            "eo:bands": [{"name": "nbar_panchromatic"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "nbar_coastal_aerosol": {
-            "eo:bands": [{"name": "nbar_coastal_aerosol"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "nbart_panchromatic": {
-            "eo:bands": [{"name": "nbart_panchromatic"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "nbart_coastal_aerosol": {
-            "eo:bands": [{"name": "nbart_coastal_aerosol"}],
-            "type": "image/tiff; application=geotiff",
-            "roles": ["data"]
-        },
-        "thumbnail:nbar": {
-            "title": "Thumbnail image",
-            "type": "image/jpeg",
-            "roles": ["thumbnail"]
-        },
-        "thumbnail:nbart": {
-            "title": "Thumbnail image",
-            "type": "image/jpeg",
-            "roles": ["thumbnail"]
-        },
-        "checksum:sha1": {"type": "text/plain"},
-        "metadata:processor": {"type": "text/yaml", "roles": ["metadata"]}
-    }
-}
-
-
-# Todo: Update/Use eodatasets3 to STAC v1.0.0-beta.2
-# Mapping between EO3 field names and STAC properties object field names
-MAPPING_EO3_TO_STAC = {
-    "dtr:end_datetime": "end_datetime",
-    "dtr:start_datetime": "start_datetime",
-    "eo:gsd": "gsd",
-    "eo:instrument": "instruments",
-    "eo:platform": "platform",
-    "eo:constellation": "constellation",
-    "eo:off_nadir": "view:off_nadir",
-    "eo:azimuth": "view:azimuth",
-    "eo:sun_azimuth": "view:sun_azimuth",
-    "eo:sun_elevation": "view:sun_elevation",
-}
-
-
-def convert_value_to_stac_type(key: str, value):
-    """
-    Convert return type as per STAC specification
-    """
-    # In STAC spec, "instruments" have [String] type
-    if key == "eo:instrument":
-        return [value]
-    else:
-        return value
-
-
-def create_stac(
-    dataset: DatasetDoc,
-    input_metadata: Path,
-    output_path: Path,
-    stac_data: dict,
-    stac_base_url: str,
-    explorer_base_url: str,
-    do_validate: bool,
-) -> dict:
-    """
-    Creates a STAC document
-    """
-
-    stac_ext = ["eo", "view", "projection"]
-    stac_ext.extend(stac_data.get("stac_extensions", []))
-
-    geom = Geometry(dataset.geometry, CRS(dataset.crs))
-    wgs84_geometry = geom.to_crs(CRS("epsg:4326"), math.inf)
-    item_doc = dict(
-        stac_version="1.0.0-beta.2",
-        stac_extensions=sorted(set(stac_ext)),
-        type="Feature",
-        id=dataset.id,
-        bbox=wgs84_geometry.boundingbox,
-        geometry=wgs84_geometry.json,
-        properties={
-            **{
-                MAPPING_EO3_TO_STAC.get(key, key): convert_value_to_stac_type(key, val)
-                for key, val in dataset.properties.items()
-            },
-            "odc:product": dataset.product.name,
-            "proj:epsg": int(dataset.crs.lstrip("epsg:")) if dataset.crs else None,
-            "proj:shape": dataset.grids["default"].shape,
-            "proj:transform": dataset.grids["default"].transform,
-        },
-        # TODO: Currently assuming no name collisions.
-        assets={
-            **{
-                name: (
-                    {
-                        **stac_data.get("assets", {}).get(name, {}),
-                        "href": urljoin(stac_base_url, m.path),
-                        "proj:shape": dataset.grids[
-                            m.grid if m.grid else "default"
-                        ].shape,
-                        "proj:transform": dataset.grids[
-                            m.grid if m.grid else "default"
-                        ].transform,
-                    }
-                )
-                for name, m in dataset.measurements.items()
-            },
-            **{
-                name: (
-                    {
-                        **stac_data.get("assets", {}).get(name, {}),
-                        "href": urljoin(stac_base_url, m.path),
-                    }
-                )
-                for name, m in dataset.accessories.items()
-            },
-        },
-        links=[
-            {
-                "rel": "self",
-                "type": "application/json",
-                "href": urljoin(stac_base_url, output_path.name),
-            },
-            {
-                "title": "Source Dataset YAML",
-                "rel": "odc_yaml",
-                "type": "text/yaml",
-                "href": urljoin(stac_base_url, input_metadata.name),
-            },
-            {
-                "title": "Open Data Cube Product Overview",
-                "rel": "product_overview",
-                "type": "text/html",
-                "href": urljoin(explorer_base_url, f"product/{dataset.product.name}"),
-            },
-            {
-                "title": "Open Data Cube Explorer",
-                "rel": "alternative",
-                "type": "text/html",
-                "href": urljoin(explorer_base_url, f"dataset/{dataset.id}"),
-            },
-        ],
-    )
-    if do_validate:
-        validate_stac(item_doc)
-    return item_doc
-
-
-def json_fallback(o):
-    if isinstance(o, datetime):
-        return f"{o.isoformat()}Z"
-
-    if isinstance(o, UUID):
-        return str(o)
-
-    raise TypeError(
-        f"Unhandled type for json conversion: "
-        f"{o.__class__.__name__!r} "
-        f"(object {o!r})"
-    )
-
-
-def validate_stac(item_doc: Dict):
-    # Validates STAC content against schema of STAC item and STAC extensions
-    stac_content = json.loads(json.dumps(item_doc, indent=4, default=json_fallback))
-    schema_urls = [
-        f"https://schemas.stacspec.org/"
-        f"v{item_doc.get('stac_version')}"
-        f"/item-spec/json-schema/item.json#"
-    ]
-    for extension in item_doc.get("stac_extensions", []):
-        schema_urls.append(
-            f"https://schemas.stacspec.org/"
-            f"v{item_doc.get('stac_version')}"
-            f"/extensions/{extension}"
-            f"/json-schema/schema.json#"
-        )
-
-    for schema_url in schema_urls:
-        schema_json = requests.get(schema_url).json()
-        validate(stac_content, schema_json)
 
 
 def find_granules(file_path):
@@ -424,7 +85,7 @@ def load_s3_resource(s3_bucket, s3_file):
     try:
         s3_resource = boto3.resource("s3").Bucket(s3_bucket)
         obj = s3_resource.Object(key=s3_file)
-        return obj.get()['Body']
+        return obj.get()["Body"]
     except ValueError as exception:
         raise S3SyncException(str(exception))
     except ClientError as exception:
@@ -495,36 +156,50 @@ def get_common_message_attributes(stac_doc: Dict) -> Dict:
     :param stac_doc: STAC dict
     :return: common message attributes dict
     """
-    return {
-        "product": {
+    msg_attributes = {}
+
+    product = dicttoolz.get_in(["properties", "odc:product"], stac_doc)
+    if product:
+        msg_attributes["product"] = {
             "DataType": "String",
-            "StringValue": stac_doc["properties"]["odc:product"],
-        },
-        "datetime": {
+            "StringValue": dicttoolz.get_in(["properties", "odc:product"], stac_doc),
+        }
+
+    datetime = dicttoolz.get_in(["properties", "datetime"], stac_doc)
+    if datetime:
+        msg_attributes["datetime"] = {
             "DataType": "String",
-            "StringValue": stac_doc["properties"]["datetime"],
-        },
-        "cloudcover": {
+            "StringValue": dicttoolz.get_in(["properties", "datetime"], stac_doc),
+        }
+
+    cloudcover = dicttoolz.get_in(["properties", "eo:cloud_cover"], stac_doc)
+    if cloudcover:
+        msg_attributes["cloudcover"] = {
             "DataType": "Number",
-            "StringValue": str(stac_doc["properties"]["eo:cloud_cover"]),
-        },
-        "bbox.ll_lon": {
+            "StringValue": str(dicttoolz.get_in(["properties", "eo:cloud_cover"], stac_doc)),
+        }
+
+    bbox = dicttoolz.get_in(["bbox"], stac_doc)
+    if bbox and len(bbox) > 3:
+        msg_attributes["bbox.ll_lon"] = {
             "DataType": "Number",
-            "StringValue": str(stac_doc["bbox"][0]),
-        },
-        "bbox.ll_lat": {
+            "StringValue": str(bbox[0]),
+        }
+        msg_attributes["bbox.ll_lat"] = {
             "DataType": "Number",
-            "StringValue": str(stac_doc["bbox"][1]),
-        },
-        "bbox.ur_lon": {
+            "StringValue": str(bbox[1]),
+        }
+        msg_attributes["bbox.ur_lon"] = {
             "DataType": "Number",
-            "StringValue": str(stac_doc["bbox"][2]),
-        },
-        "bbox.ur_lat": {
+            "StringValue": str(bbox[2]),
+        }
+        msg_attributes["bbox.ur_lat"] = {
             "DataType": "Number",
-            "StringValue": str(stac_doc["bbox"][3]),
-        },
-    }
+            "StringValue": str(bbox[3]),
+        }
+
+    return msg_attributes
+
 
 def update_metadata(nci_metadata_file, s3_bucket, s3_base_url, explorer_base_url, sns_topic, s3_path):
     """
@@ -544,17 +219,8 @@ def update_metadata(nci_metadata_file, s3_bucket, s3_base_url, explorer_base_url
     # Initialise checksum list
     new_checksum_list = {}
 
-    # Initialise YAML
-    yaml = YAML()
-    yaml.representer.add_representer(datetime, serialise.represent_datetime)
-    yaml.width = 80
-    yaml.explicit_start = True
-    yaml.explicit_end = True
-
     nci_metadata_file_path = Path(nci_metadata_file)
-    with nci_metadata_file_path.open("r") as f:
-        temp_metadata = yaml.load(f)
-
+    temp_metadata = serialise.load_yaml(nci_metadata_file_path)
 
     # Deleting Nbar related metadata
     # Because Landsat 8 is different, we need to check if the fields exist
@@ -580,9 +246,12 @@ def update_metadata(nci_metadata_file, s3_bucket, s3_base_url, explorer_base_url
     if "thumbnail:nbar" in temp_metadata["accessories"]:
         del temp_metadata["accessories"]["thumbnail:nbar"]
 
+    # Format an eo3 dataset dict for human-readable yaml serialisation.
+    temp_metadata = serialise.prepare_formatting(temp_metadata)
+
     # Dump metadata yaml into buffer
     with io.BytesIO() as temp_yaml:
-        yaml.dump(temp_metadata, temp_yaml)
+        serialise.dumps_yaml(temp_yaml, temp_metadata)
         temp_yaml.seek(0)  # Seek back to the beginning of the file before next read/write
         new_checksum_list[nci_metadata_file_path.name] = verify.calculate_hash(temp_yaml)
 
@@ -600,13 +269,11 @@ def update_metadata(nci_metadata_file, s3_bucket, s3_base_url, explorer_base_url
     # Create stac metadata
     name = nci_metadata_file_path.stem.replace(".odc-metadata", "")
     stac_output_file_path = nci_metadata_file_path.with_name(f"{name}.stac-item.json")
-    stac_data = ga_ls_ard_3_stac_item if ga_ls_ard_3_stac_item else {}
     stac_url_path = f"{s3_base_url if s3_base_url else boto3.client('s3').meta.endpoint_url}/{s3_path}/"
-    item_doc = create_stac(
+    item_doc = dc_to_stac(
         serialise.from_doc(temp_metadata),
         nci_metadata_file_path,
         stac_output_file_path,
-        stac_data,
         stac_url_path,
         explorer_base_url,
         True,
@@ -749,7 +416,7 @@ def sync_granules(file_path, nci_dir, s3_root_path, s3_bucket, s3_base_url, expl
 
             metadata_file = granule_row[0] if len(granule_row) > 0 else None
             is_archived = True if (len(granule_row) > 1 and granule_row[1]) else False
-            action = 'archived' if is_archived else 'added'
+            action = "archived" if is_archived else "added"
             LOG.info(f"Processing {action} granule - {metadata_file} ")
 
             metadata_file_path = Path(metadata_file)

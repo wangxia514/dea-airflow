@@ -40,7 +40,7 @@ LIST_SCENES_COMMAND = """
     
     # Load the latest stable DEA module
     module use /g/data/v10/public/modules/modulefiles
-    module load dea
+    module load dea/unstable
     
     # Be verbose and echo what we run
     set -x
@@ -71,7 +71,7 @@ RUN_UPLOAD_SCRIPT = """
 
     # Load the latest stable DEA module
     module use /g/data/v10/public/modules/modulefiles
-    module load dea
+    module load dea/unstable
 
     # Be verbose and echo what we run
     set -x
@@ -95,7 +95,7 @@ RUN_UPLOAD_SCRIPT = """
 default_args = {
     "owner": "Sachit Rajbhandari",
     "start_date": datetime(2013, 5, 1),
-    "end_date": datetime(2013, 6, 10),
+    "end_date": datetime(2013, 6, 11),
     "retries": 0,
     "retry_delay": timedelta(minutes=5),
     "email_on_failure": True,
