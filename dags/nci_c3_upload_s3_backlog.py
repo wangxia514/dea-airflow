@@ -12,6 +12,7 @@ data from NCI to AWS S3 bucket. It:
 This DAG takes following input parameters from `nci_c3_upload_s3_config` variable:
 
  * `s3bucket`: Name of the S3 bucket. `"dea-public-data"`
+ * `s3path`: Path prefix of the S3. `"baseline"`
  * `s3baseurl`: Base URL of the S3. `"https://data.dea.ga.gov.au/"`
  * `explorerbaseurl`: Base URL of the Explorer. `"https://explorer.prod.dea.ga.gov.au"`
  * `snstopic`: ARN of the SNS topic. `"arn:aws:sns:ap-southeast-2:451924316694:landsat-collection-3-dev-topic"`
@@ -28,7 +29,14 @@ from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
 
-collection3_products = ["ga_ls5t_ard_3", "ga_ls7e_ard_3", "ga_ls8c_ard_3"]
+# TODO: Replace with actual start date and end date
+collection3_products = [["ga_ls5t_ard_3", "1986-8-15", "1986-9-15"],
+                        ["ga_ls7e_ard_3", "1999-5-28", "1999-6-28"],
+                        ["ga_ls8c_ard_3", "2013-3-19", "2013-4-19"]]
+
+# collection3_products = [["ga_ls5t_ard_3", "1986-8-15", "2011-11-16"],
+#                         ["ga_ls7e_ard_3", "1999-5-28", "2020-8-31"],
+#                         ["ga_ls8c_ard_3", "2013-3-19", "2020-8-31"]]
 
 
 LIST_SCENES_COMMAND = """
@@ -83,7 +91,7 @@ RUN_UPLOAD_SCRIPT = """
     python3 '{{ work_dir }}/c3_to_s3_rolling.py' \
             -f '{{ work_dir }}/{{ params.product }}.csv' \
             -n '{{ params.nci_dir }}' \
-            -p '{{ params.s3_path }}' \
+            -p '{{ var.json.nci_c3_upload_s3_config.s3path }}' \
             -b '{{ var.json.nci_c3_upload_s3_config.s3bucket }}' \
             -u '{{ var.json.nci_c3_upload_s3_config.s3baseurl }}' \
             -e '{{ var.json.nci_c3_upload_s3_config.explorerbaseurl }}' \
@@ -92,33 +100,30 @@ RUN_UPLOAD_SCRIPT = """
 """
 
 
-default_args = {
-    "owner": "Sachit Rajbhandari",
-    "start_date": datetime(2013, 5, 1),
-    "end_date": datetime(2013, 6, 11),
-    "retries": 0,
-    "retry_delay": timedelta(minutes=5),
-    "email_on_failure": True,
-    "email": "sachit.rajbhandari@ga.gov.au",
-    "ssh_conn_id": "lpgs_gadi",
-    "aws_conn_id": "dea_public_data_upload",
-}
+def create_dag(product, start_date, end_date):
+    default_args = {
+        "owner": "Sachit Rajbhandari",
+        "start_date": start_date,
+        "end_date": end_date,
+        "retries": 0,
+        "retry_delay": timedelta(minutes=5),
+        "email_on_failure": True,
+        "email": "sachit.rajbhandari@ga.gov.au",
+        "ssh_conn_id": "lpgs_gadi",
+        "aws_conn_id": "dea_public_data_upload",
+    }
 
+    dag = DAG(f"nci_c3_upload_s3_backlog_{product}",
+              doc_md=__doc__,
+              default_args=default_args,
+              catchup=True,
+              schedule_interval="@daily",
+              max_active_runs=4,
+              default_view="graph",
+              tags=["nci", "landsat_c3"],
+              )
 
-dag = DAG(
-    "nci_c3_upload_s3_backlog",
-    doc_md=__doc__,
-    default_args=default_args,
-    catchup=True,
-    schedule_interval="@daily",
-    max_active_runs=4,
-    default_view="graph",
-    tags=["nci", "landsat_c3"],
-)
-
-
-with dag:
-    for product in collection3_products:
+    with dag:
         WORK_DIR = f'/g/data/v10/work/c3_upload_s3/{product}/{"{{ ts_nodash }}"}'
         COMMON = """
                 {% set work_dir = '/g/data/v10/work/c3_upload_s3/' 
@@ -153,7 +158,6 @@ with dag:
                 "aws_hook": aws_hook,
                 "product": product,
                 "nci_dir": "/g/data/xu18/ga/",
-                "s3_path": "analysis-ready-data",
             },
             timeout=60 * 10,
         )
@@ -173,3 +177,8 @@ with dag:
         list_scenes >> sftp_c3_to_s3_script
         sftp_c3_to_s3_script >> execute_c3_to_s3_script
         execute_c3_to_s3_script >> clean_nci_work_dir
+    return dag
+
+
+for product_info in collection3_products:
+    globals()[product_info[0]] = create_dag(product_info[0], product_info[1], product_info[2])
