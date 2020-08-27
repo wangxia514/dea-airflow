@@ -64,8 +64,6 @@ with dag:
         arguments=["sqs-to-dc",
                    "--stac",
                    "--skip-lineage",
-                   "--limit",  # TODO: remove limit after testing
-                   "1",
                    dag.default_args['index_sqs_queue'],
                    dag.default_args['products']
                    ],
@@ -82,9 +80,6 @@ with dag:
         image_pull_policy='Always',
         arguments=["sqs-to-dc",
                    "--archive",
-                   "--limit", # TODO: remove limit after testing
-                   "1",
-
                    dag.default_args['archive_sqs_queue'],
                    dag.default_args['products']],
         labels={"step": "sqs-dc-archiving"},
