@@ -1,3 +1,11 @@
+"""
+# Sentinel-2_nrt Indexing from SQS
+
+DAG to periodically index Sentinel-2 NRT data.
+
+This DAG uses k8s executors and in cluster with relevant tooling
+and configuration installed.
+"""
 from datetime import datetime, timedelta
 
 from airflow import DAG
@@ -64,7 +72,7 @@ INDEXING_BASH_COMMAND = [
 
 # THE DAG
 dag = DAG(
-    "sentinel-2_nrt_indexing",
+    "sentinel_2_nrt_indexing",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval="0 */1 * * *",

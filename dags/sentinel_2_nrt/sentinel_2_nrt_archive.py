@@ -16,7 +16,7 @@ from textwrap import dedent
 import kubernetes.client.models as k8s
 
 from .images import INDEXER_IMAGE
-from .ows_views import OWS_UPDAE_TEXTENTS
+# from .ows_views import OWS_UPDAE_EXTENTS
 from .env_cfg import DB_DATABASE, SECRET_OWS_NAME, SECRET_AWS_NAME
 
 
@@ -66,7 +66,7 @@ DEFAULT_ARGS = {
 
 # THE DAG
 dag = DAG(
-    "sentinel-2_nrt_archiving",
+    "sentinel_2_nrt_archive",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval="0 */1 * * *",

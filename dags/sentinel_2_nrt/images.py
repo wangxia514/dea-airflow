@@ -1,3 +1,7 @@
+"""
+# Sentinel-2_nrt process docker images used
+"""
+
 # IMAGES USED FOR THIS DAG
 INDEXER_IMAGE = "opendatacube/datacube-index:0.0.8"
 
