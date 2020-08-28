@@ -170,7 +170,7 @@ ARCHIVE_BASH_COMMAND = [
 
 # THE DAG
 dag = DAG(
-    "sentinel-2_nrt_indexing",
+    "sentinel-2_nrt_ows_data_orchestrate",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval='0 */1 * * *',
