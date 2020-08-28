@@ -19,8 +19,8 @@ from textwrap import dedent
 
 import kubernetes.client.models as k8s
 
-from .images import INDEXER_IMAGE
-from .env_cfg import (
+from sentinel_2_nrt.images import INDEXER_IMAGE
+from sentinel_2_nrt.env_cfg import (
     DB_DATABASE,
     SECRET_OWS_NAME,
     SECRET_AWS_NAME,
