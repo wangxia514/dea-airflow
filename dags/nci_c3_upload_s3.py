@@ -12,6 +12,7 @@ data from NCI to AWS S3 bucket. It:
 This DAG takes following input parameters from `nci_c3_upload_s3_config` variable:
 
  * `s3bucket`: Name of the S3 bucket. `"dea-public-data"`
+ * `s3path`: Path prefix of the S3. `"baseline"`
  * `s3baseurl`: Base URL of the S3. `"https://data.dea.ga.gov.au/"`
  * `explorerbaseurl`: Base URL of the explorer. `"https://explorer.prod.dea.ga.gov.au"`
  * `snstopic`: ARN of the SNS topic. `"arn:aws:sns:ap-southeast-2:451924316694:landsat-collection-3-dev-topic"`
@@ -80,7 +81,7 @@ RUN_UPLOAD_SCRIPT = """
     python3 '{{ work_dir }}/c3_to_s3_rolling.py' \
             -f '{{ work_dir }}/{{ params.product }}.csv' \
             -n '{{ params.nci_dir }}' \
-            -p '{{ params.s3_path }}' \
+            -p '{{ var.json.nci_c3_upload_s3_config.s3path }}' \
             -b '{{ var.json.nci_c3_upload_s3_config.s3bucket }}' \
             -u '{{ var.json.nci_c3_upload_s3_config.s3baseurl }}' \
             -e '{{ var.json.nci_c3_upload_s3_config.explorerbaseurl }}' \
@@ -149,7 +150,6 @@ with dag:
                 "aws_hook": aws_hook,
                 "product": product,
                 "nci_dir": "/g/data/xu18/ga/",
-                "s3_path": "analysis-ready-data",
             },
             timeout=60 * 10,
         )

@@ -35,9 +35,9 @@ DEFAULT_ARGS = {
     "secrets": [
         Secret("env", "DB_USERNAME", "ows-db", "postgres-username"),
         Secret("env", "DB_PASSWORD", "ows-db", "postgres-password"),
-        Secret("env", "AWS_DEFAULT_REGION", "indexing-aws-creds-dev", "AWS_DEFAULT_REGION"),
-        Secret("env", "AWS_ACCESS_KEY_ID", "indexing-aws-creds-dev", "AWS_ACCESS_KEY_ID"),
-        Secret("env", "AWS_SECRET_ACCESS_KEY", "indexing-aws-creds-dev", "AWS_SECRET_ACCESS_KEY"),
+        Secret("env", "AWS_DEFAULT_REGION", "processing-aws-creds-dev", "AWS_DEFAULT_REGION"),
+        Secret("env", "AWS_ACCESS_KEY_ID", "processing-aws-creds-dev", "AWS_ACCESS_KEY_ID"),
+        Secret("env", "AWS_SECRET_ACCESS_KEY", "processing-aws-creds-dev", "AWS_SECRET_ACCESS_KEY"),
     ],
 }
 
@@ -64,8 +64,6 @@ with dag:
         arguments=["sqs-to-dc",
                    "--stac",
                    "--skip-lineage",
-                   "--limit",  # TODO: remove limit after testing
-                   "1",
                    dag.default_args['index_sqs_queue'],
                    dag.default_args['products']
                    ],
@@ -82,9 +80,6 @@ with dag:
         image_pull_policy='Always',
         arguments=["sqs-to-dc",
                    "--archive",
-                   "--limit", # TODO: remove limit after testing
-                   "1",
-
                    dag.default_args['archive_sqs_queue'],
                    dag.default_args['products']],
         labels={"step": "sqs-dc-archiving"},
