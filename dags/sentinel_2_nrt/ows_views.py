@@ -10,8 +10,8 @@ from textwrap import dedent
 
 import kubernetes.client.models as k8s
 
-from .images import OWS_CFG_IMAGEPATH, OWS_CONFIG_IMAGE, OWS_IMAGE
-from .env_cfg import OWS_CFG_PATH, OWS_CFG_MOUNT_PATH
+from images import OWS_CFG_IMAGEPATH, OWS_CONFIG_IMAGE, OWS_IMAGE
+from env_cfg import OWS_CFG_PATH, OWS_CFG_MOUNT_PATH
 
 
 UPDATE_EXTENT_PRODUCTS = "s2_nrt_granule_nbar_t"
