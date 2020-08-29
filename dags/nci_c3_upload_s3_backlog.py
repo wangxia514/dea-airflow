@@ -30,13 +30,13 @@ from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
 
 # TODO: Replace with actual start date and end date
-collection3_products = [["ga_ls5t_ard_3", "1986-8-15", "1986-9-15"],
-                        ["ga_ls7e_ard_3", "1999-5-28", "1999-6-28"],
-                        ["ga_ls8c_ard_3", "2013-3-19", "2013-4-19"]]
+collection3_products = [["ga_ls5t_ard_3", datetime(1986, 8, 15), datetime(1986, 9, 15)],
+                        ["ga_ls7e_ard_3", datetime(1999, 5, 28), datetime(1999, 6, 28)],
+                        ["ga_ls8c_ard_3", datetime(2013, 3, 19), datetime(2013, 4, 19)]]
 
-# collection3_products = [["ga_ls5t_ard_3", "1986-8-15", "2011-11-16"],
-#                         ["ga_ls7e_ard_3", "1999-5-28", "2020-8-31"],
-#                         ["ga_ls8c_ard_3", "2013-3-19", "2020-8-31"]]
+# collection3_products = [["ga_ls5t_ard_3", datetime(1986, 8, 15), datetime(2011, 11, 16)],
+#                         ["ga_ls7e_ard_3", datetime(1999, 5, 28), datetime(2020, 8, 31)],
+#                         ["ga_ls8c_ard_3", datetime(2013, 3, 19), datetime(2020, 8, 31)]]
 
 
 LIST_SCENES_COMMAND = """
@@ -100,7 +100,7 @@ RUN_UPLOAD_SCRIPT = """
 """
 
 
-def create_dag(product, start_date, end_date):
+def create_dag(dag_id, product, start_date, end_date):
     default_args = {
         "owner": "Sachit Rajbhandari",
         "start_date": start_date,
@@ -113,15 +113,16 @@ def create_dag(product, start_date, end_date):
         "aws_conn_id": "dea_public_data_upload",
     }
 
-    dag = DAG(f"nci_c3_upload_s3_backlog_{product}",
-              doc_md=__doc__,
-              default_args=default_args,
-              catchup=True,
-              schedule_interval="@daily",
-              max_active_runs=4,
-              default_view="graph",
-              tags=["nci", "landsat_c3"],
-              )
+    dag = DAG(
+        dag_id=dag_id,
+        doc_md=__doc__,
+        default_args=default_args,
+        catchup=True,
+        schedule_interval="@daily",
+        max_active_runs=4,
+        default_view="graph",
+        tags=["nci", "landsat_c3"]
+    )
 
     with dag:
         WORK_DIR = f'/g/data/v10/work/c3_upload_s3/{product}/{"{{ ts_nodash }}"}'
@@ -181,4 +182,5 @@ def create_dag(product, start_date, end_date):
 
 
 for product_info in collection3_products:
-    globals()[product_info[0]] = create_dag(product_info[0], product_info[1], product_info[2])
+    _dag_id = f"nci_c3_upload_s3_backlog_{str(product_info[0])}"
+    globals()[_dag_id] = create_dag(_dag_id, product_info[0], product_info[1], product_info[2])
