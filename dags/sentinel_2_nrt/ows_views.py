@@ -58,17 +58,3 @@ OWS_BASH_COMMAND = [
     )
     % (UPDATE_EXTENT_PRODUCTS),
 ]
-
-OWS_UPDATE_EXTENTS = KubernetesPodOperator(
-    namespace="processing",
-    image=OWS_IMAGE,
-    arguments=OWS_BASH_COMMAND,
-    labels={"step": "ows-mv"},
-    name="ows-update-extents",
-    task_id="ows-update-extents",
-    get_logs=True,
-    volumes=[ows_cfg_volume],
-    volume_mounts=[ows_cfg_mount],
-    init_containers=[config_container],
-    is_delete_operator_pod=True,
-)

@@ -17,8 +17,8 @@ from textwrap import dedent
 
 import kubernetes.client.models as k8s
 
-from sentinel_2_nrt.images import INDEXER_IMAGE
-from sentinel_2_nrt.ows_views import OWS_UPDATE_EXTENTS
+from sentinel_2_nrt.images import INDEXER_IMAGE, OWS_IMAGE
+from sentinel_2_nrt.ows_views import UPDATE_EXTENT_PRODUCTS, config_container, OWS_BASH_COMMAND, ows_cfg_mount, ows_cfg_volume
 from sentinel_2_nrt.env_cfg import DB_DATABASE, SECRET_OWS_NAME, SECRET_AWS_NAME
 
 
@@ -77,7 +77,7 @@ dag = DAG(
 )
 
 with dag:
-    OWS_UPDATE_EXTENT_AFTER_ARCHIVE = OWS_UPDATE_EXTENTS
+
     ARCHIVE_EXTRANEOUS_DS = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
@@ -89,10 +89,24 @@ with dag:
         is_delete_operator_pod=True,
     )
 
+    OWS_UPDATE_EXTENTS = KubernetesPodOperator(
+        namespace="processing",
+        image=OWS_IMAGE,
+        arguments=OWS_BASH_COMMAND,
+        labels={"step": "ows-mv"},
+        name="ows-update-extents",
+        task_id="ows-update-extents",
+        get_logs=True,
+        volumes=[ows_cfg_volume],
+        volume_mounts=[ows_cfg_mount],
+        init_containers=[config_container],
+        is_delete_operator_pod=True,
+    )
+
     START = DummyOperator(task_id="start_sentinel_2_nrt")
 
     COMPLETE = DummyOperator(task_id="all_done")
 
     START >> ARCHIVE_EXTRANEOUS_DS
-    ARCHIVE_EXTRANEOUS_DS >> OWS_UPDATE_EXTENT_AFTER_ARCHIVE
-    OWS_UPDATE_EXTENT_AFTER_ARCHIVE >> COMPLETE
+    ARCHIVE_EXTRANEOUS_DS >> OWS_UPDATE_EXTENTS
+    OWS_UPDATE_EXTENTS >> COMPLETE
