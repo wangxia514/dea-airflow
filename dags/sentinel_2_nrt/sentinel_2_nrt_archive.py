@@ -20,7 +20,6 @@ import kubernetes.client.models as k8s
 from sentinel_2_nrt.images import INDEXER_IMAGE
 # from .ows_views import OWS_UPDAE_EXTENTS
 from sentinel_2_nrt.env_cfg import DB_DATABASE, SECRET_OWS_NAME, SECRET_AWS_NAME
-from sentinel_2_nrt.status_tasks import START, COMPLETE
 
 
 ARCHIVE_CONDITION = "[$(date -d '-365 day' +%F), $(date -d '-91 day' +%F)]"
