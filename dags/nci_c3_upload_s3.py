@@ -29,6 +29,10 @@ from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
 
+import pendulum
+
+local_tz = pendulum.timezone("Australia/Canberra")
+
 collection3_products = ["ga_ls5t_ard_3", "ga_ls7e_ard_3", "ga_ls8c_ard_3"]
 
 LIST_SCENES_COMMAND = """
@@ -46,7 +50,7 @@ LIST_SCENES_COMMAND = """
     set -x
     
     args="-h dea-db.nci.org.au datacube -t -A -F,"
-    query="SELECT dsl.uri_body, ds.archived FROM agdc.dataset ds 
+    query="SELECT dsl.uri_body, ds.archived, ds.added FROM agdc.dataset ds 
     INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id 
     INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref 
     WHERE dst.name='{{ params.product }}' 
@@ -92,7 +96,7 @@ RUN_UPLOAD_SCRIPT = """
 
 default_args = {
     "owner": "Sachit Rajbhandari",
-    "start_date": datetime(2020, 6, 24),
+    "start_date": datetime(2020, 6, 24, tzinfo=local_tz),
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "email_on_failure": True,
@@ -106,8 +110,8 @@ dag = DAG(
     "nci_c3_upload_s3",
     doc_md=__doc__,
     default_args=default_args,
-    catchup=False,
-    schedule_interval="@daily",
+    catchup=True,
+    schedule_interval="0 7 * * *",
     max_active_runs=4,
     default_view="graph",
     tags=["nci", "landsat_c3"],
