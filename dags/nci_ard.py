@@ -1,5 +1,10 @@
 """
 # Produce Landsat C3 ARD on the NCI
+
+The DAG starts ard_scene_select which filters the landsat l1 scenes to send to ARD to process.
+It also starts the ARD processing.  ARD processing indexes the ARD output scenes.
+
+The logs are written to NCI.
 """
 from datetime import datetime, timedelta
 
@@ -12,7 +17,7 @@ from sensors.pbs_job_complete_sensor import PBSJobSensor
 default_args = {
     'owner': 'Duncan Gray',
     'depends_on_past': False,  # Very important, will cause a single failure to propagate forever
-    'start_date': datetime(2020, 2, 17),
+    'start_date': datetime(2020, 8, 26),
     'retries': 0,
     'retry_delay': timedelta(minutes=1),
     'ssh_conn_id': 'lpgs_gadi',
@@ -34,6 +39,7 @@ default_args = {
 # My local env is airflow 1.10.10...
 dag = DAG(
     'nci_ard',
+    doc_md=__doc__,
     default_args=default_args,
     catchup=False,
     schedule_interval=None,
