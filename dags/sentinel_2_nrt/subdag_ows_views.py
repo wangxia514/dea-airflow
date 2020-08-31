@@ -58,3 +58,37 @@ OWS_BASH_COMMAND = [
     )
     % (UPDATE_EXTENT_PRODUCTS),
 ]
+
+
+def ows_update_extent_subdag(parent_dag_name, child_dag_name, args):
+    """[summary]
+
+    Args:
+        parent_dag_name ([type]): [description]
+        child_dag_name ([type]): [description]
+        args ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
+    dag_subdag = DAG(
+        dag_id="%s.%s" % (parent_dag_name, child_dag_name),
+        default_args=args,
+    )
+
+    KubernetesPodOperator(
+        namespace="processing",
+        image=OWS_IMAGE,
+        arguments=OWS_BASH_COMMAND,
+        labels={"step": "ows-mv"},
+        name="ows-update-extents",
+        task_id="ows-update-extents",
+        get_logs=True,
+        volumes=[ows_cfg_volume],
+        volume_mounts=[ows_cfg_mount],
+        init_containers=[config_container],
+        is_delete_operator_pod=True,
+        dag=dag_subdag,
+    )
+
+    return dag_subdag

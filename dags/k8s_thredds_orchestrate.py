@@ -58,7 +58,7 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
-    tags=["k8s"]
+    tags=["k8s"],
 )
 
 
@@ -94,7 +94,7 @@ with dag:
         arguments=[
             "{{ dag_run.conf.params}}",
             "{{ dag_run.conf.thredds_catalog }}",
-            "{{ dag_run.conf.products }}"
+            "{{ dag_run.conf.products }}",
         ],
         labels={"step": "thredds-to-rds"},
         name="datacube-index",

@@ -9,26 +9,26 @@ from airflow.contrib.operators.ssh_operator import SSHOperator
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
 default_args = {
-    'owner': 'Damien Ayers',
-    'start_date': datetime(2020, 3, 12),
-    'retries': 0,
-    'retry_delay': timedelta(minutes=1),
-    'ssh_conn_id': 'lpgs_gadi',
-    'params': {
-        'project': 'v10',
-        'queue': 'normal',
-        'module': 'dea/20200610',
-        'year': '2020'
-    }
+    "owner": "Damien Ayers",
+    "start_date": datetime(2020, 3, 12),
+    "retries": 0,
+    "retry_delay": timedelta(minutes=1),
+    "ssh_conn_id": "lpgs_gadi",
+    "params": {
+        "project": "v10",
+        "queue": "normal",
+        "module": "dea/20200610",
+        "year": "2020",
+    },
 }
 
 dag = DAG(
-    'nci_wofs',
+    "nci_wofs",
     default_args=default_args,
     catchup=False,
     schedule_interval=None,
-    default_view='graph',
-    tags=['nci', 'landsat_c2'],
+    default_view="graph",
+    tags=["nci", "landsat_c2"],
 )
 
 with dag:
@@ -41,8 +41,9 @@ with dag:
           APP_CONFIG=/g/data/v10/public/modules/{{params.module}}/wofs/config/wofs_albers.yaml
     """
     generate_wofs_tasks = SSHOperator(
-        task_id='generate_wofs_tasks',
-        command=COMMON + """
+        task_id="generate_wofs_tasks",
+        command=COMMON
+        + """
 
             mkdir -p {{work_dir}}
             cd {{work_dir}}
@@ -54,18 +55,20 @@ with dag:
     )
 
     test_wofs_tasks = SSHOperator(
-        task_id='test_wofs_tasks',
-        command=COMMON + """
+        task_id="test_wofs_tasks",
+        command=COMMON
+        + """
             cd {{work_dir}}
             datacube-wofs inspect-taskfile tasks.pickle
             datacube-wofs check-existing --input-filename tasks.pickle
         """,
         timeout=60 * 20,
     )
-    submit_task_id = 'submit_wofs_albers'
+    submit_task_id = "submit_wofs_albers"
     submit_wofs_job = SSHOperator(
         task_id=submit_task_id,
-        command=COMMON + """
+        command=COMMON
+        + """
           # TODO Should probably use an intermediate task here to calculate job size
           # based on number of tasks.
           # Although, if we run regularaly, it should be pretty consistent.
@@ -93,13 +96,14 @@ with dag:
         timeout=60 * 20,
     )
     wait_for_wofs_albers = PBSJobSensor(
-        task_id='wait_for_wofs_albers',
+        task_id="wait_for_wofs_albers",
         pbs_job_id="{{ ti.xcom_pull(task_ids='%s') }}" % submit_task_id,
         timeout=60 * 60 * 24 * 7,
     )
     check_for_errors = SSHOperator(
-        task_id='check_for_errors',
-        command=COMMON + """
+        task_id="check_for_errors",
+        command=COMMON
+        + """
         error_dir={{ ti.xcom_pull(task_ids='wait_for_wofs_albers')['Error_Path'].split(':')[1] }}
         echo error_dir: ${error_dir}
 

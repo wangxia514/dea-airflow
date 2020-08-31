@@ -50,7 +50,7 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
-    tags=['k8s', 'sentinel_2']
+    tags=["k8s", "sentinel_2"],
 )
 
 

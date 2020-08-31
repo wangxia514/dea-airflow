@@ -44,37 +44,39 @@ from airflow.operators.sensors import HttpSensor
 # These args will get passed on to each operator
 # You can override them on a per-task basis during operator initialization
 default_args = {
-    'owner': 'Robert Gurtler',
-    'depends_on_past': False,
-    'start_date': datetime(2020, 6, 16),
-    'email': ['robert.gurtler@ga.gov.au'],
-    'email_on_failure': False,
-    'email_on_retry': False,
-    'retries': 1,
-    'retry_delay': timedelta(minutes=5),
+    "owner": "Robert Gurtler",
+    "depends_on_past": False,
+    "start_date": datetime(2020, 6, 16),
+    "email": ["robert.gurtler@ga.gov.au"],
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5),
 }
 # [END default_args]
 
 # Docker images
 CURL_SVC_IMAGE = "curlimages/curl:7.70.0"
-EGGLOADER_SVC_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dea-access/egg-dataloader:latest"
+EGGLOADER_SVC_IMAGE = (
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dea-access/egg-dataloader:latest"
+)
 
 # [START instantiate_dag]
 pipeline = DAG(
-    'k8s_dea_access_dataloader',
+    "k8s_dea_access_dataloader",
     doc_md=__doc__,
     default_args=default_args,
-    description='DEA Access dataloader',
+    description="DEA Access dataloader",
     concurrency=2,
     max_active_runs=1,
     catchup=False,
     params={
-        'egg_svc_data_dir': '/data',
-        'egg_svc_name': 'dea-access-egg-svc.web.svc.cluster.local',
-        'geonames_endpoint': 'export/dump/allCountries.zip',
+        "egg_svc_data_dir": "/data",
+        "egg_svc_name": "dea-access-egg-svc.web.svc.cluster.local",
+        "geonames_endpoint": "export/dump/allCountries.zip",
     },
-    schedule_interval='30 1 * * 0',
-    tags=['k8s', 'nemo', 'psc', 'egg'],
+    schedule_interval="30 1 * * 0",
+    tags=["k8s", "nemo", "psc", "egg"],
 )
 # [END instantiate_dag]
 
@@ -82,50 +84,50 @@ with pipeline:
 
     # [START task_http_geonames_org_sensor_check]
     task_http_geonames_org_sensor_check = HttpSensor(
-        task_id='http_geonames_org_sensor_check',
-        http_conn_id='http_geonames_org',
-        endpoint='{{ params.geonames_endpoint }}',
-        method='HEAD',
+        task_id="http_geonames_org_sensor_check",
+        http_conn_id="http_geonames_org",
+        endpoint="{{ params.geonames_endpoint }}",
+        method="HEAD",
         response_check=lambda response: True if response.ok else False,
         poke_interval=2,
         # Extra options for the ‘requests’ library, see the ‘requests’ documentation (options to modify timeout, ssl, etc.)
         extra_options={
-          'verify': False,
+            "verify": False,
         },
     )
 
     # [START task_http_egg_svc_check]
     task_http_egg_svc_check = KubernetesPodOperator(
-        namespace='processing',
-        name='dea-access-egg-svc-check',
-        task_id='http_egg_svc_sensor_check',
-        image_pull_policy='IfNotPresent',
+        namespace="processing",
+        name="dea-access-egg-svc-check",
+        task_id="http_egg_svc_sensor_check",
+        image_pull_policy="IfNotPresent",
         image=CURL_SVC_IMAGE,
         is_delete_operator_pod=True,
         arguments=["--verbose", "http://{{ params.egg_svc_name }}:9200"],
         labels={
-          'runner': 'airflow',
+            "runner": "airflow",
         },
         get_logs=True,
     )
 
     # [START task_dataloader]
     task_dataloader = KubernetesPodOperator(
-        namespace='processing',
+        namespace="processing",
         name="dea-access-dataloader",
-        task_id='dataloader',
-        image_pull_policy='IfNotPresent',
+        task_id="dataloader",
+        image_pull_policy="IfNotPresent",
         image=EGGLOADER_SVC_IMAGE,
         is_delete_operator_pod=True,
         labels={
-          'runner': 'airflow',
+            "runner": "airflow",
         },
         env_vars={
-          'DATA_DIR': '{{ params.egg_svc_data_dir }}',
-          'ELASTIC_SCHEME': 'http',
-          'ELASTIC_HOST': '{{ params.egg_svc_name }}',
-          'ELASTIC_PORT': '9200',
-          'GEONAMES_SRC': 'https://download.geonames.org/{{ params.geonames_endpoint }}',
+            "DATA_DIR": "{{ params.egg_svc_data_dir }}",
+            "ELASTIC_SCHEME": "http",
+            "ELASTIC_HOST": "{{ params.egg_svc_name }}",
+            "ELASTIC_PORT": "9200",
+            "GEONAMES_SRC": "https://download.geonames.org/{{ params.geonames_endpoint }}",
         },
         get_logs=True,
     )

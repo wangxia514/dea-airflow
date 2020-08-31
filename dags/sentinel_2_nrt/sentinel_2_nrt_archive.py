@@ -18,12 +18,15 @@ from textwrap import dedent
 import kubernetes.client.models as k8s
 
 from sentinel_2_nrt.images import INDEXER_IMAGE, OWS_IMAGE
-from sentinel_2_nrt.ows_views import UPDATE_EXTENT_PRODUCTS, config_container, OWS_BASH_COMMAND, ows_cfg_mount, ows_cfg_volume
+from sentinel_2_nrt.subdag_ows_views import ows_update_extent_subdag
 from sentinel_2_nrt.env_cfg import DB_DATABASE, SECRET_OWS_NAME, SECRET_AWS_NAME
+from airflow.operators.subdag_operator import SubDagOperator
 
 
 ARCHIVE_CONDITION = "[$(date -d '-365 day' +%F), $(date -d '-91 day' +%F)]"
 ARCHIVE_PRODUCTS = "s2a_nrt_granule s2b_nrt_granule"
+
+DAG_NAME = "sentinel_2_nrt_archive"
 
 ARCHIVE_BASH_COMMAND = [
     "bash",
@@ -68,12 +71,12 @@ DEFAULT_ARGS = {
 
 # THE DAG
 dag = DAG(
-    "sentinel_2_nrt_archive",
+    dag_id=DAG_NAME,
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval="0 */1 * * *",
     catchup=False,
-    tags=["k8s", "sentinel-2"],
+    tags=["k8s", "sentinel-2", "archive"],
 )
 
 with dag:
@@ -89,21 +92,12 @@ with dag:
         is_delete_operator_pod=True,
     )
 
-    OWS_UPDATE_EXTENTS = KubernetesPodOperator(
-        namespace="processing",
-        image=OWS_IMAGE,
-        arguments=OWS_BASH_COMMAND,
-        labels={"step": "ows-mv"},
-        name="ows-update-extents",
-        task_id="ows-update-extents",
-        get_logs=True,
-        volumes=[ows_cfg_volume],
-        volume_mounts=[ows_cfg_mount],
-        init_containers=[config_container],
-        is_delete_operator_pod=True,
+    OWS_UPDATE_EXTENTS = SubDagOperator(
+        task_id="section-1",
+        subdag=ows_update_extent_subdag(DAG_NAME, "ows-update-ranges", DEFAULT_ARGS),
     )
 
-    START = DummyOperator(task_id="start_sentinel_2_nrt")
+    START = DummyOperator(task_id="start_sentinel_2_nrt_archive")
 
     COMPLETE = DummyOperator(task_id="all_done")
 

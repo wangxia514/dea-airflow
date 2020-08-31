@@ -15,27 +15,29 @@ import pendulum
 local_tz = pendulum.timezone("Australia/Canberra")
 
 default_args = {
-    'owner': 'dayers',
-    'depends_on_past': False,
-    'retries': 0,
-    'retry_delay': timedelta(minutes=5),
-    'start_date': datetime(2020, 5, 1, 1, tzinfo=local_tz),
-    'timeout': 60*60*2,  # For running SSH Commands
-    'ssh_conn_id': 'lpgs_gadi',
-    'remote_host': 'gadi-dm.nci.org.au',
-    'email_on_failure': True,
-    'email': 'damien.ayers@ga.gov.au',
+    "owner": "dayers",
+    "depends_on_past": False,
+    "retries": 0,
+    "retry_delay": timedelta(minutes=5),
+    "start_date": datetime(2020, 5, 1, 1, tzinfo=local_tz),
+    "timeout": 60 * 60 * 2,  # For running SSH Commands
+    "ssh_conn_id": "lpgs_gadi",
+    "remote_host": "gadi-dm.nci.org.au",
+    "email_on_failure": True,
+    "email": "damien.ayers@ga.gov.au",
 }
 
-with DAG('nci_db_backup',
-         default_args=default_args,
-         catchup=False,
-         schedule_interval="@daily",
-         concurrency=1,
-         tags=['nci'],
-         ) as dag:
+with DAG(
+    "nci_db_backup",
+    default_args=default_args,
+    catchup=False,
+    schedule_interval="@daily",
+    concurrency=1,
+    tags=["nci"],
+) as dag:
 
-    COMMON = dedent('''
+    COMMON = dedent(
+        """
         set -e
         # Load dea module to ensure that pg_dump version and the server version
         # matches, when the cronjob is run from an ec2 instance
@@ -47,11 +49,14 @@ with DAG('nci_db_backup',
         host=105
         file_prefix="105-{{ ds_nodash }}"
         
-    ''')
+    """
+    )
 
     run_backup = SSHOperator(
-        task_id='run_backup',
-        command=COMMON + dedent("""
+        task_id="run_backup",
+        command=COMMON
+        + dedent(
+            """
             args="-U agdc_backup -h 130.56.244.${host} -p 5432"
 
             set -x
@@ -70,29 +75,34 @@ with DAG('nci_db_backup',
             umask 066
             pg_dumpall ${args} --globals-only > "${file_prefix}-globals.sql"
 
-        """),
+        """
+        ),
     )
 
-    aws_conn = AwsHook(aws_conn_id='aws_nci_db_backup')
+    aws_conn = AwsHook(aws_conn_id="aws_nci_db_backup")
     upload_to_s3 = SSHOperator(
-        task_id='upload_to_s3',
+        task_id="upload_to_s3",
         params={
-            'aws_conn': aws_conn.get_credentials(),
+            "aws_conn": aws_conn.get_credentials(),
         },
-        command=COMMON + dedent('''
+        command=COMMON
+        + dedent(
+            """
             export AWS_ACCESS_KEY_ID={{params.aws_conn.access_key}}
             export AWS_SECRET_ACCESS_KEY={{params.aws_conn.secret_key}}
             
             s3_dump_file=s3://nci-db-dump/prod/"${file_prefix}-datacube.pgdump"
             aws s3 cp "${file_prefix}-datacube.pgdump" "${s3_dump_file}"
 
-        ''')
-
+        """
+        ),
     )
 
     run_csv_dump = SSHOperator(
-        task_id='dump_tables_to_csv',
-        command=COMMON + dedent("""
+        task_id="dump_tables_to_csv",
+        command=COMMON
+        + dedent(
+            """
             set -euo pipefail
             IFS=$'\n\t'
 
@@ -116,15 +126,18 @@ with DAG('nci_db_backup',
             done
 
 
-        """)
+        """
+        ),
     )
 
     upload_csvs_to_s3 = SSHOperator(
-        task_id='upload_csvs_to_s3',
+        task_id="upload_csvs_to_s3",
         params={
-            'aws_conn': aws_conn.get_credentials(),
+            "aws_conn": aws_conn.get_credentials(),
         },
-        command=COMMON + dedent('''
+        command=COMMON
+        + dedent(
+            """
             export AWS_ACCESS_KEY_ID={{params.aws_conn.access_key}}
             export AWS_SECRET_ACCESS_KEY={{params.aws_conn.secret_key}}
 
@@ -142,8 +155,8 @@ with DAG('nci_db_backup',
             cd ..
             rm -rf ${output_dir}
 
-        ''')
-
+        """
+        ),
     )
 
     run_backup >> upload_to_s3

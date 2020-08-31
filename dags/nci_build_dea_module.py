@@ -7,26 +7,26 @@ from airflow.contrib.operators.ssh_operator import SSHOperator
 from datetime import datetime, timedelta
 
 default_args = {
-    'owner': 'dayers',
-    'start_date': datetime(2020, 3, 12),
-    'retries': 1,
-    'retry_delay': timedelta(minutes=1),
-    'timeout': 1200,  # For running SSH Commands
-    'email_on_failure': True,
-    'email': 'damien.ayers@ga.gov.au',
+    "owner": "dayers",
+    "start_date": datetime(2020, 3, 12),
+    "retries": 1,
+    "retry_delay": timedelta(minutes=1),
+    "timeout": 1200,  # For running SSH Commands
+    "email_on_failure": True,
+    "email": "damien.ayers@ga.gov.au",
 }
 
 dag = DAG(
-    'nci_build_dea_module',
+    "nci_build_dea_module",
     default_args=default_args,
     schedule_interval=None,
-    tags=['nci'],
+    tags=["nci"],
 )
 
 with dag:
     build_env_task = SSHOperator(
-        task_id=f'build_dea_module',
-        ssh_conn_id='lpgs_gadi',
+        task_id=f"build_dea_module",
+        ssh_conn_id="lpgs_gadi",
         command="""
         cd ~/dea-orchestration/
         git reset --hard
@@ -41,8 +41,8 @@ with dag:
     )
 
     test_env_task = SSHOperator(
-        task_id='test_dea_module',
-        ssh_conn_id='lpgs_gadi',
+        task_id="test_dea_module",
+        ssh_conn_id="lpgs_gadi",
         command="""
         cd $TMPDIR
         git clone --depth 1 https://github.com/GeoscienceAustralia/dea-notebooks
@@ -55,7 +55,7 @@ with dag:
         Masking_data.ipynb Opening_GeoTIFFs_NetCDFs.ipynb Pan_sharpening_Brovey.ipynb \
         Rasterize_vectorize.ipynb Using_load_ard.ipynb Virtual_products.ipynb Working_with_time.ipynb
 
-        """
+        """,
     )
 
     build_env_task >> test_env_task

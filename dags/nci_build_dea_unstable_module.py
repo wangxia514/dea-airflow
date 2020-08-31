@@ -12,27 +12,27 @@ from airflow.operators.email_operator import EmailOperator
 local_tz = pendulum.timezone("Australia/Canberra")
 
 default_args = {
-    'owner': 'dayers',
-    'start_date': datetime(2020, 3, 12, tzinfo=local_tz),
-    'retries': 1,
-    'retry_delay': timedelta(minutes=10),
-    'timeout': 1200,  # For running SSH Commands
-    'email_on_failure': True,
-    'email': 'damien.ayers@ga.gov.au',
+    "owner": "dayers",
+    "start_date": datetime(2020, 3, 12, tzinfo=local_tz),
+    "retries": 1,
+    "retry_delay": timedelta(minutes=10),
+    "timeout": 1200,  # For running SSH Commands
+    "email_on_failure": True,
+    "email": "damien.ayers@ga.gov.au",
 }
 
 dag = DAG(
-    'nci_build_dea_unstable_module',
+    "nci_build_dea_unstable_module",
     default_args=default_args,
-    schedule_interval='@daily',
+    schedule_interval="@daily",
     catchup=False,
-    tags=['nci'],
+    tags=["nci"],
 )
 
 with dag:
     build_dea_unstable_module = SSHOperator(
-        task_id='build_dea_unstable_module',
-        ssh_conn_id='lpgs_gadi',
+        task_id="build_dea_unstable_module",
+        ssh_conn_id="lpgs_gadi",
         command="""
         cd ~/dea-orchestration/
         git reset --hard
@@ -58,11 +58,11 @@ with dag:
     # )
 
     send_email = EmailOperator(
-        task_id='send_email',
-        to='damien@omad.net',
-        subject='New dea/unstable Module',
-        html_content='Successfully built new dea/unstable module on the NCI',
-        mime_charset='utf-8',
+        task_id="send_email",
+        to="damien@omad.net",
+        subject="New dea/unstable Module",
+        html_content="Successfully built new dea/unstable module on the NCI",
+        mime_charset="utf-8",
     )
 
     build_dea_unstable_module >> [send_email]

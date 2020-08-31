@@ -57,7 +57,7 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
-    tags=["k8s"]
+    tags=["k8s"],
 )
 
 
@@ -91,7 +91,7 @@ with dag:
             # "cemp_insar_alos_displacement",
             # Jinja templates for arguments
             "{{ dag_run.conf.s3_glob }}",
-            "{{ dag_run.conf.product }}"
+            "{{ dag_run.conf.product }}",
         ],
         labels={"step": "s3-to-rds"},
         name="datacube-index",

@@ -28,10 +28,7 @@ from airflow.operators.python_operator import PythonOperator
 from operators.ssh_operators import ShortCircuitSSHOperator
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
-DEST = os.environ.get(
-    "COG_OUTPUT_DESTINATION",
-    "s3://dea-public-data/"
-)
+DEST = os.environ.get("COG_OUTPUT_DESTINATION", "s3://dea-public-data/")
 
 # Default to the stable dea module on the NCI, but can be changed
 # using an Airflow variable
@@ -41,9 +38,9 @@ NCI_MODULE = Variable.get("nci_module", "dea")
 # It's much better to specify a more specific path in S3 otherwise sync
 # seems to try to traverse the whole bucket.
 COG_S3PREFIX_PATH = {
-    'wofs_albers': 'WOfS/WOFLs/v2.1.5/combined/',
-    'ls8_fc_albers': 'fractional-cover/fc/v2.2.1/ls8/',
-    'ls7_fc_albers': 'fractional-cover/fc/v2.2.1/ls7/'
+    "wofs_albers": "WOfS/WOFLs/v2.1.5/combined/",
+    "ls8_fc_albers": "fractional-cover/fc/v2.2.1/ls8/",
+    "ls7_fc_albers": "fractional-cover/fc/v2.2.1/ls7/",
 }
 
 TIMEOUT = timedelta(days=1)
@@ -59,31 +56,31 @@ def task_to_fail():
 
 
 default_args = {
-    'owner': 'dayers',
-    'start_date': datetime(2020, 3, 12),
-    'retries': 0,
-    'retry_delay': timedelta(minutes=1),
-    'ssh_conn_id': 'lpgs_gadi',
-    'email_on_failure': True,
-    'email': 'damien.ayers@ga.gov.au',
-    'params': {
-        'project': 'v10',
-        'queue': 'normal',
-        'module': NCI_MODULE,
-        'year': '2020'
-    }
+    "owner": "dayers",
+    "start_date": datetime(2020, 3, 12),
+    "retries": 0,
+    "retry_delay": timedelta(minutes=1),
+    "ssh_conn_id": "lpgs_gadi",
+    "email_on_failure": True,
+    "email": "damien.ayers@ga.gov.au",
+    "params": {
+        "project": "v10",
+        "queue": "normal",
+        "module": NCI_MODULE,
+        "year": "2020",
+    },
 }
 
 dag = DAG(
-    'nci_cog_and_upload',
+    "nci_cog_and_upload",
     doc_md=__doc__,
     default_args=default_args,
     catchup=False,
     schedule_interval=None,
-    template_searchpath='templates/',
+    template_searchpath="templates/",
     max_active_runs=1,
-    default_view='graph',
-    tags=['nci', 'landsat_c2'],
+    default_view="graph",
+    tags=["nci", "landsat_c2"],
 )
 
 with dag:
@@ -93,38 +90,47 @@ with dag:
                 module load {{params.module}}
                 set -eux"""
         download_s3_inventory = SSHOperator(
-            task_id=f'download_s3_inventory_{product}',
-            command=dedent(COMMON + '''
+            task_id=f"download_s3_inventory_{product}",
+            command=dedent(
+                COMMON
+                + """
                 mkdir -p {{work_dir}}
 
                 dea-cogger save-s3-inventory --product-name "{{ params.product }}" --output-dir "{{work_dir}}"
-            '''),
-            params={'product': product},
+            """
+            ),
+            params={"product": product},
         )
         generate_work_list = SSHOperator(
-            task_id=f'generate_work_list_{product}',
-            command=dedent(COMMON + """
+            task_id=f"generate_work_list_{product}",
+            command=dedent(
+                COMMON
+                + """
                 cd {{work_dir}}
 
                 dea-cogger generate-work-list --product-name "{{params.product}}" \\
                  --output-dir "{{work_dir}}" --s3-list  "{{params.product}}_s3_inv_list.txt" \\
                  --time-range "time in [2019-01-01, 2020-12-31]"
-            """),
+            """
+            ),
             # --time-range "time in [{{prev_ds}}, {{ds}}]"
             timeout=60 * 60 * 2,
-            params={'product': product},
+            params={"product": product},
         )
         check_for_work = ShortCircuitSSHOperator(
-            task_id=f'check_for_work_{product}',
-            command=dedent(COMMON + '''
+            task_id=f"check_for_work_{product}",
+            command=dedent(
+                COMMON
+                + """
                 {% set file_list = work_dir + '/' + params.product + '_file_list.txt' -%}
                 
                 test -f {{file_list}}
                 NUM_TO_PROCESS=$(wc -l {{file_list}} | awk '{print $1}')
                 echo There are $NUM_TO_PROCESS files to process.
                 test $NUM_TO_PROCESS -gt 0
-                '''),
-            params={'product': product},
+                """
+            ),
+            params={"product": product},
         )
         # Thanks https://stackoverflow.com/questions/48580341/how-to-add-manual-tasks-in-an-apache-airflow-dag
         # manual_sign_off = PythonOperator(
@@ -136,15 +142,17 @@ with dag:
         # manual_sign_off.doc_md = dedent("""
         #         ## Instructions
         #         Perform some manual checks that the number of COGs to be generated seems to be about right.
-                
+
         #         You can also do spot checks that files don't already exist in S3.
-                
+
         #         Once you're happy, mark this job as **Success** for the DAG to continue running.
         #     """)
-        submit_task_id = f'submit_cog_convert_job_{product}'
+        submit_task_id = f"submit_cog_convert_job_{product}"
         submit_bulk_cog_convert = SSHOperator(
             task_id=submit_task_id,
-            command=dedent(COMMON + """
+            command=dedent(
+                COMMON
+                + """
                 cd {{work_dir}}
                 mkdir -p out
                 
@@ -165,22 +173,25 @@ with dag:
                  --output-dir "{{work_dir}}/out/" {{params.product}}_file_list.txt
                 
                 EOF
-            """),
+            """
+            ),
             do_xcom_push=True,
             timeout=60 * 5,
-            params={'product': product},
+            params={"product": product},
         )
 
         wait_for_cog_convert = PBSJobSensor(
-            task_id=f'wait_for_cog_convert_{product}',
+            task_id=f"wait_for_cog_convert_{product}",
             pbs_job_id="{{ ti.xcom_pull(task_ids='%s') }}" % submit_task_id,
             timeout=60 * 60 * 24 * 7,
         )
 
-        validate_task_id = f'submit_validate_cog_job_{product}'
+        validate_task_id = f"submit_validate_cog_job_{product}"
         validate_cogs = SSHOperator(
             task_id=validate_task_id,
-            command=dedent(COMMON + """
+            command=dedent(
+                COMMON
+                + """
                 cd {{work_dir}}
                 
                 qsub <<EOF
@@ -199,23 +210,25 @@ with dag:
                 mpirun --tag-output dea-cogger verify --rm-broken "{{work_dir}}/out"
                 
                 EOF
-            """),
+            """
+            ),
             do_xcom_push=True,
             timeout=60 * 5,
-            params={'product': product},
+            params={"product": product},
         )
         wait_for_validate_job = PBSJobSensor(
-            task_id=f'wait_for_cog_validate_{product}',
+            task_id=f"wait_for_cog_validate_{product}",
             pbs_job_id="{{ ti.xcom_pull(task_ids='%s') }}" % validate_task_id,
             timeout=60 * 60 * 24 * 7,
-
         )
 
         # public_data_upload = Connection(conn_id='dea_public_data_upload')
-        aws_connection = AwsHook(aws_conn_id='dea_public_data_upload')
+        aws_connection = AwsHook(aws_conn_id="dea_public_data_upload")
         upload_to_s3 = SSHOperator(
-            task_id=f'upload_to_s3_{product}',
-            command=dedent(COMMON + """
+            task_id=f"upload_to_s3_{product}",
+            command=dedent(
+                COMMON
+                + """
 
             export AWS_ACCESS_KEY_ID={{params.aws_conn.access_key}}
             export AWS_SECRET_ACCESS_KEY={{params.aws_conn.secret_key}}
@@ -229,21 +242,27 @@ with dag:
             # Upload YAMLs second, and only if uploading the COGs worked
             aws s3 sync "{{work_dir}}/out/{{ params.prefix_path }}" {{ params.dest }}{{ params.prefix_path }} \\
             --exclude '*' --include '*.yaml'
-            """),
-            remote_host='gadi-dm.nci.org.au',
-            params={'product': product,
-                    'aws_conn': aws_connection.get_credentials(),
-                    'dest': DEST,
-                    'prefix_path': prefix_path},
+            """
+            ),
+            remote_host="gadi-dm.nci.org.au",
+            params={
+                "product": product,
+                "aws_conn": aws_connection.get_credentials(),
+                "dest": DEST,
+                "prefix_path": prefix_path,
+            },
         )
 
         delete_nci_cogs = SSHOperator(
-            task_id=f'delete_nci_cogs_{product}',
+            task_id=f"delete_nci_cogs_{product}",
             # Remove cog converted files after aws s3 sync
-            command=dedent(COMMON + """
+            command=dedent(
+                COMMON
+                + """
             rm -vrf "{{work_dir}}/out"
-            """),
-            params={'product': product},
+            """
+            ),
+            params={"product": product},
         )
 
         download_s3_inventory >> generate_work_list >> check_for_work >> submit_bulk_cog_convert

@@ -62,81 +62,82 @@ from airflow.operators.dummy_operator import DummyOperator
 # These args will get passed on to each operator
 # You can override them on a per-task basis during operator initialization
 default_args = {
-    'owner': 'Robert Gurtler',
-    'depends_on_past': False,
-    'start_date': datetime(2020, 7, 6),
-    'email': ['robert.gurtler@ga.gov.au'],
-    'email_on_failure': False,
-    'email_on_retry': False,
-    'retries': 1,
-    'retry_delay': timedelta(minutes=5),
+    "owner": "Robert Gurtler",
+    "depends_on_past": False,
+    "start_date": datetime(2020, 7, 6),
+    "email": ["robert.gurtler@ga.gov.au"],
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5),
 }
 # [END default_args]
 
 # Docker images
-CURL_SVC_IMAGE   = "curlimages/curl:7.71.1"
+CURL_SVC_IMAGE = "curlimages/curl:7.71.1"
 STAC2RESTO_IMAGE = "cyrusbt5/resto-stac2resto"
 
 # Set kubernetes secret
 SECRET_ENV = Secret(
-    deploy_type='env',
+    deploy_type="env",
     # The name of the environment variable
-    deploy_target='RESTO_AUTH',
+    deploy_target="RESTO_AUTH",
     # Name of the Kubernetes Secret
-    secret='dea-access-resto',
+    secret="dea-access-resto",
     # Key of a secret stored in this Secret object
-    key='RESTO_AUTH')
+    key="RESTO_AUTH",
+)
 
 # Collection items to be loaded into resto service from explorer.dea.ga.gov.au/collections
 # TODO: Investigate if this can be fetched from a google doc and loaded with XCom (maybe),
 #       OPS could then just update a google doc and start the pipeline.
 COLLECTIONS_LIST = [
-  "fc_percentile_albers_annual",
-  "ga_ls5t_ard_3",
-  "ga_ls7e_ard_3",
-  "ga_ls8c_ard_3",
-  "high_tide_comp_20p",
-  "high_tide_comp_count",
-  "item_v2",
-  "low_tide_comp_20p",
-  "low_tide_comp_count",
-  "ls5_fc_albers",
-  "ls5_nbart_geomedian_annual",
-  "ls5_nbart_tmad_annual",
-  "ls7_fc_albers",
-  "ls7_nbart_geomedian_annual",
-  "ls7_nbart_tmad_annual",
-  "ls8_barest_earth_mosaic",
-  "ls8_fc_albers",
-  "ls8_nbart_geomedian_annual",
-  "ls8_nbart_tmad_annual",
-  "s2a_ard_granule",
-  "s2b_ard_granule",
-  "wofs_albers",
-  "wofs_annual_summary",
-  "wofs_apr_oct_summary",
-  "wofs_filtered_summary",
-  "wofs_nov_mar_summary",
-  "wofs_summary",
+    "fc_percentile_albers_annual",
+    "ga_ls5t_ard_3",
+    "ga_ls7e_ard_3",
+    "ga_ls8c_ard_3",
+    "high_tide_comp_20p",
+    "high_tide_comp_count",
+    "item_v2",
+    "low_tide_comp_20p",
+    "low_tide_comp_count",
+    "ls5_fc_albers",
+    "ls5_nbart_geomedian_annual",
+    "ls5_nbart_tmad_annual",
+    "ls7_fc_albers",
+    "ls7_nbart_geomedian_annual",
+    "ls7_nbart_tmad_annual",
+    "ls8_barest_earth_mosaic",
+    "ls8_fc_albers",
+    "ls8_nbart_geomedian_annual",
+    "ls8_nbart_tmad_annual",
+    "s2a_ard_granule",
+    "s2b_ard_granule",
+    "wofs_albers",
+    "wofs_annual_summary",
+    "wofs_apr_oct_summary",
+    "wofs_filtered_summary",
+    "wofs_nov_mar_summary",
+    "wofs_summary",
 ]
 
 # [START instantiate_dag]
 pipeline = DAG(
-    'k8s_dea_access_resto_ingester',
+    "k8s_dea_access_resto_ingester",
     doc_md=__doc__,
     default_args=default_args,
-    description='DEA Access resto ingester',
+    description="DEA Access resto ingester",
     concurrency=8,
     max_active_runs=1,
     catchup=False,
     params={
-        'DEFAULT_TIMEOUT': '45', # seconds
-        'ITAG_SVC_NAME': 'dea-access-resto-service.web.svc.cluster.local',
-        'RESTO_SVC_NAME': 'dea-access-itag-service.web.svc.cluster.local',
-        'RESTO_URL': 'resto.dev.dea.ga.gov.au',
+        "DEFAULT_TIMEOUT": "45",  # seconds
+        "ITAG_SVC_NAME": "dea-access-resto-service.web.svc.cluster.local",
+        "RESTO_SVC_NAME": "dea-access-itag-service.web.svc.cluster.local",
+        "RESTO_URL": "resto.dev.dea.ga.gov.au",
     },
     schedule_interval=None,
-    tags=['k8s', 'nemo', 'psc', 'resto'],
+    tags=["k8s", "nemo", "psc", "resto"],
 )
 # [END instantiate_dag]
 
@@ -146,21 +147,21 @@ with pipeline:
 
     # [START task_http_resto_svc_sensor_check]
     task_http_resto_svc_sensor_check = KubernetesPodOperator(
-        namespace='processing',
-        name='dea-access-resto-svc-check',
-        task_id='task_http_resto_svc_sensor_check',
-        image_pull_policy='Always',
+        namespace="processing",
+        name="dea-access-resto-svc-check",
+        task_id="task_http_resto_svc_sensor_check",
+        image_pull_policy="Always",
         image=CURL_SVC_IMAGE,
         is_delete_operator_pod=True,
         arguments=["--verbose", "http://{{ params.RESTO_SVC_NAME }}"],
         labels={
-          'runner': 'airflow',
+            "runner": "airflow",
         },
         resources={
-          'request_cpu': '250m',
-          'request_memory': '32Mi',
-          'limit_cpu': '500m',
-          'limit_memory': '64Mi'
+            "request_cpu": "250m",
+            "request_memory": "32Mi",
+            "limit_cpu": "500m",
+            "limit_memory": "64Mi",
         },
         get_logs=True,
     )
@@ -169,37 +170,40 @@ with pipeline:
 
     # [START task_http_resto_svc_sensor_check]
     task_http_itag_svc_sensor_check = KubernetesPodOperator(
-        namespace='processing',
-        name='dea-access-itag-svc-check',
-        task_id='task_http_itag_svc_sensor_check',
-        image_pull_policy='Always',
+        namespace="processing",
+        name="dea-access-itag-svc-check",
+        task_id="task_http_itag_svc_sensor_check",
+        image_pull_policy="Always",
         image=CURL_SVC_IMAGE,
         is_delete_operator_pod=True,
         arguments=["--verbose", "http://{{ params.ITAG_SVC_NAME }}"],
         labels={
-          'runner': 'airflow',
+            "runner": "airflow",
         },
         resources={
-          'request_cpu': '250m',
-          'request_memory': '32Mi',
-          'limit_cpu': '500m',
-          'limit_memory': '64Mi'
+            "request_cpu": "250m",
+            "request_memory": "32Mi",
+            "limit_cpu": "500m",
+            "limit_memory": "64Mi",
         },
         get_logs=True,
     )
 
     # TODO: How do we check success? Keep as dummy manual checking for now.
-    task_final_ingester_check = DummyOperator(task_id='task_final_ingester_check')
+    task_final_ingester_check = DummyOperator(task_id="task_final_ingester_check")
 
     # Prepare for dynamic task generation
 
     # Split COLLECTIONS_LIST into four chunks.
-    split_list   = 4
-    tasks_list   = [COLLECTIONS_LIST[i:i + split_list] for i in range(0, len(COLLECTIONS_LIST), split_list)]
+    split_list = 4
+    tasks_list = [
+        COLLECTIONS_LIST[i : i + split_list]
+        for i in range(0, len(COLLECTIONS_LIST), split_list)
+    ]
     tasks_length = len(tasks_list)
 
     # Beginning placeholder for KubernetesPodOperator() tasks
-    all_ingester_tasks  = {}
+    all_ingester_tasks = {}
 
     # Work through the top level tasks_list items
     for index in range(tasks_length):
@@ -208,34 +212,37 @@ with pipeline:
             # Work through the tasks_list sub lists
             for idx, collection in enumerate(tasks_list[index]):
 
-              # Let's create some KubernetesPodOperator() tasks
+                # Let's create some KubernetesPodOperator() tasks
 
-              # [START task_*_*_collection_id]
-              all_ingester_tasks[index] = KubernetesPodOperator(
-                  namespace='processing',
-                  name="dea-access-resto-ingester",
-                  task_id=f"task_{index}_{idx}_{collection}", # task_0_0_fc_percentile_albers_annual
-                  image_pull_policy='Always',
-                  image=STAC2RESTO_IMAGE,
-                  is_delete_operator_pod=True, # clean pod
-                  labels={
-                    'runner': 'airflow',
-                  },
-                  env_vars={
-                    'DEFAULT_TIMEOUT': '{{ params.DEFAULT_TIMEOUT }}',
-                    'RESTO_URL': '{{ params.RESTO_URL }}',
-                    'COLLECTION_LIST': collection,
-                  },
-                  secrets=[SECRET_ENV],
-                  reattach_on_restart=True,
-                  resources={
-                    'request_cpu': '250m',
-                    'request_memory': '512Mi',
-                    'limit_cpu': '500m',
-                    'limit_memory': '1024Mi'
-                  },
-                  get_logs=True,
-              )
+                # [START task_*_*_collection_id]
+                all_ingester_tasks[index] = KubernetesPodOperator(
+                    namespace="processing",
+                    name="dea-access-resto-ingester",
+                    task_id=f"task_{index}_{idx}_{collection}",  # task_0_0_fc_percentile_albers_annual
+                    image_pull_policy="Always",
+                    image=STAC2RESTO_IMAGE,
+                    is_delete_operator_pod=True,  # clean pod
+                    labels={
+                        "runner": "airflow",
+                    },
+                    env_vars={
+                        "DEFAULT_TIMEOUT": "{{ params.DEFAULT_TIMEOUT }}",
+                        "RESTO_URL": "{{ params.RESTO_URL }}",
+                        "COLLECTION_LIST": collection,
+                    },
+                    secrets=[SECRET_ENV],
+                    reattach_on_restart=True,
+                    resources={
+                        "request_cpu": "250m",
+                        "request_memory": "512Mi",
+                        "limit_cpu": "500m",
+                        "limit_memory": "1024Mi",
+                    },
+                    get_logs=True,
+                )
 
-              # [Setting up Dependencies]
-              [task_http_itag_svc_sensor_check, task_http_resto_svc_sensor_check ] >> all_ingester_tasks[index] >> task_final_ingester_check
+                # [Setting up Dependencies]
+                [
+                    task_http_itag_svc_sensor_check,
+                    task_http_resto_svc_sensor_check,
+                ] >> all_ingester_tasks[index] >> task_final_ingester_check

@@ -32,8 +32,7 @@ from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
-from airflow.contrib.operators.kubernetes_pod_operator import \
-    KubernetesPodOperator
+from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.operators.dummy_operator import DummyOperator
 
 from textwrap import dedent
@@ -68,7 +67,7 @@ DEFAULT_ARGS = {
         "DB_HOSTNAME": "db-writer",
         "DB_DATABASE": DB_DATABASE,
         "WMS_CONFIG_PATH": OWS_CFG_PATH,
-        "DATACUBE_OWS_CFG": "config.ows_cfg.ows_cfg"
+        "DATACUBE_OWS_CFG": "config.ows_cfg.ows_cfg",
     },
     # Lift secrets into environment variables
     "secrets": [
@@ -80,7 +79,7 @@ DEFAULT_ARGS = {
 
 EXPLORER_SECRETS = [
     Secret("env", "DB_USERNAME", SECRET_EXPLORER_NAME, "postgres-username"),
-    Secret("env", "DB_PASSWORD", SECRET_EXPLORER_NAME, "postgres-password")
+    Secret("env", "DB_PASSWORD", SECRET_EXPLORER_NAME, "postgres-password"),
 ]
 
 # IMAGES USED FOR THIS DAG
@@ -94,78 +93,86 @@ EXPLORER_IMAGE = "opendatacube/dashboard:2.1.9"
 
 # MOUNT OWS_CFG via init_container
 # for main container mount
-ows_cfg_mount = VolumeMount('ows-config-volume',
-                            mount_path='/env/config',
-                            sub_path=None,
-                            read_only=False)
+ows_cfg_mount = VolumeMount(
+    "ows-config-volume", mount_path="/env/config", sub_path=None, read_only=False
+)
 
 
-ows_cfg_volume_config= {}
+ows_cfg_volume_config = {}
 
-ows_cfg_volume = Volume(name='ows-config-volume', configs=ows_cfg_volume_config)
+ows_cfg_volume = Volume(name="ows-config-volume", configs=ows_cfg_volume_config)
 
 
 # for init container mount
 cfg_image_mount = k8s.V1VolumeMount(
-      mount_path='/env/config',
-      name='ows-config-volume',
-      sub_path=None,
-      read_only=False
+    mount_path="/env/config", name="ows-config-volume", sub_path=None, read_only=False
 )
 
 config_container = k8s.V1Container(
-        image=OWS_CONFIG_IMAGE,
-        command=["cp"],
-        args=[OWS_CFG_IMAGEPATH, OWS_CFG_PATH],
-        volume_mounts=[cfg_image_mount],
-        name="mount-ows-config",
-        working_dir="/opt"
-    )
+    image=OWS_CONFIG_IMAGE,
+    command=["cp"],
+    args=[OWS_CFG_IMAGEPATH, OWS_CFG_PATH],
+    volume_mounts=[cfg_image_mount],
+    name="mount-ows-config",
+    working_dir="/opt",
+)
 
 
 # BASH COMMANDS FOR EACH CONTAINER
 OWS_BASH_COMMAND = [
     "bash",
     "-c",
-    dedent("""
+    dedent(
+        """
         datacube-ows-update --views;
         for product in %s; do
             datacube-ows-update $product;
         done;
-    """)%(UPDATE_EXTENT_PRODUCTS)
+    """
+    )
+    % (UPDATE_EXTENT_PRODUCTS),
 ]
 
 EXPLORER_BASH_COMMAND = [
     "bash",
     "-c",
-    dedent("""
+    dedent(
+        """
         for product in %s; do
             cubedash-gen --no-init-database --refresh-stats --force-refresh $product;
         done;
-    """)%(INDEXING_PRODUCTS)
+    """
+    )
+    % (INDEXING_PRODUCTS),
 ]
 
 INDEXING_BASH_COMMAND = [
     "bash",
     "-c",
-    dedent("""
+    dedent(
+        """
         for product in %s; do
             sqs-to-dc %s $product;
         done;
-    """)%(INDEXING_PRODUCTS, SQS_QUEUE_NAME)
+    """
+    )
+    % (INDEXING_PRODUCTS, SQS_QUEUE_NAME),
 ]
 
 ARCHIVE_BASH_COMMAND = [
     "bash",
     "-c",
-    dedent("""
+    dedent(
+        """
         for product in %s; do
             datacube dataset search -f csv "product=$product time in %s" > /tmp/to_kill.csv;
             cat /tmp/to_kill.csv | awk -F',' '{print $1}' | sed '1d' > /tmp/to_kill.list;
             wc -l /tmp/to_kill.list;
             cat /tmp/to_kill.list | xargs datacube dataset archive
         done;
-    """)%(ARCHIVE_PRODUCTS, ARCHIVE_CONDITION)
+    """
+    )
+    % (ARCHIVE_PRODUCTS, ARCHIVE_CONDITION),
 ]
 
 # THE DAG
@@ -173,16 +180,16 @@ dag = DAG(
     "sentinel-2_nrt_ows_data_orchestrate",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
-    schedule_interval='0 */1 * * *',
+    schedule_interval="0 */1 * * *",
     catchup=False,
-    tags=["k8s", "sentinel-2"]
+    tags=["k8s", "sentinel-2"],
 )
 
 with dag:
     INDEXING = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
-        image_pull_policy='IfNotPresent',
+        image_pull_policy="IfNotPresent",
         annotations={"iam.amazonaws.com/role": INDEXING_ROLE},
         arguments=INDEXING_BASH_COMMAND,
         labels={"step": "sqs-to-rds"},

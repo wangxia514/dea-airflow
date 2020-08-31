@@ -44,7 +44,7 @@ DEFAULT_ARGS = {
         "DB_HOSTNAME": "db-writer",
         "DB_DATABASE": "ows-index",
         "WMS_CONFIG_PATH": OWS_CFG_PATH,
-        "DATACUBE_OWS_CFG": "config.ows_cfg.ows_cfg"
+        "DATACUBE_OWS_CFG": "config.ows_cfg.ows_cfg",
     },
     # Use K8S secrets to send DB Creds
     # Lift secrets into environment variables for datacube
@@ -61,40 +61,36 @@ OWS_CONFIG_IMAGE = "geoscienceaustralia/dea-datakube-config:1.5.1"
 OWS_CFG_IMAGEPATH = "/opt/dea-config/dev/services/wms/ows/ows_cfg.py"
 
 # for main container mount
-ows_cfg_mount = VolumeMount('ows-config-volume',
-                            mount_path='/env/config',
-                            sub_path=None,
-                            read_only=False)
+ows_cfg_mount = VolumeMount(
+    "ows-config-volume", mount_path="/env/config", sub_path=None, read_only=False
+)
 
 
-ows_cfg_volume_config= {}
+ows_cfg_volume_config = {}
 
-ows_cfg_volume = Volume(name='ows-config-volume', configs=ows_cfg_volume_config)
+ows_cfg_volume = Volume(name="ows-config-volume", configs=ows_cfg_volume_config)
 
 
 # for init container mount
 cfg_image_mount = k8s.V1VolumeMount(
-      mount_path='/env/config',
-      name='ows-config-volume',
-      sub_path=None,
-      read_only=False
+    mount_path="/env/config", name="ows-config-volume", sub_path=None, read_only=False
 )
 
 config_container = k8s.V1Container(
-        image=OWS_CONFIG_IMAGE,
-        command=["cp"],
-        args=[OWS_CFG_IMAGEPATH, OWS_CFG_PATH],
-        volume_mounts=[cfg_image_mount],
-        name="mount-ows-config",
-        working_dir="/opt"
-    )
+    image=OWS_CONFIG_IMAGE,
+    command=["cp"],
+    args=[OWS_CFG_IMAGEPATH, OWS_CFG_PATH],
+    volume_mounts=[cfg_image_mount],
+    name="mount-ows-config",
+    working_dir="/opt",
+)
 dag = DAG(
     "k8s_ows_pod_pin",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
-    tags=["k8s"]
+    tags=["k8s"],
 )
 
 
@@ -124,7 +120,7 @@ with dag:
             # "cemp_insar_alos_displacement",
             # Jinja templates for arguments
             "{{ dag_run.conf.s3_glob }}",
-            "{{ dag_run.conf.product }}"
+            "{{ dag_run.conf.product }}",
         ],
         labels={"step": "s3-to-rds"},
         name="datacube-index",
@@ -143,7 +139,7 @@ with dag:
         get_logs=True,
         volumes=[ows_cfg_volume],
         volume_mounts=[ows_cfg_mount],
-        init_containers=[config_container]
+        init_containers=[config_container],
     )
 
     COMPLETE = DummyOperator(task_id="all_done")

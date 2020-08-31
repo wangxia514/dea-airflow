@@ -38,14 +38,12 @@ with dag:
         task_id="ensure_database_table", python_callable=ensure_table
     )
 
-
     get_qstat_output = SSHOperator(
         task_id="get_qstat_output",
         ssh_conn_id="lpgs_gadi",
         command="qstat -xf -F json",
         do_xcom_push=True,
     )
-
 
     # t1, t2 and t3 are examples of tasks created by instantiating operators
     t1 = BashOperator(task_id="print_date", bash_command="date", dag=dag)

@@ -23,33 +23,35 @@ from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
 
 default_args = {
-    'owner': 'dayers',
-    'depends_on_past': False,
-    'start_date': datetime(2020, 4, 1),
-    'email': ['damien.ayers@ga.gov.au'],
-    'email_on_failure': True,
-    'email_on_retry': False,
-    'retries': 1,
-    'retry_delay': timedelta(minutes=5),
-    'params': {
-        'project': 'v10',
-        'module': 'dea/unstable',
-        'queue': 'normal',
-    }
+    "owner": "dayers",
+    "depends_on_past": False,
+    "start_date": datetime(2020, 4, 1),
+    "email": ["damien.ayers@ga.gov.au"],
+    "email_on_failure": True,
+    "email_on_retry": False,
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5),
+    "params": {
+        "project": "v10",
+        "module": "dea/unstable",
+        "queue": "normal",
+    },
 }
 
-with DAG('nci_index_s2ard_simple',
-         default_args=default_args,
-         catchup=True,
-         schedule_interval=timedelta(days=7),
-         max_active_runs=2,
-         doc_md=__doc__,
-         ) as dag:
+with DAG(
+    "nci_index_s2ard_simple",
+    default_args=default_args,
+    catchup=True,
+    schedule_interval=timedelta(days=7),
+    max_active_runs=2,
+    doc_md=__doc__,
+) as dag:
 
     index_datasets = SSHOperator(
-        task_id='index_datasets',
-        ssh_conn_id='lpgs_gadi',
-        command=dedent('''
+        task_id="index_datasets",
+        ssh_conn_id="lpgs_gadi",
+        command=dedent(
+            """
         set -eu
         module load dea/unstable
 
@@ -83,6 +85,6 @@ with DAG('nci_index_s2ard_simple',
         echo Indexing datasets from ${dates[@]}
         find ${dates[@]} -maxdepth 1 -mindepth 1 | sed 's|$|/ARD-METADATA.yaml|' | xargs datacube dataset add
 
-        '''),
+        """
+        ),
     )
-

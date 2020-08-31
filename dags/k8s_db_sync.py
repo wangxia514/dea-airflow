@@ -110,7 +110,7 @@ with dag:
         image=EXPLORER_IMAGE,
         cmds=["datacube"],
         arguments=["-v", "system", "init", "--lock-table"],
-        retry_delay = timedelta(minutes=20),
+        retry_delay=timedelta(minutes=20),
         labels={"step": "restore_indices"},
         name="odc-indices",
         task_id="odc-indices",
@@ -137,8 +137,8 @@ with dag:
             "-c",
             "CREATE EXTENSION IF NOT EXISTS postgis;",
         ],
-        retries = 12,
-        retry_delay = timedelta(hours=1),
+        retries=12,
+        retry_delay=timedelta(hours=1),
         labels={"step": "enable_postgres"},
         name="enable-postgres",
         task_id="enable-postgres",
@@ -163,9 +163,7 @@ with dag:
         image=S3_TO_RDS_IMAGE,
         cmds=["/code/change_db_owner.sh"],
         # TODO: Avoid hardcoding ?
-        arguments=[
-            "explorer"
-        ],
+        arguments=["explorer"],
         labels={"step": "change_db_owner"},
         name="change-db-owner",
         task_id="change-db-owner",

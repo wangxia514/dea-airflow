@@ -30,9 +30,11 @@ from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
 
 # TODO: Replace with actual start date and end date
-collection3_products = [["ga_ls5t_ard_3", datetime(1986, 8, 15), datetime(1986, 9, 15)],
-                        ["ga_ls7e_ard_3", datetime(1999, 5, 28), datetime(1999, 6, 28)],
-                        ["ga_ls8c_ard_3", datetime(2013, 3, 19), datetime(2013, 4, 19)]]
+collection3_products = [
+    ["ga_ls5t_ard_3", datetime(1986, 8, 15), datetime(1986, 9, 15)],
+    ["ga_ls7e_ard_3", datetime(1999, 5, 28), datetime(1999, 6, 28)],
+    ["ga_ls8c_ard_3", datetime(2013, 3, 19), datetime(2013, 4, 19)],
+]
 
 # collection3_products = [["ga_ls5t_ard_3", datetime(1986, 8, 15), datetime(2011, 11, 16)],
 #                         ["ga_ls7e_ard_3", datetime(1999, 5, 28), datetime(2020, 8, 31)],
@@ -121,7 +123,7 @@ def create_dag(dag_id, product, start_date, end_date):
         schedule_interval="@daily",
         max_active_runs=4,
         default_view="graph",
-        tags=["nci", "landsat_c3"]
+        tags=["nci", "landsat_c3"],
     )
 
     with dag:
@@ -183,4 +185,6 @@ def create_dag(dag_id, product, start_date, end_date):
 
 for product_info in collection3_products:
     _dag_id = f"nci_c3_upload_s3_backlog_{str(product_info[0])}"
-    globals()[_dag_id] = create_dag(_dag_id, product_info[0], product_info[1], product_info[2])
+    globals()[_dag_id] = create_dag(
+        _dag_id, product_info[0], product_info[1], product_info[2]
+    )

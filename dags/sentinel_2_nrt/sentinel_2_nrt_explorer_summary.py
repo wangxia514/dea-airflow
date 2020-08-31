@@ -9,20 +9,12 @@ from airflow.operators.dummy_operator import DummyOperator
 
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
-from sentinel_2_nrt.env_cfg import INDEXING_PRODUCTS
-from sentinel_2_nrt.images import EXPLORER_IMAGE
+from airflow.operators.subdag_operator import SubDagOperator
+from sentinel_2_nrt.subdag_explorer_summary import explorer_refresh_stats_subdag
+
 from sentinel_2_nrt.env_cfg import DB_DATABASE, SECRET_EXPLORER_NAME, SECRET_AWS_NAME
 
-
-EXPLORER_BASH_COMMAND = [
-    "bash",
-    "-c",
-    dedent("""
-        for product in %s; do
-            cubedash-gen --no-init-database --refresh-stats --force-refresh $product;
-        done;
-    """)%(INDEXING_PRODUCTS)
-]
+DAG_NAME = "explorer-refresh-stats"
 
 # DAG CONFIGURATION
 DEFAULT_ARGS = {
@@ -45,14 +37,10 @@ DEFAULT_ARGS = {
     ],
 }
 
-EXPLORER_SECRETS = [
-    Secret("env", "DB_USERNAME", SECRET_EXPLORER_NAME, "postgres-username"),
-    Secret("env", "DB_PASSWORD", SECRET_EXPLORER_NAME, "postgres-password")
-]
 
 # THE DAG
 dag = DAG(
-    "explorer-refresh-stats",
+    dag_id=DAG_NAME,
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval="0 */1 * * *",
@@ -61,16 +49,9 @@ dag = DAG(
 )
 
 with dag:
-    EXPLORER_SUMMARY = KubernetesPodOperator(
-        namespace="processing",
-        image=EXPLORER_IMAGE,
-        arguments=EXPLORER_BASH_COMMAND,
-        secrets=EXPLORER_SECRETS,
-        labels={"step": "explorer-refresh-stats"},
-        name="explorer-summary",
-        task_id="explorer-summary-task",
-        get_logs=True,
-        is_delete_operator_pod=True,
+    EXPLORER_SUMMARY = SubDagOperator(
+        task_id="section-2",
+        subdag=explorer_refresh_stats_subdag(DAG_NAME, "section-2", DEFAULT_ARGS),
     )
 
     START = DummyOperator(task_id="start_sentinel_2_nrt")

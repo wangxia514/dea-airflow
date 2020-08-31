@@ -35,9 +35,21 @@ DEFAULT_ARGS = {
     "secrets": [
         Secret("env", "DB_USERNAME", "ows-db", "postgres-username"),
         Secret("env", "DB_PASSWORD", "ows-db", "postgres-password"),
-        Secret("env", "AWS_DEFAULT_REGION", "processing-aws-creds-dev", "AWS_DEFAULT_REGION"),
-        Secret("env", "AWS_ACCESS_KEY_ID", "processing-aws-creds-dev", "AWS_ACCESS_KEY_ID"),
-        Secret("env", "AWS_SECRET_ACCESS_KEY", "processing-aws-creds-dev", "AWS_SECRET_ACCESS_KEY"),
+        Secret(
+            "env",
+            "AWS_DEFAULT_REGION",
+            "processing-aws-creds-dev",
+            "AWS_DEFAULT_REGION",
+        ),
+        Secret(
+            "env", "AWS_ACCESS_KEY_ID", "processing-aws-creds-dev", "AWS_ACCESS_KEY_ID"
+        ),
+        Secret(
+            "env",
+            "AWS_SECRET_ACCESS_KEY",
+            "processing-aws-creds-dev",
+            "AWS_SECRET_ACCESS_KEY",
+        ),
     ],
 }
 
@@ -51,7 +63,7 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval=None,  # TODO: Schedule '0 */1 * * *',
     catchup=False,
-    tags=["k8s", "landsat_c3"]
+    tags=["k8s", "landsat_c3"],
 )
 
 with dag:
@@ -60,13 +72,14 @@ with dag:
     INDEXING = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
-        image_pull_policy='Always',
-        arguments=["sqs-to-dc",
-                   "--stac",
-                   "--skip-lineage",
-                   dag.default_args['index_sqs_queue'],
-                   dag.default_args['products']
-                   ],
+        image_pull_policy="Always",
+        arguments=[
+            "sqs-to-dc",
+            "--stac",
+            "--skip-lineage",
+            dag.default_args["index_sqs_queue"],
+            dag.default_args["products"],
+        ],
         labels={"step": "sqs-dc-indexing"},
         name="datacube-index",
         task_id="indexing-task",
@@ -77,11 +90,13 @@ with dag:
     ARCHIVING = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
-        image_pull_policy='Always',
-        arguments=["sqs-to-dc",
-                   "--archive",
-                   dag.default_args['archive_sqs_queue'],
-                   dag.default_args['products']],
+        image_pull_policy="Always",
+        arguments=[
+            "sqs-to-dc",
+            "--archive",
+            dag.default_args["archive_sqs_queue"],
+            dag.default_args["products"],
+        ],
         labels={"step": "sqs-dc-archiving"},
         name="datacube-archive",
         task_id="archiving-task",
