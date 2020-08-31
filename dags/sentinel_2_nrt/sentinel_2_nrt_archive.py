@@ -93,8 +93,8 @@ with dag:
     )
 
     OWS_UPDATE_EXTENTS = SubDagOperator(
-        task_id="section-1",
-        subdag=ows_update_extent_subdag(DAG_NAME, "ows-update-ranges", DEFAULT_ARGS),
+        task_id="run-ows-update-ranges",
+        subdag=ows_update_extent_subdag(DAG_NAME, "run-ows-update-ranges", DEFAULT_ARGS),
     )
 
     START = DummyOperator(task_id="start_sentinel_2_nrt_archive")

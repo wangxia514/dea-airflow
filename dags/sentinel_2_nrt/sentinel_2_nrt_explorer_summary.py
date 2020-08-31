@@ -50,8 +50,8 @@ dag = DAG(
 
 with dag:
     EXPLORER_SUMMARY = SubDagOperator(
-        task_id="section-2",
-        subdag=explorer_refresh_stats_subdag(DAG_NAME, "section-2", DEFAULT_ARGS),
+        task_id="run-cubedash-gen-refresh-stat",
+        subdag=explorer_refresh_stats_subdag(DAG_NAME, "run-cubedash-gen-refresh-stat", DEFAULT_ARGS),
     )
 
     START = DummyOperator(task_id="start_sentinel_2_nrt")
