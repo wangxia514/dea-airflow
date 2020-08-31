@@ -18,7 +18,7 @@ from textwrap import dedent
 import kubernetes.client.models as k8s
 
 from sentinel_2_nrt.images import INDEXER_IMAGE
-# from .ows_views import OWS_UPDAE_EXTENTS
+from sentinel_2_nrt.ows_views import OWS_UPDATE_EXTENTS
 from sentinel_2_nrt.env_cfg import DB_DATABASE, SECRET_OWS_NAME, SECRET_AWS_NAME
 
 
@@ -77,7 +77,7 @@ dag = DAG(
 )
 
 with dag:
-
+    OWS_UPDATE_EXTENT_AFTER_ARCHIVE = OWS_UPDATE_EXTENTS
     ARCHIVE_EXTRANEOUS_DS = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
@@ -94,4 +94,5 @@ with dag:
     COMPLETE = DummyOperator(task_id="all_done")
 
     START >> ARCHIVE_EXTRANEOUS_DS
-    ARCHIVE_EXTRANEOUS_DS >> COMPLETE
+    ARCHIVE_EXTRANEOUS_DS >> OWS_UPDATE_EXTENT_AFTER_ARCHIVE
+    OWS_UPDATE_EXTENT_AFTER_ARCHIVE >> COMPLETE
