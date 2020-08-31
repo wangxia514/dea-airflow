@@ -11,6 +11,8 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+from airflow.operators.dummy_operator import DummyOperator
+
 from textwrap import dedent
 
 import kubernetes.client.models as k8s
@@ -76,6 +78,7 @@ dag = DAG(
 )
 
 with dag:
+
     ARCHIVE_EXTRANEOUS_DS = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
@@ -86,6 +89,10 @@ with dag:
         get_logs=True,
         is_delete_operator_pod=True,
     )
+
+    START = DummyOperator(task_id="start_sentinel_2_nrt")
+
+    COMPLETE = DummyOperator(task_id="all_done")
 
     START >> ARCHIVE_EXTRANEOUS_DS
     ARCHIVE_EXTRANEOUS_DS >> COMPLETE
