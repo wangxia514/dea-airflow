@@ -14,9 +14,22 @@ from airflow.operators.dummy_operator import DummyOperator
 
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
+# swap around set work_dir log_dir too
 production = False
+
 if production:
-    pass
+    params = {
+        "project": "v10",
+        "queue": "normal",
+        "module_ass": "ard-scene-select-py3-dea/20200831",
+        "index_arg": "--index-datacube-env "
+        "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
+        "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
+        "config_arg": "",
+        "scene_limit": "",
+        "products_arg": "",
+        "pkgdir_arg": "/g/data/xu18/ga",
+    }
 else:
     params = {
         "project": "u46",
@@ -31,19 +44,6 @@ else:
         "products_arg": """--products '["usgs_ls8c_level1_1"]'""",
         "pkgdir_arg": "/g/data/v10/Landsat-Collection-3-ops/scene_select_test/",
     }
-# swap around set work_dir log_dir too
-# params = {
-#     "project": "v10",
-#     "queue": "normal",
-#     "module_ass": "ard-scene-select-py3-dea/20200831",
-#     "index_arg": "--index-datacube-env "
-#     "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
-#     "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
-#     "config_arg": "",
-#     "scene_limit": "",
-#     "products_arg": "",
-#     "pkgdir_arg": "/g/data/xu18/ga",
-# }
 
 default_args = {
     "owner": "Duncan Gray",
@@ -53,20 +53,7 @@ default_args = {
     "retry_delay": timedelta(minutes=1),
     "ssh_conn_id": "lpgs_gadi",
     # "ssh_conn_id': 'dsg547",
-    "params": params
-    # "params": {
-    #     "project": "u46",
-    #     "queue": "normal",
-    #     "module_ass": "ard-scene-select-py3-dea/20200831",
-    #     "index_arg": "--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow"
-    #     "/index-test-odc.env",
-    #     # "index_arg": "",  # no indexing
-    #     "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
-    #     "config_arg": "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf",
-    #     "scene_limit": "--scene-limit 1",
-    #     "products_arg": """--products '["usgs_ls8c_level1_1"]'""",
-    #     "pkgdir_arg": "/g/data/v10/Landsat-Collection-3-ops/scene_select_test/",
-    # },
+    "params": params,
 }
 
 # tags is in airflow >1.10.8
