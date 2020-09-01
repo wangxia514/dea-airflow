@@ -159,7 +159,7 @@ with dag:
 
 
     run_this = PythonOperator(
-        task_id='conf value',
+        task_id='conf_value_check',
         python_callable=print_context,
         op_args=["{{ dag_run.conf.test_value }}"]
     )
