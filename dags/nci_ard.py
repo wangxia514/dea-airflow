@@ -21,17 +21,18 @@ default_args = {
     "retries": 0,
     "retry_delay": timedelta(minutes=1),
     "ssh_conn_id": "lpgs_gadi",
-    #'ssh_conn_id': 'dsg547',
+    # "ssh_conn_id': 'dsg547",
     "params": {
         "project": "v10",
         "queue": "normal",
         "module_ass": "ard-scene-select-py3-dea/20200821",
-        "index_arg": "--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
-        #'index_arg': '--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/index-test-odc.env',
-        #'index_arg': '',  # no indexing
+        # "index_arg": "--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
+        "index_arg": "--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/index-test-odc.env",
+        # "index_arg": "",  # no indexing
         "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
-        #'config_arg': '--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf',
-        "pkgdir_arg": "/g/data/xu18/ga",
+        "config_arg": "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf",
+        # "pkgdir_arg": "/g/data/xu18/ga"
+        "pkgdir_arg": "/g/data/v10/Landsat-Collection-3-ops/scene_select_test/",
     },
 }
 
@@ -55,6 +56,10 @@ with dag:
         #  ts_nodash timestamp no dashes.
         {% set log_dir = '/g/data/v10/work/c3_ard/' + ts_nodash + '/logdir' %}
         {% set work_dir = '/g/data/v10/work/c3_ard/' + ts_nodash + '/workdir' %}
+        {% set log_dir = '/g/data/u46/users/dsg547/results_airflow/' + ts_nodash + '/logdir' %}
+        {% set work_dir = '/g/data/u46/users/dsg547/results_airflow/' + ts_nodash + '/workdir' %}
+        {% set log_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/logdir' %}
+        {% set work_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/workdir' %}
         """
 
     # An example of remotely starting a qsub job (all it does is ls)
@@ -76,6 +81,7 @@ with dag:
                   module use /g/data/v10/private/modules/modulefiles/; \
                   module load {{ params.module_ass }}; \
                   ard-scene-select \
+                {{ params.config_arg }} \
                   --workdir {{ work_dir }} \
                   --pkgdir {{ params.pkgdir_arg }} \
                   --logdir {{ log_dir }} \
@@ -83,7 +89,8 @@ with dag:
                   --project {{ params.project }} \
                   --walltime 02:30:00 \
                   {{ params.index_arg }} \
-                  --run-ard "
+                  --scene-limit 1\
+                  #--run-ard "
         """,
         timeout=60 * 20,
         do_xcom_push=True,
