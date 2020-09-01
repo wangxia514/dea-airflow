@@ -96,8 +96,8 @@ dag = DAG(
 
 def print_context(ds):
     print(ds, type(ds))
-    if ds.test_value:
-        print(ds.test_value)
+    if ds:
+        print("empty string is also a true?")
     else:
         print("else statement")
     return 'Whatever you return gets printed in the logs'
@@ -165,7 +165,7 @@ with dag:
     run_this = PythonOperator(
         task_id='conf_value_check',
         python_callable=print_context,
-        op_args=["{{ dag_run.conf }}"]
+        op_args=["{{ dag_run.conf.test_value }}"]
     )
 
 
