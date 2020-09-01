@@ -97,6 +97,6 @@ with dag:
     # COMPLETE = DummyOperator(task_id="all_done")
 
     # START >> SET_PRODUCTS
-    # SET_PRODUCTS >> t2
+    SET_PRODUCTS >> t2
     # t2 >> EXPLORER_SUMMARY
     # EXPLORER_SUMMARY >> COMPLETE
