@@ -15,7 +15,7 @@ from airflow.operators.dummy_operator import DummyOperator
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
 # swap around set work_dir log_dir too
-production = False
+production = True
 
 if production:
     params = {
@@ -26,7 +26,8 @@ if production:
         "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
         "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
         "config_arg": "",
-        "scene_limit": "",
+        # "scene_limit": "",
+        "scene_limit": "--scene-limit 1",
         "products_arg": "",
         "pkgdir_arg": "/g/data/xu18/ga",
     }
@@ -78,10 +79,6 @@ with dag:
         {% set work_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/workdir' %}
         {% set log_dir = '/g/data/v10/work/c3_ard/' + ts_nodash + '/logdir' %}
         {% set work_dir = '/g/data/v10/work/c3_ard/' + ts_nodash + '/workdir' %}
-        {% set log_dir = '/g/data/u46/users/dsg547/results_airflow/' + ts_nodash + '/logdir' %}
-        {% set work_dir = '/g/data/u46/users/dsg547/results_airflow/' + ts_nodash + '/workdir' %}
-        {% set log_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/logdir' %}
-        {% set work_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/workdir' %}
         """
 
     # An example of remotely starting a qsub job (all it does is ls)
