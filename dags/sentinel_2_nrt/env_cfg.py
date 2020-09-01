@@ -2,7 +2,7 @@
 # Sentinel-2_nrt process env configs read from variables if environment specific
 """
 from airflow.models import Variable
-foo = Variable.get("db_hostname")
+foo = Variable.get("db_hostname", "db-writer")
 
 # ENVIRONMENT CONFIGURATION
 OWS_CFG_PATH = "/env/config/ows_cfg.py"
