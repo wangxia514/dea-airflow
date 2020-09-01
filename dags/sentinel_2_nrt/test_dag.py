@@ -101,3 +101,8 @@ with dag:
     #     task_id="test_sub_dag_no_xcom_task_id",
     #     subdag=subdag_test(DAG_NAME, "test_sub_dag_no_xcom_task_id", DEFAULT_ARGS)
     # )
+
+    t4 = SubDagOperator(
+        task_id="test_variable",
+        subdag=subdag_test(DAG_NAME, "test_variable", DEFAULT_ARGS)
+    )
