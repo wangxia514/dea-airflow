@@ -13,6 +13,7 @@ SECRET_AWS_NAME = "processing-aws-creds-dev"
 SECRET_EXPLORER_NAME = "explorer-db"
 SECRET_OWS_NAME = "ows-db"
 DB_DATABASE = "ows"
+DB_HOSTNAME = "db-writer"
 
 
 OWS_CFG_MOUNT_PATH = "/env/config"

@@ -29,7 +29,13 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.kubernetes.secret import Secret
 from airflow.operators.subdag_operator import SubDagOperator
 from sentinel_2_nrt.subdag_explorer_summary import explorer_refresh_stats_subdag
-from sentinel_2_nrt.env_cfg import INDEXING_PRODUCTS, DB_DATABASE, SECRET_EXPLORER_NAME, SECRET_AWS_NAME
+from sentinel_2_nrt.env_cfg import (
+    INDEXING_PRODUCTS,
+    DB_DATABASE,
+    DB_HOSTNAME,
+    SECRET_EXPLORER_NAME,
+    SECRET_AWS_NAME,
+)
 from sentinel_2_nrt.test_subdag import subdag_test
 
 DAG_NAME = "utility_explorer-refresh-stats"
@@ -46,7 +52,7 @@ DEFAULT_ARGS = {
     "retry_delay": timedelta(minutes=5),
     "env_vars": {
         # TODO: Pass these via templated params in DAG Run
-        "DB_HOSTNAME": "db-writer",
+        "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
     },
     # Lift secrets into environment variables
@@ -66,11 +72,13 @@ dag = DAG(
     tags=["k8s", "explorer"],
 )
 
+
 def parse_dagrun_conf(products, **kwargs):
     if products:
         return products
     else:
         return INDEXING_PRODUCTS
+
 
 SET_REFRESH_PRODUCT_TASK_NAME = "parse_dagrun_conf"
 
@@ -93,10 +101,14 @@ with dag:
     #     subdag=subdag_test(DAG_NAME, "test_sub_dag_no_xcom_task_id", DEFAULT_ARGS)
     # )
 
-
     EXPLORER_SUMMARY = SubDagOperator(
         task_id="run-cubedash-gen-refresh-stat",
-        subdag=explorer_refresh_stats_subdag(DAG_NAME, "run-cubedash-gen-refresh-stat", DEFAULT_ARGS, SET_REFRESH_PRODUCT_TASK_NAME),
+        subdag=explorer_refresh_stats_subdag(
+            DAG_NAME,
+            "run-cubedash-gen-refresh-stat",
+            DEFAULT_ARGS,
+            SET_REFRESH_PRODUCT_TASK_NAME,
+        ),
     )
 
     START = DummyOperator(task_id="start_explorer_refresh_stats")

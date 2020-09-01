@@ -95,12 +95,16 @@ with dag:
 
     OWS_UPDATE_EXTENTS = SubDagOperator(
         task_id="run-ows-update-ranges",
-        subdag=ows_update_extent_subdag(DAG_NAME, "run-ows-update-ranges", DEFAULT_ARGS),
+        subdag=ows_update_extent_subdag(
+            DAG_NAME, "run-ows-update-ranges", DEFAULT_ARGS
+        ),
     )
 
     EXPLORER_SUMMARY = SubDagOperator(
         task_id="run-cubedash-gen-refresh-stat",
-        subdag=explorer_refresh_stats_subdag(DAG_NAME, "run-cubedash-gen-refresh-stat", DEFAULT_ARGS),
+        subdag=explorer_refresh_stats_subdag(
+            DAG_NAME, "run-cubedash-gen-refresh-stat", DEFAULT_ARGS
+        ),
     )
 
     START = DummyOperator(task_id="start_sentinel_2_nrt_archive")
@@ -109,4 +113,6 @@ with dag:
 
     START >> ARCHIVE_EXTRANEOUS_DS
     ARCHIVE_EXTRANEOUS_DS >> OWS_UPDATE_EXTENTS
+    ARCHIVE_EXTRANEOUS_DS >> EXPLORER_SUMMARY
     OWS_UPDATE_EXTENTS >> COMPLETE
+    EXPLORER_SUMMARY >> COMPLETE

@@ -14,8 +14,6 @@ from sentinel_2_nrt.env_cfg import INDEXING_PRODUCTS
 from sentinel_2_nrt.images import EXPLORER_IMAGE
 from sentinel_2_nrt.env_cfg import DB_DATABASE, SECRET_EXPLORER_NAME, SECRET_AWS_NAME
 
-from sentinel_2_nrt.env_cfg import DB_DATABASE, SECRET_EXPLORER_NAME, SECRET_AWS_NAME
-
 
 EXPLORER_SECRETS = [
     Secret("env", "DB_USERNAME", SECRET_EXPLORER_NAME, "postgres-username"),
@@ -23,7 +21,9 @@ EXPLORER_SECRETS = [
 ]
 
 
-def explorer_refresh_stats_subdag(parent_dag_name: str, child_dag_name: str, args: dict, xcom_task_id: str = None):
+def explorer_refresh_stats_subdag(
+    parent_dag_name: str, child_dag_name: str, args: dict, xcom_task_id: str = None
+):
     """[summary]
 
     Args:
@@ -37,7 +37,11 @@ def explorer_refresh_stats_subdag(parent_dag_name: str, child_dag_name: str, arg
     """
 
     if xcom_task_id:
-        products = "{{{{ task_instance.xcom_pull(dag_id='{}', task_ids='{}') }}}}".format(parent_dag_name, xcom_task_id)
+        products = (
+            "{{{{ task_instance.xcom_pull(dag_id='{}', task_ids='{}') }}}}".format(
+                parent_dag_name, xcom_task_id
+            )
+        )
     else:
         products = INDEXING_PRODUCTS
 

@@ -13,9 +13,13 @@ def subdag_test(parent_dag_name, child_dag_name, args, xcom_task_id=None):
         catchup=False,
     )
     if xcom_task_id:
-        products = "{{{{ task_instance.xcom_pull(dag_id='{}', task_ids='{}') }}}}".format(parent_dag_name, xcom_task_id)
+        products = (
+            "{{{{ task_instance.xcom_pull(dag_id='{}', task_ids='{}') }}}}".format(
+                parent_dag_name, xcom_task_id
+            )
+        )
     else:
-        products = 'A B'
+        products = "A B"
 
     bash_cmd = [
         "bash",
@@ -32,8 +36,8 @@ def subdag_test(parent_dag_name, child_dag_name, args, xcom_task_id=None):
 
     # BashOperator(task_id='t2', bash_command="echo product is set to: %s" %(refresh_products), dag=dag_subdag)
     KubernetesPodOperator(
-        namespace='processing',
-        image='ubuntu:latest',
+        namespace="processing",
+        image="ubuntu:latest",
         arguments=bash_cmd,
         labels={"foo": "bar"},
         name="test-cmd",
