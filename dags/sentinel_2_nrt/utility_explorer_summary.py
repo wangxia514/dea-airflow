@@ -13,8 +13,10 @@ The DAG can be parameterized with run time configuration `products`
 To run with all, set `dag_run.conf.products` to `--all`
 otherwise provide products to be refreshed seperated by space, i.e. `s2a_nrt_granule s2b_nrt_granule`
 dag_run.conf format:
-    `"products": "--all"`
-    `"products": "s2a_nrt_granule s2b_nrt_granule"`
+
+#### example conf in json format
+    `{"products": "--all"}`
+    `{"products": "s2a_nrt_granule s2b_nrt_granule"}`
 """
 
 from airflow import DAG
@@ -79,15 +81,15 @@ with dag:
         provide_context=True,
     )
 
-    t2 = SubDagOperator(
-        task_id="test_sub_dag",
-        subdag=subdag_test(DAG_NAME, "test_sub_dag", DEFAULT_ARGS, "{{ ti.xcom_pull(task_ids='parse_dagrun_conf', key='return_value') }}")
-    )
+    # t2 = SubDagOperator(
+    #     task_id="test_sub_dag",
+    #     subdag=subdag_test(DAG_NAME, "test_sub_dag", DEFAULT_ARGS, "{{ ti.xcom_pull(task_ids='parse_dagrun_conf', key='return_value') }}")
+    # )
 
 
     EXPLORER_SUMMARY = SubDagOperator(
         task_id="run-cubedash-gen-refresh-stat",
-        subdag=explorer_refresh_stats_subdag(DAG_NAME, "run-cubedash-gen-refresh-stat", DEFAULT_ARGS, "{{ ti.xcom_pull(task_ids='parse_dagrun_conf') }}"),
+        subdag=explorer_refresh_stats_subdag(DAG_NAME, "run-cubedash-gen-refresh-stat", DEFAULT_ARGS, "{{ ti.xcom_pull(task_ids='parse_dagrun_conf', key='return_value') }}"),
     )
 
     START = DummyOperator(task_id="start_explorer_refresh_stats")
@@ -95,6 +97,6 @@ with dag:
     COMPLETE = DummyOperator(task_id="all_done")
 
     START >> SET_PRODUCTS
-    SET_PRODUCTS >> t2
-    # SET_PRODUCTS >> EXPLORER_SUMMARY
-    # EXPLORER_SUMMARY >> COMPLETE
+    # SET_PRODUCTS >> t2
+    SET_PRODUCTS >> EXPLORER_SUMMARY
+    EXPLORER_SUMMARY >> COMPLETE
