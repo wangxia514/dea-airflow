@@ -70,20 +70,13 @@ with dag:
     start = DummyOperator(task_id="start")
     completed = DummyOperator(task_id="completed")
 
-    if production:
-        COMMON = """
-            #  ts_nodash timestamp no dashes.
-            {% set log_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/logdir' %}
-            {% set work_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/workdir' %}
-            {% set log_dir = '/g/data/v10/work/c3_ard/' + ts_nodash + '/logdir' %}
-            {% set work_dir = '/g/data/v10/work/c3_ard/' + ts_nodash + '/workdir' %}
-            """
-    else:
-        COMMON = """
-            #  ts_nodash timestamp no dashes.
-            {% set log_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/logdir' %}
-            {% set work_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/workdir' %}
-            """
+    COMMON = """
+        #  ts_nodash timestamp no dashes.
+        {% set log_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/logdir' %}
+        {% set work_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/workdir' %}
+        {% set log_dir = '/g/data/v10/work/c3_ard/' + ts_nodash + '/logdir' %}
+        {% set work_dir = '/g/data/v10/work/c3_ard/' + ts_nodash + '/workdir' %}
+        """
 
     # An example of remotely starting a qsub job (all it does is ls)
     submit_task_id = f"submit_ard"
