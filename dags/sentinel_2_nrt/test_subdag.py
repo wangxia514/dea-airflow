@@ -1,5 +1,7 @@
 from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
+from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+
 from textwrap import dedent
 
 
@@ -25,5 +27,17 @@ def subdag_test(parent_dag_name, child_dag_name, args, xcom_task_id):
     ]
 
     # BashOperator(task_id='t2', bash_command="echo product is set to: %s" %(refresh_products), dag=dag_subdag)
-    BashOperator(task_id='t3', bash_command=bash_cmd, dag=dag_subdag)
+    KubernetesPodOperator(
+        namespace='processing',
+        image='ubuntu:latest',
+        cmds=["bash", "-cx"],
+        arguments=bash_cmd,
+        labels={"foo": "bar"},
+        name="test-cmd",
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="task-two",
+        get_logs=True,
+        dag=dag_subdag,
+    )
     return dag_subdag
