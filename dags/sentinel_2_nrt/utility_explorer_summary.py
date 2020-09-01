@@ -27,7 +27,7 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.kubernetes.secret import Secret
 from airflow.operators.subdag_operator import SubDagOperator
 from sentinel_2_nrt.subdag_explorer_summary import explorer_refresh_stats_subdag
-
+from airflow.operators.bash_operator import BashOperator
 from sentinel_2_nrt.env_cfg import INDEXING_PRODUCTS, DB_DATABASE, SECRET_EXPLORER_NAME, SECRET_AWS_NAME
 
 DAG_NAME = "utility_explorer-refresh-stats"
@@ -79,6 +79,9 @@ with dag:
         provide_context=True,
     )
 
+    t2 = BashOperator(task_id='t2', bash_command='echo "{{ ti.xcom_pull(task_ids="parse_dagrun_conf") }}" and "{{ task_instance.xcom_pull(task_ids="parse_dagrun_conf") }}"', dag=dag)
+
+
     EXPLORER_SUMMARY = SubDagOperator(
         task_id="run-cubedash-gen-refresh-stat",
         subdag=explorer_refresh_stats_subdag(DAG_NAME, "run-cubedash-gen-refresh-stat", DEFAULT_ARGS, "{{ task_instance.xcom_pull(task_ids='parse_dagrun_conf') }}"),
@@ -89,5 +92,6 @@ with dag:
     COMPLETE = DummyOperator(task_id="all_done")
 
     START >> SET_PRODUCTS
-    SET_PRODUCTS >> EXPLORER_SUMMARY
-    EXPLORER_SUMMARY >> COMPLETE
+    SET_PRODUCTS >> t2
+    # SET_PRODUCTS >> EXPLORER_SUMMARY
+    # EXPLORER_SUMMARY >> COMPLETE
