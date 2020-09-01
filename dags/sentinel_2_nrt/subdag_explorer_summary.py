@@ -40,6 +40,7 @@ def explorer_refresh_stats_subdag(parent_dag_name, child_dag_name, args, refresh
     dag_subdag = DAG(
         dag_id="%s.%s" % (parent_dag_name, child_dag_name),
         default_args=args,
+        catchup=False,
     )
 
     KubernetesPodOperator(
