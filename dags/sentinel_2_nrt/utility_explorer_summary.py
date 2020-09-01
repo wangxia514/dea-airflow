@@ -81,7 +81,7 @@ with dag:
 
     EXPLORER_SUMMARY = SubDagOperator(
         task_id="run-cubedash-gen-refresh-stat",
-        subdag=explorer_refresh_stats_subdag(DAG_NAME, "run-cubedash-gen-refresh-stat", DEFAULT_ARGS, "{{ task_instance.xcom_pull(task_ids='SET_PRODUCTS') }}"),
+        subdag=explorer_refresh_stats_subdag(DAG_NAME, "run-cubedash-gen-refresh-stat", DEFAULT_ARGS, "{{ task_instance.xcom_pull(task_ids='parse_dagrun_conf') }}"),
     )
 
     START = DummyOperator(task_id="start_explorer_refresh_stats")
