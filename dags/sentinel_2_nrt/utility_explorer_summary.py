@@ -75,7 +75,7 @@ with dag:
     SET_PRODUCTS = PythonOperator(
         task_id='parse_dagrun_conf',
         python_callable=parse_dagrun_conf,
-        products=["{{ dag_run.conf.products }}"],
+        op_args=["{{ dag_run.conf.products }}"],
         provide_context=True,
     )
 
