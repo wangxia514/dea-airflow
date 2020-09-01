@@ -1,5 +1,10 @@
 """
 # Produce Landsat C3 ARD on the NCI
+
+The DAG starts ard_scene_select which filters the landsat l1 scenes to send to ARD to process.
+It also starts the ARD processing.  ARD processing indexes the ARD output scenes.
+
+The logs are written to NCI.
 """
 from datetime import datetime, timedelta
 
@@ -9,31 +14,51 @@ from airflow.operators.dummy_operator import DummyOperator
 
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
+# swap around set work_dir log_dir too
+production = False  # True
+
+if prodution:
+    params = {
+        "project": "v10",
+        "queue": "normal",
+        "module_ass": "ard-scene-select-py3-dea/20200831",
+        "index_arg": "--index-datacube-env "
+        "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
+        "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
+        "config_arg": "",
+        "scene_limit": "",
+        "products_arg": "",
+        "pkgdir_arg": "/g/data/xu18/ga",
+    }
+else:
+    params = {
+        "project": "u46",
+        "queue": "normal",
+        "module_ass": "ard-scene-select-py3-dea/20200831",
+        "index_arg": "--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/index-test-odc.env",
+        # "index_arg": "",  # no indexing
+        "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
+        "config_arg": "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf",
+        "scene_limit": "--scene-limit 1",
+        "products_arg": """--products '["usgs_ls8c_level1_1"]'""",
+        "pkgdir_arg": "/g/data/v10/Landsat-Collection-3-ops/scene_select_test/",
+    }
 default_args = {
     "owner": "Duncan Gray",
     "depends_on_past": False,  # Very important, will cause a single failure to propagate forever
-    "start_date": datetime(2020, 2, 17),
+    "start_date": datetime(2020, 8, 26),
     "retries": 0,
     "retry_delay": timedelta(minutes=1),
     "ssh_conn_id": "lpgs_gadi",
-    #'ssh_conn_id': 'dsg547',
-    "params": {
-        "project": "v10",
-        "queue": "normal",
-        "module_ass": "ard-scene-select-py3-dea/20200821",
-        "index_arg": "--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
-        #'index_arg': '--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/index-test-odc.env',
-        #'index_arg': '',  # no indexing
-        "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
-        #'config_arg': '--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf',
-        "pkgdir_arg": "/g/data/xu18/ga",
-    },
+    # "ssh_conn_id': 'dsg547",
+    "params": params,
 }
 
 # tags is in airflow >1.10.8
 # My local env is airflow 1.10.10...
 dag = DAG(
-    "nci_test_ard",
+    "nci_ard",
+    doc_md=__doc__,
     default_args=default_args,
     catchup=False,
     schedule_interval=None,
@@ -45,11 +70,20 @@ with dag:
     start = DummyOperator(task_id="start")
     completed = DummyOperator(task_id="completed")
 
-    COMMON = """
-        #  ts_nodash timestamp no dashes.
-        {% set log_dir = '/g/data/v10/work/c3_ard/' + ts_nodash + '/logdir' %}
-        {% set work_dir = '/g/data/v10/work/c3_ard/' + ts_nodash + '/workdir' %}
-        """
+    if production:
+        COMMON = """
+            #  ts_nodash timestamp no dashes.
+            {% set log_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/logdir' %}
+            {% set work_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/workdir' %}
+            {% set log_dir = '/g/data/v10/work/c3_ard/' + ts_nodash + '/logdir' %}
+            {% set work_dir = '/g/data/v10/work/c3_ard/' + ts_nodash + '/workdir' %}
+            """
+    else:
+        COMMON = """
+            #  ts_nodash timestamp no dashes.
+            {% set log_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/logdir' %}
+            {% set work_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/workdir' %}
+            """
 
     # An example of remotely starting a qsub job (all it does is ls)
     submit_task_id = f"submit_ard"
@@ -70,6 +104,8 @@ with dag:
                   module use /g/data/v10/private/modules/modulefiles/; \
                   module load {{ params.module_ass }}; \
                   ard-scene-select \
+                {{ params.products_arg }} \
+                {{ params.config_arg }} \
                   --workdir {{ work_dir }} \
                   --pkgdir {{ params.pkgdir_arg }} \
                   --logdir {{ log_dir }} \
@@ -77,7 +113,8 @@ with dag:
                   --project {{ params.project }} \
                   --walltime 02:30:00 \
                   {{ params.index_arg }} \
-                  # --run-ard "
+                  {{ params.scene_limit }}\
+                  --run-ard "
         """,
         timeout=60 * 20,
         do_xcom_push=True,
