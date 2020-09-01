@@ -12,5 +12,5 @@ def subdag_test(parent_dag_name, child_dag_name, args, refresh_products):
     )
 
     BashOperator(task_id='t2', bash_command="echo product is set to: %s" %(refresh_products), dag=dag_subdag)
-
+    BashOperator(task_id='t3', bash_command='echo {{ task_instance.xcom_pull(dag_id="utility_explorer-refresh-stats", task_ids="parse_dagrun_conf") }}')
     return dag_subdag
