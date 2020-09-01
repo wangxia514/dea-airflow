@@ -23,7 +23,7 @@ if prodution:
         "queue": "normal",
         "module_ass": "ard-scene-select-py3-dea/20200831",
         "index_arg": "--index-datacube-env "
-                     "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
+        "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
         "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
         "config_arg": "",
         "scene_limit": "",
@@ -85,7 +85,7 @@ with dag:
     submit_ard = SSHOperator(
         task_id=submit_task_id,
         command=COMMON
-                + """
+        + """
         mkdir -p {{ log_dir }} 
         mkdir -p {{ work_dir }} 
         qsub -N ard_scene_select \
