@@ -23,7 +23,7 @@ def subdag_test(parent_dag_name, child_dag_name, args, xcom_task_id):
             done;
         """
         )
-        % ("{{ task_instance.xcom_pull(dag_id=parent_dag_name, task_ids=xcom_task_id) }}"),
+        % ("{{ task_instance.xcom_pull(dag_id={}, task_ids={}) }}".format(parent_dag_name, xcom_task_id)),
     ]
 
     # BashOperator(task_id='t2', bash_command="echo product is set to: %s" %(refresh_products), dag=dag_subdag)
