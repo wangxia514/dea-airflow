@@ -21,6 +21,7 @@ from sentinel_2_nrt.images import INDEXER_IMAGE, OWS_IMAGE
 from sentinel_2_nrt.subdag_ows_views import ows_update_extent_subdag
 from sentinel_2_nrt.env_cfg import DB_DATABASE, SECRET_OWS_NAME, SECRET_AWS_NAME
 from airflow.operators.subdag_operator import SubDagOperator
+from sentinel_2_nrt.subdag_explorer_summary import explorer_refresh_stats_subdag
 
 
 ARCHIVE_CONDITION = "[$(date -d '-365 day' +%F), $(date -d '-91 day' +%F)]"
@@ -95,6 +96,11 @@ with dag:
     OWS_UPDATE_EXTENTS = SubDagOperator(
         task_id="run-ows-update-ranges",
         subdag=ows_update_extent_subdag(DAG_NAME, "run-ows-update-ranges", DEFAULT_ARGS),
+    )
+
+    EXPLORER_SUMMARY = SubDagOperator(
+        task_id="run-cubedash-gen-refresh-stat",
+        subdag=explorer_refresh_stats_subdag(DAG_NAME, "run-cubedash-gen-refresh-stat", DEFAULT_ARGS),
     )
 
     START = DummyOperator(task_id="start_sentinel_2_nrt_archive")
