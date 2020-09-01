@@ -1,5 +1,11 @@
 """
-# Explorer cubedash-gen refresh-stats
+## Utility Tool
+### ows update ranges
+This is utility is to provide administrators the easy accessiblity to run ad-hoc --views and update-ranges
+
+##### commands to run
+    `datacube-ows-update --views`
+    `datacube-ows-update s2_nrt_granule_`
 """
 
 from airflow import DAG
@@ -50,7 +56,7 @@ dag = DAG(
 with dag:
     OWS_UPDATE_EXTENTS = SubDagOperator(
         task_id="run-ows-update-ranges",
-        subdag=ows_update_extent_subdag(DAG_NAME, "run-ows-update-ranges", DEFAULT_ARGS, "{{ dag_run.conf.products }}"),
+        subdag=ows_update_extent_subdag(DAG_NAME, "run-ows-update-ranges", DEFAULT_ARGS),
     )
 
     START = DummyOperator(task_id="start_ows_update_ranges")
