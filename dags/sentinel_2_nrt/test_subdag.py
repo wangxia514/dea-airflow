@@ -30,7 +30,6 @@ def subdag_test(parent_dag_name, child_dag_name, args, xcom_task_id):
     KubernetesPodOperator(
         namespace='processing',
         image='ubuntu:latest',
-        cmds=["bash", "-cx"],
         arguments=bash_cmd,
         labels={"foo": "bar"},
         name="test-cmd",

@@ -87,16 +87,16 @@ with dag:
     )
 
 
-    EXPLORER_SUMMARY = SubDagOperator(
-        task_id="run-cubedash-gen-refresh-stat",
-        subdag=explorer_refresh_stats_subdag(DAG_NAME, "run-cubedash-gen-refresh-stat", DEFAULT_ARGS, "{{ ti.xcom_pull(task_ids='parse_dagrun_conf', key='return_value') }}"),
-    )
+    # EXPLORER_SUMMARY = SubDagOperator(
+    #     task_id="run-cubedash-gen-refresh-stat",
+    #     subdag=explorer_refresh_stats_subdag(DAG_NAME, "run-cubedash-gen-refresh-stat", DEFAULT_ARGS, "{{ ti.xcom_pull(task_ids='parse_dagrun_conf', key='return_value') }}"),
+    # )
 
-    START = DummyOperator(task_id="start_explorer_refresh_stats")
+    # START = DummyOperator(task_id="start_explorer_refresh_stats")
 
-    COMPLETE = DummyOperator(task_id="all_done")
+    # COMPLETE = DummyOperator(task_id="all_done")
 
-    START >> SET_PRODUCTS
-    SET_PRODUCTS >> t2
+    # START >> SET_PRODUCTS
+    # SET_PRODUCTS >> t2
     # t2 >> EXPLORER_SUMMARY
     # EXPLORER_SUMMARY >> COMPLETE
