@@ -25,7 +25,7 @@ default_args = {
     "params": {
         "project": "v10",
         "queue": "normal",
-        "module_ass": "ard-scene-select-py3-dea/20200821",
+        "module_ass": "ard-scene-select-py3-dea/20200831",
         # "index_arg": "--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
         "index_arg": "--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/index-test-odc.env",
         # "index_arg": "",  # no indexing
