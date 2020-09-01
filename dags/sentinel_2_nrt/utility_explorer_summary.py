@@ -83,7 +83,7 @@ with dag:
 
     t2 = SubDagOperator(
         task_id="test_sub_dag",
-        subdag=subdag_test(DAG_NAME, "test_sub_dag", DEFAULT_ARGS, "{{ ti.xcom_pull(task_ids='parse_dagrun_conf', key='return_value') }}")
+        subdag=subdag_test(DAG_NAME, "test_sub_dag", DEFAULT_ARGS, "{{ task_instance.xcom_pull(task_ids='parse_dagrun_conf', key='return_value') }}")
     )
 
 
