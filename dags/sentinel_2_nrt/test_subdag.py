@@ -9,6 +9,6 @@ def subdag_test(parent_dag_name, child_dag_name, args, refresh_products):
         default_args=args,
     )
 
-    BashOperator(task_id='t2', bash_command="echo $refresh_products", dag=dag_subdag)
+    BashOperator(task_id='t2', bash_command="echo %s" %(refresh_products), dag=dag_subdag)
 
     return dag_subdag
