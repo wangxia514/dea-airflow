@@ -26,8 +26,8 @@ if production:
         "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
         "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
         "config_arg": "",
-        # "scene_limit": "",
-        "scene_limit": "--scene-limit 1",
+        "scene_limit": "",
+        # "scene_limit": "--scene-limit 1",
         "products_arg": "",
         "pkgdir_arg": "/g/data/xu18/ga",
     }
