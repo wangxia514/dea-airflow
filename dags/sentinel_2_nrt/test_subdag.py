@@ -4,6 +4,7 @@ from airflow.operators.bash_operator import BashOperator
 
 def subdag_test(parent_dag_name, child_dag_name, args, refresh_products):
 
+
     dag_subdag = DAG(
         dag_id="%s.%s" % (parent_dag_name, child_dag_name),
         default_args=args,

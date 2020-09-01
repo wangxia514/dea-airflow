@@ -78,12 +78,12 @@ with dag:
         task_id='parse_dagrun_conf',
         python_callable=parse_dagrun_conf,
         op_args=["{{ dag_run.conf.products }}"],
-        provide_context=True,
+        # provide_context=True,
     )
 
     t2 = SubDagOperator(
         task_id="test_sub_dag",
-        subdag=subdag_test(DAG_NAME, "test_sub_dag", DEFAULT_ARGS, "{{ task_instance.xcom_pull(task_ids='parse_dagrun_conf', key='return_value') }}")
+        subdag=subdag_test(DAG_NAME, "test_sub_dag", DEFAULT_ARGS, SET_PRODUCTS.output)
     )
 
 
