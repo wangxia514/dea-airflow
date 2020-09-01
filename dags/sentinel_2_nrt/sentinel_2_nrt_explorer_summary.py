@@ -14,7 +14,7 @@ from sentinel_2_nrt.subdag_explorer_summary import explorer_refresh_stats_subdag
 
 from sentinel_2_nrt.env_cfg import DB_DATABASE, SECRET_EXPLORER_NAME, SECRET_AWS_NAME
 
-DAG_NAME = "explorer-refresh-stats"
+DAG_NAME = "utility_explorer-refresh-stats"
 
 # DAG CONFIGURATION
 DEFAULT_ARGS = {
@@ -54,7 +54,7 @@ with dag:
         subdag=explorer_refresh_stats_subdag(DAG_NAME, "run-cubedash-gen-refresh-stat", DEFAULT_ARGS),
     )
 
-    START = DummyOperator(task_id="start_sentinel_2_nrt")
+    START = DummyOperator(task_id="start_explorer_refresh_stats")
 
     COMPLETE = DummyOperator(task_id="all_done")
 
