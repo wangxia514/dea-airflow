@@ -22,7 +22,7 @@ EXPLORER_SECRETS = [
 ]
 
 
-def explorer_refresh_stats_subdag(parent_dag_name, child_dag_name, args, xcom_task_id):
+def explorer_refresh_stats_subdag(parent_dag_name, child_dag_name, args, xcom_task_id=None):
 
     EXPLORER_BASH_COMMAND = [
         "bash",

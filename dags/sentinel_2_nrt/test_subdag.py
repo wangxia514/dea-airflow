@@ -5,13 +5,17 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from textwrap import dedent
 
 
-def subdag_test(parent_dag_name, child_dag_name, args, xcom_task_id):
+def subdag_test(parent_dag_name, child_dag_name, args, xcom_task_id=None):
 
     dag_subdag = DAG(
         dag_id="%s.%s" % (parent_dag_name, child_dag_name),
         default_args=args,
         catchup=False,
     )
+    if xcom_task_id:
+        products = "{{{{ task_instance.xcom_pull(dag_id='{}', task_ids='{}') }}}}".format(parent_dag_name, xcom_task_id)
+    else:
+        products = 'A B'
 
     bash_cmd = [
         "bash",
@@ -23,7 +27,7 @@ def subdag_test(parent_dag_name, child_dag_name, args, xcom_task_id):
             done;
         """
         )
-        % ("{{{{ task_instance.xcom_pull(dag_id='{}', task_ids='{}') }}}}".format(parent_dag_name, xcom_task_id)),
+        % (products),
     ]
 
     # BashOperator(task_id='t2', bash_command="echo product is set to: %s" %(refresh_products), dag=dag_subdag)
