@@ -11,6 +11,8 @@ This is utility is to provide administrators the easy accessiblity to run ad-hoc
 from airflow import DAG
 from datetime import datetime, timedelta
 from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.python_operator import PythonOperator
+
 
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
@@ -21,7 +23,7 @@ from sentinel_2_nrt.env_cfg import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_OWS_NAME,
-    SECRET_EXPLORER_NAME,
+    UPDATE_EXTENT_PRODUCTS,
     SECRET_AWS_NAME,
 )
 
@@ -61,7 +63,24 @@ dag = DAG(
     tags=["k8s", "ows"],
 )
 
+
+def parse_dagrun_conf(products, **kwargs):
+    if products:
+        return products
+    else:
+        return UPDATE_EXTENT_PRODUCTS
+
+
+SET_REFRESH_PRODUCT_TASK_NAME = "parse_dagrun_conf"
+
 with dag:
+
+    SET_PRODUCTS = PythonOperator(
+        task_id=SET_REFRESH_PRODUCT_TASK_NAME,
+        python_callable=parse_dagrun_conf,
+        op_args=["{{ dag_run.conf.products }}"],
+        # provide_context=True,
+    )
     OWS_UPDATE_EXTENTS = SubDagOperator(
         task_id="run-ows-update-ranges",
         subdag=ows_update_extent_subdag(
@@ -73,5 +92,6 @@ with dag:
 
     COMPLETE = DummyOperator(task_id="all_done")
 
-    START >> OWS_UPDATE_EXTENTS
+    START >> SET_PRODUCTS
+    SET_PRODUCTS >> OWS_UPDATE_EXTENTS
     OWS_UPDATE_EXTENTS >> COMPLETE
