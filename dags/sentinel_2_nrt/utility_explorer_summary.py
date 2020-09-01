@@ -27,8 +27,8 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.kubernetes.secret import Secret
 from airflow.operators.subdag_operator import SubDagOperator
 from sentinel_2_nrt.subdag_explorer_summary import explorer_refresh_stats_subdag
-from airflow.operators.bash_operator import BashOperator
 from sentinel_2_nrt.env_cfg import INDEXING_PRODUCTS, DB_DATABASE, SECRET_EXPLORER_NAME, SECRET_AWS_NAME
+from sentinel_2_nrt.test_subdag import subdag_test
 
 DAG_NAME = "utility_explorer-refresh-stats"
 
@@ -69,19 +69,6 @@ def parse_dagrun_conf(products, **kwargs):
         return products
     else:
         return INDEXING_PRODUCTS
-
-
-def subdag_test(parent_dag_name, child_dag_name, args, refresh_products):
-
-    dag_subdag = DAG(
-        dag_id="%s.%s" % (parent_dag_name, child_dag_name),
-        default_args=args,
-    )
-
-    BashOperator(task_id='t2', bash_command="echo $refresh_products", dag=dag_subdag)
-
-    return dag_subdag
-
 
 with dag:
 
