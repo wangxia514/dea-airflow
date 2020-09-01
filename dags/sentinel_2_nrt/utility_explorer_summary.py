@@ -3,9 +3,18 @@
 ### explore refresh stats
 This is utility is to provide administrators the easy accessiblity to run ad-hoc --refresh-stats
 
-##### commands to run
+#### default run
     `cubedash-gen --no-init-database --refresh-stats --force-refresh s2a_nrt_granule`
     `cubedash-gen --no-init-database --refresh-stats --force-refresh s2b_nrt_granule`
+
+#### Utility customisation
+The DAG can be parameterized with run time configuration `products`
+
+To run with all, set `dag_run.conf.products` to `--all`
+otherwise provide products to be refreshed seperated by space, i.e. `s2a_nrt_granule s2b_nrt_granule`
+dag_run.conf format:
+    `"products": "--all"`
+    `"products": "s2a_nrt_granule s2b_nrt_granule"`
 """
 
 from airflow import DAG

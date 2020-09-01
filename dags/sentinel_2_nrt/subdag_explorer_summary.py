@@ -22,8 +22,14 @@ EXPLORER_SECRETS = [
 ]
 
 
-def explorer_refresh_stats_subdag(parent_dag_name, child_dag_name, args, refresh_products=INDEXING_PRODUCTS):
-    print(refresh_products, type(refresh_products))
+def explorer_refresh_stats_subdag(parent_dag_name, child_dag_name, args, refresh_products):
+
+    # TODO: add filter
+    if refresh_products:
+       product_to_refresh = refresh_products
+    else:
+        product_to_refresh = INDEXING_PRODUCTS
+
     EXPLORER_BASH_COMMAND = [
         "bash",
         "-c",
@@ -34,7 +40,7 @@ def explorer_refresh_stats_subdag(parent_dag_name, child_dag_name, args, refresh
             done;
         """
         )
-        % (INDEXING_PRODUCTS),
+        % (product_to_refresh),
     ]
 
     dag_subdag = DAG(
