@@ -90,7 +90,7 @@ with dag:
                   --walltime 02:30:00 \
                   {{ params.index_arg }} \
                   --scene-limit 1\
-                  #--run-ard "
+                  --run-ard "
         """,
         timeout=60 * 20,
         do_xcom_push=True,
