@@ -34,11 +34,15 @@ def subdag_test(parent_dag_name, child_dag_name, args, xcom_task_id=None):
         % (products),
     ]
 
+
+
     # BashOperator(task_id='t2', bash_command="echo product is set to: %s" %(refresh_products), dag=dag_subdag)
     KubernetesPodOperator(
         namespace="processing",
         image="ubuntu:latest",
-        arguments=bash_cmd,
+        cmds=["echo"],
+        arguments=["$DB_HOSTNAME"]
+        # arguments=bash_cmd,
         labels={"foo": "bar"},
         name="test-cmd",
         is_delete_operator_pod=True,

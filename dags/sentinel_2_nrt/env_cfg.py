@@ -1,6 +1,9 @@
 """
-# Sentinel-2_nrt process env configs
+# Sentinel-2_nrt process env configs read from variables if environment specific
 """
+from airflow.models import Variable
+foo = Variable.get("db_hostname")
+
 # ENVIRONMENT CONFIGURATION
 OWS_CFG_PATH = "/env/config/ows_cfg.py"
 INDEXING_PRODUCTS = "s2a_nrt_granule s2b_nrt_granule"
