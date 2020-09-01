@@ -72,10 +72,12 @@ def parse_dagrun_conf(products, **kwargs):
     else:
         return INDEXING_PRODUCTS
 
+SET_REFRESH_PRODUCT_TASK_NAME = "parse_dagrun_conf"
+
 with dag:
 
     SET_PRODUCTS = PythonOperator(
-        task_id='parse_dagrun_conf',
+        task_id=SET_REFRESH_PRODUCT_TASK_NAME,
         python_callable=parse_dagrun_conf,
         op_args=["{{ dag_run.conf.products }}"],
         # provide_context=True,
@@ -83,7 +85,7 @@ with dag:
 
     t2 = SubDagOperator(
         task_id="test_sub_dag",
-        subdag=subdag_test(DAG_NAME, "test_sub_dag", DEFAULT_ARGS, "{{ task_instance.xcom_pull(dag_id='utility_explorer-refresh-stats', task_ids='parse_dagrun_conf') }}")
+        subdag=subdag_test(DAG_NAME, "test_sub_dag", DEFAULT_ARGS, SET_REFRESH_PRODUCT_TASK_NAME)
     )
 
 
