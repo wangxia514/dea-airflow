@@ -3,7 +3,7 @@ from airflow.operators.bash_operator import BashOperator
 from textwrap import dedent
 
 
-def subdag_test(parent_dag_name, child_dag_name, args):
+def subdag_test(parent_dag_name, child_dag_name, args, xcom_task_id):
 
     dag_subdag = DAG(
         dag_id="%s.%s" % (parent_dag_name, child_dag_name),
