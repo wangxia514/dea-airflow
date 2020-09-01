@@ -22,7 +22,7 @@ EXPLORER_SECRETS = [
 ]
 
 
-def explorer_refresh_stats_subdag(parent_dag_name, child_dag_name, args, refresh_products):
+def explorer_refresh_stats_subdag(parent_dag_name, child_dag_name, args, xcom_task_id):
 
     EXPLORER_BASH_COMMAND = [
         "bash",
@@ -34,7 +34,7 @@ def explorer_refresh_stats_subdag(parent_dag_name, child_dag_name, args, refresh
             done;
         """
         )
-        % (refresh_products),
+        % ("{{{{ task_instance.xcom_pull(dag_id='{}', task_ids='{}') }}}}".format(parent_dag_name, xcom_task_id)),
     ]
 
     dag_subdag = DAG(
