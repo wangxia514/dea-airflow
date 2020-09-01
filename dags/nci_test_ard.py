@@ -14,6 +14,23 @@ from airflow.operators.dummy_operator import DummyOperator
 
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
+production = False
+if production:
+    pass
+else:
+    params = {
+        "project": "u46",
+        "queue": "normal",
+        "module_ass": "ard-scene-select-py3-dea/20200831",
+        "index_arg": "--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow"
+        "/index-test-odc.env",
+        # "index_arg": "",  # no indexing
+        "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
+        "config_arg": "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf",
+        "scene_limit": "--scene-limit 1",
+        "products_arg": """--products '["usgs_ls8c_level1_1"]'""",
+        "pkgdir_arg": "/g/data/v10/Landsat-Collection-3-ops/scene_select_test/",
+    }
 # swap around set work_dir log_dir too
 # params = {
 #     "project": "v10",
@@ -36,19 +53,20 @@ default_args = {
     "retry_delay": timedelta(minutes=1),
     "ssh_conn_id": "lpgs_gadi",
     # "ssh_conn_id': 'dsg547",
-    "params": {
-        "project": "u46",
-        "queue": "normal",
-        "module_ass": "ard-scene-select-py3-dea/20200831",
-        "index_arg": "--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow"
-        "/index-test-odc.env",
-        # "index_arg": "",  # no indexing
-        "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
-        "config_arg": "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf",
-        "scene_limit": "--scene-limit 1",
-        "products_arg": """--products '["usgs_ls8c_level1_1"]'""",
-        "pkgdir_arg": "/g/data/v10/Landsat-Collection-3-ops/scene_select_test/",
-    },
+    "params": params
+    # "params": {
+    #     "project": "u46",
+    #     "queue": "normal",
+    #     "module_ass": "ard-scene-select-py3-dea/20200831",
+    #     "index_arg": "--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow"
+    #     "/index-test-odc.env",
+    #     # "index_arg": "",  # no indexing
+    #     "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
+    #     "config_arg": "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf",
+    #     "scene_limit": "--scene-limit 1",
+    #     "products_arg": """--products '["usgs_ls8c_level1_1"]'""",
+    #     "pkgdir_arg": "/g/data/v10/Landsat-Collection-3-ops/scene_select_test/",
+    # },
 }
 
 # tags is in airflow >1.10.8
