@@ -55,6 +55,7 @@ dag = DAG(
 )
 
 with dag:
+
     EXPLORER_SUMMARY = SubDagOperator(
         task_id="run-cubedash-gen-refresh-stat",
         subdag=explorer_refresh_stats_subdag(DAG_NAME, "run-cubedash-gen-refresh-stat", DEFAULT_ARGS, "{{ dag_run.conf.products }}"),

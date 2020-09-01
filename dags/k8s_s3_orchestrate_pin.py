@@ -23,6 +23,7 @@ from airflow import DAG
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.python_operator import PythonOperator
 import kubernetes.client.models as k8s
 from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.kubernetes.volume import Volume
@@ -93,6 +94,11 @@ dag = DAG(
     tags=["k8s"],
 )
 
+def print_context(ds):
+    print(ds, type(ds))
+    return 'Whatever you return gets printed in the logs'
+
+
 
 with dag:
     START = DummyOperator(task_id="s3_index_publish")
@@ -150,6 +156,14 @@ with dag:
     # INDEXING >> SUMMARY
     # UPDATE_RANGES >> COMPLETE
     # SUMMARY >> COMPLETE
-    START >> BOOTSTRAP
-    BOOTSTRAP >> INDEXING
-    INDEXING >> COMPLETE
+
+
+    run_this = PythonOperator(
+        task_id='conf value',
+        python_callable=print_context,
+        op_args=["{{ dag_run.conf.test_value }}"]
+    )
+
+
+    START >> run_this
+    run_this >> COMPLETE
