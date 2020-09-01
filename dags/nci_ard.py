@@ -31,6 +31,7 @@ default_args = {
         # "index_arg": "",  # no indexing
         "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
         "config_arg": "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf",
+        "products_arg": """--products '["usgs_ls8c_level1_1"]'""",
         # "pkgdir_arg": "/g/data/xu18/ga"
         "pkgdir_arg": "/g/data/v10/Landsat-Collection-3-ops/scene_select_test/",
     },
@@ -81,6 +82,7 @@ with dag:
                   module use /g/data/v10/private/modules/modulefiles/; \
                   module load {{ params.module_ass }}; \
                   ard-scene-select \
+                {{ params.products_arg }} \
                 {{ params.config_arg }} \
                   --workdir {{ work_dir }} \
                   --pkgdir {{ params.pkgdir_arg }} \
