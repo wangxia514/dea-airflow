@@ -70,6 +70,19 @@ def parse_dagrun_conf(products, **kwargs):
     else:
         return INDEXING_PRODUCTS
 
+
+def subdag_test(parent_dag_name, child_dag_name, args, refresh_products):
+
+    dag_subdag = DAG(
+        dag_id="%s.%s" % (parent_dag_name, child_dag_name),
+        default_args=args,
+    )
+
+    BashOperator(task_id='t2', bash_command="echo $refresh_products", dag=dag_subdag)
+
+    return dag_subdag
+
+
 with dag:
 
     SET_PRODUCTS = PythonOperator(
@@ -79,12 +92,15 @@ with dag:
         provide_context=True,
     )
 
-    t2 = BashOperator(task_id='t2', bash_command='echo "{{ ti.xcom_pull(task_ids="parse_dagrun_conf") }}" and "{{ task_instance.xcom_pull(task_ids="parse_dagrun_conf") }}"', dag=dag)
+    t2 = SubDagOperator(
+        task_id="test_sub_dag",
+        subdag=subdag_test(DAG_NAME, "test_sub_dag", DEFAULT_ARGS, "{{ ti.xcom_pull(task_ids='parse_dagrun_conf') }}")
+    )
 
 
     EXPLORER_SUMMARY = SubDagOperator(
         task_id="run-cubedash-gen-refresh-stat",
-        subdag=explorer_refresh_stats_subdag(DAG_NAME, "run-cubedash-gen-refresh-stat", DEFAULT_ARGS, "{{ task_instance.xcom_pull(task_ids='parse_dagrun_conf') }}"),
+        subdag=explorer_refresh_stats_subdag(DAG_NAME, "run-cubedash-gen-refresh-stat", DEFAULT_ARGS, "{{ ti.xcom_pull(task_ids='parse_dagrun_conf') }}"),
     )
 
     START = DummyOperator(task_id="start_explorer_refresh_stats")

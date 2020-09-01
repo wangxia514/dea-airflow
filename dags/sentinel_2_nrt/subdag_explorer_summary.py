@@ -34,7 +34,7 @@ def explorer_refresh_stats_subdag(parent_dag_name, child_dag_name, args, refresh
             done;
         """
         )
-        % (refresh_products),
+        % (product_to_refresh),
     ]
 
     dag_subdag = DAG(
