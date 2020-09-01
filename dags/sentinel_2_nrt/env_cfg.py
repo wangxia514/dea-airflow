@@ -10,6 +10,7 @@ foo = Variable.get("bar", "bar")
 OWS_CFG_PATH = "/env/config/ows_cfg.py"
 OWS_CFG_MOUNT_PATH = "/env/config"
 OWS_CFG_PATH = OWS_CFG_MOUNT_PATH + "/ows_cfg.py"
+OWS_CFG_IMAGEPATH = "/opt/dea-config/dev/services/wms/ows/ows_cfg.py"
 
 # Process specific for sentinel indexing process
 INDEXING_PRODUCTS = "s2a_nrt_granule s2b_nrt_granule"
