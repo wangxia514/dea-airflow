@@ -21,31 +21,22 @@ EXPLORER_SECRETS = [
     Secret("env", "DB_PASSWORD", SECRET_EXPLORER_NAME, "postgres-password"),
 ]
 
-EXPLORER_BASH_COMMAND = [
-    "bash",
-    "-c",
-    dedent(
+
+def explorer_refresh_stats_subdag(parent_dag_name, child_dag_name, args, refresh_products=INDEXING_PRODUCTS):
+    print(refresh_products, type(refresh_products))
+    EXPLORER_BASH_COMMAND = [
+        "bash",
+        "-c",
+        dedent(
+            """
+            for product in %s; do
+                cubedash-gen --no-init-database --refresh-stats --force-refresh $product;
+            done;
         """
-        for product in %s; do
-            cubedash-gen --no-init-database --refresh-stats --force-refresh $product;
-        done;
-    """
-    )
-    % (INDEXING_PRODUCTS),
-]
+        )
+        % (INDEXING_PRODUCTS),
+    ]
 
-
-def explorer_refresh_stats_subdag(parent_dag_name, child_dag_name, args):
-    """[summary]
-
-    Args:
-        parent_dag_name ([type]): [description]
-        child_dag_name ([type]): [description]
-        args ([type]): [description]
-
-    Returns:
-        [type]: [description]
-    """
     dag_subdag = DAG(
         dag_id="%s.%s" % (parent_dag_name, child_dag_name),
         default_args=args,

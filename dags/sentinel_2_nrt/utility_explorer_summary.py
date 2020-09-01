@@ -1,5 +1,11 @@
 """
-# Explorer cubedash-gen refresh-stats
+## Utility Tool
+### explore refresh stats
+This is utility is to provide administrators the easy accessiblity to run ad-hoc --refresh-stats
+
+##### commands to run
+    `cubedash-gen --no-init-database --refresh-stats --force-refresh s2a_nrt_granule`
+    `cubedash-gen --no-init-database --refresh-stats --force-refresh s2b_nrt_granule`
 """
 
 from airflow import DAG

@@ -3,7 +3,6 @@
 """
 
 from airflow import DAG
-from textwrap import dedent
 from datetime import datetime, timedelta
 from airflow.operators.dummy_operator import DummyOperator
 
@@ -51,7 +50,7 @@ dag = DAG(
 with dag:
     OWS_UPDATE_EXTENTS = SubDagOperator(
         task_id="run-ows-update-ranges",
-        subdag=ows_update_extent_subdag(DAG_NAME, "run-ows-update-ranges", DEFAULT_ARGS),
+        subdag=ows_update_extent_subdag(DAG_NAME, "run-ows-update-ranges", DEFAULT_ARGS, "{{ dag_run.conf.products }}"),
     )
 
     START = DummyOperator(task_id="start_ows_update_ranges")
