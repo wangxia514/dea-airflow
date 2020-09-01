@@ -15,8 +15,8 @@ otherwise provide products to be refreshed seperated by space, i.e. `s2a_nrt_gra
 dag_run.conf format:
 
 #### example conf in json format
-    `{"products": "--all"}`
-    `{"products": "s2a_nrt_granule s2b_nrt_granule"}`
+    "products": "--all"
+    "products": "s2a_nrt_granule s2b_nrt_granule"
 """
 
 from airflow import DAG
