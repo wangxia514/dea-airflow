@@ -95,7 +95,7 @@ with dag:
         command=COMMON
         + """
         mkdir -p {{ params.base_dir }}{{ work_ext }}
-        mkdir -p { params.base_dir }}{{ log_ext }}
+        mkdir -p {{ params.base_dir }}{{ log_ext }}
         qsub -N ard_scene_select \
               -q  {{ params.queue }}  \
               -W umask=33 \
