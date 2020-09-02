@@ -45,7 +45,7 @@ else:
         "config_arg": "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf",
         "scene_limit": "--scene-limit 1",
         "products_arg": """--products '["usgs_ls8c_level1_1"]'""",
-        "base_dir": "/g/data/v10/work/c3_ard/"
+        "base_dir": "/g/data/v10/work/c3_ard/",
     }
     aws_develop = True
     if aws_develop:
