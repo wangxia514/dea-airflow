@@ -36,7 +36,6 @@ from sentinel_2_nrt.env_cfg import (
     SECRET_EXPLORER_NAME,
     SECRET_AWS_NAME,
 )
-from sentinel_2_nrt.test_subdag import subdag_test
 
 DAG_NAME = "utility_explorer-refresh-stats"
 
