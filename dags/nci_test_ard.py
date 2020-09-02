@@ -47,7 +47,7 @@ else:
         "products_arg": """--products '["usgs_ls8c_level1_1"]'""",
         "base_dir": "/g/data/v10/work/c3_ard/"
     }
-    aws_develop = False
+    aws_develop = True
     if aws_develop:
         ssh_conn_id = "lpgs_gadi"
         params["pkgdir_arg"] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test/"
@@ -84,12 +84,8 @@ with dag:
 
     COMMON = """
         #  ts_nodash timestamp no dashes.
-        {% set log_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/logdir' %}
-        {% set work_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/workdir' %}
-        {% set log_dir = '/g/data/v10/work/c3_ard/' + ts_nodash + '/logdir' %}
-        {% set work_dir = '/g/data/v10/work/c3_ard/' + ts_nodash + '/workdir' %}
-        {% set log_dir = '/g/data/u46/users/dsg547/results_airflow/' + ts_nodash + '/logdir' %}
-        {% set work_dir = '/g/data/u46/users/dsg547/results_airflow/' + ts_nodash + '/workdir' %}
+        {% set log_ext = ts_nodash + '/logdir' %}
+        {% set work_ext = ts_nodash + '/workdir' %}
         """
 
     # An example of remotely starting a qsub job (all it does is ls)
@@ -113,9 +109,9 @@ with dag:
                   ard-scene-select \
                 {{ params.products_arg }} \
                 {{ params.config_arg }} \
-                  --workdir {{ work_dir }} \
+                  --workdir {{ params.base_dir }}{{ work_ext }} \
                   --pkgdir {{ params.pkgdir_arg }} \
-                  --logdir {{ log_dir }} \
+                  --logdir {{ params.base_dir }}{{ log_ext }} \
                   --env {{ params.wagl_env }}  \
                   --project {{ params.project }} \
                   --walltime 02:30:00 \
