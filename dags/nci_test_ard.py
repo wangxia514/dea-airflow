@@ -94,8 +94,8 @@ with dag:
         task_id=submit_task_id,
         command=COMMON
         + """
-        mkdir -p {{ log_dir }} 
-        mkdir -p {{ work_dir }} 
+        mkdir -p {{ params.base_dir }}{{ work_ext }}
+        mkdir -p { params.base_dir }}{{ log_ext }}
         qsub -N ard_scene_select \
               -q  {{ params.queue }}  \
               -W umask=33 \
