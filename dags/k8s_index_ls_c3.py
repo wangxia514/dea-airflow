@@ -23,7 +23,6 @@ DEFAULT_ARGS = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
-    "aws_conn_id": "dea_public_data_upload",
     "index_sqs_queue": "dea-dev-eks-landsat-c3-indexing",
     "archive_sqs_queue": "dea-dev-eks-landsat-c3-archiving",
     "products": "ga_ls5t_ard_3 ga_ls7e_ard_3 ga_ls8c_ard_3",
@@ -42,7 +41,7 @@ DEFAULT_ARGS = {
             "AWS_DEFAULT_REGION",
         ),
         Secret(
-            "env", "AWS_ACCESS_KEY_ID", "processing-aws-creds-dev", "AWS_ACCESS_KEY_ID"
+            "env", "AWS_ACCESS_KEY_ID", "processing-landsat-3-aws-creds", "AWS_ACCESS_KEY_ID"
         ),
         Secret(
             "env",
