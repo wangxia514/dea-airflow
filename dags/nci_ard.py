@@ -34,7 +34,7 @@ if production:
         "base_dir": "/g/data/v10/work/c3_ard/",
     }
     ssh_conn_id = "lpgs_gadi"
-    schedule_interval = "04 00 * * *"
+    schedule_interval = "0 4 * * *"
 else:
     params = {
         "project": "u46",
