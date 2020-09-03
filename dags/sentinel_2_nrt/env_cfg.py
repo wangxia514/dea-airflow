@@ -4,7 +4,7 @@
 from airflow.models import Variable
 
 # For testing
-foo = Variable.get("bar", "bar")
+foo = Variable.get("environment", "bar")
 
 # OWS pod specific configuration
 OWS_CFG_PATH = "/env/config/ows_cfg.py"
