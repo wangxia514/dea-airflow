@@ -14,8 +14,9 @@ from airflow.operators.dummy_operator import DummyOperator
 
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
+
 # swap around set work_dir log_dir too
-production = True
+production = False
 
 if production:
     params = {
@@ -33,6 +34,7 @@ if production:
         "base_dir": "/g/data/v10/work/c3_ard/",
     }
     ssh_conn_id = "lpgs_gadi"
+    schedule_interval = None
 else:
     params = {
         "project": "u46",
@@ -50,15 +52,18 @@ else:
     if aws_develop:
         ssh_conn_id = "lpgs_gadi"
         params["pkgdir_arg"] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test/"
+        # schedule_interval = "15 08 * * *"
+        schedule_interval = "10 * * * *"
     else:
         ssh_conn_id = "dsg547"
         params["pkgdir_arg"] = "/g/data/u46/users/dsg547/results_airflow/"
+        schedule_interval = None
     params["base_dir"] = params["pkgdir_arg"]
 
 default_args = {
     "owner": "Duncan Gray",
     "depends_on_past": False,  # Very important, will cause a single failure to propagate forever
-    "start_date": datetime(2020, 8, 26),
+    "start_date": datetime(2020, 8, 31),
     "retries": 0,
     "retry_delay": timedelta(minutes=1),
     "ssh_conn_id": ssh_conn_id,
@@ -72,7 +77,7 @@ dag = DAG(
     doc_md=__doc__,
     default_args=default_args,
     catchup=False,
-    schedule_interval=None,
+    schedule_interval=schedule_interval,
     default_view="graph",
     tags=["nci", "landsat_c3"],
 )
