@@ -4,22 +4,18 @@
 
 This repository contains two branches, `master` and `develop`.
 
-The `master` branch requires Pull Requests and reviews to merge code into, and
-is deployed automatically to the Production (Sandbox) Airflow deployment.
+The `master` branch requires Pull Requests and code reviews to merge code into
+it. It deploys automatically to the [Production (Sandbox) Airflow deployment](https://airflow.sandbox.dea.ga.gov.au/home).
 
-The `develop` branch can be committed to directly, or via Pull Request, and is
-deployed automatically to the Development Airflow deployment.
+The `develop` branch accepts pushes directly, or via Pull Request, and deploys
+automatically to the [Development Airflow](https://airflow.dev.dea.ga.gov.au/home).
 
 We're not happy with this strategy, and are looking for an alternative that
 doesn't have us deploying and inadvertently running code in multiple places by
 accident, but haven't come up with anything yet.
 
-## Development
+## Development Using Docker
 
-## Using Docker
-## Development
-
-### Local Editing of DAG's
 If you have Docker available, by far the easiest development setup is to use
 Docker Compose.
 
@@ -41,7 +37,7 @@ docker-compose run --rm webserver airflow connections --add --conn_id lpgs_gadi 
 docker-compose exec webserver /entrypoint.sh airflow connections --add --conn_id dea_public_data_upload --conn_uri s3://foo:bar@dea-public-data-dev/
 ```
 
-### Local Editing of DAG's
+## Local Editing of DAG's
 
 DAGs can be locally edited and validated. Development can be done in `conda` or `venv` according to developer preference. Grab everything airflow and write DAGs. Use `autopep8` and `pylint` to achieve import validation and consistent formatting as the CI pipeline for this repository matures.
 
