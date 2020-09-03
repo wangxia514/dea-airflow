@@ -14,6 +14,7 @@ from airflow.operators.dummy_operator import DummyOperator
 
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
+
 # swap around set work_dir log_dir too
 production = True
 
@@ -26,11 +27,14 @@ if production:
         "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
         "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
         "config_arg": "",
-        "scene_limit": "",
-        # "scene_limit": "--scene-limit 1",
+        # "scene_limit": "",
+        "scene_limit": "--scene-limit 1",
         "products_arg": "",
         "pkgdir_arg": "/g/data/xu18/ga",
+        "base_dir": "/g/data/v10/work/c3_ard/",
     }
+    ssh_conn_id = "lpgs_gadi"
+    schedule_interval = "04 00 * * *"
 else:
     params = {
         "project": "u46",
@@ -43,17 +47,26 @@ else:
         "config_arg": "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf",
         "scene_limit": "--scene-limit 1",
         "products_arg": """--products '["usgs_ls8c_level1_1"]'""",
-        "pkgdir_arg": "/g/data/v10/Landsat-Collection-3-ops/scene_select_test/",
     }
+    aws_develop = True
+    if aws_develop:
+        ssh_conn_id = "lpgs_gadi"
+        params["pkgdir_arg"] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test/"
+        # schedule_interval = "15 08 * * *"
+        schedule_interval = "12 * * * *"
+    else:
+        ssh_conn_id = "dsg547"
+        params["pkgdir_arg"] = "/g/data/u46/users/dsg547/results_airflow/"
+        schedule_interval = None
+    params["base_dir"] = params["pkgdir_arg"]
 
 default_args = {
     "owner": "Duncan Gray",
     "depends_on_past": False,  # Very important, will cause a single failure to propagate forever
-    "start_date": datetime(2020, 8, 26),
+    "start_date": datetime(2020, 8, 31),
     "retries": 0,
     "retry_delay": timedelta(minutes=1),
-    "ssh_conn_id": "lpgs_gadi",
-    # "ssh_conn_id': 'dsg547",
+    "ssh_conn_id": ssh_conn_id,
     "params": params,
 }
 
@@ -64,7 +77,7 @@ dag = DAG(
     doc_md=__doc__,
     default_args=default_args,
     catchup=False,
-    schedule_interval=None,
+    schedule_interval=schedule_interval,
     default_view="graph",
     tags=["nci", "landsat_c3"],
 )
@@ -75,10 +88,8 @@ with dag:
 
     COMMON = """
         #  ts_nodash timestamp no dashes.
-        {% set log_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/logdir' %}
-        {% set work_dir = '/g/data/v10/Landsat-Collection-3-ops/scene_select_test/' + ts_nodash + '/workdir' %}
-        {% set log_dir = '/g/data/v10/work/c3_ard/' + ts_nodash + '/logdir' %}
-        {% set work_dir = '/g/data/v10/work/c3_ard/' + ts_nodash + '/workdir' %}
+        {% set log_ext = ts_nodash + '/logdir' %}
+        {% set work_ext = ts_nodash + '/workdir' %}
         """
 
     # An example of remotely starting a qsub job (all it does is ls)
@@ -87,8 +98,8 @@ with dag:
         task_id=submit_task_id,
         command=COMMON
         + """
-        mkdir -p {{ log_dir }} 
-        mkdir -p {{ work_dir }} 
+        mkdir -p {{ params.base_dir }}{{ work_ext }}
+        mkdir -p {{ params.base_dir }}{{ log_ext }}
         qsub -N ard_scene_select \
               -q  {{ params.queue }}  \
               -W umask=33 \
@@ -102,9 +113,9 @@ with dag:
                   ard-scene-select \
                 {{ params.products_arg }} \
                 {{ params.config_arg }} \
-                  --workdir {{ work_dir }} \
+                  --workdir {{ params.base_dir }}{{ work_ext }} \
                   --pkgdir {{ params.pkgdir_arg }} \
-                  --logdir {{ log_dir }} \
+                  --logdir {{ params.base_dir }}{{ log_ext }} \
                   --env {{ params.wagl_env }}  \
                   --project {{ params.project }} \
                   --walltime 02:30:00 \
