@@ -105,7 +105,7 @@ with DAG('nci_incremental_csv_db_backup',
 
             # Upload md5sums last, as a marker that it's complete.
             md5sum * > md5sums
-            cat md5sum
+            cat md5sums
             aws s3 cp md5sums s3://nci-db-dump/csv-changes/${datestring}/
 
             # Remove the CSV directory
