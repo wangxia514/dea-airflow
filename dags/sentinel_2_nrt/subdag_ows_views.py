@@ -61,6 +61,8 @@ def ows_update_extent_subdag(
     Returns:
         [type]: [subdag for processing]
     """
+    # append ows specific env_vars to args
+
     if xcom_task_id:
         products = (
             "{{{{ task_instance.xcom_pull(dag_id='{}', task_ids='{}') }}}}".format(
@@ -70,12 +72,18 @@ def ows_update_extent_subdag(
     else:
         products = UPDATE_EXTENT_PRODUCTS
 
+    ows_env_cfg = {
+        "WMS_CONFIG_PATH": OWS_CFG_PATH,
+        "DATACUBE_OWS_CFG": "config.ows_cfg.ows_cfg",
+    }
+    args = args.setdefault("env_vars", ows_env_cfg).update(ows_env_cfg)
+
+    # datacube-ows-update --views;
     OWS_BASH_COMMAND = [
         "bash",
         "-c",
         dedent(
             """
-            datacube-ows-update --views;
             for product in %s; do
                 if [ $product == "--all" ]; then
                     datacube-ows-update
