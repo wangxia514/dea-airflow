@@ -30,12 +30,9 @@ from airflow.kubernetes.secret import Secret
 from airflow.operators.subdag_operator import SubDagOperator
 from sentinel_2_nrt.subdag_ows_views import ows_update_extent_subdag
 
+from env_var.infra import DB_DATABASE, DB_HOSTNAME, SECRET_OWS_NAME, SECRET_AWS_NAME
 from sentinel_2_nrt.env_cfg import (
-    DB_DATABASE,
-    DB_HOSTNAME,
-    SECRET_OWS_NAME,
     UPDATE_EXTENT_PRODUCTS,
-    SECRET_AWS_NAME,
 )
 
 DAG_NAME = "utility_ows-update-extent"

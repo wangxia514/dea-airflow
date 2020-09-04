@@ -19,7 +19,8 @@ import kubernetes.client.models as k8s
 
 from sentinel_2_nrt.images import INDEXER_IMAGE, OWS_IMAGE
 from sentinel_2_nrt.subdag_ows_views import ows_update_extent_subdag
-from sentinel_2_nrt.env_cfg import DB_DATABASE, SECRET_OWS_NAME, SECRET_AWS_NAME, DB_HOSTNAME
+
+from env_var.infra import DB_DATABASE, DB_HOSTNAME, SECRET_OWS_NAME, SECRET_AWS_NAME
 from airflow.operators.subdag_operator import SubDagOperator
 from sentinel_2_nrt.subdag_explorer_summary import explorer_refresh_stats_subdag
 
