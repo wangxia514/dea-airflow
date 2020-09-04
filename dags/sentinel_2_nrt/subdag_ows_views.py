@@ -76,7 +76,7 @@ def ows_update_extent_subdag(
         "WMS_CONFIG_PATH": OWS_CFG_PATH,
         "DATACUBE_OWS_CFG": "config.ows_cfg.ows_cfg",
     }
-    args = args.setdefault("env_vars", ows_env_cfg).update(ows_env_cfg)
+    args.setdefault("env_vars", ows_env_cfg).update(ows_env_cfg)
 
     # datacube-ows-update --views;
     OWS_BASH_COMMAND = [
