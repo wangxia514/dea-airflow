@@ -13,4 +13,4 @@ INDEXING_PRODUCTS = "s2a_nrt_granule s2b_nrt_granule"
 ARCHIVE_PRODUCTS = INDEXING_PRODUCTS
 ARCHIVE_CONDITION = "[$(date -d '-365 day' +%F), $(date -d '-91 day' +%F)]"
 UPDATE_EXTENT_PRODUCTS = "s2_nrt_granule_nbar_t"
-SQS_QUEUE_NAME = "dea-dev-eks-ows-dag"
+SQS_QUEUE_NAME = "dea-sandbox-eks-ows-dag"
