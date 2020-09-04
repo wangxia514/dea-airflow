@@ -54,7 +54,7 @@ DEFAULT_ARGS = {
     "depends_on_past": False,
     "start_date": datetime(2020, 6, 14),
     "email": ["pin.jin@ga.gov.au"],
-    "email_on_failure": False,
+    "email_on_failure": True,
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
@@ -76,7 +76,7 @@ dag = DAG(
     dag_id=DAG_NAME,
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
-    schedule_interval="0 1 * * *",
+    schedule_interval="0 1 * * *",  # daily at 1am
     catchup=False,
     tags=["k8s", "sentinel-2", "archive"],
 )

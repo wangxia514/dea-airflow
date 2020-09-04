@@ -9,10 +9,10 @@ from airflow.models import Variable
 INDEXING_ROLE = Variable.get("processing_indexing_role", "dea-dev-eks-orchestration")
 
 # secrets name available in processing namespace
-SECRET_AWS_NAME = Variable.get("processing_user_secret", "processing-aws-creds-dev")
+SECRET_AWS_NAME = Variable.get("processing_user_secret", "indexing-aws-creds-sandbox")
 SECRET_EXPLORER_NAME = Variable.get("explorer_db_secret", "explorer-db")
 SECRET_OWS_NAME = Variable.get("ows_db_secret", "ows-db")
 
 # DB config
-DB_DATABASE = Variable.get("db_database", "ows")
+DB_DATABASE = Variable.get("db_database", "ows_prod_20200827")
 DB_HOSTNAME = Variable.get("db_hostname", "db-writer")

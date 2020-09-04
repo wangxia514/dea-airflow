@@ -96,10 +96,4 @@ with dag:
         ),
     )
 
-    START = DummyOperator(task_id="start_ows_update_ranges")
-
-    COMPLETE = DummyOperator(task_id="all_done")
-
-    START >> SET_PRODUCTS
     SET_PRODUCTS >> OWS_UPDATE_EXTENTS
-    OWS_UPDATE_EXTENTS >> COMPLETE
