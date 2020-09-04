@@ -123,7 +123,7 @@ with dag:
                 COMMON
                 + """
                 {% set file_list = work_dir + '/' + params.product + '_file_list.txt' -%}
-                
+
                 test -f {{file_list}}
                 NUM_TO_PROCESS=$(wc -l {{file_list}} | awk '{print $1}')
                 echo There are $NUM_TO_PROCESS files to process.
@@ -155,7 +155,7 @@ with dag:
                 + """
                 cd {{work_dir}}
                 mkdir -p out
-                
+
                 qsub <<EOF
                 #!/bin/bash
                 #PBS -l wd,walltime=5:00:00,mem=190GB,ncpus=48,jobfs=1GB
@@ -163,15 +163,15 @@ with dag:
                 #PBS -q {{params.queue}}
                 #PBS -l storage=gdata/v10+gdata/fk4+gdata/rs0+gdata/if87
                 #PBS -W umask=33
-                #PBS -N cog_{{params.product}} 
-                
-        
+                #PBS -N cog_{{params.product}}
+
+
                 module load {{params.module}}
                 module load openmpi/3.1.4
 
                 mpirun --tag-output dea-cogger mpi-convert --product-name "{{params.product}}" \\
                  --output-dir "{{work_dir}}/out/" {{params.product}}_file_list.txt
-                
+
                 EOF
             """
             ),
@@ -193,7 +193,7 @@ with dag:
                 COMMON
                 + """
                 cd {{work_dir}}
-                
+
                 qsub <<EOF
                 #!/bin/bash
                 #PBS -l wd,walltime=5:00:00,mem=190GB,ncpus=48,jobfs=1GB
@@ -201,14 +201,14 @@ with dag:
                 #PBS -q {{params.queue}}
                 #PBS -l storage=gdata/v10+gdata/fk4+gdata/rs0+gdata/if87
                 #PBS -W umask=33
-                #PBS -N cog_{{params.product}} 
-                
-        
+                #PBS -N cog_{{params.product}}
+
+
                 module load {{params.module}}
                 module load openmpi/3.1.4
 
                 mpirun --tag-output dea-cogger verify --rm-broken "{{work_dir}}/out"
-                
+
                 EOF
             """
             ),
@@ -235,10 +235,10 @@ with dag:
 
             # See what AWS creds we've got
             aws sts get-caller-identity
-            
+
             aws s3 sync "{{work_dir}}/out/{{ params.prefix_path }}" {{ params.dest }}{{ params.prefix_path }} \\
             --exclude '*.yaml'
-            
+
             # Upload YAMLs second, and only if uploading the COGs worked
             aws s3 sync "{{work_dir}}/out/{{ params.prefix_path }}" {{ params.dest }}{{ params.prefix_path }} \\
             --exclude '*' --include '*.yaml'

@@ -26,10 +26,7 @@ DEFAULT_ARGS = {
     "index_sqs_queue": "dea-dev-eks-landsat-c3-indexing",
     "archive_sqs_queue": "dea-dev-eks-landsat-c3-archiving",
     "products": "ga_ls5t_ard_3 ga_ls7e_ard_3 ga_ls8c_ard_3",
-    "env_vars": {
-        "DB_HOSTNAME": "db-writer",
-        "DB_DATABASE": "ows",
-    },
+    "env_vars": {"DB_HOSTNAME": "db-writer", "DB_DATABASE": "ows"},
     # Lift secrets into environment variables
     "secrets": [
         Secret("env", "DB_USERNAME", "ows-db", "postgres-username"),
@@ -41,7 +38,10 @@ DEFAULT_ARGS = {
             "AWS_DEFAULT_REGION",
         ),
         Secret(
-            "env", "AWS_ACCESS_KEY_ID", "processing-landsat-3-aws-creds", "AWS_ACCESS_KEY_ID"
+            "env",
+            "AWS_ACCESS_KEY_ID",
+            "processing-landsat-3-aws-creds",
+            "AWS_ACCESS_KEY_ID",
         ),
         Secret(
             "env",

@@ -91,9 +91,7 @@ with pipeline:
         response_check=lambda response: True if response.ok else False,
         poke_interval=2,
         # Extra options for the ‘requests’ library, see the ‘requests’ documentation (options to modify timeout, ssl, etc.)
-        extra_options={
-            "verify": False,
-        },
+        extra_options={"verify": False},
     )
 
     # [START task_http_egg_svc_check]
@@ -105,9 +103,7 @@ with pipeline:
         image=CURL_SVC_IMAGE,
         is_delete_operator_pod=True,
         arguments=["--verbose", "http://{{ params.egg_svc_name }}:9200"],
-        labels={
-            "runner": "airflow",
-        },
+        labels={"runner": "airflow"},
         get_logs=True,
     )
 
@@ -119,9 +115,7 @@ with pipeline:
         image_pull_policy="IfNotPresent",
         image=EGGLOADER_SVC_IMAGE,
         is_delete_operator_pod=True,
-        labels={
-            "runner": "airflow",
-        },
+        labels={"runner": "airflow"},
         env_vars={
             "DATA_DIR": "{{ params.egg_svc_data_dir }}",
             "ELASTIC_SCHEME": "http",
