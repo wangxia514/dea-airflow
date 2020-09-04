@@ -66,7 +66,7 @@ dag = DAG(
     dag_id=DAG_NAME,
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
-    schedule_interval="0 */1 * * *",
+    schedule_interval=None,
     catchup=False,
     tags=["k8s", "explorer"],
 )

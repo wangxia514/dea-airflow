@@ -77,7 +77,11 @@ def ows_update_extent_subdag(
             """
             datacube-ows-update --views;
             for product in %s; do
-                datacube-ows-update $product;
+                if [ $product == "--all" ]; then
+                    datacube-ows-update
+                else
+                    datacube-ows-update $product;
+                fi
             done;
         """
         )

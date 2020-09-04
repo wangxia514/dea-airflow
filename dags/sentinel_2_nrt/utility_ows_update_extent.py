@@ -3,9 +3,20 @@
 ### ows update ranges
 This is utility is to provide administrators the easy accessiblity to run ad-hoc --views and update-ranges
 
-##### commands to run
+#### default run
     `datacube-ows-update --views`
-    `datacube-ows-update s2_nrt_granule_`
+    `datacube-ows-update s2_nrt_granule_nbar_t`
+
+#### Utility customisation
+The DAG can be parameterized with run time configuration `products`
+
+To run with all, set `dag_run.conf.products` to `--all`
+otherwise provide products to be refreshed seperated by space, i.e. `s2a_nrt_granule s2b_nrt_granule`
+dag_run.conf format:
+
+#### example conf in json format
+    "products": "--all"
+    "products": "s2a_nrt_granule s2b_nrt_granule"
 """
 
 from airflow import DAG
@@ -58,7 +69,7 @@ dag = DAG(
     dag_id=DAG_NAME,
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
-    schedule_interval="0 */1 * * *",
+    schedule_interval=None,
     catchup=False,
     tags=["k8s", "ows"],
 )
