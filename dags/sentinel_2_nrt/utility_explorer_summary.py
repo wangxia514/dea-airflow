@@ -103,10 +103,4 @@ with dag:
         ),
     )
 
-    START = DummyOperator(task_id="start_explorer_refresh_stats")
-
-    COMPLETE = DummyOperator(task_id="all_done")
-
-    START >> SET_PRODUCTS
     SET_PRODUCTS >> EXPLORER_SUMMARY
-    EXPLORER_SUMMARY >> COMPLETE

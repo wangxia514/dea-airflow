@@ -36,7 +36,6 @@ from env_var.infra import (
     SECRET_AWS_NAME,
 )
 from sentinel_2_nrt.env_cfg import (
-    OWS_CFG_PATH,
     UPDATE_EXTENT_PRODUCTS,
 )
 
@@ -97,14 +96,11 @@ with dag:
     OWS_UPDATE_EXTENTS = SubDagOperator(
         task_id="run-ows-update-ranges",
         subdag=ows_update_extent_subdag(
-            DAG_NAME, "run-ows-update-ranges", DEFAULT_ARGS, SET_REFRESH_PRODUCT_TASK_NAME
+            DAG_NAME,
+            "run-ows-update-ranges",
+            DEFAULT_ARGS,
+            SET_REFRESH_PRODUCT_TASK_NAME,
         ),
     )
 
-    START = DummyOperator(task_id="start_ows_update_ranges")
-
-    COMPLETE = DummyOperator(task_id="all_done")
-
-    START >> SET_PRODUCTS
     SET_PRODUCTS >> OWS_UPDATE_EXTENTS
-    OWS_UPDATE_EXTENTS >> COMPLETE

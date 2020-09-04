@@ -12,10 +12,12 @@ from textwrap import dedent
 import kubernetes.client.models as k8s
 
 from sentinel_2_nrt.images import OWS_CONFIG_IMAGE, OWS_IMAGE
-from sentinel_2_nrt.env_cfg import OWS_CFG_PATH, OWS_CFG_MOUNT_PATH, OWS_CFG_IMAGEPATH
-
-
-UPDATE_EXTENT_PRODUCTS = "s2_nrt_granule_nbar_t"
+from sentinel_2_nrt.env_cfg import (
+    OWS_CFG_PATH,
+    OWS_CFG_MOUNT_PATH,
+    OWS_CFG_IMAGEPATH,
+    UPDATE_EXTENT_PRODUCTS,
+)
 
 # MOUNT OWS_CFG via init_container
 # for main container mount
@@ -61,7 +63,6 @@ def ows_update_extent_subdag(
     Returns:
         [type]: [subdag for processing]
     """
-    # append ows specific env_vars to args
 
     if xcom_task_id:
         products = (
@@ -72,6 +73,7 @@ def ows_update_extent_subdag(
     else:
         products = UPDATE_EXTENT_PRODUCTS
 
+    # append ows specific env_vars to args
     ows_env_cfg = {
         "WMS_CONFIG_PATH": OWS_CFG_PATH,
         "DATACUBE_OWS_CFG": "config.ows_cfg.ows_cfg",
