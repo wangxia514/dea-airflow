@@ -19,9 +19,6 @@ from sentinel_2_nrt.env_cfg import (
     UPDATE_EXTENT_PRODUCTS,
 )
 
-
-UPDATE_EXTENT_PRODUCTS = "s2_nrt_granule_nbar_t"
-
 # MOUNT OWS_CFG via init_container
 # for main container mount
 ows_cfg_mount = VolumeMount(
