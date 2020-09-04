@@ -99,7 +99,7 @@ with dag:
     OWS_UPDATE_EXTENTS = SubDagOperator(
         task_id="run-ows-update-ranges",
         subdag=ows_update_extent_subdag(
-            DAG_NAME, "run-ows-update-ranges", DEFAULT_ARGS
+            DAG_NAME, "run-ows-update-ranges", DEFAULT_ARGS, SET_REFRESH_PRODUCT_TASK_NAME
         ),
     )
 
