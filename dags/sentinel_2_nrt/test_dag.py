@@ -13,12 +13,15 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.kubernetes.secret import Secret
 from airflow.operators.subdag_operator import SubDagOperator
 from sentinel_2_nrt.subdag_explorer_summary import explorer_refresh_stats_subdag
-from env_var.infra import DB_DATABASE, DB_HOSTNAME
+from env_var.infra import (
+    DB_DATABASE,
+    DB_HOSTNAME,
+    SECRET_EXPLORER_NAME,
+    SECRET_AWS_NAME,
+)
 from sentinel_2_nrt.env_cfg import (
     INDEXING_PRODUCTS,
     foo,
-    SECRET_EXPLORER_NAME,
-    SECRET_AWS_NAME,
 )
 from sentinel_2_nrt.test_subdag import subdag_test
 
@@ -87,5 +90,5 @@ with dag:
 
     t4 = SubDagOperator(
         task_id="test_variable",
-        subdag=subdag_test(DAG_NAME, "test_variable", DEFAULT_ARGS)
+        subdag=subdag_test(DAG_NAME, "test_variable", DEFAULT_ARGS),
     )

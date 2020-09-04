@@ -12,7 +12,7 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.kubernetes.secret import Secret
 from sentinel_2_nrt.env_cfg import INDEXING_PRODUCTS
 from sentinel_2_nrt.images import EXPLORER_IMAGE
-from sentinel_2_nrt.env_cfg import DB_DATABASE, SECRET_EXPLORER_NAME, SECRET_AWS_NAME
+from env_var.infra import DB_DATABASE, SECRET_EXPLORER_NAME, SECRET_AWS_NAME
 
 
 EXPLORER_SECRETS = [

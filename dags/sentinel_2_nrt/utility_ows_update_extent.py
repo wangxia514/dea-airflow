@@ -29,13 +29,15 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.kubernetes.secret import Secret
 from airflow.operators.subdag_operator import SubDagOperator
 from sentinel_2_nrt.subdag_ows_views import ows_update_extent_subdag
-
-from sentinel_2_nrt.env_cfg import (
+from env_var.infra import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_OWS_NAME,
-    UPDATE_EXTENT_PRODUCTS,
     SECRET_AWS_NAME,
+)
+from sentinel_2_nrt.env_cfg import (
+    OWS_CFG_PATH,
+    UPDATE_EXTENT_PRODUCTS,
 )
 
 DAG_NAME = "utility_ows-update-extent"
@@ -54,6 +56,8 @@ DEFAULT_ARGS = {
         # TODO: Pass these via templated params in DAG Run
         "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
+        "WMS_CONFIG_PATH": OWS_CFG_PATH,
+        "DATACUBE_OWS_CFG": "config.ows_cfg.ows_cfg",
     },
     # Lift secrets into environment variables
     "secrets": [

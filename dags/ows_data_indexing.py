@@ -66,8 +66,6 @@ DEFAULT_ARGS = {
         # TODO: Pass these via templated params in DAG Run
         "DB_HOSTNAME": "db-writer",
         "DB_DATABASE": DB_DATABASE,
-        "WMS_CONFIG_PATH": OWS_CFG_PATH,
-        "DATACUBE_OWS_CFG": "config.ows_cfg.ows_cfg",
     },
     # Lift secrets into environment variables
     "secrets": [
