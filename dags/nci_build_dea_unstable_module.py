@@ -41,7 +41,7 @@ with dag:
         git status
         module load python3/3.7.4
         pip3 install --user pyyaml jinja2
-        
+
         rm -rf /g/data/v10/public/modules/dea/unstable/
         ./build_environment_module.py dea_unstable/modulespec.yaml
         """,

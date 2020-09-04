@@ -20,7 +20,7 @@ UPDATE_EXTENT_PRODUCTS = "s2_nrt_granule_nbar_t"
 
 
 # Environment shared variables read from airflow variable config
-SQS_QUEUE_NAME =  Variable.get("sqs_queue_name", "dea-dev-eks-ows-dag")
+SQS_QUEUE_NAME = Variable.get("sqs_queue_name", "dea-dev-eks-ows-dag")
 INDEXING_ROLE = Variable.get("indexing_role", "dea-dev-eks-orchestration")
 
 SECRET_AWS_NAME = Variable.get("secret_aws_name", "processing-aws-creds-dev")

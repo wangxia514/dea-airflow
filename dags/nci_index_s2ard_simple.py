@@ -31,11 +31,7 @@ default_args = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
-    "params": {
-        "project": "v10",
-        "module": "dea/unstable",
-        "queue": "normal",
-    },
+    "params": {"project": "v10", "module": "dea/unstable", "queue": "normal"},
 }
 
 with DAG(
@@ -60,7 +56,7 @@ with DAG(
         today=$(date -I)
 
         dates=()
-        for i in {0..120}; do 
+        for i in {0..120}; do
             new_date=$(date -I -d "$today -$i days")
             if [[ -d $new_date ]]; then
                 dates+=( $new_date )

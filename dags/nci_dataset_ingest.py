@@ -58,10 +58,10 @@ with ingest_dag:
     COMMON = """
         {% set work_dir = '/g/data/v10/work/ingest/' + params.ing_product + '/' + ds -%}
         {% set task_file = 'tasks.bin' -%}
-        
+
         module use /g/data/v10/public/modules/modulefiles;
         module load {{ params.module }};
-        
+
         mkdir -p {{work_dir}};
         cd {{work_dir}};
     """
@@ -69,9 +69,9 @@ with ingest_dag:
     save_tasks_command = dedent(
         COMMON
         + """
-        {% set ingestion_config = '/g/data/v10/public/modules/' + params.module + 
+        {% set ingestion_config = '/g/data/v10/public/modules/' + params.module +
             '/lib/python3.6/site-packages/digitalearthau/config/ingestion/' + params.ing_product + '.yaml' %}
-            
+
         datacube -v ingest --year {{params.year}} --config-file {{ingestion_config}} --save-tasks {{task_file}}
     """
     )
@@ -86,7 +86,7 @@ with ingest_dag:
     qsubbed_ingest_command = dedent(
         COMMON
         + """
-        {% set distributed_script = '/g/data/v10/public/modules/' + params.module + 
+        {% set distributed_script = '/g/data/v10/public/modules/' + params.module +
             '/lib/python3.6/site-packages/digitalearthau/run_distributed.sh' %}
         {% set distributed_script = '/home/547/lpgs/bin/run_distributed.sh' %}
 
@@ -142,5 +142,5 @@ with ingest_dag:
 f = open('tasks.bin', 'rb')
 while pickle.load(f): n += 1                                                                                                                                                                                      │··········
                                                                                                                                                                                                                           │··········
-EOFError: Ran out of input        
+EOFError: Ran out of input
 """

@@ -109,7 +109,9 @@ def publish_sns(sns_topic, message, message_attributes):
         raise S3SyncException(str(exception))
 
 
-def upload_checksum(nci_metadata_file_path, checksum_file_path, new_checksum_list, s3_bucket, s3_path):
+def upload_checksum(
+    nci_metadata_file_path, checksum_file_path, new_checksum_list, s3_bucket, s3_path
+):
     """
     Updates and uploads checksum file
 
@@ -176,7 +178,9 @@ def get_common_message_attributes(stac_doc: Dict) -> Dict:
     if cloudcover:
         msg_attributes["cloudcover"] = {
             "DataType": "Number",
-            "StringValue": str(dicttoolz.get_in(["properties", "eo:cloud_cover"], stac_doc)),
+            "StringValue": str(
+                dicttoolz.get_in(["properties", "eo:cloud_cover"], stac_doc)
+            ),
         }
 
     bbox = dicttoolz.get_in(["bbox"], stac_doc)
@@ -201,7 +205,9 @@ def get_common_message_attributes(stac_doc: Dict) -> Dict:
     return msg_attributes
 
 
-def update_metadata(nci_metadata_file, s3_bucket, s3_base_url, explorer_base_url, sns_topic, s3_path):
+def update_metadata(
+    nci_metadata_file, s3_bucket, s3_base_url, explorer_base_url, sns_topic, s3_path
+):
     """
     Uploads updated metadata with nbar element removed, updated checksum file, STAC doc created
     and publish SNS message
@@ -252,8 +258,12 @@ def update_metadata(nci_metadata_file, s3_bucket, s3_base_url, explorer_base_url
     # Dump metadata yaml into buffer
     with io.BytesIO() as temp_yaml:
         serialise.dumps_yaml(temp_yaml, temp_metadata)
-        temp_yaml.seek(0)  # Seek back to the beginning of the file before next read/write
-        new_checksum_list[nci_metadata_file_path.name] = verify.calculate_hash(temp_yaml)
+        temp_yaml.seek(
+            0
+        )  # Seek back to the beginning of the file before next read/write
+        new_checksum_list[nci_metadata_file_path.name] = verify.calculate_hash(
+            temp_yaml
+        )
 
         # Write odc metadata yaml object into S3
         s3_metadata_file = f"{s3_path}/{nci_metadata_file_path.name}"
@@ -283,7 +293,9 @@ def update_metadata(nci_metadata_file, s3_bucket, s3_base_url, explorer_base_url
     # Write stac json to buffer
     with io.BytesIO() as temp_stac:
         temp_stac.write(stac_dump.encode())
-        temp_stac.seek(0)  # Seek back to the beginning of the file before next read/write
+        temp_stac.seek(
+            0
+        )  # Seek back to the beginning of the file before next read/write
         new_checksum_list[stac_output_file_path.name] = verify.calculate_hash(temp_stac)
 
         # Write stac metadata json object into S3
@@ -300,12 +312,7 @@ def update_metadata(nci_metadata_file, s3_bucket, s3_base_url, explorer_base_url
     # Publish message containing STAC metadata to SNS Topic
     message_attributes = get_common_message_attributes(json.loads(stac_dump))
     message_attributes.update(
-        {
-            "action": {
-                "DataType": "String",
-                "StringValue": "ADDED",
-            }
-        }
+        {"action": {"DataType": "String", "StringValue": "ADDED"}}
     )
     try:
         publish_sns(sns_topic, stac_dump, message_attributes)
@@ -331,10 +338,14 @@ def update_metadata(nci_metadata_file, s3_bucket, s3_base_url, explorer_base_url
             f"Finished uploading checksum file " f"{s3_path}/{checksum_file_path.name}"
         )
     except S3SyncException as exp:
-        LOG.error(f"Failed uploading checksum file "
-                  f"{s3_path}/{checksum_file_path.name} - {exp}")
-        metadata_error_list.append(f"Failed uploading checksum file "
-                                   f"{s3_path}/{checksum_file_path.name} - {exp}")
+        LOG.error(
+            f"Failed uploading checksum file "
+            f"{s3_path}/{checksum_file_path.name} - {exp}"
+        )
+        metadata_error_list.append(
+            f"Failed uploading checksum file "
+            f"{s3_path}/{checksum_file_path.name} - {exp}"
+        )
 
     return metadata_error_list
 
@@ -351,9 +362,7 @@ def archive_granule(granule, s3_root_path, s3_bucket):
     s3_path = f"s3://{s3_bucket}/{s3_root_path}/{granule}"
 
     # Remove any data that shouldn't be there and exclude the metadata
-    command = f"aws s3 rm {s3_path} " \
-              "--only-show-error " \
-              "--recursive "
+    command = f"aws s3 rm {s3_path} " "--only-show-error " "--recursive "
 
     return_code = subprocess.call(command, shell=True)
 
@@ -375,13 +384,15 @@ def sync_granule(granule, nci_dir, s3_root_path, s3_bucket):
     s3_path = f"s3://{s3_bucket}/{s3_root_path}/{granule}"
 
     # Remove any data that shouldn't be there and exclude the metadata
-    command = f"aws s3 sync {local_path} {s3_path} " \
-              "--only-show-errors " \
-              "--delete " \
-              "--exclude ga_*_nbar_*.* " \
-              "--exclude ga_*_nbar-*.* " \
-              "--exclude *.sha1 " \
-              "--exclude ga_*.odc-metadata.yaml"
+    command = (
+        f"aws s3 sync {local_path} {s3_path} "
+        "--only-show-errors "
+        "--delete "
+        "--exclude ga_*_nbar_*.* "
+        "--exclude ga_*_nbar-*.* "
+        "--exclude *.sha1 "
+        "--exclude ga_*.odc-metadata.yaml"
+    )
 
     return_code = subprocess.call(command, shell=True)
 
@@ -389,7 +400,16 @@ def sync_granule(granule, nci_dir, s3_root_path, s3_bucket):
         raise S3SyncException(f"Failed running S3 sync command")
 
 
-def sync_granules(file_path, nci_dir, s3_root_path, s3_bucket, s3_base_url, explorer_base_url, sns_topic, update=False):
+def sync_granules(
+    file_path,
+    nci_dir,
+    s3_root_path,
+    s3_bucket,
+    s3_base_url,
+    explorer_base_url,
+    sns_topic,
+    update=False,
+):
     """
     Sync granules to S3 bucket for specified dates
 
@@ -448,10 +468,16 @@ def sync_granules(file_path, nci_dir, s3_root_path, s3_bucket, s3_base_url, expl
                             }
                         )
                         try:
-                            publish_sns(sns_topic, json.dumps(stac_dump), message_attributes)
-                            LOG.info(f"Finished publishing SNS Message to SNS Topic {sns_topic}")
+                            publish_sns(
+                                sns_topic, json.dumps(stac_dump), message_attributes
+                            )
+                            LOG.info(
+                                f"Finished publishing SNS Message to SNS Topic {sns_topic}"
+                            )
                         except S3SyncException as exp:
-                            LOG.error(f"Failed publishing SNS Message to SNS Topic {sns_topic} - {exp}")
+                            LOG.error(
+                                f"Failed publishing SNS Message to SNS Topic {sns_topic} - {exp}"
+                            )
                             error_list.append(
                                 f"Failed publishing SNS Message to SNS Topic {sns_topic} - {exp}"
                             )
@@ -478,7 +504,9 @@ def sync_granules(file_path, nci_dir, s3_root_path, s3_bucket, s3_base_url, expl
                     # /analysis-ready-data/ga_ls5t_ard_3/088/080/1990/11/15
                     # /ga_ls5t_ard_3-0-0_088080_1990-11-15_final.odc-metadata.yaml
 
-                    already_processed = check_granule_exists(s3_bucket, s3_metadata_file)
+                    already_processed = check_granule_exists(
+                        s3_bucket, s3_metadata_file
+                    )
 
                     # Check if already processed and update flag set to force replace
                     if not already_processed or update:
@@ -496,7 +524,12 @@ def sync_granules(file_path, nci_dir, s3_root_path, s3_bucket, s3_base_url, expl
                             )
 
                         metadata_update_error_list = update_metadata(
-                            metadata_file, s3_bucket, s3_base_url, explorer_base_url, sns_topic, s3_path
+                            metadata_file,
+                            s3_bucket,
+                            s3_base_url,
+                            explorer_base_url,
+                            sns_topic,
+                            s3_path,
                         )
                         error_list.extend(metadata_update_error_list)
 
@@ -540,7 +573,16 @@ class S3SyncException(Exception):
 @click.option("--explorerbaseurl", "-e", type=str, default="")
 @click.option("--snstopic", "-t", type=str, required=True)
 @click.option("--force-update", is_flag=True)
-def main(filepath, ncidir, s3path, s3bucket, s3baseurl, explorerbaseurl, snstopic, force_update):
+def main(
+    filepath,
+    ncidir,
+    s3path,
+    s3bucket,
+    s3baseurl,
+    explorerbaseurl,
+    snstopic,
+    force_update,
+):
     """
     Script to sync Collection 3 data from NCI to AWS S3 bucket
 
@@ -554,14 +596,25 @@ def main(filepath, ncidir, s3path, s3bucket, s3baseurl, explorerbaseurl, snstopi
     :param force_update: If this flag is set then do a fresh sync of data and
     replace the metadata
     """
-    LOG.info(f"Syncing granules listed in file {filepath} "
-             f"from NCI dir {ncidir} "
-             f"into the {s3bucket}/{s3path} and "
-             f"S3 base URL is {s3baseurl} and "
-             f"explorerbaseurl is {explorerbaseurl} and "
-             f"snstopic is {snstopic} and "
-             f"update is {force_update}")
-    sync_granules(filepath, ncidir, s3path, s3bucket, s3baseurl, explorerbaseurl, snstopic, force_update)
+    LOG.info(
+        f"Syncing granules listed in file {filepath} "
+        f"from NCI dir {ncidir} "
+        f"into the {s3bucket}/{s3path} and "
+        f"S3 base URL is {s3baseurl} and "
+        f"explorerbaseurl is {explorerbaseurl} and "
+        f"snstopic is {snstopic} and "
+        f"update is {force_update}"
+    )
+    sync_granules(
+        filepath,
+        ncidir,
+        s3path,
+        s3bucket,
+        s3baseurl,
+        explorerbaseurl,
+        snstopic,
+        force_update,
+    )
 
 
 if __name__ == "__main__":

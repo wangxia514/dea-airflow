@@ -38,31 +38,31 @@ collection3_products = ["ga_ls5t_ard_3", "ga_ls7e_ard_3", "ga_ls8c_ard_3"]
 LIST_SCENES_COMMAND = """
     mkdir -p {{ work_dir }};
     cd {{ work_dir }}
-    
+
     echo "Execution date: {{ execution_date }} - {{ execution_date.timestamp() }}"
 
     # echo on and exit on fail
     set -eu
-    
+
     # Load the latest stable DEA module
     module use /g/data/v10/public/modules/modulefiles
     module load dea/unstable
-    
+
     # Be verbose and echo what we run
     set -x
-    
+
     args="-h dea-db.nci.org.au datacube -t -A -F,"
-    query="SELECT dsl.uri_body, ds.archived, ds.added, 
-    to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra' as exec_dt 
-    FROM agdc.dataset ds 
-    INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id 
-    INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref 
-    WHERE dst.name='{{ params.product }}' 
-    AND (ds.added BETWEEN 
-    (to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra' - interval '1 day') 
-    AND (to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra') 
-    OR ds.archived BETWEEN 
-    (to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra' - interval '1 day') 
+    query="SELECT dsl.uri_body, ds.archived, ds.added,
+    to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra' as exec_dt
+    FROM agdc.dataset ds
+    INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id
+    INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref
+    WHERE dst.name='{{ params.product }}'
+    AND (ds.added BETWEEN
+    (to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra' - interval '1 day')
+    AND (to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra')
+    OR ds.archived BETWEEN
+    (to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra' - interval '1 day')
     AND (to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra') )
     ;"
     output_file={{ work_dir }}/{{ params.product }}.csv
@@ -87,7 +87,7 @@ RUN_UPLOAD_SCRIPT = """
     # Export AWS Access key/secret from Airflow connection module
     export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
     export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
-    
+
     python3 '{{ work_dir }}/c3_to_s3_rolling.py' \
             -f '{{ work_dir }}/{{ params.product }}.csv' \
             -n '{{ params.nci_dir }}' \
@@ -128,7 +128,7 @@ with dag:
     for product in collection3_products:
         WORK_DIR = f'/g/data/v10/work/c3_upload_s3/{product}/{"{{ ts_nodash }}"}'
         COMMON = """
-                {% set work_dir = '/g/data/v10/work/c3_upload_s3/' 
+                {% set work_dir = '/g/data/v10/work/c3_upload_s3/'
                 + params.product  +'/' + ts_nodash -%}
                 """
         # List all the scenes to be uploaded to S3 bucket

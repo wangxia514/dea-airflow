@@ -41,7 +41,7 @@ DEFAULT_ARGS = {
     },
     # Lift secrets into environment variables
     "secrets": [
-        Secret("env", "AWS_DEFAULT_REGION", SECRET_AWS_NAME, "AWS_DEFAULT_REGION"),
+        Secret("env", "AWS_DEFAULT_REGION", SECRET_AWS_NAME, "AWS_DEFAULT_REGION")
     ],
 }
 
@@ -87,5 +87,5 @@ with dag:
 
     t4 = SubDagOperator(
         task_id="test_variable",
-        subdag=subdag_test(DAG_NAME, "test_variable", DEFAULT_ARGS)
+        subdag=subdag_test(DAG_NAME, "test_variable", DEFAULT_ARGS),
     )
