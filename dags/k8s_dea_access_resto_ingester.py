@@ -154,9 +154,7 @@ with pipeline:
         image=CURL_SVC_IMAGE,
         is_delete_operator_pod=True,
         arguments=["--verbose", "http://{{ params.RESTO_SVC_NAME }}"],
-        labels={
-            "runner": "airflow",
-        },
+        labels={"runner": "airflow"},
         resources={
             "request_cpu": "250m",
             "request_memory": "32Mi",
@@ -177,9 +175,7 @@ with pipeline:
         image=CURL_SVC_IMAGE,
         is_delete_operator_pod=True,
         arguments=["--verbose", "http://{{ params.ITAG_SVC_NAME }}"],
-        labels={
-            "runner": "airflow",
-        },
+        labels={"runner": "airflow"},
         resources={
             "request_cpu": "250m",
             "request_memory": "32Mi",
@@ -222,9 +218,7 @@ with pipeline:
                     image_pull_policy="Always",
                     image=STAC2RESTO_IMAGE,
                     is_delete_operator_pod=True,  # clean pod
-                    labels={
-                        "runner": "airflow",
-                    },
+                    labels={"runner": "airflow"},
                     env_vars={
                         "DEFAULT_TIMEOUT": "{{ params.DEFAULT_TIMEOUT }}",
                         "RESTO_URL": "{{ params.RESTO_URL }}",

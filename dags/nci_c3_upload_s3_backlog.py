@@ -47,24 +47,24 @@ LIST_SCENES_COMMAND = """
 
     # echo on and exit on fail
     set -eu
-    
+
     # Load the latest stable DEA module
     module use /g/data/v10/public/modules/modulefiles
     module load dea/unstable
-    
+
     # Be verbose and echo what we run
     set -x
-    
+
     args="-h dea-db.nci.org.au datacube -t -A -F,"
-    query="SELECT dsl.uri_body 
-    FROM agdc.dataset ds 
-    INNER JOIN agdc.dataset_type dst 
-    ON ds.dataset_type_ref = dst.id 
-    INNER JOIN agdc.dataset_location dsl 
-    ON ds.id = dsl.dataset_ref 
-    WHERE dst.name='{{ params.product }}' 
-    AND ds.archived IS NULL 
-    AND TO_DATE(ds.metadata -> 'properties' ->> 'datetime', 
+    query="SELECT dsl.uri_body
+    FROM agdc.dataset ds
+    INNER JOIN agdc.dataset_type dst
+    ON ds.dataset_type_ref = dst.id
+    INNER JOIN agdc.dataset_location dsl
+    ON ds.id = dsl.dataset_ref
+    WHERE dst.name='{{ params.product }}'
+    AND ds.archived IS NULL
+    AND TO_DATE(ds.metadata -> 'properties' ->> 'datetime',
     'YYYY-MM-DD') = TO_DATE('{{ ds }}', 'YYYY-MM-DD')
     ;"
     output_file={{ work_dir }}/{{ params.product }}.csv
@@ -89,7 +89,7 @@ RUN_UPLOAD_SCRIPT = """
     # Export AWS Access key/secret from Airflow connection module
     export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
     export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
-    
+
     python3 '{{ work_dir }}/c3_to_s3_rolling.py' \
             -f '{{ work_dir }}/{{ params.product }}.csv' \
             -n '{{ params.nci_dir }}' \
@@ -129,7 +129,7 @@ def create_dag(dag_id, product, start_date, end_date):
     with dag:
         WORK_DIR = f'/g/data/v10/work/c3_upload_s3/{product}/{"{{ ts_nodash }}"}'
         COMMON = """
-                {% set work_dir = '/g/data/v10/work/c3_upload_s3/' 
+                {% set work_dir = '/g/data/v10/work/c3_upload_s3/'
                 + params.product  +'/' + ts_nodash -%}
                 """
         # List all the scenes to be uploaded to S3 bucket

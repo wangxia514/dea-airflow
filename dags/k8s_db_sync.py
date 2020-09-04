@@ -6,7 +6,7 @@ running [Explorer](https://github.com/opendatacube/datacube-explorer)
 and [Resto](https://github.com/jjrom/resto).
 
 [Waits for S3Key](https://gist.github.com/nehiljain/6dace5faccb680653f7ea4d5d5273946)
-for a day's backup to be available via 
+for a day's backup to be available via
 [S3KeySensor](https://airflow.apache.org/docs/stable/_api/airflow/sensors/s3_key_sensor/index.html)
 and excutes downstream task including verifying backup
 integrity using md5sum

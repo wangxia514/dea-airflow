@@ -48,7 +48,7 @@ with DAG(
 
         host=105
         file_prefix="105-{{ ds_nodash }}"
-        
+
     """
     )
 
@@ -82,15 +82,13 @@ with DAG(
     aws_conn = AwsHook(aws_conn_id="aws_nci_db_backup")
     upload_to_s3 = SSHOperator(
         task_id="upload_to_s3",
-        params={
-            "aws_conn": aws_conn.get_credentials(),
-        },
+        params={"aws_conn": aws_conn.get_credentials()},
         command=COMMON
         + dedent(
             """
             export AWS_ACCESS_KEY_ID={{params.aws_conn.access_key}}
             export AWS_SECRET_ACCESS_KEY={{params.aws_conn.secret_key}}
-            
+
             s3_dump_file=s3://nci-db-dump/prod/"${file_prefix}-datacube.pgdump"
             aws s3 cp "${file_prefix}-datacube.pgdump" "${s3_dump_file}"
 
@@ -132,9 +130,7 @@ with DAG(
 
     upload_csvs_to_s3 = SSHOperator(
         task_id="upload_csvs_to_s3",
-        params={
-            "aws_conn": aws_conn.get_credentials(),
-        },
+        params={"aws_conn": aws_conn.get_credentials()},
         command=COMMON
         + dedent(
             """

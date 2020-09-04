@@ -94,14 +94,14 @@ dag = DAG(
     tags=["k8s"],
 )
 
+
 def print_context(ds):
     print(ds, type(ds))
     if ds:
         print("empty string is also a true?")
     else:
         print("else statement")
-    return 'Whatever you return gets printed in the logs'
-
+    return "Whatever you return gets printed in the logs"
 
 
 with dag:
@@ -161,14 +161,11 @@ with dag:
     # UPDATE_RANGES >> COMPLETE
     # SUMMARY >> COMPLETE
 
-
     run_this = PythonOperator(
-        task_id='conf_value_check',
+        task_id="conf_value_check",
         python_callable=print_context,
-        op_args=["{{ dag_run.conf.test_value }}"]
+        op_args=["{{ dag_run.conf.test_value }}"],
     )
-
-
 
     START >> run_this
     run_this >> COMPLETE

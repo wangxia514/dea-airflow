@@ -24,10 +24,7 @@ default_args = {
     },
 }
 
-fc_products = [
-    "ls7_fc_albers",
-    "ls8_fc_albers",
-]
+fc_products = ["ls7_fc_albers", "ls8_fc_albers"]
 
 dag = DAG(
     "nci_fractional_cover",
@@ -55,11 +52,11 @@ with dag:
             command=COMMON
             + """
                 APP_CONFIG="$(datacube-fc list | grep "{{ params.product }}")";
-                
+
                 # 2020-03-19 - Workaround to avoid TCP connection timeouts on gadi.
                 # TODO: Get PGBouncer configuration updated
                 export DATACUBE_CONFIG_PATH=~/datacube-nopgbouncer.conf
-              
+
                 mkdir -p {{ work_dir }}
                 cd {{work_dir}}
                 datacube --version

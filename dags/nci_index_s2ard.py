@@ -17,11 +17,7 @@ default_args = {
     "email_on_retry": False,
     "retries": 0,
     "retry_delay": timedelta(minutes=5),
-    "params": {
-        "project": "v10",
-        "module": "dea/unstable",
-        "queue": "normal",
-    },
+    "params": {"project": "v10", "module": "dea/unstable", "queue": "normal"},
 }
 
 SYNC_COMMAND = """
@@ -58,9 +54,7 @@ with DAG(
         task_id=f"submit_sync_{product}",
         ssh_conn_id="lpgs_gadi",
         command=SYNC_COMMAND,
-        params={
-            "product": "s2_ard",
-        },
+        params={"product": "s2_ard"},
         do_xcom_push=True,
         timeout=90,  # For submitting PBS Job
     )

@@ -56,7 +56,7 @@ dag = DAG(
 with dag:
     WORK_DIR = "/g/data/v10/work/s2_nbar_rolling_archive/{{ ds }}_{{ var.json.nci_s2_upload_s3_config.numdays }}"
     COMMON = """
-            {% set work_dir = '/g/data/v10/work/s2_nbar_rolling_archive/' 
+            {% set work_dir = '/g/data/v10/work/s2_nbar_rolling_archive/'
             + ds +'_' + var.json.nci_s2_upload_s3_config.numdays -%}
             """
     # Uploading s2_to_s3_rolling.py script to NCI

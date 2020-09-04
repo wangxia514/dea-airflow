@@ -45,7 +45,7 @@ SYNC_COMMAND = """
   {% set work_dir = '/g/data/v10/work/sync/' + params.product + '/' + ds -%}
   {% set sync_cache_dir = work_dir + '/cache' -%}
   {% set sync_path = params.sync_prefix_path + params.year + params.sync_suffix_path -%}
-  
+
   mkdir -p {{ sync_cache_dir }};
   qsub -N sync_{{ params.product}}_{{ params.year }} \
   -q {{ params.queue }} \

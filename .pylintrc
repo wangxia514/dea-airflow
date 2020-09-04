@@ -1,5 +1,6 @@
 [MASTER]
 load-plugins=pylint_airflow
+ignore=sentinel_2_nrt
 
 [MESSAGES CONTROL]
 disable=all
