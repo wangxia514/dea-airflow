@@ -105,7 +105,7 @@ def ows_update_extent_subdag(
         volumes=[ows_cfg_volume],
         volume_mounts=[ows_cfg_mount],
         init_containers=[config_container],
-        # is_delete_operator_pod=True,
+        is_delete_operator_pod=True,
         dag=dag_subdag,
     )
 
