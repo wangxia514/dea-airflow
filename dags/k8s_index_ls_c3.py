@@ -46,14 +46,13 @@ DEFAULT_ARGS = {
         Secret(
             "env",
             "AWS_SECRET_ACCESS_KEY",
-            "processing-aws-creds-dev",
+            "processing-landsat-3-aws-creds",
             "AWS_SECRET_ACCESS_KEY",
         ),
     ],
 }
 
-# TODO: Need to change to final release image
-INDEXER_IMAGE = "opendatacube/datacube-index:0.0.8-54-gcad48c9"
+INDEXER_IMAGE = "opendatacube/datacube-index:0.0.9"
 
 
 dag = DAG(
