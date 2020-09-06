@@ -31,9 +31,9 @@ from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
 
 # TODO: Replace with actual start date and end date
 collection3_products = [
-    ["ga_ls5t_ard_3", datetime(1986, 8, 15), datetime(1986, 9, 15)],
-    ["ga_ls7e_ard_3", datetime(1999, 5, 28), datetime(1999, 6, 28)],
-    ["ga_ls8c_ard_3", datetime(2013, 3, 19), datetime(2013, 4, 19)],
+    ["ga_ls5t_ard_3", datetime(1986, 8, 15), datetime(1986, 10, 15)],
+    ["ga_ls7e_ard_3", datetime(1999, 5, 28), datetime(1999, 7, 28)],
+    ["ga_ls8c_ard_3", datetime(2013, 3, 19), datetime(2013, 5, 19)],
 ]
 
 # collection3_products = [["ga_ls5t_ard_3", datetime(1986, 8, 15), datetime(2011, 11, 16)],
@@ -112,7 +112,7 @@ def create_dag(dag_id, product, start_date, end_date):
         "email_on_failure": True,
         "email": "sachit.rajbhandari@ga.gov.au",
         "ssh_conn_id": "lpgs_gadi",
-        "aws_conn_id": "dea_public_data_upload",
+        "aws_conn_id": "dea_public_data_landsat_3_sync",
     }
 
     dag = DAG(
