@@ -1,5 +1,5 @@
 """
-# Sentinel-2 data routine upload to S3 bucket
+# Sentinel-2 data routine sync to S3 bucket
 
 This DAG runs tasks on Gadi at the NCI. This DAG routinely sync Sentinel-2
 data from NCI to AWS S3 bucket. It:
@@ -12,6 +12,7 @@ This DAG takes following input parameters from `nci_s2_upload_s3_config` variabl
 
  * `s3bucket`: Name of the S3 bucket. `"dea-public-data"`
  * `numdays`: Number of days to process before the execution date selected is `"0"`
+ * `enddate`: End date for process execution.`"2020-08-26"`
  * `doupdate`: Select update option as below to replace granules and metadata.
     * `'granule_metadata'` to update granules and metadata;
     * `'granule' to update'` granules without metadata;
@@ -23,6 +24,7 @@ from textwrap import dedent
 from pathlib import Path
 
 from airflow import DAG, configuration
+from airflow.models import Variable
 from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
@@ -40,6 +42,10 @@ default_args = {
     "aws_conn_id": "dea_public_data_upload",
 }
 
+# Loading DAG's end_date from Variable
+var = Variable.get("nci_s2_upload_s3_config", {}, deserialize_json=True)
+if var.get("enddate"):
+    default_args["end_date"] = var.get("enddate")
 
 dag = DAG(
     "nci_s2_upload_s3",
