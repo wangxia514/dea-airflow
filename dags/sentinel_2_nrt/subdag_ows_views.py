@@ -85,6 +85,7 @@ def ows_update_extent_subdag(
         "-c",
         dedent(
             """
+            echo "starting update-ranges --views"
             datacube-ows-update --views
             for product in %s; do
                 if [ $product == "--all" ]; then
