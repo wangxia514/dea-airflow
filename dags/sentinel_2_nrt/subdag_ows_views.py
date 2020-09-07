@@ -80,17 +80,17 @@ def ows_update_extent_subdag(
     }
     args.setdefault("env_vars", ows_env_cfg).update(ows_env_cfg)
 
-    # datacube-ows-update --views;
     OWS_BASH_COMMAND = [
         "bash",
         "-c",
         dedent(
             """
+            datacube-ows-update --views
             for product in %s; do
                 if [ $product == "--all" ]; then
                     datacube-ows-update
                 else
-                    datacube-ows-update $product;
+                    datacube-ows-update $product
                 fi
             done;
         """
