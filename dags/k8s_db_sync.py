@@ -8,7 +8,7 @@ and [Resto](https://github.com/jjrom/resto).
 [Waits for S3Key](https://gist.github.com/nehiljain/6dace5faccb680653f7ea4d5d5273946)
 for a day's backup to be available via
 [S3KeySensor](https://airflow.apache.org/docs/stable/_api/airflow/sensors/s3_key_sensor/index.html)
-and excutes downstream task including verifying backup
+and executes downstream task including verifying backup
 integrity using md5sum
 """
 
@@ -22,10 +22,10 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
+from env_var.infra import DB_HOSTNAME
 
 # Templated DAG arguments
 DB_DATABASE = "nci_{{ ds_nodash }}"
-DB_HOSTNAME = "db-writer"
 FILE_PREFIX = "dea-db.nci.org.au-{{ ds_nodash }}"
 S3_KEY = f"s3://nci-db-dump/prod/{FILE_PREFIX}-datacube.pgdump"
 
@@ -117,34 +117,6 @@ with dag:
         get_logs=True,
     )
 
-    # Enable PostGIS for explorer to use on the restored DB
-    # This will fail without superuser. Keep retrying slowly
-    # and wait for user to notice and manually do it then it should
-    # pass
-    # TODO: Use some other means e.g. new DB from templates with PostGIS
-    # preinstalled
-    ENABLE_POSTGRES = KubernetesPodOperator(
-        namespace="processing",
-        image=S3_TO_RDS_IMAGE,
-        cmds=["psql"],
-        arguments=[
-            "-h",
-            "$(DB_HOSTNAME)",
-            "-U",
-            "$(DB_USERNAME)",
-            "-d",
-            "$(DB_DATABASE)",
-            "-c",
-            "CREATE EXTENSION IF NOT EXISTS postgis;",
-        ],
-        retries=12,
-        retry_delay=timedelta(hours=1),
-        labels={"step": "enable_postgres"},
-        name="enable-postgres",
-        task_id="enable-postgres",
-        get_logs=True,
-    )
-
     # Restore to a local db and link it to explorer codebase and run summary
     SUMMARIZE_DATACUBE = KubernetesPodOperator(
         namespace="processing",
@@ -181,8 +153,6 @@ with dag:
     START >> S3_BACKUP_SENSE
     S3_BACKUP_SENSE >> RESTORE_RDS_S3
     RESTORE_RDS_S3 >> DYNAMIC_INDICES
-    RESTORE_RDS_S3 >> ENABLE_POSTGRES
-    ENABLE_POSTGRES >> SUMMARIZE_DATACUBE
     DYNAMIC_INDICES >> SUMMARIZE_DATACUBE
     SUMMARIZE_DATACUBE >> CHANGE_DB_OWNER
 
