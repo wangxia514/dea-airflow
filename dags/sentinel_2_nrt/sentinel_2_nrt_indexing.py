@@ -22,13 +22,13 @@ import kubernetes.client.models as k8s
 from sentinel_2_nrt.images import INDEXER_IMAGE
 from env_var.infra import (
     DB_DATABASE,
+    DB_HOSTNAME,
     SECRET_OWS_NAME,
     SECRET_AWS_NAME,
     INDEXING_ROLE,
 )
 from sentinel_2_nrt.env_cfg import (
     SQS_QUEUE_NAME,
-    OWS_CFG_PATH,
     INDEXING_PRODUCTS,
 )
 
@@ -44,10 +44,8 @@ DEFAULT_ARGS = {
     "retry_delay": timedelta(minutes=5),
     "env_vars": {
         # TODO: Pass these via templated params in DAG Run
-        "DB_HOSTNAME": "db-writer",
+        "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
-        "WMS_CONFIG_PATH": OWS_CFG_PATH,
-        "DATACUBE_OWS_CFG": "config.ows_cfg.ows_cfg",
     },
     # Lift secrets into environment variables
     "secrets": [
@@ -64,7 +62,7 @@ INDEXING_BASH_COMMAND = [
     dedent(
         """
         for product in %s; do
-            sqs-to-dc %s $product;
+            sqs-to-dc %s $product --skip-lineage --allow-unsafe --record-path "L2/sentinel-2-nrt/S2MSIARD/*/*/ARD-METADATA.yaml" --limit 1;
         done;
     """
     )
@@ -77,7 +75,8 @@ dag = DAG(
     "sentinel_2_nrt_indexing",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
-    schedule_interval="0 */1 * * *",
+    # schedule_interval="0 */1 * * *",  # hourly
+    schedule_interval=None,  # for testing
     catchup=False,
     tags=["k8s", "sentinel-2"],
 )
