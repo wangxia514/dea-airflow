@@ -82,6 +82,23 @@ s3_backup_mount = VolumeMount(
     "s3-backup-volume", mount_path=WORK_DIR, sub_path=None, read_only=False
 )
 
+affinity = {
+    'nodeAffinity': {
+        'requiredDuringSchedulingIgnoredDuringExecution': [
+            {
+                "labelSelector": {
+                    "matchExpressions": [
+                        {
+                            "key": "nodetype",
+                            "operator": "In",
+                            "values": ["spot"]
+                        }
+                    ]
+                },
+            }
+        ]
+    }
+}
 
 s3_backup_volume_config = {
     'persistentVolumeClaim':
@@ -117,6 +134,7 @@ with dag:
         task_id="s3-to-rds",
         get_logs=True,
         is_delete_operator_pod=True,
+        affinity=affinity,
     )
 
     # Restore dynamic indices skipped in the previous step
@@ -131,6 +149,7 @@ with dag:
         task_id="odc-indices",
         get_logs=True,
         is_delete_operator_pod=True,
+        affinity=affinity,
     )
 
     # Restore to a local db and link it to explorer codebase and run summary
@@ -144,6 +163,7 @@ with dag:
         task_id="summarize-datacube",
         get_logs=True,
         is_delete_operator_pod=True,
+        affinity=affinity,
     )
 
     # Hand ownership back to explorer DB user
@@ -158,6 +178,7 @@ with dag:
         task_id="change-db-owner",
         get_logs=True,
         is_delete_operator_pod=True,
+        affinity=affinity,
     )
 
     # Change DB connection config of application pods and spin up fresh ones
