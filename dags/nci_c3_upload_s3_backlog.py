@@ -50,7 +50,7 @@ LIST_SCENES_COMMAND = """
 
     # Load the latest stable DEA module
     module use /g/data/v10/public/modules/modulefiles
-    module load dea/unstable
+    module load dea
 
     # Be verbose and echo what we run
     set -x
@@ -81,7 +81,7 @@ RUN_UPLOAD_SCRIPT = """
 
     # Load the latest stable DEA module
     module use /g/data/v10/public/modules/modulefiles
-    module load dea/unstable
+    module load dea
 
     # Be verbose and echo what we run
     set -x
