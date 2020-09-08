@@ -21,6 +21,8 @@ from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
+from airflow.kubernetes.volume import Volume
+from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.dummy_operator import DummyOperator
 from env_var.infra import DB_HOSTNAME
 
@@ -28,6 +30,7 @@ from env_var.infra import DB_HOSTNAME
 DB_DATABASE = "nci_{{ ds_nodash }}"
 FILE_PREFIX = "dea-db.nci.org.au-{{ ds_nodash }}"
 S3_KEY = f"s3://nci-db-dump/prod/{FILE_PREFIX}-datacube.pgdump"
+WORK_DIR = "/tmp"
 
 DEFAULT_ARGS = {
     "owner": "Tisham Dhar",
@@ -75,6 +78,19 @@ dag = DAG(
     schedule_interval=timedelta(days=7),
 )
 
+s3_backup_mount = VolumeMount(
+    "s3-backup-volume", mount_path=WORK_DIR, sub_path=None, read_only=False
+)
+
+
+s3_backup_volume_config = {
+    'persistentVolumeClaim':
+        {
+            'claimName': "s3-backup-volume"
+        }
+}
+
+s3_backup_volume = Volume(name="s3-backup-volume", configs=s3_backup_volume_config)
 
 with dag:
     START = DummyOperator(task_id="nci_rds_sync")
@@ -86,22 +102,21 @@ with dag:
         aws_conn_id="aws_nci_db_backup",
     )
 
-    # Download PostgreSQL backup from S3 to within K8S storage
+    # Download PostgreSQL backup from S3 and restore to RDS Aurora
     RESTORE_RDS_S3 = KubernetesPodOperator(
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
-        # TODO: Pass this via DAG parameters
-        annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-processing-dbsync"},
+        annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-processing-dbsync"}, # TODO: Pass this via DAG parameters
         cmds=["/code/s3-to-rds.sh"],
-        # Accept DB_NAME, S3_KEY only
-        arguments=[DB_DATABASE, S3_KEY],
-        # TODO: Need to version the helper image properly once stable
-        image_pull_policy="Always",
-        # TODO: Need PVC to use as scratch space since Nodes don't have enough storage
+        arguments=[DB_DATABASE, S3_KEY, WORK_DIR],
+        image_pull_policy="Always", # TODO: Need to version the helper image properly once stable
+        volumes=[s3_backup_volume],
+        volume_mounts=[s3_backup_mount],
         labels={"step": "s3-to-rds"},
         name="s3-to-rds",
         task_id="s3-to-rds",
         get_logs=True,
+        is_delete_operator_pod=True,
     )
 
     # Restore dynamic indices skipped in the previous step
@@ -115,6 +130,7 @@ with dag:
         name="odc-indices",
         task_id="odc-indices",
         get_logs=True,
+        is_delete_operator_pod=True,
     )
 
     # Restore to a local db and link it to explorer codebase and run summary
@@ -127,6 +143,7 @@ with dag:
         name="summarize-datacube",
         task_id="summarize-datacube",
         get_logs=True,
+        is_delete_operator_pod=True,
     )
 
     # Hand ownership back to explorer DB user
@@ -140,6 +157,7 @@ with dag:
         name="change-db-owner",
         task_id="change-db-owner",
         get_logs=True,
+        is_delete_operator_pod=True,
     )
 
     # Change DB connection config of application pods and spin up fresh ones
