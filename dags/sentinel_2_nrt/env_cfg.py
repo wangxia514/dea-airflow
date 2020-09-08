@@ -13,7 +13,7 @@ OWS_CFG_PATH = OWS_CFG_MOUNT_PATH + "/ows_cfg.py"
 OWS_CFG_IMAGEPATH = "/opt/dea-config/dev/services/wms/ows/ows_cfg.py"
 
 # Process specific for sentinel indexing process
-INDEXING_PRODUCTS = "s2a_msi_nrt_granule s2b_msi_nrt_granule"
+INDEXING_PRODUCTS = "s2a_msiard_nrt_granule s2b_msiard_nrt_granule"
 ARCHIVE_PRODUCTS = INDEXING_PRODUCTS
 ARCHIVE_CONDITION = "[$(date -d '-365 day' +%F), $(date -d '-91 day' +%F)]"
 UPDATE_EXTENT_PRODUCTS = "s2_nrt_granule_nbar_t"
