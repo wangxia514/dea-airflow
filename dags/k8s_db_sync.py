@@ -16,9 +16,6 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.sensors.s3_key_sensor import S3KeySensor
-from airflow.contrib.operators.ssh_operator import SSHOperator
-from airflow.operators.bash_operator import BashOperator
-from airflow.operators.python_operator import PythonOperator
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from airflow.kubernetes.volume import Volume
@@ -66,7 +63,7 @@ DEFAULT_ARGS = {
 
 # Point to Geoscience Australia / OpenDataCube Dockerhub
 S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:latest"
-EXPLORER_IMAGE = "opendatacube/explorer:2.1.11-143-g4c4168c"
+EXPLORER_IMAGE = "opendatacube/explorer:2.1.11-151-g93e46e7"
 
 dag = DAG(
     "k8s_db_sync",
@@ -144,7 +141,6 @@ with dag:
         image=EXPLORER_IMAGE,
         cmds=["datacube"],
         arguments=["-v", "system", "init", "--lock-table"],
-        retry_delay=timedelta(minutes=20),
         labels={"step": "restore_indices"},
         name="odc-indices",
         task_id="odc-indices",
