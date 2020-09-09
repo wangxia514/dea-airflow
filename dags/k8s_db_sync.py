@@ -24,9 +24,10 @@ from airflow.kubernetes.secret import Secret
 from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.dummy_operator import DummyOperator
-from env_var.infra import DB_HOSTNAME
+# from env_var.infra import DB_HOSTNAME
 
 # Templated DAG arguments
+DB_HOSTNAME = "db-writer"
 DB_DATABASE = "nci_{{ ds_nodash }}"
 FILE_PREFIX = "dea-db.nci.org.au-{{ ds_nodash }}"
 S3_KEY = f"s3://nci-db-dump/prod/{FILE_PREFIX}-datacube.pgdump"
