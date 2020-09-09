@@ -61,7 +61,7 @@ INDEXING_BASH_COMMAND = [
     "-c",
     dedent(
         """
-            sqs-to-dc %s %s --skip-lineage --allow-unsafe --record-path "L2/sentinel-2-nrt/S2MSIARD/*/*/ARD-METADATA.yaml" --limit 1;
+            sqs-to-dc %s "%s" --skip-lineage --allow-unsafe --record-path "L2/sentinel-2-nrt/S2MSIARD/*/*/ARD-METADATA.yaml" --limit 1;
         """
     )
     % (SQS_QUEUE_NAME, INDEXING_PRODUCTS),
