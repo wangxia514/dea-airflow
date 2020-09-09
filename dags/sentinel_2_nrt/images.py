@@ -3,7 +3,7 @@
 """
 
 # IMAGES USED FOR THIS DAG
-INDEXER_IMAGE = "opendatacube/datacube-index:0.0.8-72-g0af6ed4"
+INDEXER_IMAGE = "opendatacube/datacube-index:0.0.9-9-g4aacd64"
 
 OWS_IMAGE = "opendatacube/ows:1.8.1"
 OWS_CONFIG_IMAGE = "geoscienceaustralia/dea-datakube-config:1.5.1"
