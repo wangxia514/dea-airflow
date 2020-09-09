@@ -13,9 +13,9 @@ This DAG takes following input parameters from `nci_c3_upload_s3_config` variabl
 
  * `s3bucket`: Name of the S3 bucket. `"dea-public-data"`
  * `s3path`: Path prefix of the S3. `"baseline"`
- * `s3baseurl`: Base URL of the S3. `"https://data.dea.ga.gov.au/"`
- * `explorerbaseurl`: Base URL of the Explorer. `"https://explorer.prod.dea.ga.gov.au"`
- * `snstopic`: ARN of the SNS topic. `"arn:aws:sns:ap-southeast-2:451924316694:landsat-collection-3-dev-topic"`
+ * `s3baseurl`: Base URL of the S3. `"s3://dea-public-data"`
+ * `explorerbaseurl`: Base URL of the Explorer. `"https://explorer.dea.ga.gov.au"`
+ * `snstopic`: ARN of the SNS topic. `"arn:aws:sns:ap-southeast-2:538673716275:dea-public-data-landsat-3"`
  * `doupdate`: If this flag is set then do a fresh sync of data and
     replace the metadata. `"--force-update"`
 
@@ -31,9 +31,9 @@ from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
 
 # TODO: Replace with actual start date and end date
 collection3_products = [
-    ["ga_ls5t_ard_3", datetime(1986, 8, 15), datetime(1988, 8, 15)],
-    ["ga_ls7e_ard_3", datetime(1999, 5, 28), datetime(2001, 5, 28)],
-    ["ga_ls8c_ard_3", datetime(2013, 3, 19), datetime(2015, 3, 19)],
+    ["ga_ls5t_ard_3", datetime(1986, 8, 15), datetime(1998, 8, 15)],
+    ["ga_ls7e_ard_3", datetime(1999, 5, 28), datetime(2006, 5, 28)],
+    ["ga_ls8c_ard_3", datetime(2013, 3, 19), datetime(2019, 3, 19)],
 ]
 
 # collection3_products = [["ga_ls5t_ard_3", datetime(1986, 8, 15), datetime(2011, 11, 16)],
@@ -50,7 +50,7 @@ LIST_SCENES_COMMAND = """
 
     # Load the latest stable DEA module
     module use /g/data/v10/public/modules/modulefiles
-    module load dea/unstable
+    module load dea
 
     # Be verbose and echo what we run
     set -x
@@ -81,7 +81,7 @@ RUN_UPLOAD_SCRIPT = """
 
     # Load the latest stable DEA module
     module use /g/data/v10/public/modules/modulefiles
-    module load dea/unstable
+    module load dea
 
     # Be verbose and echo what we run
     set -x
@@ -107,8 +107,9 @@ def create_dag(dag_id, product, start_date, end_date):
         "owner": "Sachit Rajbhandari",
         "start_date": start_date,
         "end_date": end_date,
-        "retries": 0,
+        "retries": 1,
         "retry_delay": timedelta(minutes=5),
+        "timeout": 1200,  # For running SSH Commands
         "email_on_failure": True,
         "email": "sachit.rajbhandari@ga.gov.au",
         "ssh_conn_id": "lpgs_gadi",
@@ -139,7 +140,6 @@ def create_dag(dag_id, product, start_date, end_date):
             command=dedent(COMMON + LIST_SCENES_COMMAND),
             params={"product": product},
             do_xcom_push=False,
-            timeout=90,  # For running SSH Commands
         )
         # Uploading c3_to_s3_rolling.py script to NCI
         sftp_c3_to_s3_script = SFTPOperator(
@@ -162,7 +162,6 @@ def create_dag(dag_id, product, start_date, end_date):
                 "product": product,
                 "nci_dir": "/g/data/xu18/ga/",
             },
-            timeout=60 * 30,
         )
         # Deletes working folder and uploaded script file
         clean_nci_work_dir = SSHOperator(
