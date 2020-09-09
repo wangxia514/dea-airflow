@@ -23,18 +23,31 @@ DEFAULT_ARGS = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
-    "index_sqs_queue": "dea-dev-eks-landsat-c3-indexing",
-    "archive_sqs_queue": "dea-dev-eks-landsat-c3-archiving",
+    "index_sqs_queue": "{{ var.json.k8s_index_ls_c3_config.index_sqs_queue }}",
+    "archive_sqs_queue": "{{ var.json.k8s_index_ls_c3_config.archive_sqs_queue }}",
     "products": "ga_ls5t_ard_3 ga_ls7e_ard_3 ga_ls8c_ard_3",
-    "env_vars": {"DB_HOSTNAME": "db-writer", "DB_DATABASE": "ows"},
+    "env_vars": {
+        "DB_HOSTNAME": "{{ var.json.k8s_index_ls_c3_config.db_hostname }}",
+        "DB_DATABASE": "{{ var.json.k8s_index_ls_c3_config.db_database }}",
+    },
     # Lift secrets into environment variables
     "secrets": [
-        Secret("env", "DB_USERNAME", "ows-db", "postgres-username"),
-        Secret("env", "DB_PASSWORD", "ows-db", "postgres-password"),
+        Secret(
+            "env",
+            "DB_USERNAME",
+            "ows-db",
+            "postgres-username",
+        ),
+        Secret(
+            "env",
+            "DB_PASSWORD",
+            "ows-db",
+            "postgres-password",
+        ),
         Secret(
             "env",
             "AWS_DEFAULT_REGION",
-            "processing-aws-creds-dev",
+            "processing-landsat-3-aws-creds",
             "AWS_DEFAULT_REGION",
         ),
         Secret(
@@ -59,7 +72,7 @@ dag = DAG(
     "k8s_index_ls_c3",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
-    schedule_interval=None,  # TODO: Schedule '0 */1 * * *',
+    schedule_interval='0 */1 * * *',
     catchup=False,
     tags=["k8s", "landsat_c3"],
 )
