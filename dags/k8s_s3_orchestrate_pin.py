@@ -27,7 +27,8 @@ from airflow.operators.python_operator import PythonOperator
 import kubernetes.client.models as k8s
 from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.kubernetes.volume import Volume
-from dags.env_var.infra import DB_HOSTNAME
+
+# from env_var.infra import DB_HOSTNAME
 
 OWS_CFG_PATH = "/env/config/ows_cfg.py"
 
@@ -43,7 +44,7 @@ DEFAULT_ARGS = {
     "env_vars": {
         "AWS_DEFAULT_REGION": "ap-southeast-2",
         # TODO: Pass these via templated params in DAG Run
-        "DB_HOSTNAME": DB_HOSTNAME,
+        "DB_HOSTNAME": "db-writer",
         "DB_DATABASE": "ows-index",
         "WMS_CONFIG_PATH": OWS_CFG_PATH,
         "DATACUBE_OWS_CFG": "config.ows_cfg.ows_cfg",
