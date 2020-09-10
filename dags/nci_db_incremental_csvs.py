@@ -76,7 +76,7 @@ with DAG(
 
             for table in agdc.dataset_type agdc.metadata_type; do
                 echo Dumping changes from $table
-                psql --quiet -c "\\copy (select * from $table where updated <@ tstzrange('{{ prev_ds }}', '{{ ds }}') or added <@ tstzrange('{{ prev_ds }}', '{{ ds }}')) to program" -h ${host} -d datacube | 'gzip -c - > ${table}_changes.csv.gz
+                psql --quiet -c "\\copy (select * from $table where updated <@ tstzrange('{{ prev_ds }}', '{{ ds }}') or added <@ tstzrange('{{ prev_ds }}', '{{ ds }}')) to program" -h ${host} -d datacube | gzip -c - > ${table}_changes.csv.gz
             done
 
             table=agdc.dataset
@@ -85,11 +85,11 @@ with DAG(
 
             table=agdc.dataset_location
             echo Dumping changes from $table
-            psql --quiet -c "\\copy (select * from $table where added <@ tstzrange('{{ prev_ds }}', '{{ ds }}') or archived <@ tstzrange('{{ prev_ds }}', '{{ ds }}')) to program" -h ${host} -d datacube | 'gzip -c - > agdc.dataset_location_changes.csv.gz"
+            psql --quiet -c "\\copy (select * from $table where added <@ tstzrange('{{ prev_ds }}', '{{ ds }}') or archived <@ tstzrange('{{ prev_ds }}', '{{ ds }}')) to program" -h ${host} -d datacube | gzip -c - > agdc.dataset_location_changes.csv.gz
 
             table=agdc.dataset_source
             echo Dumping changes from $table
-            psql --quiet -c "\\copy (select * from $table where dataset_ref in (select id  from agdc.dataset where added <@ tstzrange('{{ prev_ds }}', '{{ ds }}'))) to program" -h ${host} -d datacube | 'gzip -c - > agdc.dataset_source_changes.csv.gz
+            psql --quiet -c "\\copy (select * from $table where dataset_ref in (select id  from agdc.dataset where added <@ tstzrange('{{ prev_ds }}', '{{ ds }}'))) to program" -h ${host} -d datacube | gzip -c - > agdc.dataset_source_changes.csv.gz
 
         """
         ),
