@@ -15,22 +15,6 @@ repos:
         name: pylint-dags
         entry: env PYTHONPATH=plugins pylint
         language: system
-        exclude: |
-          dags/(?x)(
-            sentinel_2_nrt/|
-            bar/
-          )
         files: dags/
-        types: [python]
-        args: ["--load-plugins=pylint_airflow", "--disable=C,W", "--disable=similarities"]
-    -   id: pylint-dags-sentinel2
-        name: pylint-dags-sentinel2
-        entry: env PYTHONPATH=dags pylint
-        language: system
-        files: |
-          dags/(?x)(
-            sentinel_2_nrt/|
-            bar/
-          )
         types: [python]
         args: ["--load-plugins=pylint_airflow", "--disable=C,W", "--disable=similarities"]
