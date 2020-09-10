@@ -76,7 +76,7 @@ with DAG(
 
             for table in agdc.dataset_type agdc.metadata_type; do
                 echo Dumping changes from $table
-                psql --quiet -c "\\copy (select * from $table where updated <@ tstzrange('{{ prev_ds }}', '{{ ds }}') or added <@ tstzrange('{{ prev_ds }}', '{{ ds }}')) to program 'gzip -c - > ${table}_changes.csv.gz'" -h ${host} -d datacube 
+                psql --quiet -c "\\copy (select * from $table where updated <@ tstzrange('{{ prev_ds }}', '{{ ds }}') or added <@ tstzrange('{{ prev_ds }}', '{{ ds }}')) to program 'gzip > ${table}_changes.csv.gz'" -h ${host} -d datacube 
             done
 
             table=agdc.dataset
