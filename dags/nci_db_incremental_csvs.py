@@ -1,11 +1,11 @@
 """
 # Incremental CSV Database Backup from NCI to S3
 
-This DAG runs daily at 1am Canberra Time.
+This DAG runs daily soon after midnight Canberra Time.
 
 It dumps any changes to the ODC Database into a CSV file per table, and uploads them to
 
-    s3://nci-db-dump/csv-changes/${datestring}/
+    s3://nci-db-dump/csv-changes/<YYYY-MM-DD>/
 
 This DAG should be idempotent, ie. running repeatedly is safe.
 """
@@ -76,7 +76,7 @@ with DAG(
 
             for table in agdc.dataset_type agdc.metadata_type; do
                 echo Dumping changes from $table
-                psql --no-psqlrc --quiet --csv -c "select * from $table where updated <@ tstzrange('{{ execution_date.isoformat() }}', '{{next_execution_date.isoformat()}}') or added <@ tstzrange('{{ execution_date.isoformat() }}', '{{next_execution_date.isoformat()}}')" | gzip > ${table}_changes.csv.gz'"
+                psql --no-psqlrc --quiet --csv -c "select * from $table where updated <@ tstzrange('{{ execution_date.isoformat() }}', '{{next_execution_date.isoformat()}}') or added <@ tstzrange('{{ execution_date.isoformat() }}', '{{next_execution_date.isoformat()}}')" | gzip > ${table}_changes.csv.gz
             done
 
             table=agdc.dataset
