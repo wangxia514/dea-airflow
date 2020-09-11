@@ -21,7 +21,7 @@ default_args = {
 }
 
 WAGL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dea-access/egg-dataloader:latest"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:rc-2019-02-22"
     # "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:rc-2019-01-18"
 )
 
