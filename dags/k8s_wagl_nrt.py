@@ -21,7 +21,7 @@ default_args = {
 }
 
 WAGL_IMAGE = (
-    "https://hub.docker.com/r/curlimages/curl"
+    "curlimages/curl:latest"
     # "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:rc-2019-01-18"
 )
 
