@@ -100,12 +100,13 @@ with DAG(
 
     upload_change_csvs_to_s3 = SSHOperator(
         task_id="upload_change_csvs_to_s3",
-        params={"aws_conn": aws_conn.get_credentials()},
+        params={"aws_conn": aws_conn},
         command=COMMON
         + dedent(
             """
-            export AWS_ACCESS_KEY_ID={{params.aws_conn.access_key}}
-            export AWS_SECRET_ACCESS_KEY={{params.aws_conn.secret_key}}
+            {% set creds = params.aws_conn.get_credentials() %}
+            export AWS_ACCESS_KEY_ID={{creds.access_key}}
+            export AWS_SECRET_ACCESS_KEY={{creds.secret_key}}
 
             aws s3 sync ./ s3://nci-db-dump/csv-changes/${datestring}/ --content-encoding gzip --no-progress
 
