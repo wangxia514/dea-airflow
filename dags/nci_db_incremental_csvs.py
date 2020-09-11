@@ -37,9 +37,8 @@ default_args = {
 with DAG(
     "nci_incremental_csv_db_backup",
     default_args=default_args,
-    catchup=False,
+    catchup=True,
     schedule_interval="@daily",
-    max_active_runs=1,
     tags=["nci"],
 ) as dag:
 
