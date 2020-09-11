@@ -21,7 +21,8 @@ default_args = {
 }
 
 WAGL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:rc-2019-01-18"
+    "https://hub.docker.com/r/curlimages/curl"
+    # "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:rc-2019-01-18"
 )
 
 pipeline = DAG(
@@ -47,7 +48,7 @@ with pipeline:
         image_pull_policy="IfNotPresent",
         image=WAGL_IMAGE,
         is_delete_operator_pod=True,
-        arguments=[],
+        arguments=["--version"],
         labels={"runner": "airflow"},
         get_logs=True,
     )
