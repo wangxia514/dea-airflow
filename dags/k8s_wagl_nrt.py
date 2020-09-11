@@ -21,7 +21,7 @@ default_args = {
 }
 
 WAGL_IMAGE = (
-    "589363755468.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:rc-20190109-5"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:rc-2019-01-18"
 )
 
 pipeline = DAG(
