@@ -1,11 +1,11 @@
 """
 # Incremental CSV Database Backup from NCI to S3
 
-This DAG runs daily at 1am Canberra Time.
+This DAG runs daily soon after midnight Canberra Time.
 
 It dumps any changes to the ODC Database into a CSV file per table, and uploads them to
 
-    s3://nci-db-dump/csv-changes/${datestring}/
+    s3://nci-db-dump/csv-changes/<YYYY-MM-DD>/
 
 This DAG should be idempotent, ie. running repeatedly is safe.
 """
@@ -26,7 +26,7 @@ default_args = {
     "depends_on_past": False,
     "retries": 0,
     "retry_delay": timedelta(minutes=5),
-    "start_date": datetime(2020, 8, 26, 1, tzinfo=local_tz),
+    "start_date": datetime(2020, 8, 26, tzinfo=local_tz),
     "timeout": 60 * 60 * 2,  # For running SSH Commands
     "ssh_conn_id": "lpgs_gadi",
     "remote_host": "gadi-dm.nci.org.au",
@@ -37,9 +37,8 @@ default_args = {
 with DAG(
     "nci_incremental_csv_db_backup",
     default_args=default_args,
-    catchup=False,
+    catchup=True,
     schedule_interval="@daily",
-    max_active_runs=1,
     tags=["nci"],
 ) as dag:
 
@@ -51,8 +50,7 @@ with DAG(
         module load dea
 
         host=dea-db.nci.org.au
-        datestring={{ ds_nodash }}
-        datestring_psql={{ ds }}
+        datestring={{ execution_date.in_tz("Australia/Canberra").to_date_string() }}
         file_prefix="${host}-${datestring}"
 
 
@@ -73,23 +71,25 @@ with DAG(
             """
             set -euo pipefail
             IFS=$'\n\t'
+            export PGDATABASE=datacube
+            export PGHOST=${host}
 
             for table in agdc.dataset_type agdc.metadata_type; do
                 echo Dumping changes from $table
-                psql --quiet -c "\\copy (select * from $table where updated <@ tstzrange('{{ prev_ds }}', '{{ ds }}') or added <@ tstzrange('{{ prev_ds }}', '{{ ds }}')) to program 'gzip > ${table}_changes.csv.gz'" -h ${host} -d datacube 
+                psql --no-psqlrc --quiet --csv -c "select * from $table where updated <@ tstzrange('{{ execution_date.isoformat() }}', '{{next_execution_date.isoformat()}}') or added <@ tstzrange('{{ execution_date.isoformat() }}', '{{next_execution_date.isoformat()}}')" | gzip > ${table}_changes.csv.gz
             done
 
             table=agdc.dataset
             echo Dumping changes from $table
-            psql --quiet -c "\\copy (select * from $table where updated <@ tstzrange('{{ prev_ds }}', '{{ ds }}') or archived <@ tstzrange('{{ prev_ds }}', '{{ ds }}') or added <@ tstzrange('{{ prev_ds }}', '{{ ds }}')) to program 'gzip > ${table}_changes.csv.gz'" -h ${host} -d datacube
+            psql --no-psqlrc --quiet --csv -c "select * from $table where updated <@ tstzrange('{{ execution_date.isoformat() }}', '{{next_execution_date.isoformat()}}') or archived <@ tstzrange('{{ execution_date.isoformat() }}', '{{next_execution_date.isoformat()}}') or added <@ tstzrange('{{ execution_date.isoformat() }}', '{{next_execution_date.isoformat()}}');" | gzip > ${table}_changes.csv.gz
 
             table=agdc.dataset_location
             echo Dumping changes from $table
-            psql --quiet -c "\\copy (select * from $table where added <@ tstzrange('{{ prev_ds }}', '{{ ds }}') or archived <@ tstzrange('{{ prev_ds }}', '{{ ds }}')) to program 'gzip > agdc.dataset_location_changes.csv.gz'" -h ${host} -d datacube
+            psql --no-psqlrc --quiet --csv -c "select * from $table where added <@ tstzrange('{{ execution_date.isoformat() }}', '{{next_execution_date.isoformat()}}') or archived <@ tstzrange('{{ execution_date.isoformat() }}', '{{next_execution_date.isoformat()}}');" | gzip > agdc.dataset_location_changes.csv.gz
 
             table=agdc.dataset_source
             echo Dumping changes from $table
-            psql --quiet -c "\\copy (select * from $table where dataset_ref in (select id  from agdc.dataset where added <@ tstzrange('{{ prev_ds }}', '{{ ds }}'))) to program 'gzip > agdc.dataset_source_changes.csv.gz'" -h ${host} -d datacube
+            psql --no-psqlrc --quiet --csv -c "select * from $table where dataset_ref in (select id  from agdc.dataset where added <@ tstzrange('{{ execution_date.isoformat() }}', '{{next_execution_date.isoformat()}}'));" | gzip > agdc.dataset_source_changes.csv.gz
 
         """
         ),
@@ -100,12 +100,13 @@ with DAG(
 
     upload_change_csvs_to_s3 = SSHOperator(
         task_id="upload_change_csvs_to_s3",
-        params={"aws_conn": aws_conn.get_credentials()},
+        params={"aws_conn": aws_conn},
         command=COMMON
         + dedent(
             """
-            export AWS_ACCESS_KEY_ID={{params.aws_conn.access_key}}
-            export AWS_SECRET_ACCESS_KEY={{params.aws_conn.secret_key}}
+            {% set creds = params.aws_conn.get_credentials() %}
+            export AWS_ACCESS_KEY_ID={{creds.access_key}}
+            export AWS_SECRET_ACCESS_KEY={{creds.secret_key}}
 
             aws s3 sync ./ s3://nci-db-dump/csv-changes/${datestring}/ --content-encoding gzip --no-progress
 
