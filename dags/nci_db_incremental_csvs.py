@@ -26,7 +26,7 @@ default_args = {
     "depends_on_past": False,
     "retries": 0,
     "retry_delay": timedelta(minutes=5),
-    "start_date": datetime(2020, 8, 26, 1, tzinfo=local_tz),
+    "start_date": datetime(2020, 8, 26, tzinfo=local_tz),
     "timeout": 60 * 60 * 2,  # For running SSH Commands
     "ssh_conn_id": "lpgs_gadi",
     "remote_host": "gadi-dm.nci.org.au",
@@ -51,8 +51,7 @@ with DAG(
         module load dea
 
         host=dea-db.nci.org.au
-        datestring={{ ds_nodash }}
-        datestring_psql={{ ds }}
+        datestring={{ execution_date.in_tz("Australia/Canberra").to_date_string() }}
         file_prefix="${host}-${datestring}"
 
 
@@ -73,23 +72,25 @@ with DAG(
             """
             set -euo pipefail
             IFS=$'\n\t'
+            export PGDATABASE=datacube
+            export PGHOST=${host}
 
             for table in agdc.dataset_type agdc.metadata_type; do
                 echo Dumping changes from $table
-                psql --quiet -c "\\copy (select * from $table where updated <@ tstzrange('{{ prev_ds }}', '{{ ds }}') or added <@ tstzrange('{{ prev_ds }}', '{{ ds }}')) to program 'gzip > ${table}_changes.csv.gz'" -h ${host} -d datacube 
+                psql --no-psqlrc --quiet --csv -c "select * from $table where updated <@ tstzrange('{{ execution_date.isoformat() }}', '{{next_execution_date.isoformat()}}') or added <@ tstzrange('{{ execution_date.isoformat() }}', '{{next_execution_date.isoformat()}}')" | gzip > ${table}_changes.csv.gz'"
             done
 
             table=agdc.dataset
             echo Dumping changes from $table
-            psql --quiet -c "\\copy (select * from $table where updated <@ tstzrange('{{ prev_ds }}', '{{ ds }}') or archived <@ tstzrange('{{ prev_ds }}', '{{ ds }}') or added <@ tstzrange('{{ prev_ds }}', '{{ ds }}')) to program 'gzip > ${table}_changes.csv.gz'" -h ${host} -d datacube
+            psql --no-psqlrc --quiet --csv -c "select * from $table where updated <@ tstzrange('{{ execution_date.isoformat() }}', '{{next_execution_date.isoformat()}}') or archived <@ tstzrange('{{ execution_date.isoformat() }}', '{{next_execution_date.isoformat()}}') or added <@ tstzrange('{{ execution_date.isoformat() }}', '{{next_execution_date.isoformat()}}');" | gzip > ${table}_changes.csv.gz
 
             table=agdc.dataset_location
             echo Dumping changes from $table
-            psql --quiet -c "\\copy (select * from $table where added <@ tstzrange('{{ prev_ds }}', '{{ ds }}') or archived <@ tstzrange('{{ prev_ds }}', '{{ ds }}')) to program 'gzip > agdc.dataset_location_changes.csv.gz'" -h ${host} -d datacube
+            psql --no-psqlrc --quiet --csv -c "select * from $table where added <@ tstzrange('{{ execution_date.isoformat() }}', '{{next_execution_date.isoformat()}}') or archived <@ tstzrange('{{ execution_date.isoformat() }}', '{{next_execution_date.isoformat()}}');" | gzip > agdc.dataset_location_changes.csv.gz
 
             table=agdc.dataset_source
             echo Dumping changes from $table
-            psql --quiet -c "\\copy (select * from $table where dataset_ref in (select id  from agdc.dataset where added <@ tstzrange('{{ prev_ds }}', '{{ ds }}'))) to program 'gzip > agdc.dataset_source_changes.csv.gz'" -h ${host} -d datacube
+            psql --no-psqlrc --quiet --csv -c "select * from $table where dataset_ref in (select id  from agdc.dataset where added <@ tstzrange('{{ execution_date.isoformat() }}', '{{next_execution_date.isoformat()}}'));" | gzip > agdc.dataset_source_changes.csv.gz
 
         """
         ),
