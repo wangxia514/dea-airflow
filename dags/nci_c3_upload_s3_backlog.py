@@ -29,16 +29,11 @@ from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
 
-# TODO: Replace with actual start date and end date
 collection3_products = [
-    ["ga_ls5t_ard_3", datetime(1986, 8, 15), datetime(1998, 8, 15)],
-    ["ga_ls7e_ard_3", datetime(1999, 5, 28), datetime(2006, 5, 28)],
-    ["ga_ls8c_ard_3", datetime(2013, 3, 19), datetime(2019, 3, 19)],
+    ["ga_ls5t_ard_3", datetime(1986, 8, 15), datetime(2011, 11, 16)],
+    ["ga_ls7e_ard_3", datetime(1999, 5, 28), datetime(2020, 7, 31)],
+    ["ga_ls8c_ard_3", datetime(2013, 3, 19), datetime(2020, 7, 31)],
 ]
-
-# collection3_products = [["ga_ls5t_ard_3", datetime(1986, 8, 15), datetime(2011, 11, 16)],
-#                         ["ga_ls7e_ard_3", datetime(1999, 5, 28), datetime(2020, 8, 31)],
-#                         ["ga_ls8c_ard_3", datetime(2013, 3, 19), datetime(2020, 8, 31)]]
 
 
 LIST_SCENES_COMMAND = """
