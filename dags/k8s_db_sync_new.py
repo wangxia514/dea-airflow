@@ -28,7 +28,6 @@ DB_HOSTNAME = "db-writer"
 DB_DATABASE = "nci_{{ ds_nodash }}"
 FILE_PREFIX = "dea-db.nci.org.au-{{ ds_nodash }}"
 S3_KEY = f"s3://nci-db-dump/prod/{FILE_PREFIX}-datacube.pgdump"
-WORK_DIR = "/backups"
 
 DEFAULT_ARGS = {
     "owner": "Tisham Dhar",
@@ -62,7 +61,7 @@ DEFAULT_ARGS = {
 }
 
 # Point to Geoscience Australia / OpenDataCube Dockerhub
-S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.0-4-ga38e58d"
+S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.5.g95767dd"
 EXPLORER_IMAGE = "opendatacube/explorer:2.1.11-156-g17d840a"
 
 dag = DAG(
@@ -77,7 +76,7 @@ dag = DAG(
 )
 
 s3_backup_mount = VolumeMount(
-    "s3-backup-volume", mount_path=WORK_DIR, sub_path=None, read_only=False
+    "s3-backup-volume", mount_path="/backup", sub_path=None, read_only=False
 )
 
 affinity = {
@@ -97,7 +96,7 @@ affinity = {
 }
 
 s3_backup_volume_mount = VolumeMount('s3-backup-volume',
-                           mount_path=WORK_DIR,
+                           mount_path="/backup",
                            sub_path=None,
                            read_only=False)
 
@@ -125,7 +124,7 @@ with dag:
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
         annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-processing-dbsync"}, # TODO: Pass this via DAG parameters
-        cmds=["/code/s3-to-rds.sh"],
+        cmds=["./s3-to-rds.sh"],
         arguments=[DB_DATABASE, S3_KEY],
         image_pull_policy="Always", # TODO: Need to version the helper image properly once stable
         labels={"step": "s3-to-rds"},
