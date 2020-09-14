@@ -62,7 +62,7 @@ DEFAULT_ARGS = {
 }
 
 # Point to Geoscience Australia / OpenDataCube Dockerhub
-S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.0-unstable.2.ba592b8"
+S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.0-4-ga38e58d"
 EXPLORER_IMAGE = "opendatacube/explorer:2.1.11-156-g17d840a"
 
 dag = DAG(
@@ -126,7 +126,7 @@ with dag:
         image=S3_TO_RDS_IMAGE,
         annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-processing-dbsync"}, # TODO: Pass this via DAG parameters
         cmds=["/code/s3-to-rds.sh"],
-        arguments=[DB_DATABASE, S3_KEY, WORK_DIR],
+        arguments=[DB_DATABASE, S3_KEY],
         image_pull_policy="Always", # TODO: Need to version the helper image properly once stable
         labels={"step": "s3-to-rds"},
         name="s3-to-rds",
