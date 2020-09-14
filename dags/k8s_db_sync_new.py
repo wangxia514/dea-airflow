@@ -128,14 +128,28 @@ with dag:
         cmds=["/code/s3-to-rds.sh"],
         arguments=[DB_DATABASE, S3_KEY, WORK_DIR],
         image_pull_policy="Always", # TODO: Need to version the helper image properly once stable
-        # volumes=[s3_backup_volume],
-        # volume_mounts=[s3_backup_volume_mount],
         labels={"step": "s3-to-rds"},
         name="s3-to-rds",
         task_id="s3-to-rds",
         get_logs=True,
         is_delete_operator_pod=True,
-        affinity=affinity,
+        affinity={
+            'nodeAffinity': {
+                'requiredDuringSchedulingIgnoredDuringExecution': {
+                    'nodeSelectorTerms': [{
+                        'matchExpressions': [{
+                            'key': 'k8s.io/cluster-autoscaler/node-template/label/nodetype',
+                            'operator': 'In',
+                            'values': [
+                                "spot",
+                            ]
+                        }]
+                    }]
+                }
+            }
+        },
+        # volumes=[s3_backup_volume],
+        # volume_mounts=[s3_backup_volume_mount],
     )
 
     # Restore dynamic indices skipped in the previous step
