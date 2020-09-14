@@ -66,7 +66,7 @@ S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.0-unstable.2.ba592b8"
 EXPLORER_IMAGE = "opendatacube/explorer:2.1.11-151-g93e46e7"
 
 dag = DAG(
-    "k8s_db_sync",
+    "k8s_db_sync_new",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     catchup=False,
