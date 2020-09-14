@@ -82,16 +82,15 @@ s3_backup_mount = VolumeMount(
 
 affinity = {
     'nodeAffinity': {
-        'requiredDuringSchedulingIgnoredDuringExecution': [
+        'preferredDuringSchedulingIgnoredDuringExecution': [
             {
-                "nodeSelectorTerms": {
-                    "matchExpressions": [
-                        {
-                            "key": "nodetype",
-                            "operator": "In",
-                            "values": ["spot"]
-                        }
-                    ]
+                "weight": 1,
+                "preference": {
+                    "matchExpressions": {
+                        "key": "nodetype",
+                        "operator": "In",
+                        "values": ["spot"]
+                    }
                 },
             }
         ]
