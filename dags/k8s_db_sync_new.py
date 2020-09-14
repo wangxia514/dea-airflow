@@ -133,21 +133,7 @@ with dag:
         task_id="s3-to-rds",
         get_logs=True,
         is_delete_operator_pod=True,
-        affinity={
-            'nodeAffinity': {
-                'requiredDuringSchedulingIgnoredDuringExecution': {
-                    'nodeSelectorTerms': [{
-                        'matchExpressions': [{
-                            'key': 'nodetype',
-                            'operator': 'In',
-                            'values': [
-                                "spot",
-                            ]
-                        }]
-                    }]
-                }
-            }
-        },
+        # affinity=affinity,
         # volumes=[s3_backup_volume],
         # volume_mounts=[s3_backup_volume_mount],
     )
