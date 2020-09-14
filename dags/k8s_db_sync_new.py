@@ -131,7 +131,7 @@ with dag:
         task_id="s3-to-rds",
         get_logs=True,
         is_delete_operator_pod=True,
-        affinity=affinity,
+        # affinity=affinity,
     )
 
     # Restore dynamic indices skipped in the previous step
@@ -145,7 +145,7 @@ with dag:
         task_id="odc-indices",
         get_logs=True,
         is_delete_operator_pod=True,
-        affinity=affinity,
+        # affinity=affinity,
     )
 
     # Restore to a local db and link it to explorer codebase and run summary
@@ -159,7 +159,7 @@ with dag:
         task_id="summarize-datacube",
         get_logs=True,
         is_delete_operator_pod=True,
-        affinity=affinity,
+        # affinity=affinity,
     )
 
     # Hand ownership back to explorer DB user
@@ -174,7 +174,7 @@ with dag:
         task_id="change-db-owner",
         get_logs=True,
         is_delete_operator_pod=True,
-        affinity=affinity,
+        # affinity=affinity,
     )
 
     # Change DB connection config of application pods and spin up fresh ones
