@@ -16,18 +16,19 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.sensors.s3_key_sensor import S3KeySensor
-from airflow.contrib.operators.ssh_operator import SSHOperator
-from airflow.operators.bash_operator import BashOperator
-from airflow.operators.python_operator import PythonOperator
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
+from airflow.kubernetes.volume import Volume
+from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.dummy_operator import DummyOperator
+# from env_var.infra import DB_HOSTNAME
 
 # Templated DAG arguments
-DB_DATABASE = "nci_{{ ds_nodash }}"
 DB_HOSTNAME = "db-writer"
+DB_DATABASE = "nci_{{ ds_nodash }}"
 FILE_PREFIX = "dea-db.nci.org.au-{{ ds_nodash }}"
 S3_KEY = f"s3://nci-db-dump/prod/{FILE_PREFIX}-datacube.pgdump"
+WORK_DIR = "/tmp"
 
 DEFAULT_ARGS = {
     "owner": "Tisham Dhar",
@@ -61,11 +62,11 @@ DEFAULT_ARGS = {
 }
 
 # Point to Geoscience Australia / OpenDataCube Dockerhub
-S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:latest"
-EXPLORER_IMAGE = "opendatacube/explorer:2.1.11-143-g4c4168c"
+S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.0-unstable.2.ba592b8"
+EXPLORER_IMAGE = "opendatacube/explorer:2.1.11-151-g93e46e7"
 
 dag = DAG(
-    "k8s_db_sync",
+    "k8s_db_sync_new",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     catchup=False,
@@ -75,6 +76,36 @@ dag = DAG(
     schedule_interval=timedelta(days=7),
 )
 
+s3_backup_mount = VolumeMount(
+    "s3-backup-volume", mount_path=WORK_DIR, sub_path=None, read_only=False
+)
+
+affinity = {
+    'nodeAffinity': {
+        'requiredDuringSchedulingIgnoredDuringExecution': [
+            {
+                "labelSelector": {
+                    "matchExpressions": [
+                        {
+                            "key": "nodetype",
+                            "operator": "In",
+                            "values": ["spot"]
+                        }
+                    ]
+                },
+            }
+        ]
+    }
+}
+
+s3_backup_volume_config = {
+    'persistentVolumeClaim':
+        {
+            'claimName': "s3-backup-volume"
+        }
+}
+
+s3_backup_volume = Volume(name="s3-backup-volume", configs=s3_backup_volume_config)
 
 with dag:
     START = DummyOperator(task_id="nci_rds_sync")
@@ -86,22 +117,22 @@ with dag:
         aws_conn_id="aws_nci_db_backup",
     )
 
-    # Download PostgreSQL backup from S3 to within K8S storage
+    # Download PostgreSQL backup from S3 and restore to RDS Aurora
     RESTORE_RDS_S3 = KubernetesPodOperator(
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
-        # TODO: Pass this via DAG parameters
-        annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-processing-dbsync"},
+        annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-processing-dbsync"}, # TODO: Pass this via DAG parameters
         cmds=["/code/s3-to-rds.sh"],
-        # Accept DB_NAME, S3_KEY only
-        arguments=[DB_DATABASE, S3_KEY],
-        # TODO: Need to version the helper image properly once stable
-        image_pull_policy="Always",
-        # TODO: Need PVC to use as scratch space since Nodes don't have enough storage
+        arguments=[DB_DATABASE, S3_KEY, WORK_DIR],
+        image_pull_policy="Always", # TODO: Need to version the helper image properly once stable
+        volumes=[s3_backup_volume],
+        volume_mounts=[s3_backup_mount],
         labels={"step": "s3-to-rds"},
         name="s3-to-rds",
         task_id="s3-to-rds",
         get_logs=True,
+        is_delete_operator_pod=True,
+        affinity=affinity,
     )
 
     # Restore dynamic indices skipped in the previous step
@@ -110,39 +141,12 @@ with dag:
         image=EXPLORER_IMAGE,
         cmds=["datacube"],
         arguments=["-v", "system", "init", "--lock-table"],
-        retry_delay=timedelta(minutes=20),
         labels={"step": "restore_indices"},
         name="odc-indices",
         task_id="odc-indices",
         get_logs=True,
-    )
-
-    # Enable PostGIS for explorer to use on the restored DB
-    # This will fail without superuser. Keep retrying slowly
-    # and wait for user to notice and manually do it then it should
-    # pass
-    # TODO: Use some other means e.g. new DB from templates with PostGIS
-    # preinstalled
-    ENABLE_POSTGRES = KubernetesPodOperator(
-        namespace="processing",
-        image=S3_TO_RDS_IMAGE,
-        cmds=["psql"],
-        arguments=[
-            "-h",
-            "$(DB_HOSTNAME)",
-            "-U",
-            "$(DB_USERNAME)",
-            "-d",
-            "$(DB_DATABASE)",
-            "-c",
-            "CREATE EXTENSION IF NOT EXISTS postgis;",
-        ],
-        retries=12,
-        retry_delay=timedelta(hours=1),
-        labels={"step": "enable_postgres"},
-        name="enable-postgres",
-        task_id="enable-postgres",
-        get_logs=True,
+        is_delete_operator_pod=True,
+        affinity=affinity,
     )
 
     # Restore to a local db and link it to explorer codebase and run summary
@@ -155,6 +159,8 @@ with dag:
         name="summarize-datacube",
         task_id="summarize-datacube",
         get_logs=True,
+        is_delete_operator_pod=True,
+        affinity=affinity,
     )
 
     # Hand ownership back to explorer DB user
@@ -168,6 +174,8 @@ with dag:
         name="change-db-owner",
         task_id="change-db-owner",
         get_logs=True,
+        is_delete_operator_pod=True,
+        affinity=affinity,
     )
 
     # Change DB connection config of application pods and spin up fresh ones
@@ -181,8 +189,6 @@ with dag:
     START >> S3_BACKUP_SENSE
     S3_BACKUP_SENSE >> RESTORE_RDS_S3
     RESTORE_RDS_S3 >> DYNAMIC_INDICES
-    RESTORE_RDS_S3 >> ENABLE_POSTGRES
-    ENABLE_POSTGRES >> SUMMARIZE_DATACUBE
     DYNAMIC_INDICES >> SUMMARIZE_DATACUBE
     SUMMARIZE_DATACUBE >> CHANGE_DB_OWNER
 
