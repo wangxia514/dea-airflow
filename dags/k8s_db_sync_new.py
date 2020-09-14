@@ -28,7 +28,7 @@ DB_HOSTNAME = "db-writer"
 DB_DATABASE = "nci_{{ ds_nodash }}"
 FILE_PREFIX = "dea-db.nci.org.au-{{ ds_nodash }}"
 S3_KEY = f"s3://nci-db-dump/prod/{FILE_PREFIX}-datacube.pgdump"
-WORK_DIR = "/tmp"
+WORK_DIR = "/backups"
 
 DEFAULT_ARGS = {
     "owner": "Tisham Dhar",
@@ -98,10 +98,15 @@ affinity = {
     }
 }
 
+s3_backup_volume_mount = VolumeMount('s3-backup-volume',
+                           mount_path=WORK_DIR,
+                           sub_path=None,
+                           read_only=False)
+
 s3_backup_volume_config = {
     'persistentVolumeClaim':
         {
-            'claimName': "s3-backup-volume"
+            'claimName': "s3-backup-volume-claim"
         }
 }
 
@@ -125,8 +130,8 @@ with dag:
         cmds=["/code/s3-to-rds.sh"],
         arguments=[DB_DATABASE, S3_KEY, WORK_DIR],
         image_pull_policy="Always", # TODO: Need to version the helper image properly once stable
-        # volumes=[s3_backup_volume],
-        # volume_mounts=[s3_backup_mount],
+        volumes=[s3_backup_volume],
+        volume_mounts=[s3_backup_volume_mount],
         labels={"step": "s3-to-rds"},
         name="s3-to-rds",
         task_id="s3-to-rds",
