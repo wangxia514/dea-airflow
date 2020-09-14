@@ -84,7 +84,7 @@ affinity = {
     'nodeAffinity': {
         'requiredDuringSchedulingIgnoredDuringExecution': [
             {
-                "labelSelector": {
+                "nodeSelectorTerms": {
                     "matchExpressions": [
                         {
                             "key": "nodetype",
