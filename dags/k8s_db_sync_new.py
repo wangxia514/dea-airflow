@@ -138,7 +138,7 @@ with dag:
                 'requiredDuringSchedulingIgnoredDuringExecution': {
                     'nodeSelectorTerms': [{
                         'matchExpressions': [{
-                            'key': 'k8s.io/cluster-autoscaler/node-template/label/nodetype',
+                            'key': 'nodetype',
                             'operator': 'In',
                             'values': [
                                 "spot",
