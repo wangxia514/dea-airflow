@@ -82,16 +82,17 @@ s3_backup_mount = VolumeMount(
 
 affinity = {
     'nodeAffinity': {
-        'preferredDuringSchedulingIgnoredDuringExecution': [
+        'requiredDuringSchedulingIgnoredDuringExecution': [
             {
-                "weight": 1,
-                "preference": {
-                    "matchExpressions": {
+                "nodeSelectorTerms": [{
+                    "matchExpressions": [{
                         "key": "nodetype",
                         "operator": "In",
-                        "values": ["spot"]
-                    }
-                },
+                        "values": [
+                            "spot"
+                        ]
+                    }]
+                }]
             }
         ]
     }
@@ -124,8 +125,8 @@ with dag:
         cmds=["/code/s3-to-rds.sh"],
         arguments=[DB_DATABASE, S3_KEY, WORK_DIR],
         image_pull_policy="Always", # TODO: Need to version the helper image properly once stable
-        volumes=[s3_backup_volume],
-        volume_mounts=[s3_backup_mount],
+        # volumes=[s3_backup_volume],
+        # volume_mounts=[s3_backup_mount],
         labels={"step": "s3-to-rds"},
         name="s3-to-rds",
         task_id="s3-to-rds",
