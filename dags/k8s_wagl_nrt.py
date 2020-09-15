@@ -64,7 +64,8 @@ with pipeline:
 
     SENSOR = SQSSensor(
         task_id='copy_scene_queue_sensor',
-        sqs_queue=COPY_SCENE_QUEUE
+        sqs_queue=COPY_SCENE_QUEUE,
+        region_name='ap-southeast-2',
     )
 
     TEST = PythonOperator(
