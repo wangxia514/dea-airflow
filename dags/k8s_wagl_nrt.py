@@ -1,13 +1,16 @@
 """
-Run WAGL NRT in Airflow ( migrate from datahub running in AWS Batch)
+Run WAGL NRT pipeline in Airflow.
 """
 from datetime import datetime, timedelta
+import csv
 
 from airflow import DAG
+from airflow import configuration
 
-# Operators; we need this to operate!
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.python_operator import BranchPythonOperator, PythonOperator
+from airflow.contrib.sensors.aws_sqs_sensor import SQSSensor
 
 default_args = {
     "owner": "Imam Alam",
@@ -23,6 +26,24 @@ default_args = {
 WAGL_IMAGE = (
     "451924316694.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:rc-20190109-5"
 )
+
+TILE_LIST = "assets/S2_aoi.csv"
+
+COPY_SCENE_QUEUE = 'dea-dev-eks-wagl-s2-nrt-copy-scene'
+
+def australia_tile_ids():
+    root = Path(configuration.get('core', 'dags_folder')).parent
+
+    with open(root / TILE_LIST) as fl:
+        reader = csv.reader(fl)
+        return {x[0] for x in reader}
+
+
+def test_operator(**kwargs):
+    for key, value in kwargs.items():
+        print('key:', key)
+        print('value:', value)
+
 
 pipeline = DAG(
     "k8s_wagl_nrt",
@@ -40,6 +61,16 @@ pipeline = DAG(
 with pipeline:
     START = DummyOperator(task_id="start_wagl")
 
+    SENSOR = SQSSensor(
+        COPY_SCENE_QUEUE
+    )
+
+    TEST = PythonOperator(
+        task_id='test_operator',
+        python_callable=test_operator,
+        provide_context=True,
+    )
+
     WAGL_RUN = KubernetesPodOperator(
         namespace="processing",
         name="dea-s2-wagl-nrt",
@@ -54,4 +85,4 @@ with pipeline:
 
     END = DummyOperator(task_id="end_wagl")
 
-    START >> WAGL_RUN >> END
+    START >> SENSOR >> TEST >> WAGL_RUN >> END
