@@ -65,7 +65,6 @@ with dag:
         {% set work_ext = ts_nodash + '/workdir' %}
         """
 
-    # An example of remotely starting a qsub job (all it does is ls)
     submit_task_id = f"submit_ard"
     submit_ard = SSHOperator(
         task_id=submit_task_id,
@@ -78,7 +77,7 @@ with dag:
               -W umask=33 \
               -l wd,walltime=0:30:00,mem=15GB,ncpus=1 -m abe \
               -l storage=gdata/v10+scratch/v10+gdata/if87+gdata/fj7+scratch/fj7+scratch/u46+gdata/u46 \
-              -P  {{ params.project }} -o {{ log_dir }} -e {{ log_dir }}  \
+              -P  {{ params.project }} -o {{ params.base_dir }}{{ log_ext }} -e {{ params.base_dir }}{{ log_ext }}  \
               -- /bin/bash -l -c \
                   "module use /g/data/v10/public/modules/modulefiles/; \
                   module use /g/data/v10/private/modules/modulefiles/; \
