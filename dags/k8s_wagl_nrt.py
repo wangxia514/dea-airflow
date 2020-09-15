@@ -1,6 +1,7 @@
 """
 Run WAGL NRT pipeline in Airflow.
 """
+import os
 from datetime import datetime, timedelta
 import csv
 from pathlib import Path
@@ -46,6 +47,15 @@ def test_operator(**kwargs):
         print('value:', value)
 
 
+def test_env(**kwargs):
+    for key, value in kwargs.items():
+        print('kwargs key:', key)
+        print('kwargs value:', value)
+    for key, value in os.environ.items():
+        print('env key:', key)
+        print('env value:', value)
+
+
 pipeline = DAG(
     "k8s_wagl_nrt",
     doc_md=__doc__,
@@ -61,6 +71,12 @@ pipeline = DAG(
 
 with pipeline:
     START = DummyOperator(task_id="start_wagl")
+
+    ENV = PythonOperator(
+        task_id='test_env',
+        python_callable=test_env,
+        provide_context=True,
+    )
 
     SENSOR = SQSSensor(
         task_id='copy_scene_queue_sensor',
@@ -88,4 +104,4 @@ with pipeline:
 
     END = DummyOperator(task_id="end_wagl")
 
-    START >> SENSOR >> TEST >> WAGL_RUN >> END
+    START >> ENV >> SENSOR >> TEST >> WAGL_RUN >> END
