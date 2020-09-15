@@ -3,6 +3,7 @@ Run WAGL NRT pipeline in Airflow.
 """
 from datetime import datetime, timedelta
 import csv
+from pathlib import Path
 
 from airflow import DAG
 from airflow import configuration
@@ -62,6 +63,7 @@ with pipeline:
     START = DummyOperator(task_id="start_wagl")
 
     SENSOR = SQSSensor(
+        task_id='copy_scene_queue_sensor',
         sqs_queue=COPY_SCENE_QUEUE
     )
 
