@@ -30,11 +30,11 @@ FILE_PREFIX = "dea-db.nci.org.au-{{ ds_nodash }}"
 S3_KEY = f"s3://nci-db-dump/prod/{FILE_PREFIX}-datacube.pgdump"
 
 DEFAULT_ARGS = {
-    "owner": "Tisham Dhar",
+    "owner": "Nikita Gandhi",
     "depends_on_past": False,
     "is_delete_operator_pod": True,
     "start_date": datetime(2020, 2, 1),
-    "email": ["tisham.dhar@ga.gov.au"],
+    "email": ["nikita.gandhi@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
