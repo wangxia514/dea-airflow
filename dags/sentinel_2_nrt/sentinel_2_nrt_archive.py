@@ -16,7 +16,7 @@ from textwrap import dedent
 
 import kubernetes.client.models as k8s
 
-from sentinel_2_nrt.images import INDEXER_IMAGE, OWS_IMAGE
+from sentinel_2_nrt.images import INDEXER_IMAGE
 from sentinel_2_nrt.subdag_ows_views import ows_update_extent_subdag
 
 from env_var.infra import DB_DATABASE, DB_HOSTNAME, SECRET_OWS_NAME, SECRET_AWS_NAME
