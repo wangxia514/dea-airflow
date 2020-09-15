@@ -11,7 +11,6 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
-from airflow.operators.dummy_operator import DummyOperator
 
 from textwrap import dedent
 
@@ -101,19 +100,13 @@ with dag:
         ),
     )
 
-    EXPLORER_SUMMARY = SubDagOperator(
-        task_id="run-cubedash-gen-refresh-stat",
-        subdag=explorer_refresh_stats_subdag(
-            DAG_NAME, "run-cubedash-gen-refresh-stat", DEFAULT_ARGS
-        ),
-    )
+    # EXPLORER_SUMMARY = SubDagOperator(
+    #     task_id="run-cubedash-gen-refresh-stat",
+    #     subdag=explorer_refresh_stats_subdag(
+    #         DAG_NAME, "run-cubedash-gen-refresh-stat", DEFAULT_ARGS
+    #     ),
+    # )
 
-    START = DummyOperator(task_id="start_sentinel_2_nrt_archive")
-
-    COMPLETE = DummyOperator(task_id="all_done")
-
-    START >> ARCHIVE_EXTRANEOUS_DS
+    ARCHIVE_EXTRANEOUS_DS
     ARCHIVE_EXTRANEOUS_DS >> OWS_UPDATE_EXTENTS
-    ARCHIVE_EXTRANEOUS_DS >> EXPLORER_SUMMARY
-    OWS_UPDATE_EXTENTS >> COMPLETE
-    EXPLORER_SUMMARY >> COMPLETE
+    # ARCHIVE_EXTRANEOUS_DS >> EXPLORER_SUMMARY
