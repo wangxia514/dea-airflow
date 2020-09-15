@@ -14,51 +14,28 @@ from airflow.operators.dummy_operator import DummyOperator
 
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
+params = {
+    "project": "v10",
+    "queue": "normal",
+    "module_ass": "ard-scene-select-py3-dea/20200909",
+    "index_arg": "--index-datacube-env "
+    "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
+    "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
+    "config_arg": "",
+    "scene_limit": "",
+    "products_arg": "",
+    "pkgdir_arg": "/g/data/xu18/ga",
+    "base_dir": "/g/data/v10/work/c3_ard/",
+}
+ssh_conn_id = "lpgs_gadi"
+schedule_interval = None
 
-# swap around set work_dir log_dir too
-production = True
+params["scene_limit"] = "--scene-limit 1"
 
-if production:
-    params = {
-        "project": "v10",
-        "queue": "normal",
-        "module_ass": "ard-scene-select-py3-dea/20200831",
-        "index_arg": "--index-datacube-env "
-        "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
-        "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
-        "config_arg": "",
-        # "scene_limit": "",
-        "scene_limit": "--scene-limit 1",
-        "products_arg": "",
-        "pkgdir_arg": "/g/data/xu18/ga",
-        "base_dir": "/g/data/v10/work/c3_ard/",
-    }
-    ssh_conn_id = "lpgs_gadi"
-    schedule_interval = "0 4 * * *"
-else:
-    params = {
-        "project": "u46",
-        "queue": "normal",
-        "module_ass": "ard-scene-select-py3-dea/20200831",
-        "index_arg": "--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow"
-        "/index-test-odc.env",
-        # "index_arg": "",  # no indexing
-        "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
-        "config_arg": "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf",
-        "scene_limit": "--scene-limit 1",
-        "products_arg": """--products '["usgs_ls8c_level1_1"]'""",
-    }
-    aws_develop = True
-    if aws_develop:
-        ssh_conn_id = "lpgs_gadi"
-        params["pkgdir_arg"] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test/"
-        # schedule_interval = "15 08 * * *"
-        schedule_interval = "12 * * * *"
-    else:
-        ssh_conn_id = "dsg547"
-        params["pkgdir_arg"] = "/g/data/u46/users/dsg547/results_airflow/"
-        schedule_interval = None
-    params["base_dir"] = params["pkgdir_arg"]
+# Having the info above as variables and some empty values
+# means I can easily test by adding some test code here
+# without modifying the code below.
+
 
 default_args = {
     "owner": "Duncan Gray",
@@ -70,8 +47,6 @@ default_args = {
     "params": params,
 }
 
-# tags is in airflow >1.10.8
-# My local env is airflow 1.10.10...
 dag = DAG(
     "nci_ard",
     doc_md=__doc__,
@@ -92,7 +67,6 @@ with dag:
         {% set work_ext = ts_nodash + '/workdir' %}
         """
 
-    # An example of remotely starting a qsub job (all it does is ls)
     submit_task_id = f"submit_ard"
     submit_ard = SSHOperator(
         task_id=submit_task_id,
@@ -105,7 +79,7 @@ with dag:
               -W umask=33 \
               -l wd,walltime=0:30:00,mem=15GB,ncpus=1 -m abe \
               -l storage=gdata/v10+scratch/v10+gdata/if87+gdata/fj7+scratch/fj7+scratch/u46+gdata/u46 \
-              -P  {{ params.project }} -o {{ log_dir }} -e {{ log_dir }}  \
+              -P  {{ params.project }} -o {{ params.base_dir }}{{ log_ext }} -e {{ params.base_dir }}{{ log_ext }}  \
               -- /bin/bash -l -c \
                   "module use /g/data/v10/public/modules/modulefiles/; \
                   module use /g/data/v10/private/modules/modulefiles/; \
