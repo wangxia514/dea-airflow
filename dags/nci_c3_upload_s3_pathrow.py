@@ -122,7 +122,7 @@ default_args = {
     "email_on_failure": True,
     "email": "sachit.rajbhandari@ga.gov.au",
     "ssh_conn_id": "lpgs_gadi",
-    "aws_conn_id": "dea_public_data_upload",
+    "aws_conn_id": "dea_public_data_landsat_3_sync",
 }
 
 
