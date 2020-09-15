@@ -62,7 +62,7 @@ with pipeline:
     START = DummyOperator(task_id="start_wagl")
 
     SENSOR = SQSSensor(
-        COPY_SCENE_QUEUE
+        sqs_queue=COPY_SCENE_QUEUE
     )
 
     TEST = PythonOperator(
