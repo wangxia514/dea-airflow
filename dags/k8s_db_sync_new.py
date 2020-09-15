@@ -61,7 +61,7 @@ DEFAULT_ARGS = {
 }
 
 # Point to Geoscience Australia / OpenDataCube Dockerhub
-S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.5.g95767dd"
+S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.7.g66e5fe4"
 EXPLORER_IMAGE = "opendatacube/explorer:2.1.11-156-g17d840a"
 
 dag = DAG(
@@ -164,7 +164,7 @@ with dag:
     CHANGE_DB_OWNER = KubernetesPodOperator(
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
-        cmds=["/code/change_db_owner.sh"],
+        cmds=["./change_db_owner.sh"],
         # TODO: Avoid hardcoding ?
         arguments=["explorer"],
         labels={"step": "change_db_owner"},
