@@ -30,7 +30,7 @@ WAGL_IMAGE = (
 
 TILE_LIST = "assets/S2_aoi.csv"
 
-COPY_SCENE_QUEUE = 'dea-dev-eks-wagl-s2-nrt-copy-scene'
+COPY_SCENE_QUEUE = 'https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-copy-scene'
 
 def australia_tile_ids():
     root = Path(configuration.get('core', 'dags_folder')).parent
