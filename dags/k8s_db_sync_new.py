@@ -95,14 +95,14 @@ affinity = {
     }
 }
 
-s3_backup_volume_mount = k8s.V1VolumeMount(name="s3-backup-volume",
-                            mount_path="/backup",
-                            sub_path=None,
-                            read_only=False)
-
-s3_backup_volume_config = {}
-
-s3_backup_volume = Volume(name="s3-backup-volume", configs=s3_backup_volume_config)
+# s3_backup_volume_mount = k8s.V1VolumeMount(name="s3-backup-volume",
+#                             mount_path="/backup",
+#                             sub_path=None,
+#                             read_only=False)
+#
+# s3_backup_volume_config = {}
+#
+# s3_backup_volume = Volume(name="s3-backup-volume", configs=s3_backup_volume_config)
 
 with dag:
     START = DummyOperator(task_id="nci_rds_sync")
