@@ -5,7 +5,6 @@ This DAG executes everything using Gadi at the NCI.
 
 All steps except the k
 """
-import os
 from textwrap import dedent
 from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
@@ -23,24 +22,19 @@ INGEST_PRODUCTS = {
     'ls7_pq_scene': 'ls7_pq_albers',
 }
 
-NCI_MODULE = os.environ.get(
-    "NCI_MODULE",
-    'dea/unstable'
-)
-
 default_args = {
     'owner': 'Damien Ayers',
     'depends_on_past': False,
     'start_date': datetime(2020, 3, 4),
     'email': ['damien.ayers@ga.gov.au'],
-    'email_on_failure': False,
+    'email_on_failure': True,
     'email_on_retry': False,
     'retries': 3,
     'retry_delay': timedelta(minutes=5),
     'params': {
         'project': 'v10',
         'queue': 'normal',
-        'module': NCI_MODULE,
+        'module': 'dea',
         'year': '2020',
         'queue_size': '10000',
     }
@@ -51,13 +45,10 @@ ingest_dag = DAG(
     default_args=default_args,
     catchup=False,
     schedule_interval=None,
-    default_view='graph',
     tags=['nci', 'landsat_c2'],
 )
 
 with ingest_dag:
-    start = DummyOperator(task_id='start')
-
     COMMON = """
         {% set work_dir = '/g/data/v10/work/ingest/' + params.ing_product + '/' + ds -%}
         {% set task_file = 'tasks.bin' -%}
@@ -98,7 +89,6 @@ with ingest_dag:
         --queue-size {{params.queue_size}} --executor distributed DSCHEDULER
     """)
 
-    completed = DummyOperator(task_id='all_done')
     for ing_product in INGEST_PRODUCTS.values():
         save_tasks = SSHOperator(
             task_id=f'save_tasks_{ing_product}',
@@ -131,11 +121,4 @@ with ingest_dag:
             pbs_job_id="{{ ti.xcom_pull(task_ids='%s') }}" % submit_task_id
         )
 
-        start >> save_tasks >> test_tasks >> submit_ingest_job >> wait_for_completion >> completed
-
-"""
-f = open('tasks.bin', 'rb')
-while pickle.load(f): n += 1                                                                                                                                                                                      │··········
-                                                                                                                                                                                                                          │··········
-EOFError: Ran out of input        
-"""
+        save_tasks >> test_tasks >> submit_ingest_job >> wait_for_completion

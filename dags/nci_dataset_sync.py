@@ -8,7 +8,7 @@ from airflow.contrib.operators.ssh_operator import SSHOperator
 
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
-synced_products = ['ls8_nbar_scene',
+SYNCED_PRODUCTS = ['ls8_nbar_scene',
                    'ls8_nbart_scene',
                    'ls8_pq_scene',
                    'ls8_pq_legacy_scene',
@@ -70,7 +70,7 @@ default_args = {
     'params': {
         'project': 'v10',
         'queue': 'normal',
-        'module': 'dea/unstable',
+        'module': 'dea',
         'year': '2020'
     }
 }
@@ -79,10 +79,9 @@ with DAG('nci_dataset_sync',
          default_args=default_args,
          catchup=False,
          schedule_interval=None,
-         default_view='graph',
          tags=['nci', 'landsat_c2'],
          ) as dag:
-    for product in synced_products:
+    for product in SYNCED_PRODUCTS:
         submit_sync = SSHOperator(
             task_id=f'submit_sync_{product}',
             ssh_conn_id='lpgs_gadi',

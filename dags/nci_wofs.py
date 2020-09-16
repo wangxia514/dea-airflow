@@ -14,10 +14,11 @@ default_args = {
     'retries': 0,
     'retry_delay': timedelta(minutes=1),
     'ssh_conn_id': 'lpgs_gadi',
+    'email': 'damien.ayers@ga.gov.au',
     'params': {
         'project': 'v10',
         'queue': 'normal',
-        'module': 'dea/20200610',
+        'module': 'dea',
         'year': '2020'
     }
 }
@@ -27,7 +28,6 @@ dag = DAG(
     default_args=default_args,
     catchup=False,
     schedule_interval=None,
-    default_view='graph',
     tags=['nci', 'landsat_c2'],
 )
 

@@ -64,8 +64,8 @@ default_args = {
     'retries': 0,
     'retry_delay': timedelta(minutes=1),
     'ssh_conn_id': 'lpgs_gadi',
-    'email_on_failure': True,
     'email': 'damien.ayers@ga.gov.au',
+    'email_on_failure': True,
     'params': {
         'project': 'v10',
         'queue': 'normal',
