@@ -57,6 +57,13 @@ def test_env(**kwargs):
     print(australia_region_codes())
 
 
+def filter_scenes(**kwargs):
+    message = kwargs["message"]["Message"]
+    if region_code(message) in australia_region_codes():
+        return "dea-s2-wagl-nrt"
+    return "end_wagl"
+
+
 pipeline = DAG(
     "k8s_wagl_nrt",
     doc_md=__doc__,
@@ -85,6 +92,10 @@ with pipeline:
         region_name="ap-southeast-2",
     )
 
+    FILTER = BranchPythonOperator(
+        task_id="filter_scenes", python_callable=filter_scenes, provide_context=True
+    )
+
     WAGL_RUN = KubernetesPodOperator(
         namespace="processing",
         name="dea-s2-wagl-nrt",
@@ -99,4 +110,4 @@ with pipeline:
 
     END = DummyOperator(task_id="end_wagl")
 
-    START >> ENV >> SENSOR >> WAGL_RUN >> END
+    START >> ENV >> SENSOR >> FILTER >> [WAGL_RUN, END]
