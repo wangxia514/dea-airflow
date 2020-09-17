@@ -45,23 +45,21 @@ DEFAULT_ARGS = {
     # 'end_date': datetime(2016, 1, 1),
     "env_vars": {
         "AWS_DEFAULT_REGION": "ap-southeast-2",
+        "S3_KEY": S3_KEY,
         "DB_HOSTNAME": DB_HOSTNAME,
-        # The run day's DB
         "DB_DATABASE": DB_DATABASE,
+        "DB_PORT": "5432",
     },
     # Use K8S secrets to send DB Creds
     # Lift secrets into environment variables for datacube
     "secrets": [
-        Secret("env", "DB_USERNAME", "replicator-db", "postgres-username"),
-        # For Datacube to use
-        Secret("env", "DB_PASSWORD", "replicator-db", "postgres-password"),
-        # For psql to use
-        Secret("env", "PGPASSWORD", "replicator-db", "postgres-password"),
+        Secret("env", "DB_USERNAME", "explorer-admin", "postgres-username"),
+        Secret("env", "DB_PASSWORD", "explorer-admin", "postgres-password"),
     ],
 }
 
 # Point to Geoscience Australia / OpenDataCube Dockerhub
-S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.7.g66e5fe4"
+S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.8.g780534b"
 EXPLORER_IMAGE = "opendatacube/explorer:2.1.11-157-g6b143e0"
 
 dag = DAG(
@@ -73,10 +71,6 @@ dag = DAG(
     max_active_runs=1,
     tags=["k8s"],
     schedule_interval=timedelta(days=7),
-)
-
-s3_backup_mount = VolumeMount(
-    "s3-backup-volume", mount_path="/backup", sub_path=None, read_only=False
 )
 
 affinity = {
@@ -95,14 +89,14 @@ affinity = {
     }
 }
 
-# s3_backup_volume_mount = k8s.V1VolumeMount(name="s3-backup-volume",
-#                             mount_path="/backup",
-#                             sub_path=None,
-#                             read_only=False)
-#
-# s3_backup_volume_config = {}
-#
-# s3_backup_volume = Volume(name="s3-backup-volume", configs=s3_backup_volume_config)
+s3_backup_volume_mount = VolumeMount(name="s3-backup-volume",
+                                     mount_path="/backup",
+                                     sub_path=None,
+                                     read_only=False)
+
+s3_backup_volume_config = {}
+
+s3_backup_volume = Volume(name="s3-backup-volume", configs=s3_backup_volume_config)
 
 with dag:
     START = DummyOperator(task_id="nci_rds_sync")
@@ -118,10 +112,9 @@ with dag:
     RESTORE_RDS_S3 = KubernetesPodOperator(
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
-        annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-processing-dbsync"}, # TODO: Pass this via DAG parameters
+        annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-processing-dbsync"},  # TODO: Pass this via DAG parameters
         cmds=["./s3-to-rds.sh"],
-        arguments=[DB_DATABASE, S3_KEY],
-        image_pull_policy="Always", # TODO: Need to version the helper image properly once stable
+        image_pull_policy="Always",  # TODO: Need to version the helper image properly once stable
         labels={"step": "s3-to-rds"},
         name="s3-to-rds",
         task_id="s3-to-rds",
@@ -161,15 +154,13 @@ with dag:
     )
 
     # Hand ownership back to explorer DB user
-    CHANGE_DB_OWNER = KubernetesPodOperator(
+    SETUP_DB_PERMISSIONS = KubernetesPodOperator(
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
-        cmds=["./change_db_owner.sh"],
-        # TODO: Avoid hardcoding ?
-        arguments=["explorer"],
-        labels={"step": "change_db_owner"},
-        name="change-db-owner",
-        task_id="change-db-owner",
+        cmds=["./setup_db_permissions.sh"],
+        labels={"step": "setup_db_roles"},
+        name="setup-db-permissions",
+        task_id="setup-db-permissions",
         get_logs=True,
         is_delete_operator_pod=True,
         # affinity=affinity,
@@ -187,8 +178,8 @@ with dag:
     S3_BACKUP_SENSE >> RESTORE_RDS_S3
     RESTORE_RDS_S3 >> DYNAMIC_INDICES
     DYNAMIC_INDICES >> SUMMARIZE_DATACUBE
-    SUMMARIZE_DATACUBE >> CHANGE_DB_OWNER
+    SUMMARIZE_DATACUBE >> SETUP_DB_PERMISSIONS
 
-    CHANGE_DB_OWNER >> SPIN_PODS
+    SETUP_DB_PERMISSIONS >> SPIN_PODS
     SPIN_PODS >> AUDIT_EXPLORER
     AUDIT_EXPLORER >> COMPLETE
