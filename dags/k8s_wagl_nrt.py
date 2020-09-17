@@ -14,6 +14,7 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import BranchPythonOperator, PythonOperator
 from airflow.contrib.sensors.aws_sqs_sensor import SQSSensor
+from airflow.contrib.kubernetes.secret import Secret
 
 default_args = {
     "owner": "Imam Alam",
@@ -24,6 +25,10 @@ default_args = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
+    "secrets": [
+        Secret("env", key, "wagl-nrt-user-creds", key)
+        for key in ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_DEFAULT_REGION"]
+    ],
 }
 
 WAGL_IMAGE = "451924316694.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:rc-20190109-5"
