@@ -14,7 +14,7 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import BranchPythonOperator, PythonOperator
 from airflow.contrib.sensors.aws_sqs_sensor import SQSSensor
-from airflow.contrib.kubernetes.secret import Secret
+from airflow.kubernetes.secret import Secret
 
 default_args = {
     "owner": "Imam Alam",
