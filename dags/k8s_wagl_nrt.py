@@ -26,8 +26,7 @@ default_args = {
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "secrets": [
-        Secret("env", key, "wagl-nrt-user-creds", key)
-        for key in ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_DEFAULT_REGION"]
+        Secret("env", "AIRFLOW_CONN_WAGL_NRT", "wagl-nrt-conn-uri", "connection")
     ],
 }
 
@@ -55,14 +54,16 @@ def region_code(message):
 
 
 def test_env(**kwargs):
-    for key, value in kwargs.items():
-        print("kwargs key:", key)
-    for key, value in os.environ.items():
-        print("env key:", key)
+    for key in sorted(kwargs):
+        print("kwarg", key)
+    for key in sorted(os.environ):
+        print("env", key)
     print(australia_region_codes())
 
 
 def filter_scenes(**kwargs):
+    for key in sorted(kwargs):
+        print("kwarg", key)
     message = kwargs["message"]["Message"]
     if region_code(message) in australia_region_codes():
         return "dea-s2-wagl-nrt"
@@ -94,7 +95,7 @@ with pipeline:
     SENSOR = SQSSensor(
         task_id="copy_scene_queue_sensor",
         sqs_queue=COPY_SCENE_QUEUE,
-        region_name="ap-southeast-2",
+        aws_conn_id="wagl_nrt",
     )
 
     FILTER = BranchPythonOperator(
