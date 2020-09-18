@@ -49,13 +49,27 @@ COG_S3PREFIX_PATH = {
 TIMEOUT = timedelta(days=1)
 
 
-def task_to_fail():
-    """Make a Task into a manual Check
-
-    Raise an exception with a message asking for this Task to be manually marked
-    as successful.
+def check_for_work(upstream_task_id, ti, **kwargs):
     """
-    raise AirflowException("Please change this step to success to continue")
+    Check the number of COG tasks to complete
+
+    Short circuit if there are none. Ask for manual verification if there are lots,
+    otherwise continue.
+
+    """
+
+    response = ti.xcom_pull(task_ids=upstream_task_id)
+    last_line = response.split('\n')
+    num_tasks = int(last_line)
+
+    if num_tasks == 0:
+        raise AirflowException("Nothing to do, stopping.")
+    elif num_tasks >= 1000:
+        # TODO: Maybe send email as well
+        raise AirflowException("Please review, this looks like an unusually large number of COGs to generate. If correct, set this task to success.")
+
+    # Otherwise, carry on
+    return num_tasks
 
 
 default_args = {
@@ -91,7 +105,8 @@ with dag:
         COMMON = """
                 {% set work_dir = '/g/data/v10/work/cog/' + params.product + '/' + ts_nodash -%}
                 module load {{params.module}}
-                set -eux"""
+                set -eux
+        """
         download_s3_inventory = SSHOperator(
             task_id=f'download_s3_inventory_{product}',
             command=dedent(COMMON + '''
@@ -114,33 +129,33 @@ with dag:
             timeout=60 * 60 * 2,
             params={'product': product},
         )
-        check_for_work = ShortCircuitSSHOperator(
-            task_id=f'check_for_work_{product}',
+        check_work_file = SSHOperator(
+            task_id=f'check_work_file_{product}',
             command=dedent(COMMON + '''
                 {% set file_list = work_dir + '/' + params.product + '_file_list.txt' -%}
-                
                 test -f {{file_list}}
-                NUM_TO_PROCESS=$(wc -l {{file_list}} | awk '{print $1}')
-                echo There are $NUM_TO_PROCESS files to process.
-                test $NUM_TO_PROCESS -gt 0
-                '''),
+                wc -l {{file_list}} | awk '{print $1}'
+            '''),
             params={'product': product},
+            do_xcom_push=True
         )
         # Thanks https://stackoverflow.com/questions/48580341/how-to-add-manual-tasks-in-an-apache-airflow-dag
-        # manual_sign_off = PythonOperator(
-        #     task_id=f"manual_sign_off_{product}",
-        #     python_callable=task_to_fail,
-        #     retries=1,
-        #     retry_delay=TIMEOUT,
-        # )
-        # manual_sign_off.doc_md = dedent("""
-        #         ## Instructions
-        #         Perform some manual checks that the number of COGs to be generated seems to be about right.
-                
-        #         You can also do spot checks that files don't already exist in S3.
-                
-        #         Once you're happy, mark this job as **Success** for the DAG to continue running.
-        #     """)
+        check_for_work = PythonOperator(
+            task_id=f"check_for_work_{product}",
+            python_callable=check_for_work,
+            op_args=[f'check_work_file_{product}'],
+            provide_context=True,
+            retries=1,
+            retry_delay=TIMEOUT,
+        )
+        check_for_work.doc_md = dedent("""
+                ## Instructions
+                Perform some manual checks that the number of COGs to be generated seems to be about right.
+
+                You can also do spot checks that files don't already exist in S3.
+
+                Once you're happy, mark this job as **Success** for the DAG to continue running.
+            """)
         submit_task_id = f'submit_cog_convert_job_{product}'
         submit_bulk_cog_convert = SSHOperator(
             task_id=submit_task_id,
