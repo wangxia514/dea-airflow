@@ -53,7 +53,7 @@ def region_code(message):
     tiles = msg_dict["tiles"]
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(msg_dict)
-    assert len(tiles) == 0
+    assert len(tiles) >= 0
     tile = tiles[0]
     return str(tile["utmZone"]) + tile["latitudeBand"] + tile["gridSquare"]
 
@@ -67,8 +67,6 @@ def test_env(**kwargs):
 
 
 def filter_scenes(**context):
-    for key in sorted(context):
-        print("context", key)
     all_messages = context["task_instance"].xcom_pull(
         task_ids="copy_scene_queue_sensor", key="messages"
     )["Messages"]
