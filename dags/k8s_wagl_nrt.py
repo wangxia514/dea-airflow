@@ -95,7 +95,7 @@ with pipeline:
     SENSOR = SQSSensor(
         task_id="copy_scene_queue_sensor",
         sqs_queue=COPY_SCENE_QUEUE,
-        aws_conn_id="wagl_nrt",
+        aws_conn_id="wagl_nrt_manual",
     )
 
     FILTER = BranchPythonOperator(
