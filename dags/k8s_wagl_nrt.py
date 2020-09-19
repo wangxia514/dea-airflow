@@ -48,10 +48,10 @@ def australia_region_codes():
 def region_code(message):
     import pprint
 
-    msg_dict = json.loads(message["Body"]["Message"])
+    msg_dict = json.loads(message["Body"])
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(msg_dict)
-    tiles = msg_dict["tiles"]
+    tiles = msg_dict["Message"]["tiles"]
     assert len(tiles) == 0
     tile = tiles[0]
     return str(tile["utmZone"]) + tile["latitudeBand"] + tile["gridSquare"]
