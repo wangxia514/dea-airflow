@@ -46,7 +46,7 @@ def australia_region_codes():
 
 
 def region_code(message):
-    msg_dict = json.loads(message)
+    msg_dict = json.loads(message["Body"])
     tiles = msg_dict["tiles"]
     assert len(tiles) == 0
     tile = tiles[0]
@@ -61,12 +61,15 @@ def test_env(**kwargs):
     print(australia_region_codes())
 
 
-def filter_scenes(**kwargs):
-    for key in sorted(kwargs):
-        print("kwarg", key)
-    message = kwargs["message"]["Message"]
-    if region_code(message) in australia_region_codes():
-        return "dea-s2-wagl-nrt"
+def filter_scenes(**context):
+    for key in sorted(context):
+        print("context", key)
+    all_messages = context["task_instance"].xcom_pull(
+        task_ids="copy_scene_queue_sensor", key="messages"
+    )["Messages"]
+    for message in all_messages:
+        if region_code(message) in australia_region_codes():
+            return "dea-s2-wagl-nrt"
     return "end_wagl"
 
 
@@ -96,6 +99,7 @@ with pipeline:
         task_id="copy_scene_queue_sensor",
         sqs_queue=COPY_SCENE_QUEUE,
         aws_conn_id="wagl_nrt_manual",
+        max_messages=1,
     )
 
     FILTER = BranchPythonOperator(
