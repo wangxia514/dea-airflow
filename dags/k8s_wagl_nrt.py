@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import csv
 from pathlib import Path
 import json
+import random
 
 from airflow import DAG
 from airflow import configuration
@@ -58,15 +59,10 @@ def region_code(message):
     return str(tile["utmZone"]) + tile["latitudeBand"] + tile["gridSquare"]
 
 
-def test_env(**kwargs):
-    for key in sorted(kwargs):
-        print("kwarg", key)
-    for key in sorted(os.environ):
-        print("env", key)
-    print(australia_region_codes())
-
-
 def filter_scenes(**context):
+    for key in sorted(context):
+        print("context", key)
+
     all_messages = context["task_instance"].xcom_pull(
         task_ids="copy_scene_queue_sensor", key="messages"
     )["Messages"]
@@ -91,12 +87,6 @@ pipeline = DAG(
 
 with pipeline:
     START = DummyOperator(task_id="start_wagl")
-
-    ENV = PythonOperator(
-        task_id="test_env",
-        python_callable=test_env,
-        provide_context=True,
-    )
 
     SENSOR = SQSSensor(
         task_id="copy_scene_queue_sensor",
@@ -123,4 +113,4 @@ with pipeline:
 
     END = DummyOperator(task_id="end_wagl")
 
-    START >> ENV >> SENSOR >> FILTER >> [WAGL_RUN, END]
+    START >> SENSOR >> FILTER >> [WAGL_RUN, END]
