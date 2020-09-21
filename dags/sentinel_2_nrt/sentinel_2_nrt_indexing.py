@@ -109,7 +109,7 @@ with dag:
         namespace="processing",
         image=CREATION_DT_PATCHER_IMAGE,
         image_pull_policy="IfNotPresent",
-        arguments=INDEXING_BASH_COMMAND,
+        arguments=CREATION_DT_PATCH_COMMAND,
         labels={"step": "add-creation-dt"},
         name="nrt-creation-dt",
         task_id="creation-dt-task",
