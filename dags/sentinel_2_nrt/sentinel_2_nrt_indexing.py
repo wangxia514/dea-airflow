@@ -18,7 +18,7 @@ from textwrap import dedent
 
 import kubernetes.client.models as k8s
 
-from sentinel_2_nrt.images import INDEXER_IMAGE
+from sentinel_2_nrt.images import INDEXER_IMAGE, CREATION_DT_PATCHER_IMAGE
 from env_var.infra import (
     DB_DATABASE,
     DB_HOSTNAME,
@@ -66,14 +66,27 @@ INDEXING_BASH_COMMAND = [
     % (SQS_QUEUE_NAME, INDEXING_PRODUCTS),
 ]
 
+CREATION_DT_PATCH_COMMAND = [
+    "bash",
+    "-c",
+    dedent(
+        """
+            for product in %s; do
+                python3 creation_dt_patch.py --product $product --apply-patch;
+            done;
+        """
+    )
+    % (INDEXING_PRODUCTS),
+]
+
 
 # THE DAG
 dag = DAG(
     "sentinel_2_nrt_indexing",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
-    # schedule_interval="0 */1 * * *",  # hourly
-    schedule_interval=None,  # for testing
+    schedule_interval="0 */1 * * *",  # hourly
+    # schedule_interval=None,  # for testing
     catchup=False,
     tags=["k8s", "sentinel-2"],
 )
@@ -91,3 +104,17 @@ with dag:
         get_logs=True,
         is_delete_operator_pod=True,
     )
+
+    PATCH = KubernetesPodOperator(
+        namespace="processing",
+        image=CREATION_DT_PATCHER_IMAGE,
+        image_pull_policy="IfNotPresent",
+        arguments=INDEXING_BASH_COMMAND,
+        labels={"step": "add-creation-dt"},
+        name="nrt-creation-dt",
+        task_id="creation-dt-task",
+        get_logs=True,
+        is_delete_operator_pod=True,
+    )
+
+    INDEXING >> PATCH
