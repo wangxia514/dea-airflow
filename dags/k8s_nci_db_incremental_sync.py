@@ -21,31 +21,29 @@ from airflow.kubernetes.secret import Secret
 from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.dummy_operator import DummyOperator
-# from env_var.infra import DB_HOSTNAME
+from datetime import datetime, timedelta
+
+import pendulum
 
 # Templated DAG arguments
 DB_HOSTNAME = "db-writer"
 DB_DATABASE = "nci_20200917"
-DATESTRING  = "2020-09-18"      # TODO: fetch datestring
-S3_PATH = f"s3://nci-db-dump/csv-changes/{DATESTRING}"
+local_tz = pendulum.timezone("Australia/Canberra")
+DATESTRING  = "{{ ds }}"
+S3_KEY = f"s3://nci-db-dump/csv-changes/{DATESTRING}/agdc.dataset_changes.csv.gz"
 
 DEFAULT_ARGS = {
     "owner": "Nikita Gandhi",
     "depends_on_past": False,
-    "is_delete_operator_pod": True,
-    "start_date": datetime(2020, 2, 1),
+    "start_date": datetime(2020, 25, 9, tzinfo=local_tz),
     "email": ["nikita.gandhi@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 1,
+    "retries": 0,
     "retry_delay": timedelta(minutes=5),
-    # 'queue': 'bash_queue',
-    # 'pool': 'backfill',
-    # 'priority_weight': 10,
-    # 'end_date': datetime(2016, 1, 1),
     "env_vars": {
         "AWS_DEFAULT_REGION": "ap-southeast-2",
-        "S3_PATH": S3_PATH,
+        "S3_KEY": S3_KEY,
         "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
         "DB_PORT": "5432",
@@ -78,7 +76,12 @@ with dag:
     START = DummyOperator(task_id="nci_db_incremental_sync")
 
     # Wait for S3 Key
-    S3_BACKUP_SENSE = DummyOperator(task_id="s3_backup_sense")
+    S3_BACKUP_SENSE = S3KeySensor(
+        task_id="s3_backup_sense",
+        poke_interval=60 * 30,
+        bucket_key=S3_KEY,
+        aws_conn_id="aws_nci_db_backup",
+    )
 
     # Download PostgreSQL incremental backup from S3 and restore to RDS Aurora
     RESTORE_NCI_INCREMENTAL_SYNC = DummyOperator(task_id="restore_nci_incremental_sync")
