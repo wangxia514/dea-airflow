@@ -1,5 +1,5 @@
 """
-# Sentinel-2_nrt Indexing from SQS
+# Sentinel-2_nrt Streamline Indexing from SQS
 
 DAG to periodically index Sentinel-2 NRT data.
 
