@@ -28,6 +28,8 @@ DB_HOSTNAME = "db-writer"
 DB_DATABASE = "nci_{{ ds_nodash }}"
 FILE_PREFIX = "dea-db.nci.org.au-{{ ds_nodash }}"
 S3_KEY = f"s3://nci-db-dump/prod/{FILE_PREFIX}-datacube.pgdump"
+S3_KEY = f"s3://nci-db-dump/prod/{FILE_PREFIX}-datacube.pgdump"
+BACKUP_PATH = "/scripts/backup"
 
 DEFAULT_ARGS = {
     "owner": "Nikita Gandhi",
@@ -44,6 +46,7 @@ DEFAULT_ARGS = {
         "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
         "DB_PORT": "5432",
+        "BACKUP_PATH": BACKUP_PATH
     },
     # Use K8S secrets to send DB Creds
     # Lift secrets into environment variables for datacube
@@ -54,7 +57,7 @@ DEFAULT_ARGS = {
 }
 
 # Point to Geoscience Australia / OpenDataCube Dockerhub
-S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.9.g05c505e"
+S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.11.gfd482bf"
 EXPLORER_IMAGE = "opendatacube/explorer:2.1.11-157-g6b143e0"
 
 dag = DAG(
@@ -85,7 +88,7 @@ affinity = {
 }
 
 s3_backup_volume_mount = VolumeMount(name="s3-backup-volume",
-                                     mount_path="/backup",
+                                     mount_path=BACKUP_PATH,
                                      sub_path=None,
                                      read_only=False)
 

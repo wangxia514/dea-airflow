@@ -86,6 +86,42 @@ def filter_scenes(**context):
     task_instance.xcom_push(key="messages", value=messages)
 
 
+def copy_tile(client, tile, safe_tags):
+    datastrips = client.list_objects_v2(
+        Bucket=SOURCE_BUCKET,
+        Prefix=tile["datastrip"]["path"],
+        RequestPayer="requester",
+    )
+
+    for obj in datastrips["Contents"]:
+        client.copy_object(
+            ACL="bucket-owner-full-control",
+            CopySource={"Bucket": SOURCE_BUCKET, "Key": obj["Key"]},
+            Bucket=TRANSFER_BUCKET,
+            Key=obj["Key"],
+            TaggingDirective="REPLACE",
+            Tagging=safe_tags,
+            StorageClass="STANDARD",
+            RequestPayer="requester",
+        )
+
+    tiles = client.list_objects_v2(
+        Bucket=SOURCE_BUCKET, Prefix=tile["path"], RequestPayer="requester"
+    )
+
+    for obj in tiles["Contents"]:
+        client.copy_object(
+            ACL="bucket-owner-full-control",
+            CopySource={"Bucket": SOURCE_BUCKET, "Key": obj["Key"]},
+            Bucket=TRANSFER_BUCKET,
+            Key=obj["Key"],
+            TaggingDirective="REPLACE",
+            Tagging=safe_tags,
+            StorageClass="STANDARD",
+            RequestPayer="requester",
+        )
+
+
 def copy_scenes(**context):
     task_instance = context["task_instance"]
     index = context["index"]
@@ -101,39 +137,7 @@ def copy_scenes(**context):
     for message in messages:
         msg_dict = decode(message)
         for tile in msg_dict["tiles"]:
-            datastrips = client.list_objects_v2(
-                Bucket=SOURCE_BUCKET,
-                Prefix=tile["datastrip"]["path"],
-                RequestPayer="requester",
-            )
-
-            for obj in datastrips["Contents"]:
-                client.copy_object(
-                    ACL="bucket-owner-full-control",
-                    CopySource={"Bucket": SOURCE_BUCKET, "Key": obj["Key"]},
-                    Bucket=TRANSFER_BUCKET,
-                    Key=obj["Key"],
-                    TaggingDirective="REPLACE",
-                    Tagging=safe_tags,
-                    StorageClass="STANDARD",
-                    RequestPayer="requester",
-                )
-
-            tiles = client.list_objects_v2(
-                Bucket=SOURCE_BUCKET, Prefix=tile["path"], RequestPayer="requester"
-            )
-
-            for obj in tiles["Contents"]:
-                client.copy_object(
-                    ACL="bucket-owner-full-control",
-                    CopySource={"Bucket": SOURCE_BUCKET, "Key": obj["Key"]},
-                    Bucket=TRANSFER_BUCKET,
-                    Key=obj["Key"],
-                    TaggingDirective="REPLACE",
-                    Tagging=safe_tags,
-                    StorageClass="STANDARD",
-                    RequestPayer="requester",
-                )
+            copy_tile(client, tile, safe_tags)
 
 
 pipeline = DAG(
@@ -163,6 +167,7 @@ with pipeline:
         task_id="filter_scenes", python_callable=filter_scenes, provide_context=True
     )
 
+    # TODO provide upper bound of concurrent runs for this task
     WAGL_RUN = KubernetesPodOperator(
         namespace="processing",
         name="dea-s2-wagl-nrt",
