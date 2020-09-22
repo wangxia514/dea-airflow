@@ -27,7 +27,6 @@ from env_var.infra import (
     INDEXING_ROLE,
 )
 from sentinel_2_nrt.env_cfg import (
-    SQS_QUEUE_NAME,
     INDEXING_PRODUCTS,
 )
 
@@ -55,16 +54,20 @@ DEFAULT_ARGS = {
     ],
 }
 
+URI = (
+    "s://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/%s/**/ARD-METADATA.yaml"
+    % datetime.today().strftime("%Y-%m-%d")
+)
 
 INDEXING_BASH_COMMAND = [
     "bash",
     "-c",
     dedent(
         """
-            sqs-to-dc %s "%s" --skip-lineage --allow-unsafe --record-path "L2/sentinel-2-nrt/S2MSIARD/*/*/ARD-METADATA.yaml" --limit 1;
+            s3-to-dc %s "%s" --skip-lineage;
         """
     )
-    % (SQS_QUEUE_NAME, INDEXING_PRODUCTS),
+    % (URI, INDEXING_PRODUCTS),
 ]
 
 CREATION_DT_PATCH_COMMAND = [
@@ -83,13 +86,12 @@ CREATION_DT_PATCH_COMMAND = [
 
 # THE DAG
 dag = DAG(
-    "sentinel_2_nrt_indexing",
+    "sentinel_2_nrt_batch_indexing",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
-    schedule_interval="0 */1 * * *",  # hourly
-    # schedule_interval=None,  # for testing
+    schedule_interval="0 23 * * *",  # 11pm
     catchup=False,
-    tags=["k8s", "sentinel-2"],
+    tags=["k8s", "sentinel-2", "batch-indexing"],
 )
 
 with dag:
@@ -99,9 +101,9 @@ with dag:
         image_pull_policy="IfNotPresent",
         annotations={"iam.amazonaws.com/role": INDEXING_ROLE},
         arguments=INDEXING_BASH_COMMAND,
-        labels={"step": "sqs-to-rds"},
+        labels={"step": "s3-to-rds"},
         name="datacube-index",
-        task_id="indexing-task",
+        task_id="batch-indexing-task",
         get_logs=True,
         is_delete_operator_pod=True,
     )
