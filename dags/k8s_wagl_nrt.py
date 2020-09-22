@@ -99,7 +99,7 @@ def copy_scenes(**context):
         for tile in msg_dict["tiles"]:
             datastrips = s3_hook.get_conn().list_objects_v2(
                 Bucket=SOURCE_BUCKET,
-                Prefix=tile["datastrip_path"],
+                Prefix=tile["datastrip"]["path"],
                 RequestPayer="requester",
             )
 
