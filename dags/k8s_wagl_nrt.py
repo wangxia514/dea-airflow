@@ -74,7 +74,7 @@ def filter_scenes(**context):
 def copy_scenes(**context):
     task_instance = context["task_instance"]
     index = context["index"]
-    all_messages = task_instance.xcom_pull(task_ids="filter_scene", key="messages")
+    all_messages = task_instance.xcom_pull(task_ids="filter_scenes", key="messages")
 
     messages = all_messages[index::NUM_WORKERS]
     for message in messages:
