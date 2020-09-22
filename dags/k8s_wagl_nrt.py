@@ -36,6 +36,7 @@ TILE_LIST = "assets/S2_aoi.csv"
 COPY_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-copy-scene"
 
 SOURCE_BUCKET = "sentinel-s2-l1c"
+TRANSFER_BUCKET = "dea-dev-nrt-scene-cache"
 
 NUM_WORKERS = 2
 NUM_MESSAGES_TO_POLL = 10
@@ -90,21 +91,48 @@ def copy_scenes(**context):
     all_messages = task_instance.xcom_pull(task_ids="filter_scenes", key="messages")
 
     s3_hook = S3Hook(aws_conn_id=AWS_CONN_ID)
+    client = s3_hook.get_conn()
+
+    # tags to assign to objects
+    safe_tags = {}
 
     messages = all_messages[index::NUM_WORKERS]
     for message in messages:
         msg_dict = decode(message)
         for tile in msg_dict["tiles"]:
-            datastrips = s3_hook.get_conn().list_objects_v2(
+            datastrips = client.list_objects_v2(
                 Bucket=SOURCE_BUCKET,
                 Prefix=tile["datastrip"]["path"],
                 RequestPayer="requester",
             )
 
             for obj in datastrips["Contents"]:
-                import pprint
+                client.copy_object(
+                    ACL="bucket-owner-full-control",
+                    CopySource={"Bucket": SOURCE_BUCKET, "Key": obj["Key"]},
+                    Bucket=TRANSFER_BUCKET,
+                    Key=obj["Key"],
+                    TaggingDirective="REPLACE",
+                    Tagging=safe_tags,
+                    StorageClass="STANDARD",
+                    RequestPayer="requester",
+                )
 
-                pprint.pprint(obj)
+            tiles = client.list_objects_v2(
+                Bucket=SOURCE_BUCKET, Prefix=tile["path"], RequestPayer="requester"
+            )
+
+            for obj in tiles["Contents"]:
+                client.copy_object(
+                    ACL="bucket-owner-full-control",
+                    CopySource={"Bucket": SOURCE_BUCKET, "Key": obj["Key"]},
+                    Bucket=TRANSFER_BUCKET,
+                    Key=obj["Key"],
+                    TaggingDirective="REPLACE",
+                    Tagging=safe_tags,
+                    StorageClass="STANDARD",
+                    RequestPayer="requester",
+                )
 
 
 pipeline = DAG(
