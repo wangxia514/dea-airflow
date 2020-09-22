@@ -68,7 +68,7 @@ def filter_scenes(**context):
     messages = [message for message in all_messages]
     #             in region_code(message) in australia]
 
-    task_instance.xcom_push(task_ids="filter_scenes", key="messages", value=messages)
+    task_instance.xcom_push(key="messages", value=messages)
 
 
 def copy_scenes(**context):
