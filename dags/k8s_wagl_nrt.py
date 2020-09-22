@@ -1,7 +1,6 @@
 """
 Run WAGL NRT pipeline in Airflow.
 """
-import os
 from datetime import datetime, timedelta
 import csv
 from pathlib import Path
@@ -13,7 +12,7 @@ from airflow import configuration
 
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators.python_operator import BranchPythonOperator, PythonOperator
+from airflow.operators.python_operator import PythonOperator
 from airflow.contrib.sensors.aws_sqs_sensor import SQSSensor
 from airflow.kubernetes.secret import Secret
 
@@ -37,6 +36,9 @@ TILE_LIST = "assets/S2_aoi.csv"
 
 COPY_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-copy-scene"
 
+NUM_WORKERS = 1
+NUM_MESSAGES_TO_POLL = 1
+
 
 def australia_region_codes():
     root = Path(configuration.get("core", "dags_folder")).parent
@@ -47,29 +49,37 @@ def australia_region_codes():
 
 
 def region_code(message):
-    import pprint
-
     body_dict = json.loads(message["Body"])
     msg_dict = json.loads(body_dict["Message"])
     tiles = msg_dict["tiles"]
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(msg_dict)
     assert len(tiles) >= 0
     tile = tiles[0]
     return str(tile["utmZone"]) + tile["latitudeBand"] + tile["gridSquare"]
 
 
 def filter_scenes(**context):
-    for key in sorted(context):
-        print("context", key)
-
-    all_messages = context["task_instance"].xcom_pull(
+    task_instance = context["task_instance"]
+    all_messages = task_instance.xcom_pull(
         task_ids="copy_scene_queue_sensor", key="messages"
     )["Messages"]
-    for message in all_messages:
-        if region_code(message) in australia_region_codes():
-            return "dea-s2-wagl-nrt"
-    return "end_wagl"
+
+    # australia = australia_region_codes()
+
+    messages = [message for message in all_messages]
+    #             in region_code(message) in australia]
+
+    task_instance.xcom_push(task_ids="filter_scenes", key="messages", value=messages)
+
+
+def copy_scenes(**context):
+    task_instance = context["task_instance"]
+    index = context["index"]
+    all_messages = task_instance.xcom_pull(task_ids="filter_scene", key="messages")
+
+    messages = all_messages[index::NUM_WORKERS]
+    for message in messages:
+        print("imagine I am now copying this")
+        print(message)
 
 
 pipeline = DAG(
@@ -92,10 +102,10 @@ with pipeline:
         task_id="copy_scene_queue_sensor",
         sqs_queue=COPY_SCENE_QUEUE,
         aws_conn_id="wagl_nrt_manual",
-        max_messages=1,
+        max_messages=NUM_MESSAGES_TO_POLL,
     )
 
-    FILTER = BranchPythonOperator(
+    FILTER = PythonOperator(
         task_id="filter_scenes", python_callable=filter_scenes, provide_context=True
     )
 
@@ -113,4 +123,15 @@ with pipeline:
 
     END = DummyOperator(task_id="end_wagl")
 
-    START >> SENSOR >> FILTER >> [WAGL_RUN, END]
+    START >> SENSOR >> FILTER
+
+    for i in range(NUM_WORKERS):
+        COPY = PythonOperator(
+            task_id=f"copy_scenes_{i}",
+            op_kwargs={"index": i},
+            python_callable=copy_scenes,
+            execution_timeout=timedelta(hours=20),
+            provide_context=True,
+        )
+
+        FILTER >> COPY >> END
