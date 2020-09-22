@@ -26,9 +26,7 @@ default_args = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
-    "secrets": [
-        Secret("env", "AIRFLOW_CONN_WAGL_NRT", "wagl-nrt-conn-uri", "connection")
-    ],
+    "secrets": [Secret("env", None, "wagl-nrt-aws-creds")],
 }
 
 WAGL_IMAGE = "451924316694.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:rc-20190109-5"
@@ -103,7 +101,7 @@ def copy_scenes(**context):
                 RequestPayer="requester",
             )
 
-            for obj in datastrips["Content"]:
+            for obj in datastrips["Contents"]:
                 import pprint
 
                 pprint.pprint(obj)
