@@ -31,18 +31,13 @@ S3_KEY = f"s3://nci-db-dump/prod/{FILE_PREFIX}-datacube.pgdump"
 
 DEFAULT_ARGS = {
     "owner": "Nikita Gandhi",
-    "depends_on_past": False,
-    "is_delete_operator_pod": True,
-    "start_date": datetime(2020, 2, 1),
     "email": ["nikita.gandhi@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
+    "depends_on_past": False,
+    "start_date": datetime(2020, 9, 15),
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
-    # 'queue': 'bash_queue',
-    # 'pool': 'backfill',
-    # 'priority_weight': 10,
-    # 'end_date': datetime(2016, 1, 1),
     "env_vars": {
         "AWS_DEFAULT_REGION": "ap-southeast-2",
         "S3_KEY": S3_KEY,
@@ -122,8 +117,8 @@ with dag:
         get_logs=True,
         is_delete_operator_pod=True,
         # affinity=affinity,
-        # volumes=[s3_backup_volume],
-        # volume_mounts=[s3_backup_volume_mount],
+        volumes=[s3_backup_volume],
+        volume_mounts=[s3_backup_volume_mount],
     )
 
     # Restore dynamic indices
