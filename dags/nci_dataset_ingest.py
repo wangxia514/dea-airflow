@@ -61,10 +61,9 @@ with ingest_dag:
     """
 
     save_tasks_command = dedent(COMMON + """
-        {% set ingestion_config = '/g/data/v10/public/modules/' + params.module + 
-            '/lib/python3.6/site-packages/digitalearthau/config/ingestion/' + params.ing_product + '.yaml' %}
+        INGESTION_CONFIG=/g/data/v10/public/modules/$(module info-loaded dea)/lib/python3.6/site-packages/digitalearthau/config/ingestion/{{ params.ing_product }}.yaml
             
-        datacube -v ingest --year {{params.year}} --config-file {{ingestion_config}} --save-tasks {{task_file}}
+        datacube -v ingest --year {{params.year}} --config-file ${INGESTION_CONFIG} --save-tasks {{task_file}}
     """)
 
     test_tasks_command = dedent(COMMON + """
@@ -72,8 +71,6 @@ with ingest_dag:
     """)
 
     qsubbed_ingest_command = dedent(COMMON + """
-        {% set distributed_script = '/g/data/v10/public/modules/' + params.module + 
-            '/lib/python3.6/site-packages/digitalearthau/run_distributed.sh' %}
         {% set distributed_script = '/home/547/lpgs/bin/run_distributed.sh' %}
 
         qsub \

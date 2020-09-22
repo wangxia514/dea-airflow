@@ -12,7 +12,7 @@ from airflow.operators.email_operator import EmailOperator
 local_tz = pendulum.timezone("Australia/Canberra")
 
 default_args = {
-    'owner': 'dayers',
+    'owner': 'Damien Ayers',
     'start_date': datetime(2020, 3, 12, tzinfo=local_tz),
     'retries': 1,
     'retry_delay': timedelta(minutes=10),

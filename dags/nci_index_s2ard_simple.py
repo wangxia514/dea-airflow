@@ -33,7 +33,7 @@ default_args = {
     'retry_delay': timedelta(minutes=5),
     'params': {
         'project': 'v10',
-        'module': 'dea/unstable',
+        'module': 'dea',
         'queue': 'normal',
     }
 }
@@ -51,7 +51,7 @@ with DAG('nci_index_s2ard_simple',
         ssh_conn_id='lpgs_gadi',
         command=dedent('''
         set -eu
-        module load dea/unstable
+        module load {{ params.module }}
 
         cd /g/data/if87/datacube/002/S2_MSI_ARD/packaged
 
