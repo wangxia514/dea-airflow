@@ -36,8 +36,8 @@ TILE_LIST = "assets/S2_aoi.csv"
 
 COPY_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-copy-scene"
 
-NUM_WORKERS = 1
-NUM_MESSAGES_TO_POLL = 1
+NUM_WORKERS = 2
+NUM_MESSAGES_TO_POLL = 10
 
 
 def australia_region_codes():
@@ -79,7 +79,7 @@ def copy_scenes(**context):
     messages = all_messages[index::NUM_WORKERS]
     for message in messages:
         print("imagine I am now copying this")
-        print(message)
+        print(message["MessageId"])
 
 
 pipeline = DAG(
