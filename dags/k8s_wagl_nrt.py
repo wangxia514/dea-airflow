@@ -15,6 +15,7 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.contrib.sensors.aws_sqs_sensor import SQSSensor
 from airflow.kubernetes.secret import Secret
+from airflow.hooks.S3_hook import S3Hook
 
 default_args = {
     "owner": "Imam Alam",
@@ -36,11 +37,15 @@ TILE_LIST = "assets/S2_aoi.csv"
 
 COPY_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-copy-scene"
 
+SOURCE_BUCKET = "sentinel-s2-l1c"
+
 NUM_WORKERS = 2
 NUM_MESSAGES_TO_POLL = 10
 
+AWS_CONN_ID = "wagl_nrt_manual"
 
-def australia_region_codes():
+
+def australian_region_codes():
     root = Path(configuration.get("core", "dags_folder")).parent
 
     with open(root / TILE_LIST) as fl:
@@ -48,13 +53,23 @@ def australia_region_codes():
         return {x[0] for x in reader}
 
 
-def region_code(message):
+def decode(message):
     body_dict = json.loads(message["Body"])
     msg_dict = json.loads(body_dict["Message"])
+    return msg_dict
+
+
+def region_code(message):
+    msg_dict = decode(message)
     tiles = msg_dict["tiles"]
-    assert len(tiles) >= 0
-    tile = tiles[0]
-    return str(tile["utmZone"]) + tile["latitudeBand"] + tile["gridSquare"]
+
+    result = {
+        str(tile["utmZone"]) + tile["latitudeBand"] + tile["gridSquare"]
+        for tile in tiles
+    }
+    assert len(result) == 1
+
+    return list(result)[0]
 
 
 def filter_scenes(**context):
@@ -63,10 +78,10 @@ def filter_scenes(**context):
         task_ids="copy_scene_queue_sensor", key="messages"
     )["Messages"]
 
-    # australia = australia_region_codes()
+    australia = australian_region_codes()
 
     messages = [message for message in all_messages]
-    #             in region_code(message) in australia]
+    # TODO enable this: if region_code(message) in australia]
 
     task_instance.xcom_push(key="messages", value=messages)
 
@@ -76,10 +91,22 @@ def copy_scenes(**context):
     index = context["index"]
     all_messages = task_instance.xcom_pull(task_ids="filter_scenes", key="messages")
 
+    s3_hook = S3Hook(aws_conn_id=AWS_CONN_ID)
+
     messages = all_messages[index::NUM_WORKERS]
     for message in messages:
-        print("imagine I am now copying this")
-        print(message["MessageId"])
+        msg_dict = decode(message)
+        for tile in msg_dict["tiles"]:
+            datastrips = s3_hook.get_conn().list_objects_v2(
+                Bucket=SOURCE_BUCKET,
+                Prefix=tile["datastrip_path"],
+                RequestPayer="requester",
+            )
+
+            for obj in datastrips["Content"]:
+                import pprint
+
+                pprint.pprint(obj)
 
 
 pipeline = DAG(
@@ -101,7 +128,7 @@ with pipeline:
     SENSOR = SQSSensor(
         task_id="copy_scene_queue_sensor",
         sqs_queue=COPY_SCENE_QUEUE,
-        aws_conn_id="wagl_nrt_manual",
+        aws_conn_id=AWS_CONN_ID,
         max_messages=NUM_MESSAGES_TO_POLL,
     )
 
