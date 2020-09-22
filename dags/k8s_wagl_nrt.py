@@ -6,6 +6,7 @@ import csv
 from pathlib import Path
 import json
 import random
+from urllib.parse import urlencode, quote_plus
 
 from airflow import DAG
 from airflow import configuration
@@ -94,7 +95,7 @@ def copy_scenes(**context):
     client = s3_hook.get_conn()
 
     # tags to assign to objects
-    safe_tags = {}
+    safe_tags = urlencode({}, quote_via=quote_plus)
 
     messages = all_messages[index::NUM_WORKERS]
     for message in messages:
