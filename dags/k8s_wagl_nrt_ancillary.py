@@ -2,6 +2,7 @@
 Fetch wagl NRT ancillaries to a S3 bucket.
 """
 from datetime import datetime, timedelta
+from urllib.parse import urlencode, quote_plus
 
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
@@ -23,23 +24,23 @@ default_args = {
 }
 
 
-def aws_s3_sync(client, src_bucket, src_prefix, dest_bucket, dest_prefix):
+def aws_s3_sync(client, src_bucket, src_prefix, dest_bucket, dest_prefix, safe_tags):
     to_copy = client.list_objects_v2(Bucket=src_bucket, Prefix=src_prefix)
     for obj in to_copy["Contents"]:
         src_key = obj["Key"]
         suffix = src_key[len(src_prefix) :]
         dest_key = dest_prefix + suffix
-        print(f"imagine me copying {src_key} to {dest_key}")
-        # client.copy_object(
-        #     ACL="bucket-owner-full-control",
-        #     CopySource={"Bucket": SOURCE_BUCKET, "Key": obj["Key"]},
-        #     Bucket=TRANSFER_BUCKET,
-        #     Key=obj["Key"],
-        #     TaggingDirective="REPLACE",
-        #     Tagging=safe_tags,
-        #     StorageClass="STANDARD",
-        #     RequestPayer="requester",
-        # )
+        print(f"copying {src_key} to {dest_key}")
+        client.copy_object(
+            ACL="bucket-owner-full-control",
+            CopySource={"Bucket": src_bucket, "Key": src_key},
+            Bucket=dest_bucket,
+            Key=dest_key,
+            TaggingDirective="REPLACE",
+            Tagging=safe_tags,
+            StorageClass="STANDARD",
+            RequestPayer="requester",
+        )
 
 
 def copy_ancillaries(**context):
@@ -48,12 +49,15 @@ def copy_ancillaries(**context):
     s3_hook = S3Hook(aws_conn_id=AWS_CONN_ID)
     client = s3_hook.get_conn()
 
+    safe_tags = urlencode({}, quote_via=quote_plus)
+
     aws_s3_sync(
         client,
-        "ga-sentinel",
-        "ancillary/elevation/tc_aus_3sec",
-        "dea-dev-nrt-scene-cache",
-        "ancillary/dsm",
+        src_bucket="ga-sentinel",
+        src_prefix="ancillary/elevation/tc_aus_3sec",
+        dest_bucket="dea-dev-nrt-scene-cache",
+        dest_prefix="ancillary/dsm",
+        safe_tags=safe_tags,
     )
 
 
