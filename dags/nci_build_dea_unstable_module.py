@@ -59,7 +59,7 @@ with dag:
 
     send_email = EmailOperator(
         task_id='send_email',
-        to=['damien@omad.net', 'damien.ayers@ga.gov.au'],
+        to=['damien.ayers@ga.gov.au'],
         subject='New dea/unstable Module',
         html_content='Successfully built new dea/unstable module on the NCI',
         mime_charset='utf-8',
