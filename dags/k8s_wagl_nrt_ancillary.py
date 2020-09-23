@@ -26,7 +26,20 @@ default_args = {
 def aws_s3_sync(client, src_bucket, src_prefix, dest_bucket, dest_prefix):
     to_copy = client.list_objects_v2(Bucket=src_bucket, Prefix=src_prefix)
     for obj in to_copy["Contents"]:
-        print(f"imagine me copying {obj}")
+        src_key = obj["Key"]
+        suffix = src_key[len(src_prefix) :]
+        dest_key = dest_prefix + suffix
+        print(f"imagine me copying {src_key} to {dest_key}")
+        # client.copy_object(
+        #     ACL="bucket-owner-full-control",
+        #     CopySource={"Bucket": SOURCE_BUCKET, "Key": obj["Key"]},
+        #     Bucket=TRANSFER_BUCKET,
+        #     Key=obj["Key"],
+        #     TaggingDirective="REPLACE",
+        #     Tagging=safe_tags,
+        #     StorageClass="STANDARD",
+        #     RequestPayer="requester",
+        # )
 
 
 def copy_ancillaries(**context):
