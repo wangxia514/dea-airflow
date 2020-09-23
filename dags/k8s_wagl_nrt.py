@@ -1,5 +1,5 @@
 """
-Run WAGL NRT pipeline in Airflow.
+Run wagl NRT pipeline in Airflow.
 """
 from datetime import datetime, timedelta
 import csv
@@ -144,7 +144,7 @@ pipeline = DAG(
     "k8s_wagl_nrt",
     doc_md=__doc__,
     default_args=default_args,
-    description="DEA Sentinel-2 NRT Processing",
+    description="DEA Sentinel-2 NRT processing",
     concurrency=2,
     max_active_runs=1,
     catchup=False,
