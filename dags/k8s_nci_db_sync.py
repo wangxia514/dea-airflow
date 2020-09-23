@@ -92,7 +92,12 @@ s3_backup_volume_mount = VolumeMount(name="s3-backup-volume",
                                      sub_path=None,
                                      read_only=False)
 
-s3_backup_volume_config = {}
+s3_backup_volume_config = {
+    "persistentVolumeClaim":
+        {
+            "claimName": "s3-backup-volume"
+        }
+}
 
 s3_backup_volume = Volume(name="s3-backup-volume", configs=s3_backup_volume_config)
 
