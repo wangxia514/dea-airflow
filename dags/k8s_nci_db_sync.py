@@ -72,13 +72,13 @@ dag = DAG(
 )
 
 affinity = {
-    'nodeAffinity': {
-        'requiredDuringSchedulingIgnoredDuringExecution': {
-            'nodeSelectorTerms': [{
-                'matchExpressions': [{
-                    'key': 'nodetype',
-                    'operator': 'In',
-                    'values': [
+    "nodeAffinity": {
+        "requiredDuringSchedulingIgnoredDuringExecution": {
+            "nodeSelectorTerms": [{
+                "matchExpressions": [{
+                    "key": "nodetype",
+                    "operator": "In",
+                    "values": [
                         "spot",
                     ]
                 }]
