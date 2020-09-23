@@ -25,7 +25,7 @@ default_args = {
 
 def aws_s3_sync(client, src_bucket, src_prefix, dest_bucket, dest_prefix):
     for obj in client.list_objects_v2(Bucket=src_bucket, Prefix=src_prefix):
-        print(f"imagine me copying {obj['key']}")
+        print(f"imagine me copying {obj}")
 
 
 def copy_ancillaries(**context):
