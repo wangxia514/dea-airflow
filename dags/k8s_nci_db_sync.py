@@ -140,7 +140,7 @@ with dag:
         task_id="odc-indices",
         get_logs=True,
         is_delete_operator_pod=True,
-        # affinity=affinity,
+        affinity=affinity,
     )
 
     # Run summary
@@ -154,7 +154,7 @@ with dag:
         task_id="summarize-datacube",
         get_logs=True,
         is_delete_operator_pod=True,
-        # affinity=affinity,
+        affinity=affinity,
     )
 
     # Setup DB user permissions
@@ -167,7 +167,7 @@ with dag:
         task_id="setup-db-permissions",
         get_logs=True,
         is_delete_operator_pod=True,
-        # affinity=affinity,
+        affinity=affinity,
     )
 
     # Change DB connection config of application pods and spin up fresh ones
