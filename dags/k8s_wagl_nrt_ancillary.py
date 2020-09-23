@@ -31,6 +31,7 @@ def aws_s3_sync(client, src_bucket, src_prefix, dest_bucket, dest_prefix, safe_t
         suffix = src_key[len(src_prefix) :]
         dest_key = dest_prefix + suffix
         print(f"copying {src_key} to {dest_key}")
+        print(type(client))
         client.copy_object(
             ACL="bucket-owner-full-control",
             CopySource={"Bucket": src_bucket, "Key": src_key},
