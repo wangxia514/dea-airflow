@@ -31,16 +31,20 @@ def aws_s3_sync(client, src_bucket, src_prefix, dest_bucket, dest_prefix, safe_t
         suffix = src_key[len(src_prefix) :]
         dest_key = dest_prefix + suffix
         print(f"copying {src_key} to {dest_key}")
-        print(client, type(client))
-        client.copy_object(
+
+        extra_args = dict(
+            Tagging=safe_tags,
+            StorageClass="STANDARD",
             ACL="bucket-owner-full-control",
+            TaggingDirective="REPLACE",
+        )
+        extra_args = {}
+
+        client.copy_object(
             CopySource={"Bucket": src_bucket, "Key": src_key},
             Bucket=dest_bucket,
             Key=dest_key,
-            TaggingDirective="REPLACE",
-            Tagging=safe_tags,
-            StorageClass="STANDARD",
-            RequestPayer="requester",
+            ExtraArgs=extra_args,
         )
 
 
