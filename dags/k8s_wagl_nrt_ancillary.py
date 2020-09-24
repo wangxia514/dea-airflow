@@ -24,11 +24,20 @@ default_args = {
 }
 
 
-def aws_s3_sync(client, src_bucket, src_prefix, dest_bucket, dest_prefix, safe_tags):
-    to_copy = client.list_objects_v2(Bucket=src_bucket, Prefix=src_prefix)
+def aws_s3_sync(
+    client, src_bucket, src_prefix, dest_bucket, dest_prefix, safe_tags, key_filter=None
+):
+    to_copy = client.list_objects_v2(
+        Bucket=src_bucket,
+        Prefix=src_prefix,
+    )
     for obj in to_copy["Contents"]:
         src_key = obj["Key"]
         suffix = src_key[len(src_prefix) :]
+
+        if key_filter is not None and not key_filter(suffix):
+            continue
+
         dest_key = dest_prefix + suffix
         print(f"copying {src_key} to {dest_key}")
 
@@ -56,7 +65,7 @@ def copy_ancillaries(**context):
 
     safe_tags = urlencode({}, quote_via=quote_plus)
 
-    def ga_sentinel_to_cache(src_prefix, dest_prefix):
+    def ga_sentinel_to_cache(src_prefix, dest_prefix, key_filter=None):
         aws_s3_sync(
             client,
             src_bucket="ga-sentinel",
@@ -64,9 +73,10 @@ def copy_ancillaries(**context):
             dest_bucket="dea-dev-nrt-scene-cache",
             dest_prefix=dest_prefix,
             safe_tags=safe_tags,
+            key_filter=key_filter,
         )
 
-    def dev_to_cache(src_prefix, dest_prefix):
+    def dev_to_cache(src_prefix, dest_prefix, key_filter=None):
         aws_s3_sync(
             client,
             src_bucket="dea-dev-bucket",
@@ -74,24 +84,32 @@ def copy_ancillaries(**context):
             dest_bucket="dea-dev-nrt-scene-cache",
             dest_prefix=dest_prefix,
             safe_tags=safe_tags,
+            key_filter=key_filter,
         )
 
-    ga_sentinel_to_cache(
-        src_prefix="ancillary/elevation/tc_aus_3sec",
-        dest_prefix="ancillary/dsm",
-    )
     ga_sentinel_to_cache(
         src_prefix="ancillary/lookup_tables/ozone",
         dest_prefix="ancillary/ozone",
     )
     ga_sentinel_to_cache(
+        src_prefix="ancillary/elevation/tc_aus_3sec",
+        dest_prefix="ancillary/dsm",
+    )
+    ga_sentinel_to_cache(
         src_prefix="ancillary/elevation/world_1deg",
         dest_prefix="ancillary/elevation/world_1deg",
     )
+    ga_sentinel_to_cache(
+        src_prefix="ancillary/aerosol/AATSR/2.0",
+        dest_prefix="ancillary/aerosol",
+        key_filter=lambda suffix: suffix == "/aerosol.h5",
+    )
     dev_to_cache(src_prefix="s2-wagl-nrt/invariant", dest_prefix="ancillary/invariant")
-    dev_to_cache(src_prefix="s2-wagl-nrt/invariant", dest_prefix="ancillary/invariant")
-    # sync_land_sea_rasters(dates)
-    # sync_aerosol(dates)
+    dev_to_cache(
+        src_prefix="s2-wagl-nrt",
+        dest_prefix="ancillary",
+        key_filter=lambda suffix: suffix == "/Land_Sea_Rasters.tar.z",
+    )
 
 
 pipeline = DAG(
