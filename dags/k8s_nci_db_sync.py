@@ -57,8 +57,8 @@ DEFAULT_ARGS = {
 }
 
 # Point to Geoscience Australia / OpenDataCube Dockerhub
-S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.11.gfd482bf"
-EXPLORER_IMAGE = "opendatacube/explorer:2.1.11-157-g6b143e0"
+S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.18.g2d5cae7"
+EXPLORER_IMAGE = "opendatacube/explorer:2.1.11-166-ga34234b"
 
 dag = DAG(
     "k8s_nci_db_sync",
@@ -106,7 +106,9 @@ with dag:
 
     # Wait for S3 Key
     S3_BACKUP_SENSE = S3KeySensor(
-        task_id="s3_backup_sense",
+        labels={"step": "s3-backup-sense"},
+        name="s3-backup-sense",
+        task_id="s3-backup-sense",
         poke_interval=60 * 30,
         bucket_key=S3_KEY,
         aws_conn_id="aws_nci_db_backup",
@@ -118,7 +120,7 @@ with dag:
         image=S3_TO_RDS_IMAGE,
         annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-processing-dbsync"},  # TODO: Pass this via DAG parameters
         cmds=["./s3-to-rds.sh"],
-        image_pull_policy="Always",  # TODO: Need to version the helper image properly once stable
+        image_pull_policy="Always",
         labels={"step": "s3-to-rds"},
         name="s3-to-rds",
         task_id="s3-to-rds",
@@ -135,7 +137,7 @@ with dag:
         image=EXPLORER_IMAGE,
         cmds=["datacube"],
         arguments=["-v", "system", "init", "--lock-table"],
-        labels={"step": "restore_indices"},
+        labels={"step": "odc-indices"},
         name="odc-indices",
         task_id="odc-indices",
         get_logs=True,
@@ -149,7 +151,7 @@ with dag:
         image=EXPLORER_IMAGE,
         cmds=["cubedash-gen"],
         arguments=["--init", "--all"],
-        labels={"step": "summarize_datacube"},
+        labels={"step": "summarize-datacube"},
         name="summarize-datacube",
         task_id="summarize-datacube",
         get_logs=True,
@@ -162,7 +164,7 @@ with dag:
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
         cmds=["./setup_db_permissions.sh"],
-        labels={"step": "setup_db_roles"},
+        labels={"step": "setup-db-permissions"},
         name="setup-db-permissions",
         task_id="setup-db-permissions",
         get_logs=True,

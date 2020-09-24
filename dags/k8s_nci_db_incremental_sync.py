@@ -28,7 +28,7 @@ import pendulum
 # Templated DAG arguments
 local_tz = pendulum.timezone("Australia/Canberra")
 DB_HOSTNAME = "db-writer"
-DB_DATABASE = "nci_20200918"
+DB_DATABASE = "nci_20200920"
 DATESTRING = "{{ macros.ds_add(ds, -1) }}"
 S3_KEY = f"s3://nci-db-dump/csv-changes/{DATESTRING}/agdc.dataset_changes.csv.gz"
 BACKUP_PATH = "/scripts/backup"
@@ -54,14 +54,16 @@ DEFAULT_ARGS = {
     # Use K8S secrets to send DB Creds
     # Lift secrets into environment variables for datacube
     "secrets": [
-        Secret("env", "DB_USERNAME", "explorer-admin", "postgres-username"),
-        Secret("env", "DB_PASSWORD", "explorer-admin", "postgres-password"),
+        Secret("env", "DB_ADMIN_USER", "explorer-admin", "postgres-username"),  # To run import from s3
+        Secret("env", "DB_ADMIN_PASSWORD", "explorer-admin", "postgres-password"),
+        Secret("env", "DB_USERNAME", "explorer-writer", "postgres-password"),   # To run cubedash-gen
+        Secret("env", "DB_PASSWORD", "explorer-writer", "postgres-password"),
     ],
 }
 
 # Point to Geoscience Australia / OpenDataCube Dockerhub
-S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.16.gcbddc2d"
-EXPLORER_IMAGE = "opendatacube/explorer:2.1.11-157-g6b143e0"
+S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.18.g2d5cae7"
+EXPLORER_IMAGE = "opendatacube/explorer:2.1.11-166-ga34234b"
 
 dag = DAG(
     "k8s_nci_db_incremental_sync",
@@ -111,7 +113,7 @@ with dag:
     S3_BACKUP_SENSE = S3KeySensor(
         labels={"step": "s3-backup-sense"},
         name="s3-backup-sense",
-        task_id="s3_backup_sense",
+        task_id="s3-backup-sense",
         poke_interval=60 * 30,
         bucket_key=S3_KEY,
         aws_conn_id="aws_nci_db_backup",
@@ -126,7 +128,7 @@ with dag:
         image_pull_policy="Always",
         labels={"step": "s3-to-rds"},
         name="s3-to-rds",
-        task_id="s3_to_rds",
+        task_id="s3-to-rds",
         get_logs=True,
         is_delete_operator_pod=True,
         affinity=affinity,
@@ -142,7 +144,7 @@ with dag:
         arguments=["--no-init-database", "--refresh-stats", "--force-refresh", "--all"],
         labels={"step": "summarize-datacube"},
         name="summarize-datacube",
-        task_id="summarize_datacube",
+        task_id="summarize-datacube",
         get_logs=True,
         is_delete_operator_pod=True,
         affinity=affinity,
