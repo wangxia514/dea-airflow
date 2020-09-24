@@ -38,8 +38,8 @@ def aws_s3_sync(client, src_bucket, src_prefix, dest_bucket, dest_prefix, safe_t
             ACL="bucket-owner-full-control",
             TaggingDirective="REPLACE",
         )
-        # extra_args = {}
 
+        # this can copy >5GB objects
         client.copy(
             CopySource={"Bucket": src_bucket, "Key": src_key},
             Bucket=dest_bucket,
@@ -56,14 +56,42 @@ def copy_ancillaries(**context):
 
     safe_tags = urlencode({}, quote_via=quote_plus)
 
-    aws_s3_sync(
-        client,
-        src_bucket="ga-sentinel",
+    def ga_sentinel_to_cache(src_prefix, dest_prefix):
+        aws_s3_sync(
+            client,
+            src_bucket="ga-sentinel",
+            src_prefix=src_prefix,
+            dest_bucket="dea-dev-nrt-scene-cache",
+            dest_prefix=dest_prefix,
+            safe_tags=safe_tags,
+        )
+
+    def dev_to_cache(src_prefix, dest_prefix):
+        aws_s3_sync(
+            client,
+            src_bucket="dea-dev-bucket",
+            src_prefix=src_prefix,
+            dest_bucket="dea-dev-nrt-scene-cache",
+            dest_prefix=dest_prefix,
+            safe_tags=safe_tags,
+        )
+
+    ga_sentinel_to_cache(
         src_prefix="ancillary/elevation/tc_aus_3sec",
-        dest_bucket="dea-dev-nrt-scene-cache",
         dest_prefix="ancillary/dsm",
-        safe_tags=safe_tags,
     )
+    ga_sentinel_to_cache(
+        src_prefix="ancillary/lookup_tables/ozone",
+        dest_prefix="ancillary/ozone",
+    )
+    ga_sentinel_to_cache(
+        src_prefix="ancillary/elevation/world_1deg",
+        dest_prefix="ancillary/elevation/world_1deg",
+    )
+    dev_to_cache(src_prefix="s2-wagl-nrt/invariant", dest_prefix="ancillary/invariant")
+    dev_to_cache(src_prefix="s2-wagl-nrt/invariant", dest_prefix="ancillary/invariant")
+    # sync_land_sea_rasters(dates)
+    # sync_aerosol(dates)
 
 
 pipeline = DAG(
