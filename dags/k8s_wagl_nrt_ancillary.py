@@ -38,9 +38,9 @@ def aws_s3_sync(client, src_bucket, src_prefix, dest_bucket, dest_prefix, safe_t
             ACL="bucket-owner-full-control",
             TaggingDirective="REPLACE",
         )
-        extra_args = {}
+        # extra_args = {}
 
-        client.copy_object(
+        client.copy(
             CopySource={"Bucket": src_bucket, "Key": src_key},
             Bucket=dest_bucket,
             Key=dest_key,
