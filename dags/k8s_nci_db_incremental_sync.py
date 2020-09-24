@@ -29,7 +29,7 @@ import pendulum
 local_tz = pendulum.timezone("Australia/Canberra")
 DB_HOSTNAME = "db-writer"
 DB_DATABASE = "nci_20200918"
-DATESTRING = "{{ ds }}"
+DATESTRING = "{{ macros.ds_add(ds, -1) }}"
 S3_KEY = f"s3://nci-db-dump/csv-changes/{DATESTRING}/agdc.dataset_changes.csv.gz"
 BACKUP_PATH = "/scripts/backup"
 
