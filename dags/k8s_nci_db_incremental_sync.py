@@ -36,7 +36,7 @@ BACKUP_PATH = "/scripts/backup"
 DEFAULT_ARGS = {
     "owner": "Nikita Gandhi",
     "depends_on_past": False,
-    "start_date": datetime(2020, 9, 25, tzinfo=local_tz),
+    "start_date": datetime(2020, 9, 24, tzinfo=local_tz),
     "email": ["nikita.gandhi@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
