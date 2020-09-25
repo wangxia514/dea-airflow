@@ -94,6 +94,7 @@ def copy_tile(client, tile, safe_tags):
     )
 
     for obj in datastrips["Contents"]:
+        print("copying", obj["key"], "from", SOURCE_BUCKET, "to", TRANSFER_BUCKET)
         client.copy_object(
             ACL="bucket-owner-full-control",
             CopySource={"Bucket": SOURCE_BUCKET, "Key": obj["Key"]},
@@ -110,6 +111,7 @@ def copy_tile(client, tile, safe_tags):
     )
 
     for obj in tiles["Contents"]:
+        print("copying", obj["key"], "from", SOURCE_BUCKET, "to", TRANSFER_BUCKET)
         client.copy_object(
             ACL="bucket-owner-full-control",
             CopySource={"Bucket": SOURCE_BUCKET, "Key": obj["Key"]},
