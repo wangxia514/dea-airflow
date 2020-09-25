@@ -87,7 +87,7 @@ def filter_scenes(**context):
 
 
 def copy_tile(client, tile, safe_tags):
-    datastrips = client.list_objects_v2(
+    datastrips = client.get_conn().list_objects_v2(
         Bucket=SOURCE_BUCKET,
         Prefix=tile["datastrip"]["path"],
         RequestPayer="requester",
@@ -106,7 +106,7 @@ def copy_tile(client, tile, safe_tags):
             RequestPayer="requester",
         )
 
-    tiles = client.list_objects_v2(
+    tiles = client.get_conn().list_objects_v2(
         Bucket=SOURCE_BUCKET, Prefix=tile["path"], RequestPayer="requester"
     )
 
