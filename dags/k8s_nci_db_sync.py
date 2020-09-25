@@ -102,7 +102,7 @@ s3_backup_volume_config = {
 s3_backup_volume = Volume(name="s3-backup-volume", configs=s3_backup_volume_config)
 
 with dag:
-    START = DummyOperator(task_id="nci_rds_sync")
+    START = DummyOperator(task_id="nci-db-sync")
 
     # Wait for S3 Key
     S3_BACKUP_SENSE = S3KeySensor(
