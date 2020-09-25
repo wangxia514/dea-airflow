@@ -1,7 +1,7 @@
 """
 # Collection 3 NCI to AWS Automation
 
-This DAG runs tasks on Gadi at the NCI. This DAG backfills Collection 3
+This DAG runs tasks on Gadi at the NCI. This DAG routinely sync Collection 3
 data from NCI to AWS S3 bucket. It:
 
  * List scenes to be uploaded to S3 bucket from indexed DB.
@@ -14,7 +14,7 @@ This DAG takes following input parameters from `nci_c3_upload_s3_config` variabl
  * `s3bucket`: Name of the S3 bucket. `"dea-public-data"`
  * `s3path`: Path prefix of the S3. `"baseline"`
  * `s3baseurl`: Base URL of the S3. `"s3://dea-public-data"`
- * `explorerbaseurl`: Base URL of the Explorer. `"https://explorer.dea.ga.gov.au"`
+ * `explorerbaseurl`: Base URL of the explorer. `"https://explorer.dea.ga.gov.au"`
  * `snstopic`: ARN of the SNS topic. `"arn:aws:sns:ap-southeast-2:538673716275:dea-public-data-landsat-3"`
  * `doupdate`: If this flag is set then do a fresh sync of data and
     replace the metadata. `"--force-update"`
@@ -29,16 +29,19 @@ from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
 
-collection3_products = [
-    ["ga_ls5t_ard_3", datetime(1986, 8, 15), datetime(2011, 11, 16)],
-    ["ga_ls7e_ard_3", datetime(1999, 5, 28), datetime(2020, 8, 5)],
-    ["ga_ls8c_ard_3", datetime(2013, 3, 19), datetime(2020, 8, 8)],
-]
+import pendulum
 
+local_tz = pendulum.timezone("Australia/Canberra")
+
+collection3_products = ["ga_ls5t_ard_3", "ga_ls7e_ard_3", "ga_ls8c_ard_3"]
 
 LIST_SCENES_COMMAND = """
     mkdir -p {{ work_dir }};
     cd {{ work_dir }}
+    
+    echo "Execution next_date: {{ next_execution_date }} - {{ next_execution_date.timestamp() }}"
+    echo "Execution date in UTC: {{ execution_date }} - {{ execution_date.timestamp() }}"
+    echo "Now in UTC: `date -u`"
 
     # echo on and exit on fail
     set -eu
@@ -51,16 +54,18 @@ LIST_SCENES_COMMAND = """
     set -x
 
     args="-h dea-db.nci.org.au datacube -t -A -F,"
-    query="SELECT dsl.uri_body
-    FROM agdc.dataset ds
-    INNER JOIN agdc.dataset_type dst
-    ON ds.dataset_type_ref = dst.id
-    INNER JOIN agdc.dataset_location dsl
-    ON ds.id = dsl.dataset_ref
-    WHERE dst.name='{{ params.product }}'
-    AND ds.archived IS NULL
-    AND TO_DATE(ds.metadata -> 'properties' ->> 'datetime',
-    'YYYY-MM-DD') = TO_DATE('{{ ds }}', 'YYYY-MM-DD')
+    query="SELECT dsl.uri_body, ds.archived, ds.added, 
+    to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra' as exec_dt 
+    FROM agdc.dataset ds 
+    INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id 
+    INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref 
+    WHERE dst.name='{{ params.product }}' 
+    AND (ds.added BETWEEN 
+    (to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra' - interval '1 day') 
+    AND (to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra') 
+    OR ds.archived BETWEEN 
+    (to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra' - interval '1 day') 
+    AND (to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra') )
     ;"
     output_file={{ work_dir }}/{{ params.product }}.csv
     psql ${args} -c "${query}" -o ${output_file}
@@ -96,33 +101,31 @@ RUN_UPLOAD_SCRIPT = """
             {{ var.json.nci_c3_upload_s3_config.doupdate }}
 """
 
+default_args = {
+    "owner": "Sachit Rajbhandari",
+    "start_date": datetime(2020, 9, 25, tzinfo=local_tz),
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5),
+    "timeout": 1200,  # For running SSH Commands
+    "email_on_failure": True,
+    "email": "sachit.rajbhandari@ga.gov.au",
+    "ssh_conn_id": "lpgs_gadi",
+    "aws_conn_id": "dea_public_data_landsat_3_sync",
+}
 
-def create_dag(dag_id, product, start_date, end_date):
-    default_args = {
-        "owner": "Sachit Rajbhandari",
-        "start_date": start_date,
-        "end_date": end_date,
-        "retries": 1,
-        "retry_delay": timedelta(minutes=5),
-        "timeout": 1200,  # For running SSH Commands
-        "email_on_failure": True,
-        "email": "sachit.rajbhandari@ga.gov.au",
-        "ssh_conn_id": "lpgs_gadi",
-        "aws_conn_id": "dea_public_data_landsat_3_sync",
-    }
+dag = DAG(
+    "nci_c3_upload_s3",
+    doc_md=__doc__,
+    default_args=default_args,
+    catchup=False,
+    schedule_interval="0 7 * * *",
+    max_active_runs=4,
+    default_view="graph",
+    tags=["nci", "landsat_c3"],
+)
 
-    dag = DAG(
-        dag_id=dag_id,
-        doc_md=__doc__,
-        default_args=default_args,
-        catchup=True,
-        schedule_interval="@daily",
-        max_active_runs=4,
-        default_view="graph",
-        tags=["nci", "landsat_c3"],
-    )
-
-    with dag:
+with dag:
+    for product in collection3_products:
         WORK_DIR = f'/g/data/v10/work/c3_upload_s3/{product}/{"{{ ts_nodash }}"}'
         COMMON = """
                 {% set work_dir = '/g/data/v10/work/c3_upload_s3/'
@@ -174,11 +177,3 @@ def create_dag(dag_id, product, start_date, end_date):
         list_scenes >> sftp_c3_to_s3_script
         sftp_c3_to_s3_script >> execute_c3_to_s3_script
         execute_c3_to_s3_script >> clean_nci_work_dir
-    return dag
-
-
-for product_info in collection3_products:
-    _dag_id = f"nci_c3_upload_s3_backlog_{str(product_info[0])}"
-    globals()[_dag_id] = create_dag(
-        _dag_id, product_info[0], product_info[1], product_info[2]
-    )
