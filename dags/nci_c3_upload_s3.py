@@ -61,10 +61,10 @@ LIST_SCENES_COMMAND = """
     INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref 
     WHERE dst.name='{{ params.product }}' 
     AND (ds.added BETWEEN 
-    (to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra' - interval '1 day') 
+    (to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra') 
     AND (to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra') 
     OR ds.archived BETWEEN 
-    (to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra' - interval '1 day') 
+    (to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra') 
     AND (to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra') )
     ;"
     output_file={{ work_dir }}/{{ params.product }}.csv
@@ -91,13 +91,13 @@ RUN_UPLOAD_SCRIPT = """
     export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
 
     python3 '{{ work_dir }}/c3_to_s3_rolling.py' \
-            -f '{{ work_dir }}/{{ params.product }}.csv' \
-            -n '{{ params.nci_dir }}' \
-            -p '{{ var.json.nci_c3_upload_s3_config.s3path }}' \
-            -b '{{ var.json.nci_c3_upload_s3_config.s3bucket }}' \
-            -u '{{ var.json.nci_c3_upload_s3_config.s3baseurl }}' \
-            -e '{{ var.json.nci_c3_upload_s3_config.explorerbaseurl }}' \
-            -t '{{ var.json.nci_c3_upload_s3_config.snstopic }}' \
+            --filepath '{{ work_dir }}/{{ params.product }}.csv' \
+            --ncidir '{{ params.nci_dir }}' \
+            --s3path '{{ var.json.nci_c3_upload_s3_config.s3path }}' \
+            --s3bucket '{{ var.json.nci_c3_upload_s3_config.s3bucket }}' \
+            --s3baseurl '{{ var.json.nci_c3_upload_s3_config.s3baseurl }}' \
+            --explorerbaseurl '{{ var.json.nci_c3_upload_s3_config.explorerbaseurl }}' \
+            --snstopic '{{ var.json.nci_c3_upload_s3_config.snstopic }}' \
             {{ var.json.nci_c3_upload_s3_config.doupdate }}
 """
 
@@ -121,7 +121,7 @@ dag = DAG(
     catchup=False,
     schedule_interval="0 7 * * *",
     max_active_runs=4,
-    default_view="graph",
+    default_view="tree",
     tags=["nci", "landsat_c3"],
 )
 
