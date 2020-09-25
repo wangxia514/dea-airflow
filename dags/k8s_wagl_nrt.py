@@ -130,7 +130,7 @@ def copy_scenes(**context):
     all_messages = task_instance.xcom_pull(task_ids="filter_scenes", key="messages")
 
     s3_hook = S3Hook(aws_conn_id=AWS_CONN_ID)
-    client = s3_hook.get_conn()
+    client = s3_hook
 
     print("s3_hook", s3_hook, type(s3_hook))
     print("client", client, type(client))
