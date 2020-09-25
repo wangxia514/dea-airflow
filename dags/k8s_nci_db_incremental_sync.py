@@ -56,7 +56,7 @@ DEFAULT_ARGS = {
     "secrets": [
         Secret("env", "DB_ADMIN_USER", "explorer-admin", "postgres-username"),  # To run import from s3
         Secret("env", "DB_ADMIN_PASSWORD", "explorer-admin", "postgres-password"),
-        Secret("env", "DB_USERNAME", "explorer-writer", "postgres-password"),   # To run cubedash-gen
+        Secret("env", "DB_USERNAME", "explorer-writer", "postgres-username"),   # To run cubedash-gen
         Secret("env", "DB_PASSWORD", "explorer-writer", "postgres-password"),
     ],
 }
