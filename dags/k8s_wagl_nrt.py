@@ -87,7 +87,7 @@ def filter_scenes(**context):
 
 
 def copy_tile(client, tile, safe_tags):
-    datastrips = client.get_conn().list_objects_v2(
+    datastrips = client.list_objects_v2(
         Bucket=SOURCE_BUCKET,
         Prefix=tile["datastrip"]["path"],
         RequestPayer="requester",
@@ -95,15 +95,18 @@ def copy_tile(client, tile, safe_tags):
 
     for obj in datastrips["Contents"]:
         print("copying", obj["Key"], "from", SOURCE_BUCKET, "to", TRANSFER_BUCKET)
-        client.get_conn().copy_object(
+        client.copy_object(
             ACL="bucket-owner-full-control",
             CopySource={"Bucket": SOURCE_BUCKET, "Key": obj["Key"]},
             Bucket=TRANSFER_BUCKET,
+            TaggingDirective="REPLACE",
+            Tagging=safe_tags,
+            StorageClass="STANDARD",
             Key=obj["Key"],
             RequestPayer="requester",
         )
 
-    tiles = client.get_conn().list_objects_v2(
+    tiles = client.list_objects_v2(
         Bucket=SOURCE_BUCKET, Prefix=tile["path"], RequestPayer="requester"
     )
 
@@ -127,7 +130,7 @@ def copy_scenes(**context):
     all_messages = task_instance.xcom_pull(task_ids="filter_scenes", key="messages")
 
     s3_hook = S3Hook(aws_conn_id=AWS_CONN_ID)
-    client = s3_hook
+    client = s3_hook.get_conn()
 
     print("s3_hook", s3_hook, type(s3_hook))
     print("client", client, type(client))
