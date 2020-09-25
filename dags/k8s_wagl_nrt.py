@@ -132,6 +132,9 @@ def copy_scenes(**context):
     s3_hook = S3Hook(aws_conn_id=AWS_CONN_ID)
     client = s3_hook.get_conn()
 
+    print("s3_hook", s3_hook, type(s3_hook))
+    print("client", client, type(client))
+
     # tags to assign to objects
     safe_tags = urlencode({}, quote_via=quote_plus)
 
