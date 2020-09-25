@@ -174,11 +174,11 @@ with dag:
 
     # Change DB connection config of application pods and spin up fresh ones
     # TODO: Currently manual find a smooth way to automate
-    SPIN_PODS = DummyOperator(task_id="spin_pods")
+    SPIN_PODS = DummyOperator(task_id="spin-pods")
 
     # Get API responses from Explorer and ensure product count summaries match
-    AUDIT_EXPLORER = DummyOperator(task_id="audit_explorer")
-    COMPLETE = DummyOperator(task_id="all_done")
+    AUDIT_EXPLORER = DummyOperator(task_id="audit-explorer")
+    COMPLETE = DummyOperator(task_id="all-done")
 
     START >> S3_BACKUP_SENSE
     S3_BACKUP_SENSE >> RESTORE_RDS_S3

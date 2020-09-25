@@ -151,7 +151,7 @@ with dag:
     )
 
     # Task complete
-    COMPLETE = DummyOperator(task_id="all_done")
+    COMPLETE = DummyOperator(task_id="all-done")
 
 
     START >> S3_BACKUP_SENSE
