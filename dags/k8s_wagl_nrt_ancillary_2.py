@@ -13,6 +13,12 @@ from airflow.operators.dummy_operator import DummyOperator
 
 S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.26.g5ffb384"
 
+SYNC_CMD = "aws s3 sync --only-show-errors"
+SYNC_JOB = f"""
+echo synching ozone &&
+{SYNC_CMD} s3://ga-sentinel/ancillary/lookup_tables/ozone/ /ancillary/ozone
+"""
+
 default_args = {
     "owner": "Imam Alam",
     "depends_on_past": False,
@@ -58,14 +64,7 @@ with pipeline:
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
         annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-wagl-nrt"},
-        cmds=[
-            "aws",
-            "s3",
-            "sync",
-            "--only-show-errors",
-            "s3://ga-sentinel/ancillary/lookup_tables/ozone/",
-            "/ancillary/ozone",
-        ],
+        cmds=["bash", "-c", SYNC_JOB],
         image_pull_policy="Always",
         name="sync_ancillaries",
         task_id="sync_ancillaries",
