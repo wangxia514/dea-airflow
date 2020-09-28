@@ -178,7 +178,7 @@ with dag:
 
     # Get API responses from Explorer and ensure product count summaries match
     AUDIT_EXPLORER = DummyOperator(task_id="audit-explorer")
-    COMPLETE = DummyOperator(task_id="all-done")
+    COMPLETE = DummyOperator(task_id="done")
 
     START >> S3_BACKUP_SENSE
     S3_BACKUP_SENSE >> RESTORE_RDS_S3

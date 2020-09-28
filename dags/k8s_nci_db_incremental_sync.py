@@ -28,7 +28,7 @@ import pendulum
 # Templated DAG arguments
 local_tz = pendulum.timezone("Australia/Canberra")
 DB_HOSTNAME = "db-writer"
-DB_DATABASE = "nci_20200920"
+DB_DATABASE = "nci_20200925"
 DATESTRING = "{{ macros.ds_add(ds, -1) }}"
 S3_KEY = f"s3://nci-db-dump/csv-changes/{DATESTRING}/agdc.dataset_changes.csv.gz"
 BACKUP_PATH = "/scripts/backup"
@@ -151,7 +151,7 @@ with dag:
     )
 
     # Task complete
-    COMPLETE = DummyOperator(task_id="all-done")
+    COMPLETE = DummyOperator(task_id="done")
 
 
     START >> S3_BACKUP_SENSE
