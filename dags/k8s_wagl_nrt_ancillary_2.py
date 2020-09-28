@@ -62,7 +62,7 @@ with pipeline:
             "aws",
             "s3",
             "sync",
-            "--only-show-errros",
+            "--only-show-errors",
             "s3://ga-sentinel/ancillary/lookup_tables/ozone/",
             "/ancillary/ozone",
         ],
