@@ -40,7 +40,10 @@ pipeline = DAG(
 )
 
 ancillary_volume_mount = VolumeMount(
-    name="s3-backup-volume", mount_path="/ancillary", sub_path=None, read_only=False
+    name="wagl-nrt-ancillary_volume",
+    mount_path="/ancillary",
+    sub_path=None,
+    read_only=False,
 )
 
 ancillary_volume = Volume(
