@@ -58,7 +58,7 @@ with pipeline:
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
         annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-wagl-nrt"},
-        cmds=["echo", "Hello", "$AWS_DEFAULT_REGION"],
+        cmds=["aws", "s3", "ls"],
         image_pull_policy="Always",
         name="sync_ancillaries",
         task_id="sync_ancillaries",
