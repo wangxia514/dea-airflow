@@ -44,6 +44,27 @@ NUM_MESSAGES_TO_POLL = 10
 
 AWS_CONN_ID = "wagl_nrt_manual"
 
+# TODO use this
+affinity = {
+    "nodeAffinity": {
+        "requiredDuringSchedulingIgnoredDuringExecution": {
+            "nodeSelectorTerms": [
+                {
+                    "matchExpressions": [
+                        {
+                            "key": "nodetype",
+                            "operator": "In",
+                            "values": [
+                                "spot",
+                            ],
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
+
 
 def australian_region_codes():
     root = Path(configuration.get("core", "dags_folder")).parent
