@@ -31,7 +31,8 @@ DB_HOSTNAME = "db-writer"
 DB_DATABASE = "nci_20200925"
 DATESTRING = "2020-09-25"
 # DATESTRING = "{{ macros.ds_add(ds, -1) }}"
-S3_KEY = f"s3://nci-db-dump/csv-changes/{DATESTRING}/agdc.dataset_changes.csv.gz"
+S3_BUCKET = "nci-db-dump"
+S3_PREFIX=f"csv-changes/{DATESTRING}"
 BACKUP_PATH = "/scripts/backup"
 
 DEFAULT_ARGS = {
@@ -45,12 +46,13 @@ DEFAULT_ARGS = {
     "retry_delay": timedelta(minutes=5),
     "env_vars": {
         "AWS_DEFAULT_REGION": "ap-southeast-2",
-        "S3_KEY": S3_KEY,
         "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
         "DB_PORT": "5432",
         "BACKUP_PATH": BACKUP_PATH,
-        "DATESTRING": DATESTRING
+        "DATESTRING": DATESTRING,
+        "S3_BUCKET": S3_BUCKET,
+        "S3_PREFIX": S3_PREFIX
     },
     # Use K8S secrets to send DB Creds
     # Lift secrets into environment variables for datacube
@@ -63,7 +65,7 @@ DEFAULT_ARGS = {
 }
 
 # Point to Geoscience Australia / OpenDataCube Dockerhub
-S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.26.g5ffb384"
+S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.29.ge17ed66"
 EXPLORER_IMAGE = "opendatacube/explorer:2.1.11-166-ga34234b"
 
 dag = DAG(
