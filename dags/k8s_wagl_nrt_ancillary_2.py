@@ -27,7 +27,7 @@ default_args = {
 
 
 pipeline = DAG(
-    "k8s_wagl_nrt_ancillary",
+    "k8s_wagl_nrt_ancillary_2",
     doc_md=__doc__,
     default_args=default_args,
     description="DEA Sentinel-2 NRT fetch ancillary",
