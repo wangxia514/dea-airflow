@@ -29,10 +29,10 @@ import pendulum
 local_tz = pendulum.timezone("Australia/Canberra")
 DB_HOSTNAME = "db-writer"
 DB_DATABASE = "nci_20200925"
-DATESTRING = "2020-09-25"
-# DATESTRING = "{{ macros.ds_add(ds, -1) }}"
+DATESTRING = "{{ macros.ds_add(ds, -1) }}"
 S3_BUCKET = "nci-db-dump"
 S3_PREFIX=f"csv-changes/{DATESTRING}"
+S3_KEY = f"s3://{S3_BUCKET}/{S3_PREFIX}/agdc.dataset_changes.csv.gz"
 BACKUP_PATH = "/scripts/backup"
 
 DEFAULT_ARGS = {
@@ -52,7 +52,8 @@ DEFAULT_ARGS = {
         "BACKUP_PATH": BACKUP_PATH,
         "DATESTRING": DATESTRING,
         "S3_BUCKET": S3_BUCKET,
-        "S3_PREFIX": S3_PREFIX
+        "S3_PREFIX": S3_PREFIX,
+        "S3_KEY": S3_KEY
     },
     # Use K8S secrets to send DB Creds
     # Lift secrets into environment variables for datacube
