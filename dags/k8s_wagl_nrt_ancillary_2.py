@@ -21,17 +21,18 @@ echo synching ozone &&
 echo synching dsm &&
 {SYNC_CMD} s3://ga-sentinel/ancillary/elevation/tc_aus_3sec/ /ancillary/dsm &&
 echo synching elevation &&
-{SYNC_CMD} s3://ga-sentinel/ancillary/elevation/world_1deg /ancillary/elevation/world_1deg &&
+{SYNC_CMD} s3://ga-sentinel/ancillary/elevation/world_1deg/ /ancillary/elevation/world_1deg &&
 echo synching aerosol &&
 {SYNC_CMD} --exclude "*" --include "aerosol.h5" \
         s3://ga-sentinel/ancillary/aerosol/AATSR/2.0/ /ancillary/aerosol &&
 echo synching invariant height &&
-{SYNC_CMD} s3://dea-dev-bucket/s2-wagl-nrt/invariant /ancillary/invariant &&
+{SYNC_CMD} s3://dea-dev-bucket/s2-wagl-nrt/invariant/ /ancillary/invariant &&
 echo synching land sea rasters &&
 {SYNC_CMD} --exclude "*" --include Land_Sea_Rasters.tar.z \
         s3://dea-dev-bucket/s2-wagl-nrt/ /ancillary &&
 echo extracting land sea rasters &&
-tar -xf /ancillary/Land_Sea_Rasters.tar.z -C /ancillary/
+tar -xvf /ancillary/Land_Sea_Rasters.tar.z -C /ancillary/ &&
+find /ancillary/
 date
 """
 
