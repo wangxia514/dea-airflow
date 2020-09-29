@@ -1,5 +1,5 @@
 """
-WAGL NRT ancillary sync.
+WAGL NRT fetch ancillary.
 """
 from datetime import datetime, timedelta
 
@@ -77,7 +77,7 @@ ancillary_volume = Volume(
 with pipeline:
     START = DummyOperator(task_id="start")
 
-    COPY = KubernetesPodOperator(
+    SYNC = KubernetesPodOperator(
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
         annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-wagl-nrt"},
@@ -92,21 +92,6 @@ with pipeline:
         is_delete_operator_pod=True,
     )
 
-    VERIFY = KubernetesPodOperator(
-        namespace="processing",
-        image=S3_TO_RDS_IMAGE,
-        annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-wagl-nrt"},
-        cmds=["ls", "-lR", "/ancillary/"],
-        image_pull_policy="Always",
-        name="verify_ancillaries",
-        task_id="verify_ancillaries",
-        get_logs=True,
-        # TODO: affinity=affinity,
-        volumes=[ancillary_volume],
-        volume_mounts=[ancillary_volume_mount],
-        is_delete_operator_pod=True,
-    )
-
     END = DummyOperator(task_id="end")
 
-    START >> COPY >> VERIFY >> END
+    START >> SYNC >> END
