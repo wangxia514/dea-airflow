@@ -31,8 +31,7 @@ echo synching land sea rasters &&
 {SYNC_CMD} --exclude "*" --include Land_Sea_Rasters.tar.z \
         s3://dea-dev-bucket/s2-wagl-nrt/ /ancillary &&
 echo extracting land sea rasters &&
-tar --keep-newer-files --no-same-owner \
-        -xf /ancillary/Land_Sea_Rasters.tar.z -C /ancillary/
+tar -xf /ancillary/Land_Sea_Rasters.tar.z -C /ancillary/
 date
 """
 
