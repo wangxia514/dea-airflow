@@ -16,6 +16,8 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.contrib.sensors.aws_sqs_sensor import SQSSensor
 from airflow.kubernetes.secret import Secret
+from airflow.kubernetes.volume import Volume
+from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.hooks.S3_hook import S3Hook
 
 default_args = {
@@ -64,6 +66,20 @@ affinity = {
         }
     }
 }
+
+
+ancillary_volume_mount = VolumeMount(
+    name="wagl-nrt-ancillary-volume",
+    mount_path="/ancillary",
+    sub_path=None,
+    read_only=False,
+)
+
+
+ancillary_volume = Volume(
+    name="wagl-nrt-ancillary-volume",
+    configs={"persistentVolumeClaim": {"claimName": "wagl-nrt-ancillary-volume"}},
+)
 
 
 def australian_region_codes():
@@ -165,6 +181,8 @@ def copy_scenes(**context):
         for tile in msg_dict["tiles"]:
             copy_tile(client, tile, safe_tags)
 
+    task_instance.xcom_push(key="messages", value=all_messages)
+
 
 pipeline = DAG(
     "k8s_wagl_nrt",
@@ -200,10 +218,13 @@ with pipeline:
         task_id="dea-s2-wagl-nrt",
         image_pull_policy="IfNotPresent",
         image=WAGL_IMAGE,
-        is_delete_operator_pod=True,
+        # TODO: affinity=affinity,
         arguments=["--version"],
         labels={"runner": "airflow"},
         get_logs=True,
+        volumes=[ancillary_volume],
+        volume_mounts=[ancillary_volume_mount],
+        is_delete_operator_pod=True,
     )
 
     END = DummyOperator(task_id="end_wagl")
@@ -215,7 +236,7 @@ with pipeline:
             task_id=f"copy_scenes_{i}",
             op_kwargs={"index": i},
             python_callable=copy_scenes,
-            execution_timeout=timedelta(hours=20),
+            execution_timeout=timedelta(hours=2),
             provide_context=True,
         )
 
