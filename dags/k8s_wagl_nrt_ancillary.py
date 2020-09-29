@@ -96,7 +96,7 @@ with pipeline:
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
         annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-wagl-nrt"},
-        cmds=["tree", "/ancillary/"],
+        cmds=["ls", "-R", "/ancillary/"],
         image_pull_policy="Always",
         name="verify_ancillaries",
         task_id="verify_ancillaries",
