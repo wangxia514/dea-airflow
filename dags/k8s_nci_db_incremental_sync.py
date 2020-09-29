@@ -60,14 +60,11 @@ DEFAULT_ARGS = {
     "secrets": [
         Secret("env", "DB_ADMIN_USER", "explorer-admin", "postgres-username"),  # To run import from s3
         Secret("env", "DB_ADMIN_PASSWORD", "explorer-admin", "postgres-password"),
-        Secret("env", "DB_USERNAME", "explorer-writer", "postgres-username"),   # To run cubedash-gen
-        Secret("env", "DB_PASSWORD", "explorer-writer", "postgres-password"),
     ],
 }
 
 # Point to Geoscience Australia / OpenDataCube Dockerhub
-S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.31.g6e90e2f"
-EXPLORER_IMAGE = "opendatacube/explorer:2.1.11-166-ga34234b"
+S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.32.g606bf75"
 
 dag = DAG(
     "k8s_nci_db_incremental_sync",
@@ -127,7 +124,7 @@ with dag:
     RESTORE_NCI_INCREMENTAL_SYNC = KubernetesPodOperator(
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
-        annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-processing-dbsync"},  # TODO: Pass this via DAG parameters
+        annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-processing-dbsync"},
         cmds=["./import_from_s3.sh"],
         image_pull_policy="Always",
         labels={"step": "s3-to-rds"},
@@ -140,25 +137,10 @@ with dag:
         volume_mounts=[s3_backup_volume_mount],
     )
 
-    # Run update summary
-    UPDATE_SUMMARY = KubernetesPodOperator(
-        namespace="processing",
-        image=EXPLORER_IMAGE,
-        cmds=["cubedash-gen"],
-        arguments=["--no-init-database", "--refresh-stats", "--force-refresh", "--all"],
-        labels={"step": "summarize-datacube"},
-        name="summarize-datacube",
-        task_id="summarize-datacube",
-        get_logs=True,
-        is_delete_operator_pod=True,
-        affinity=affinity,
-    )
-
     # Task complete
     COMPLETE = DummyOperator(task_id="done")
 
 
     START >> S3_BACKUP_SENSE
     S3_BACKUP_SENSE >> RESTORE_NCI_INCREMENTAL_SYNC
-    RESTORE_NCI_INCREMENTAL_SYNC >> UPDATE_SUMMARY
-    UPDATE_SUMMARY >> COMPLETE
+    RESTORE_NCI_INCREMENTAL_SYNC >> COMPLETE
