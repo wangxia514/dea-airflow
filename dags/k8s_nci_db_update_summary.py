@@ -15,11 +15,8 @@ integrity using md5sum
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.sensors.s3_key_sensor import S3KeySensor
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
-from airflow.kubernetes.volume import Volume
-from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
 
@@ -65,7 +62,6 @@ dag = DAG(
     max_active_runs=1,
     tags=["k8s"],
     schedule_interval=timedelta(days=7),
-    execution_timeout=timedelta(hours=15),
 )
 
 affinity = {
@@ -99,6 +95,7 @@ with dag:
         get_logs=True,
         is_delete_operator_pod=True,
         affinity=affinity,
+        execution_timeout=timedelta(hours=15),
     )
 
     # Task complete
