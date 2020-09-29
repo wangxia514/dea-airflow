@@ -1,115 +1,52 @@
 """
-Fetch wagl NRT ancillaries to a S3 bucket.
+WAGL NRT ancillary sync.
 """
 from datetime import datetime, timedelta
-from urllib.parse import urlencode, quote_plus
 
 from airflow import DAG
+from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+from airflow.kubernetes.secret import Secret
+from airflow.kubernetes.volume import Volume
+from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators.python_operator import PythonOperator
-from airflow.hooks.S3_hook import S3Hook
 
-AWS_CONN_ID = "wagl_nrt_manual"
 
+S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.26.g5ffb384"
+
+SYNC_CMD = "aws s3 sync --only-show-errors"
+SYNC_JOB = f"""
+date &&
+echo synching ozone &&
+{SYNC_CMD} s3://ga-sentinel/ancillary/lookup_tables/ozone/ /ancillary/ozone &&
+echo synching dsm &&
+{SYNC_CMD} s3://ga-sentinel/ancillary/elevation/tc_aus_3sec/ /ancillary/dsm &&
+echo synching elevation &&
+{SYNC_CMD} s3://ga-sentinel/ancillary/elevation/world_1deg/ /ancillary/elevation/world_1deg &&
+echo synching aerosol &&
+{SYNC_CMD} --exclude "*" --include "aerosol.h5" \
+        s3://ga-sentinel/ancillary/aerosol/AATSR/2.0/ /ancillary/aerosol &&
+echo synching invariant height &&
+{SYNC_CMD} s3://dea-dev-bucket/s2-wagl-nrt/invariant/ /ancillary/invariant &&
+echo synching land sea rasters &&
+{SYNC_CMD} --exclude "*" --include Land_Sea_Rasters.tar.z \
+        s3://dea-dev-bucket/s2-wagl-nrt/ /ancillary &&
+echo extracting land sea rasters &&
+tar -xvf /ancillary/Land_Sea_Rasters.tar.z -C /ancillary/ &&
+find /ancillary/
+date
+"""
 
 default_args = {
     "owner": "Imam Alam",
     "depends_on_past": False,
-    "start_date": datetime(2020, 9, 23),
+    "start_date": datetime(2020, 9, 28),
     "email": ["imam.alam@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
-    "retry_delay": timedelta(minutes=60),
+    "retry_delay": timedelta(minutes=30),
+    "secrets": [Secret("env", None, "wagl-nrt-aws-creds")],
 }
-
-
-def aws_s3_sync(
-    client, src_bucket, src_prefix, dest_bucket, dest_prefix, safe_tags, key_filter=None
-):
-    to_copy = client.list_objects_v2(
-        Bucket=src_bucket,
-        Prefix=src_prefix,
-    )
-    for obj in to_copy["Contents"]:
-        src_key = obj["Key"]
-        suffix = src_key[len(src_prefix) :]
-
-        if key_filter is not None and not key_filter(suffix):
-            continue
-
-        dest_key = dest_prefix + suffix
-        print(f"copying {src_key} to {dest_key}")
-
-        extra_args = dict(
-            Tagging=safe_tags,
-            StorageClass="STANDARD",
-            ACL="bucket-owner-full-control",
-            TaggingDirective="REPLACE",
-        )
-
-        # this can copy >5GB objects
-        client.copy(
-            CopySource={"Bucket": src_bucket, "Key": src_key},
-            Bucket=dest_bucket,
-            Key=dest_key,
-            ExtraArgs=extra_args,
-        )
-
-
-def copy_ancillaries(**context):
-    task_instance = context["task_instance"]
-
-    s3_hook = S3Hook(aws_conn_id=AWS_CONN_ID)
-    client = s3_hook.get_conn()
-
-    safe_tags = urlencode({}, quote_via=quote_plus)
-
-    def ga_sentinel_to_cache(src_prefix, dest_prefix, key_filter=None):
-        aws_s3_sync(
-            client,
-            src_bucket="ga-sentinel",
-            src_prefix=src_prefix,
-            dest_bucket="dea-dev-nrt-scene-cache",
-            dest_prefix=dest_prefix,
-            safe_tags=safe_tags,
-            key_filter=key_filter,
-        )
-
-    def dev_to_cache(src_prefix, dest_prefix, key_filter=None):
-        aws_s3_sync(
-            client,
-            src_bucket="dea-dev-bucket",
-            src_prefix=src_prefix,
-            dest_bucket="dea-dev-nrt-scene-cache",
-            dest_prefix=dest_prefix,
-            safe_tags=safe_tags,
-            key_filter=key_filter,
-        )
-
-    ga_sentinel_to_cache(
-        src_prefix="ancillary/lookup_tables/ozone",
-        dest_prefix="ancillary/ozone",
-    )
-    ga_sentinel_to_cache(
-        src_prefix="ancillary/elevation/tc_aus_3sec",
-        dest_prefix="ancillary/dsm",
-    )
-    ga_sentinel_to_cache(
-        src_prefix="ancillary/elevation/world_1deg",
-        dest_prefix="ancillary/elevation/world_1deg",
-    )
-    ga_sentinel_to_cache(
-        src_prefix="ancillary/aerosol/AATSR/2.0",
-        dest_prefix="ancillary/aerosol",
-        key_filter=lambda suffix: suffix == "/aerosol.h5",
-    )
-    dev_to_cache(src_prefix="s2-wagl-nrt/invariant", dest_prefix="ancillary/invariant")
-    dev_to_cache(
-        src_prefix="s2-wagl-nrt",
-        dest_prefix="ancillary",
-        key_filter=lambda suffix: suffix == "/Land_Sea_Rasters.tar.z",
-    )
 
 
 pipeline = DAG(
@@ -125,15 +62,49 @@ pipeline = DAG(
     tags=["k8s", "dea", "psc", "wagl", "nrt"],
 )
 
-with pipeline:
-    START = DummyOperator(task_id="start_wagl")
+ancillary_volume_mount = VolumeMount(
+    name="wagl-nrt-ancillary-volume",
+    mount_path="/ancillary",
+    sub_path=None,
+    read_only=False,
+)
 
-    COPY = PythonOperator(
-        task_id="copy_ancillaries",
-        python_callable=copy_ancillaries,
-        provide_context=True,
+ancillary_volume = Volume(
+    name="wagl-nrt-ancillary-volume",
+    configs={"persistentVolumeClaim": {"claimName": "wagl-nrt-ancillary-volume"}},
+)
+
+with pipeline:
+    START = DummyOperator(task_id="start")
+
+    COPY = KubernetesPodOperator(
+        namespace="processing",
+        image=S3_TO_RDS_IMAGE,
+        annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-wagl-nrt"},
+        cmds=["bash", "-c", SYNC_JOB],
+        image_pull_policy="Always",
+        name="sync_ancillaries",
+        task_id="sync_ancillaries",
+        get_logs=True,
+        # TODO: affinity=affinity,
+        volumes=[ancillary_volume],
+        volume_mounts=[ancillary_volume_mount],
     )
 
-    END = DummyOperator(task_id="end_wagl")
+    VERIFY = KubernetesPodOperator(
+        namespace="processing",
+        image=S3_TO_RDS_IMAGE,
+        annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-wagl-nrt"},
+        cmds=["find", "/ancillary"],
+        image_pull_policy="Always",
+        name="verify_ancillaries",
+        task_id="verify_ancillaries",
+        get_logs=True,
+        # TODO: affinity=affinity,
+        volumes=[ancillary_volume],
+        volume_mounts=[ancillary_volume_mount],
+    )
 
-    START >> COPY >> END
+    END = DummyOperator(task_id="end")
+
+    START >> COPY >> VERIFY >> END
