@@ -77,25 +77,26 @@ ancillary_volume = Volume(
 with pipeline:
     START = DummyOperator(task_id="start")
 
-    COPY = KubernetesPodOperator(
-        namespace="processing",
-        image=S3_TO_RDS_IMAGE,
-        annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-wagl-nrt"},
-        cmds=["bash", "-c", SYNC_JOB],
-        image_pull_policy="Always",
-        name="sync_ancillaries",
-        task_id="sync_ancillaries",
-        get_logs=True,
-        # TODO: affinity=affinity,
-        volumes=[ancillary_volume],
-        volume_mounts=[ancillary_volume_mount],
-    )
+    # COPY = KubernetesPodOperator(
+    #     namespace="processing",
+    #     image=S3_TO_RDS_IMAGE,
+    #     annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-wagl-nrt"},
+    #     cmds=["bash", "-c", SYNC_JOB],
+    #     image_pull_policy="Always",
+    #     name="sync_ancillaries",
+    #     task_id="sync_ancillaries",
+    #     get_logs=True,
+    #     # TODO: affinity=affinity,
+    #     volumes=[ancillary_volume],
+    #     volume_mounts=[ancillary_volume_mount],
+    #     is_delete_operator_pod=True,
+    # )
 
     VERIFY = KubernetesPodOperator(
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
         annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-wagl-nrt"},
-        cmds=["find", "/ancillary"],
+        cmds=["ls", "-la", "/ancillary/"],
         image_pull_policy="Always",
         name="verify_ancillaries",
         task_id="verify_ancillaries",
@@ -103,9 +104,10 @@ with pipeline:
         # TODO: affinity=affinity,
         volumes=[ancillary_volume],
         volume_mounts=[ancillary_volume_mount],
-        is_delete_operator_pod=False,
+        is_delete_operator_pod=True,
     )
 
     END = DummyOperator(task_id="end")
 
-    START >> COPY >> VERIFY >> END
+    # START >> COPY >> VERIFY >> END
+    START >> VERIFY >> END
