@@ -103,6 +103,7 @@ with pipeline:
         # TODO: affinity=affinity,
         volumes=[ancillary_volume],
         volume_mounts=[ancillary_volume_mount],
+        is_delete_operator_pod=False,
     )
 
     END = DummyOperator(task_id="end")
