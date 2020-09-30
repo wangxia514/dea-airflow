@@ -29,7 +29,8 @@ import pendulum
 local_tz = pendulum.timezone("Australia/Canberra")
 DB_HOSTNAME = "db-writer"
 DB_DATABASE = "nci_20200925"
-DATESTRING = "{{ macros.ds_add(ds, -1) }}"
+# DATESTRING = "{{ macros.ds_add(ds, -1) }}"
+DATESTRING = "{{ ds }}"
 S3_BUCKET = "nci-db-dump"
 S3_PREFIX=f"csv-changes/{DATESTRING}"
 S3_KEY = f"s3://{S3_BUCKET}/{S3_PREFIX}/agdc.dataset_changes.csv.gz"
@@ -74,7 +75,7 @@ dag = DAG(
     concurrency=1,
     max_active_runs=1,
     tags=["k8s"],
-    schedule_interval=timedelta(days=1),
+    schedule_interval='45 7 * * *',
 )
 
 affinity = {
