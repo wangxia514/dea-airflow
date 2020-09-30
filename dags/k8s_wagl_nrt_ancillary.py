@@ -85,7 +85,7 @@ SYNC_JOBS = [
         for doy in brdf_doys(DOY)
     ],
     "echo removing outdated brdf",
-    "find /ancillary/brdf-jl/ -type f -mtime +17 -exec rm {} \;",
+    "find /ancillary/brdf-jl/ -type f -mtime +25 -exec rm {} \;",
     "find /ancillary/ -type f",
     "date",
 ]
