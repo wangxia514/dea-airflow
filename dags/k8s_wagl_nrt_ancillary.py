@@ -25,6 +25,16 @@ def sync(*args):
     return "aws s3 sync --only-show-errors " + " ".join(args)
 
 
+def doy_str(doy):
+    if doy < 1 or doy > 365:
+        return "361"
+    return str((doy // 8) * 8 + 1).zfill(3)
+
+
+def brdf_doys(doy):
+    return {doy_str(d) for d in [doy - 8, doy, doy + 8]}
+
+
 SYNC_JOBS = [
     "date",
     "echo synching ozone",
@@ -51,7 +61,7 @@ SYNC_JOBS = [
         "/ancillary",
     ),
     "echo extracting land sea rasters",
-    "tar -xvf /ancillary/Land_Sea_Rasters.tar.z -C /ancillary/",
+    "tar xvf /ancillary/Land_Sea_Rasters.tar.z -C /ancillary/",
     "echo synching water vapour",
     *[
         sync(
@@ -59,10 +69,23 @@ SYNC_JOBS = [
             "s3://ga-sentinel/ancillary/water_vapour",
             "/ancillary/water_vapour",
         )
-        for year in (
-            [NOW.year] + ([NOW.year - 1] if NOW.month == 1 and NOW.day < 7 else [])
-        )
+        # if first week of year, fetch last year as well
+        for year in [NOW.year]
+        + ([NOW.year - 1] if NOW.month == 1 and NOW.day < 7 else [])
     ],
+    "echo removing outdated water vapour",
+    "find /ancillary/water_vapour/ -type f -mtime +375 -exec rm {} \;",
+    "echo synching brdf",
+    *[
+        sync(
+            f"",
+            f"s3://ga-sentinel/ancillary/BRDF/brdf-jl/data/{doy}/",
+            "/ancillary/brdf-jl/{doy}/",
+        )
+        for doy in brdf_doys(DOY)
+    ],
+    "echo removing outdated brdf",
+    "find /ancillary/brdf-jl/ -type f -mtime +17 -exec rm {} \;",
     "find /ancillary/ -type f",
     "date",
 ]
