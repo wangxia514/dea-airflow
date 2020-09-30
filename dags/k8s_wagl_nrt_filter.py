@@ -68,7 +68,7 @@ def region_code(message):
 def filter_scenes(**context):
     task_instance = context["task_instance"]
     all_messages = task_instance.xcom_pull(
-        task_ids="copy_scene_queue_sensor", key="messages"
+        task_ids="filter_scene_queue_sensor", key="messages"
     )["Messages"]
 
     australia = australian_region_codes()
