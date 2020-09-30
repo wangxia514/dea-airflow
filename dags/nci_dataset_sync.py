@@ -48,7 +48,7 @@ SYNC_COMMAND = """
   qsub -N sync_{{ params.product}}_{{ params.year }} \
   -q {{ params.queue }} \
   -W umask=33 \
-  -l wd,walltime=20:00:00,mem=3GB -m abe \
+  -l wd,walltime=3:00:00,mem=3GB -m abe \
   -l storage=gdata/v10+gdata/fk4+gdata/rs0+gdata/if87 \
   -M nci.monitor@dea.ga.gov.au \
   -P {{ params.project }} -o {{ work_dir }} -e {{ work_dir }} \
