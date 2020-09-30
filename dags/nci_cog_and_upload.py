@@ -49,7 +49,7 @@ COG_S3PREFIX_PATH = {
 TIMEOUT = timedelta(days=1)
 
 
-def check_for_work(upstream_task_id, ti, **kwargs):
+def check_num_tasks(upstream_task_id, ti, **kwargs):
     """
     Check the number of COG tasks to complete
 
@@ -57,7 +57,6 @@ def check_for_work(upstream_task_id, ti, **kwargs):
     otherwise continue.
 
     """
-
     response = ti.xcom_pull(task_ids=upstream_task_id)
     last_line = response.split('\n')
     num_tasks = int(last_line)
@@ -142,7 +141,7 @@ with dag:
         # Thanks https://stackoverflow.com/questions/48580341/how-to-add-manual-tasks-in-an-apache-airflow-dag
         check_for_work = PythonOperator(
             task_id=f"check_for_work_{product}",
-            python_callable=check_for_work,
+            python_callable=check_num_tasks,
             op_args=[f'check_work_file_{product}'],
             provide_context=True,
             retries=1,
