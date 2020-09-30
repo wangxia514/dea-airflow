@@ -16,6 +16,7 @@ from airflow.kubernetes.volume_mount import VolumeMount
 
 
 NOW = datetime.now()
+DOY = int(NOW.strftime("%j"))
 
 S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.26.g5ffb384"
 
@@ -59,7 +60,7 @@ SYNC_JOBS = [
             "/ancillary/water_vapour",
         )
         for year in (
-            [NOW.year] + [NOW.year - 1] if NOW.month == 1 and NOW.day < 7 else []
+            [NOW.year] + ([NOW.year - 1] if NOW.month == 1 and NOW.day < 7 else [])
         )
     ],
     "find /ancillary/ -type f",
