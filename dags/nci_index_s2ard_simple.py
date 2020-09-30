@@ -41,9 +41,10 @@ default_args = {
 with DAG('nci_index_s2ard_simple',
          default_args=default_args,
          catchup=True,
-         schedule_interval=timedelta(days=7),
+         schedule_interval=timedelta(days=1),
          max_active_runs=2,
          doc_md=__doc__,
+         tags=['nci', 'sentinel_2'],
          ) as dag:
 
     index_datasets = SSHOperator(
