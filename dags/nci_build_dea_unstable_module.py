@@ -12,7 +12,7 @@ from airflow.operators.email_operator import EmailOperator
 local_tz = pendulum.timezone("Australia/Canberra")
 
 default_args = {
-    'owner': 'dayers',
+    'owner': 'Damien Ayers',
     'start_date': datetime(2020, 3, 12, tzinfo=local_tz),
     'retries': 1,
     'retry_delay': timedelta(minutes=10),
@@ -59,7 +59,7 @@ with dag:
 
     send_email = EmailOperator(
         task_id='send_email',
-        to='damien@omad.net',
+        to=['damien.ayers@ga.gov.au'],
         subject='New dea/unstable Module',
         html_content='Successfully built new dea/unstable module on the NCI',
         mime_charset='utf-8',

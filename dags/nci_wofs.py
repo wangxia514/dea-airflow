@@ -38,7 +38,7 @@ with dag:
           module load {{ params.module }};
 
           set -eux
-          APP_CONFIG=/g/data/v10/public/modules/{{params.module}}/wofs/config/wofs_albers.yaml
+          APP_CONFIG=/g/data/v10/public/modules/$(module module-info dea)/wofs/config/wofs_albers.yaml
     """
     generate_wofs_tasks = SSHOperator(
         task_id='generate_wofs_tasks',

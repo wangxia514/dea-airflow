@@ -17,7 +17,7 @@ default_args = {
 
     'depends_on_past': False,
     'start_date': datetime(2020, 2, 1),
-    'email': ['damien.ayers@ga.gov.au', 'damien@omad.net'],
+    'email': ['damien.ayers@ga.gov.au'],
     'email_on_failure': True,
 }
 
@@ -59,7 +59,7 @@ with dag:
 
     send_email = EmailOperator(
         task_id='send_email',
-        to='damien@omad.net',
+        to='example@example.com',
         subject='New dea/unstable Module',
         html_content='Successfully built new dea/unstable module on the NCI',
         mime_charset='utf-8',
@@ -71,7 +71,7 @@ with dag:
     # )
     upload_template_var = TemplateToSFTPOperator(
         task_id='upload_template_var',
-        ssh_conn_id='omad_localhost',
+        ssh_conn_id='localhost',
         remote_filepath='/home/omad/{{ ds }}test.txt',
         file_contents="testtemplate.jinja2",
         create_intermediate_dirs=False,

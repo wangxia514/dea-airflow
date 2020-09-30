@@ -40,7 +40,7 @@ with DAG('nci_db_backup',
         # Load dea module to ensure that pg_dump version and the server version
         # matches, when the cronjob is run from an ec2 instance
         module use /g/data/v10/public/modules/modulefiles
-        module load dea/20191127
+        module load dea
 
         cd /g/data/v10/agdc/backup/archive
 

@@ -16,7 +16,7 @@ from dea_airflow_common.ssh import SSHRunMixin
 
 class ShortCircuitSSHOperator(SSHRunMixin, BaseOperator, SkipMixin):
     """
-    Execute an SSH command and then Optionally Short Circuit
+    Execute an SSH command and then Optionally Short Circuit DAG execution
 
     The condition is determined by the return value of running `command`
     on the provided SSH host..
