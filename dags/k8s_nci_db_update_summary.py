@@ -12,25 +12,20 @@ and executes downstream task including verifying backup
 integrity using md5sum
 """
 
-from datetime import datetime, timedelta
-
 from airflow import DAG
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
 
-import pendulum
-
 # Templated DAG arguments
-local_tz = pendulum.timezone("Australia/Canberra")
 DB_HOSTNAME = "db-writer"
 DB_DATABASE = "nci_20200925"
 
 DEFAULT_ARGS = {
     "owner": "Nikita Gandhi",
     "depends_on_past": False,
-    "start_date": datetime(2020, 10, 3, tzinfo=local_tz),
+    "start_date": datetime(2020, 10, 3),
     "email": ["nikita.gandhi@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
@@ -61,7 +56,7 @@ dag = DAG(
     concurrency=1,
     max_active_runs=1,
     tags=["k8s"],
-    schedule_interval=timedelta(days=7),
+    schedule_interval="5 1 * * sat",    # every saturday 1:05AM
 )
 
 affinity = {
