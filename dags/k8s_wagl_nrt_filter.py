@@ -12,14 +12,16 @@ from airflow import configuration
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.contrib.sensors.aws_sqs_sensor import SQSSensor
-from airflow.hooks.S3_hook import S3Hook
+from airflow.contrib.hooks.aws_sqs_hook import SQSHook
 
 
 AWS_CONN_ID = "wagl_nrt_manual"
 
 FILTER_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-filter-scene"
+PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-process-scene"
 
-NUM_MESSAGES_TO_POLL = 100
+# TODO get this back to 100
+NUM_MESSAGES_TO_POLL = 10
 
 TILE_LIST = "assets/S2_aoi.csv"
 
@@ -71,11 +73,14 @@ def filter_scenes(**context):
 
     australia = australian_region_codes()
 
-    messages = [message for message in all_messages]
-    # TODO enable this: if region_code(message) in australia]
+    messages = [
+        message for message in all_messages if region_code(message) in australia
+    ]
 
-    # TODO push messages to the other queue
-    task_instance.xcom_push(key="messages", value=messages)
+    sqs_hook = SQSHook(aws_conn_id=AWS_CONN_ID)
+
+    for message in messages:
+        sqs_hook.send_message(PROCESS_SCENE_QUEUE, message)
 
 
 pipeline = DAG(
@@ -87,7 +92,7 @@ pipeline = DAG(
     max_active_runs=1,
     catchup=False,
     params={},
-    schedule_interval=None,
+    schedule_interval=None,  # TODO timedelta(minuts=10),
     tags=["k8s", "dea", "psc", "wagl", "nrt"],
 )
 
