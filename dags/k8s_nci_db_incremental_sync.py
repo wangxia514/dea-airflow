@@ -12,8 +12,6 @@ and executes downstream task including verifying backup
 integrity using md5sum
 """
 
-from datetime import datetime, timedelta
-
 from airflow import DAG
 from airflow.sensors.s3_key_sensor import S3KeySensor
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
@@ -23,13 +21,9 @@ from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
 
-import pendulum
-
 # Templated DAG arguments
-local_tz = pendulum.timezone("Australia/Canberra")
 DB_HOSTNAME = "db-writer"
 DB_DATABASE = "nci_20200925"
-# DATESTRING = "{{ macros.ds_add(ds, -1) }}"
 DATESTRING = "{{ ds }}"
 S3_BUCKET = "nci-db-dump"
 S3_PREFIX=f"csv-changes/{DATESTRING}"
@@ -39,7 +33,7 @@ BACKUP_PATH = "/scripts/backup"
 DEFAULT_ARGS = {
     "owner": "Nikita Gandhi",
     "depends_on_past": False,
-    "start_date": datetime(2020, 9, 24, tzinfo=local_tz),
+    "start_date": datetime(2020, 9, 24),
     "email": ["nikita.gandhi@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
@@ -75,7 +69,7 @@ dag = DAG(
     concurrency=1,
     max_active_runs=1,
     tags=["k8s"],
-    schedule_interval='45 7 * * *',
+    schedule_interval='55 7 * * *',
 )
 
 affinity = {
