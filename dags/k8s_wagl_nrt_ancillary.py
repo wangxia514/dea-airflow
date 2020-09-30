@@ -11,10 +11,6 @@ from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
 
 
-# TODO non-cacheable ancillaries
-# TODO cleanup non-cacheable ancillaries
-
-
 NOW = datetime.now()
 DOY = int(NOW.strftime("%j"))
 
@@ -111,7 +107,7 @@ pipeline = DAG(
     max_active_runs=1,
     catchup=False,
     params={},
-    schedule_interval=None,
+    schedule_interval="5 0 * * *",
     tags=["k8s", "dea", "psc", "wagl", "nrt"],
 )
 
