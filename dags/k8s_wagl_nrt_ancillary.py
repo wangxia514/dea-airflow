@@ -1,5 +1,5 @@
 """
-WAGL NRT fetch ancillary.
+Fetch wagl NRT ancillary.
 """
 from datetime import datetime, timedelta
 

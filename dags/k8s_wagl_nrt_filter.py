@@ -74,7 +74,7 @@ def filter_scenes(**context):
     australia = australian_region_codes()
 
     messages = [
-        message for message in all_messages if region_code(message) in australia
+        message for message in all_messages  # TODO if region_code(message) in australia
     ]
 
     sqs_hook = SQSHook(aws_conn_id=AWS_CONN_ID)
@@ -92,7 +92,7 @@ pipeline = DAG(
     max_active_runs=1,
     catchup=False,
     params={},
-    schedule_interval=None,  # TODO timedelta(minuts=10),
+    schedule_interval=None,  # TODO timedelta(minutes=10),
     tags=["k8s", "dea", "psc", "wagl", "nrt"],
 )
 
