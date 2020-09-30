@@ -15,7 +15,7 @@ import pendulum
 local_tz = pendulum.timezone("Australia/Canberra")
 
 default_args = {
-    'owner': 'dayers',
+    'owner': 'Damien Ayers',
     'depends_on_past': False,
     'retries': 0,
     'retry_delay': timedelta(minutes=5),

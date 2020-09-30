@@ -23,7 +23,7 @@ from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
 
 default_args = {
-    'owner': 'dayers',
+    'owner': 'Damien Ayers',
     'depends_on_past': False,
     'start_date': datetime(2020, 4, 1),
     'email': ['damien.ayers@ga.gov.au'],

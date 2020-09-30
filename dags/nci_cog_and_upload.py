@@ -72,7 +72,7 @@ def check_num_tasks(upstream_task_id, ti, **kwargs):
 
 
 default_args = {
-    'owner': 'dayers',
+    'owner': 'Damien Ayers',
     'start_date': datetime(2020, 3, 12),
     'retries': 0,
     'retry_delay': timedelta(minutes=1),

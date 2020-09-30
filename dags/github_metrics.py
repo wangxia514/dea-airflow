@@ -111,7 +111,7 @@ def save_record_to_pg(cur, timestamp, repo, record):
     )
 
 
-default_args = {"owner": "dayers", "start_date": datetime(2020, 6, 15)}
+default_args = {"owner": "Damien Ayers", "start_date": datetime(2020, 6, 15)}
 
 dag = DAG(
     dag_id="github_metrics",

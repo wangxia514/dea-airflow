@@ -9,7 +9,7 @@ from airflow.contrib.operators.ssh_operator import SSHOperator
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
 default_args = {
-    'owner': 'dayers',
+    'owner': 'Damien Ayers',
     'depends_on_past': False,
     'start_date': datetime(2020, 5, 1),
     'email': ['damien.ayers@ga.gov.au'],
