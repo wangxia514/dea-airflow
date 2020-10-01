@@ -38,6 +38,8 @@ SOURCE_BUCKET = "sentinel-s2-l1c"
 TRANSFER_BUCKET = "dea-dev-nrt-scene-cache"
 
 # each DAG instance should process one scene only
+# so NUM_WORKERS = NUM_MESSAGES_TO_POLL
+# TODO take care of workers with no task with PythonBranchOperator?
 NUM_MESSAGES_TO_POLL = 1
 
 AWS_CONN_ID = "wagl_nrt_manual"
@@ -82,72 +84,108 @@ def decode(message):
     return json.loads(message["Body"])
 
 
-def copy_tile(client, tile, safe_tags):
-    datastrips = client.list_objects_v2(
-        Bucket=SOURCE_BUCKET,
-        Prefix=tile["datastrip"]["path"],
-        RequestPayer="requester",
-    )
+# def copy_tile(client, tile, safe_tags):
+#     datastrips = client.list_objects_v2(
+#         Bucket=SOURCE_BUCKET,
+#         Prefix=tile["datastrip"]["path"],
+#         RequestPayer="requester",
+#     )
+#
+#     for obj in datastrips["Contents"]:
+#         print("copying", obj["Key"], "from", SOURCE_BUCKET, "to", TRANSFER_BUCKET)
+#         client.copy_object(
+#             ACL="bucket-owner-full-control",
+#             CopySource={"Bucket": SOURCE_BUCKET, "Key": obj["Key"]},
+#             Bucket=TRANSFER_BUCKET,
+#             TaggingDirective="REPLACE",
+#             Tagging=safe_tags,
+#             StorageClass="STANDARD",
+#             Key=obj["Key"],
+#             RequestPayer="requester",
+#         )
+#
+#     tiles = client.list_objects_v2(
+#         Bucket=SOURCE_BUCKET, Prefix=tile["path"], RequestPayer="requester"
+#     )
+#
+#     for obj in tiles["Contents"]:
+#         print("copying", obj["key"], "from", SOURCE_BUCKET, "to", TRANSFER_BUCKET)
+#         client.copy_object(
+#             ACL="bucket-owner-full-control",
+#             CopySource={"Bucket": SOURCE_BUCKET, "Key": obj["Key"]},
+#             Bucket=TRANSFER_BUCKET,
+#             Key=obj["Key"],
+#             TaggingDirective="REPLACE",
+#             Tagging=safe_tags,
+#             StorageClass="STANDARD",
+#             RequestPayer="requester",
+#         )
 
-    for obj in datastrips["Contents"]:
-        print("copying", obj["Key"], "from", SOURCE_BUCKET, "to", TRANSFER_BUCKET)
-        client.copy_object(
-            ACL="bucket-owner-full-control",
-            CopySource={"Bucket": SOURCE_BUCKET, "Key": obj["Key"]},
-            Bucket=TRANSFER_BUCKET,
-            TaggingDirective="REPLACE",
-            Tagging=safe_tags,
-            StorageClass="STANDARD",
-            Key=obj["Key"],
-            RequestPayer="requester",
-        )
 
-    tiles = client.list_objects_v2(
-        Bucket=SOURCE_BUCKET, Prefix=tile["path"], RequestPayer="requester"
-    )
+# def copy_scenes(**context):
+#     task_instance = context["task_instance"]
+#     # index = context["index"]
+#     all_messages = task_instance.xcom_pull(
+#         task_ids="process_scene_queue_sensor", key="messages"
+#     )["Messages"]
+#
+#     s3_hook = S3Hook(aws_conn_id=AWS_CONN_ID)
+#     client = s3_hook.get_conn()
+#
+#     print("s3_hook", s3_hook, type(s3_hook))
+#     print("client", client, type(client))
+#
+#     # tags to assign to objects
+#     safe_tags = urlencode({}, quote_via=quote_plus)
+#
+#     messages = all_messages
+#     for message in messages:
+#         print("this is the message I got")
+#         print(message)
+#         msg_dict = decode(message)
+#         print("copying")
+#         print(msg_dict)
+#         for tile in msg_dict["tiles"]:
+#             copy_tile(client, tile, safe_tags)
+#
+#     # forward it to dea-s2-wagl-nrt
+#     task_instance.xcom_push(key="messages", value=all_messages)
 
-    for obj in tiles["Contents"]:
-        print("copying", obj["key"], "from", SOURCE_BUCKET, "to", TRANSFER_BUCKET)
-        client.copy_object(
-            ACL="bucket-owner-full-control",
-            CopySource={"Bucket": SOURCE_BUCKET, "Key": obj["Key"]},
-            Bucket=TRANSFER_BUCKET,
-            Key=obj["Key"],
-            TaggingDirective="REPLACE",
-            Tagging=safe_tags,
-            StorageClass="STANDARD",
-            RequestPayer="requester",
-        )
+
+def copy_cmd_tile(msg_id, tile):
+    datastrip = tile["datastrip"]["path"]
+    path = tile["path"]
+
+    return [
+        f"aws s3 sync --request-payer requester s3://{SOURCE_BUCKET}/{datastrip} /transfer/{msg_id}/{datastrip}",
+        f"aws s3 sync --request-payer requester /transfer/{msg_id}/{datastrip} s3://{TRANSFER_BUCKET}/{datastrip}",
+        f"aws s3 sync --request-payer requester s3://{SOURCE_BUCKET}/{path} /transfer/{msg_id}/{path}",
+        f"aws s3 sync --request-payer requester /transfer/{msg_id}/{path} s3://{TRANSFER_BUCKET}/{path}",
+    ]
 
 
-def copy_scenes(**context):
+def copy_cmd(**context):
     task_instance = context["task_instance"]
     # index = context["index"]
     all_messages = task_instance.xcom_pull(
         task_ids="process_scene_queue_sensor", key="messages"
     )["Messages"]
 
-    s3_hook = S3Hook(aws_conn_id=AWS_CONN_ID)
-    client = s3_hook.get_conn()
+    messages = all_messages  # TODO take care of index
+    assert len(messages) == 1
+    message = messages[0]
+    print("this is the message I got")
+    print(message)
+    msg_dict = decode(message)
+    print("copying")
+    print(msg_dict)
 
-    print("s3_hook", s3_hook, type(s3_hook))
-    print("client", client, type(client))
+    cmd = []
+    for tile in msg_dict["tiles"]:
+        cmd += copy_cmd_tile(msg_dict["id"], tile)
 
-    # tags to assign to objects
-    safe_tags = urlencode({}, quote_via=quote_plus)
-
-    messages = all_messages
-    for message in messages:
-        print("this is the message I got")
-        print(message)
-        msg_dict = decode(message)
-        print("copying")
-        print(msg_dict)
-        for tile in msg_dict["tiles"]:
-            copy_tile(client, tile, safe_tags)
-
-    # forward it to dea-s2-wagl-nrt
-    task_instance.xcom_push(key="messages", value=all_messages)
+    # forward it to the copy task
+    task_instance.xcom_push(key="cmd", value=" &&\n".join(cmd))
 
 
 pipeline = DAG(
@@ -173,12 +211,18 @@ with pipeline:
         max_messages=NUM_MESSAGES_TO_POLL,
     )
 
-    COPY = PythonOperator(
-        task_id=f"copy_scenes",
-        python_callable=copy_scenes,
-        execution_timeout=timedelta(hours=2),
+    CMD = PythonOperator(
+        task_id="copy_cmd",
+        python_callable=copy_cmd,
         provide_context=True,
     )
+
+    # COPY = PythonOperator(
+    #     task_id=f"copy_scenes",
+    #     python_callable=copy_scenes,
+    #     execution_timeout=timedelta(hours=2),
+    #     provide_context=True,
+    # )
 
     WAGL_RUN = KubernetesPodOperator(
         namespace="processing",
@@ -197,4 +241,5 @@ with pipeline:
 
     END = DummyOperator(task_id="end")
 
-    START >> SENSOR >> COPY >> WAGL_RUN >> END
+    # START >> SENSOR >> COPY >> WAGL_RUN >> END
+    START >> SENSOR >> CMD >> WAGL_RUN >> END
