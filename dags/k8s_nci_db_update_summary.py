@@ -46,7 +46,7 @@ DEFAULT_ARGS = {
     ],
 }
 
-EXPLORER_IMAGE = "opendatacube/explorer:2.1.11-166-ga34234b"
+EXPLORER_IMAGE = "opendatacube/explorer:2.2.1"
 
 dag = DAG(
     "k8s_nci_db_update_summary",
