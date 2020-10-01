@@ -80,7 +80,9 @@ def filter_scenes(**context):
     sqs_hook = SQSHook(aws_conn_id=AWS_CONN_ID)
 
     for message in messages:
-        message_body = json.dumps(message["Message"])
+        print("message")
+        print(list(message))
+        message_body = json.dumps(message)
         print("sending message")
         print(message_body)
         sqs_hook.send_message(PROCESS_SCENE_QUEUE, message_body)
