@@ -152,15 +152,27 @@ def decode(message):
 #     task_instance.xcom_push(key="messages", value=all_messages)
 
 
+def sync(*args):
+    return "aws s3 sync --only-show-errors " + " ".join(args)
+
+
 def copy_cmd_tile(msg_id, tile):
     datastrip = tile["datastrip"]["path"]
     path = tile["path"]
 
     return [
-        f"aws s3 sync --request-payer requester s3://{SOURCE_BUCKET}/{datastrip} /transfer/{msg_id}/{datastrip}",
-        f"aws s3 sync --request-payer requester /transfer/{msg_id}/{datastrip} s3://{TRANSFER_BUCKET}/{datastrip}",
-        f"aws s3 sync --request-payer requester s3://{SOURCE_BUCKET}/{path} /transfer/{msg_id}/{path}",
-        f"aws s3 sync --request-payer requester /transfer/{msg_id}/{path} s3://{TRANSFER_BUCKET}/{path}",
+        sync(
+            "--request-payer requester",
+            f"s3://{SOURCE_BUCKET}/{datastrip}",
+            f"/transfer/{msg_id}/{datastrip}",
+        ),
+        sync(f"/transfer/{msg_id}/{datastrip}", f"s3://{TRANSFER_BUCKET}/{datastrip}"),
+        sync(
+            "--request-payer requester",
+            f"s3://{SOURCE_BUCKET}/{path}",
+            f"/transfer/{msg_id}/{path}",
+        ),
+        sync(f"/transfer/{msg_id}/{path}", f"s3://{TRANSFER_BUCKET}/{path}"),
     ]
 
 
@@ -224,22 +236,39 @@ with pipeline:
     #     provide_context=True,
     # )
 
-    WAGL_RUN = KubernetesPodOperator(
+    COPY = KubernetesPodOperator(
         namespace="processing",
-        name="dea-s2-wagl-nrt",
-        task_id="dea-s2-wagl-nrt",
+        name="dea-s2-wagl-nrt-copy-scene",
+        task_id="dea-s2-wagl-nrt-copy-scene",
         image_pull_policy="IfNotPresent",
-        image=WAGL_IMAGE,
+        image=S3_TO_RDS_IMAGE,
         # TODO: affinity=affinity,
-        arguments=["--version"],
+        cmds=[
+            "bash",
+            "-c",
+            "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='cmd') }}",
+        ],
         labels={"runner": "airflow"},
         get_logs=True,
-        volumes=[ancillary_volume],
-        volume_mounts=[ancillary_volume_mount],
         is_delete_operator_pod=True,
     )
+
+    # WAGL_RUN = KubernetesPodOperator(
+    #     namespace="processing",
+    #     name="dea-s2-wagl-nrt",
+    #     task_id="dea-s2-wagl-nrt",
+    #     image_pull_policy="IfNotPresent",
+    #     image=WAGL_IMAGE,
+    #     # TODO: affinity=affinity,
+    #     arguments=["--version"],
+    #     labels={"runner": "airflow"},
+    #     get_logs=True,
+    #     volumes=[ancillary_volume],
+    #     volume_mounts=[ancillary_volume_mount],
+    #     is_delete_operator_pod=True,
+    # )
 
     END = DummyOperator(task_id="end")
 
     # START >> SENSOR >> COPY >> WAGL_RUN >> END
-    START >> SENSOR >> CMD >> WAGL_RUN >> END
+    START >> SENSOR >> CMD >> COPY >> END
