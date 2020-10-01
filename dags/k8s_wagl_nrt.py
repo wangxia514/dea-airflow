@@ -81,6 +81,8 @@ ancillary_volume = Volume(
 
 
 def decode(message):
+    print("I got")
+    print(message)
     body_dict = json.loads(message["Body"])
     msg_dict = json.loads(body_dict["Message"])
     return msg_dict
