@@ -142,6 +142,8 @@ def copy_scenes(**context):
 
     messages = all_messages
     for message in messages:
+        print("this is the message I got")
+        print(message)
         msg_dict = decode(message)
         print("copying")
         print(msg_dict)
