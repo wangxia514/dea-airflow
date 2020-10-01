@@ -82,6 +82,8 @@ def decode(message):
     print("I got")
     print(message)
     body_dict = json.loads(message["Body"])
+    print("body dict")
+    print(body_dict)
     msg_dict = json.loads(body_dict["Message"])
     return msg_dict
 
