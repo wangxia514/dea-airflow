@@ -79,13 +79,7 @@ ancillary_volume = Volume(
 
 
 def decode(message):
-    print("I got")
-    print(message)
-    body_dict = json.loads(message["Body"])
-    print("body dict")
-    print(body_dict)
-    msg_dict = json.loads(body_dict["Message"])
-    return msg_dict
+    return json.loads(message["Body"])
 
 
 def copy_tile(client, tile, safe_tags):
