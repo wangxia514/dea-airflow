@@ -42,8 +42,6 @@ NUM_MESSAGES_TO_POLL = 1
 
 AWS_CONN_ID = "wagl_nrt_manual"
 
-SYNC_CMD = "aws s3 sync --only-show-errors"
-
 # TODO use this
 affinity = {
     "nodeAffinity": {
@@ -128,7 +126,7 @@ def copy_tile(client, tile, safe_tags):
 
 def copy_scenes(**context):
     task_instance = context["task_instance"]
-    index = context["index"]
+    index = 0  # index = context["index"]
     all_messages = task_instance.xcom_pull(task_ids="filter_scenes", key="messages")
 
     s3_hook = S3Hook(aws_conn_id=AWS_CONN_ID)
