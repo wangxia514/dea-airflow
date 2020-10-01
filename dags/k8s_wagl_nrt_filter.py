@@ -82,7 +82,7 @@ def filter_scenes(**context):
     for message in messages:
         print("message")
         print(list(message))
-        message_body = json.dumps(message)
+        message_body = json.dumps(message["Body"])
         print("sending message")
         print(message_body)
         sqs_hook.send_message(PROCESS_SCENE_QUEUE, message_body)
