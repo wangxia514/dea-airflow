@@ -126,8 +126,10 @@ def copy_tile(client, tile, safe_tags):
 
 def copy_scenes(**context):
     task_instance = context["task_instance"]
-    index = 0  # index = context["index"]
-    all_messages = task_instance.xcom_pull(task_ids="filter_scenes", key="messages")
+    # index = context["index"]
+    all_messages = task_instance.xcom_pull(
+        task_ids="process_scene_queue_sensor", key="messages"
+    )
 
     s3_hook = S3Hook(aws_conn_id=AWS_CONN_ID)
     client = s3_hook.get_conn()
@@ -138,12 +140,15 @@ def copy_scenes(**context):
     # tags to assign to objects
     safe_tags = urlencode({}, quote_via=quote_plus)
 
-    messages = all_messages[index]
+    messages = all_messages
     for message in messages:
         msg_dict = decode(message)
+        print("copying")
+        print(msg_dict)
         for tile in msg_dict["tiles"]:
             copy_tile(client, tile, safe_tags)
 
+    # forward it to dea-s2-wagl-nrt
     task_instance.xcom_push(key="messages", value=all_messages)
 
 
