@@ -25,7 +25,11 @@ from datetime import datetime, timedelta
 DB_HOSTNAME = "db-writer"
 DB_DATABASE = "nci_20200925"
 DATESTRING = "{{ ds }}"
-S3_IMPORT_DATE = "{{ dag_run.conf.s3importdate }}" if "{{ dag_run.conf and dag_run.conf.get('s3importdate') }}" else DATESTRING
+if "{{ dag_run.conf and dag_run.conf.get('s3importdate') }}":
+    S3_IMPORT_DATE = "{{ dag_run.conf.s3importdate }}"
+else:
+    S3_IMPORT_DATE = DATESTRING
+
 S3_BUCKET = "nci-db-dump"
 S3_PREFIX=f"csv-changes/{S3_IMPORT_DATE}"
 S3_KEY = f"s3://{S3_BUCKET}/{S3_PREFIX}/agdc.dataset_changes.csv.gz"
