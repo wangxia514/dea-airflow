@@ -43,7 +43,7 @@ DATESTRING = "{{ ds }}"
 # S3_IMPORT_DATE = "{{ dag_run.conf and dag_run.conf.get('s3importdate', '') }}"
 S3_IMPORT_DATE = "{{ dag_run.conf.s3importdate if dag_run else '' }}"
 S3_BUCKET = "nci-db-dump"
-if is_date(S3_IMPORT_DATE):
+if S3_IMPORT_DATE != '':
     S3_PREFIX=f"csv-changes/{S3_IMPORT_DATE}"
 else:
     S3_PREFIX=f"csv-changes/{DATESTRING}"
