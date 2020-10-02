@@ -24,7 +24,8 @@ from datetime import datetime, timedelta
 # Templated DAG arguments
 DB_HOSTNAME = "db-writer"
 DB_DATABASE = "nci_20200925"
-DATESTRING = "{{ ds }}"
+# DATESTRING = "{{ ds }}"
+DATESTRING = '{{ dag_run.conf["DATESTRING"] if dag_run else ds }}" '
 S3_BUCKET = "nci-db-dump"
 S3_PREFIX=f"csv-changes/{DATESTRING}"
 S3_KEY = f"s3://{S3_BUCKET}/{S3_PREFIX}/agdc.dataset_changes.csv.gz"
