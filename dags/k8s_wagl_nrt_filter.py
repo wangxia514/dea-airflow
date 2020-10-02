@@ -11,7 +11,6 @@ from airflow import configuration
 
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
-from airflow.operators.subdag_operator import SubDagOperator
 from airflow.contrib.sensors.aws_sqs_sensor import SQSSensor
 from airflow.contrib.hooks.aws_sqs_hook import SQSHook
 
@@ -88,34 +87,6 @@ def filter_scenes(**context):
         sqs_hook.send_message(PROCESS_SCENE_QUEUE, message_body)
 
 
-def subdag(parent_dag):
-    result = DAG(
-        dag_id=f"{parent_dag}.children",
-        default_args=default_args,
-        schedule_interval=None,
-    )
-
-    with result:
-        for index in range(50):
-            SENSOR = SQSSensor(
-                task_id=f"filter_scene_queue_sensor_{index}",
-                sqs_queue=FILTER_SCENE_QUEUE,
-                aws_conn_id=AWS_CONN_ID,
-                max_messages=NUM_MESSAGES_TO_POLL,
-            )
-
-            FILTER = PythonOperator(
-                task_id=f"filter_scenes_{index}",
-                python_callable=filter_scenes,
-                op_kwargs={"index": index},
-                provide_context=True,
-            )
-
-            SENSOR >> FILTER
-
-    return result
-
-
 pipeline = DAG(
     "k8s_wagl_nrt_filter",
     doc_md=__doc__,
@@ -133,10 +104,21 @@ pipeline = DAG(
 with pipeline:
     START = DummyOperator(task_id="start")
 
-    FILTER_SUBDAG = SubDagOperator(
-        task_id="filter_subdag", subdag=subdag("filter_subdag")
-    )
-
     END = DummyOperator(task_id="end")
 
-    START >> FILTER_SUBDAG >> END
+    for index in range(50):
+        SENSOR = SQSSensor(
+            task_id=f"filter_scene_queue_sensor_{index}",
+            sqs_queue=FILTER_SCENE_QUEUE,
+            aws_conn_id=AWS_CONN_ID,
+            max_messages=NUM_MESSAGES_TO_POLL,
+        )
+
+        FILTER = PythonOperator(
+            task_id=f"filter_scenes_{index}",
+            python_callable=filter_scenes,
+            op_kwargs={"index": index},
+            provide_context=True,
+        )
+
+        START >> SENSOR >> FILTER >> END
