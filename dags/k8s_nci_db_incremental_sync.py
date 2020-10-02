@@ -1,15 +1,20 @@
-"""
-# NCI to RDS Datacube DB migration
+# -*- coding: utf-8 -*-
 
-DAG to periodically sync NCI datacube to RDS mainly for the purpose of
+"""
+### NCI to DEA RDS Datacube DB incremental sync
+
+Daily DAG to sync NCI datacube db CSVs' from S3 to RDS for the purpose of
 running [Explorer](https://github.com/opendatacube/datacube-explorer)
 and [Resto](https://github.com/jjrom/resto).
 
+#### Docker image notes
+s3-to-rds: https://bitbucket.org/geoscienceaustralia/s3-to-rds/src/master/
+
+### Airflow dependencies
 [Waits for S3Key](https://gist.github.com/nehiljain/6dace5faccb680653f7ea4d5d5273946)
 for a day's backup to be available via
 [S3KeySensor](https://airflow.apache.org/docs/stable/_api/airflow/sensors/s3_key_sensor/index.html)
-and executes downstream task including verifying backup
-integrity using md5sum
+and executes downstream task
 """
 
 from airflow import DAG
@@ -20,33 +25,16 @@ from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
-from dateutil.parser import parse
 
-def is_date(string, fuzzy=False):
-    """
-    Return whether the string can be interpreted as a date.
-
-    :param string: str, string to check for date
-    :param fuzzy: bool, ignore unknown tokens in string if True
-    """
-    try:
-        parse(string, fuzzy=fuzzy)
-        return True
-
-    except ValueError:
-        return False
 
 # Templated DAG arguments
 DB_HOSTNAME = "db-writer"
 DB_DATABASE = "nci_20200925"
 DATESTRING = "{{ ds }}"
-# S3_IMPORT_DATE = "{{ dag_run.conf and dag_run.conf.get('s3importdate', '') }}"
-S3_IMPORT_DATE = "{{ dag_run.conf.s3importdate if dag_run else '' }}"
+# NOTE: uncomment if you want to run DAG manually to import for specific date -  {"s3importdate": "<import-date>"}
+# DATESTRING = '{{ dag_run.conf["s3importdate"] }}'
 S3_BUCKET = "nci-db-dump"
-if f"{S3_IMPORT_DATE}":
-    S3_PREFIX=f"csv-changes/{S3_IMPORT_DATE}"
-else:
-    S3_PREFIX=f"csv-changes/{DATESTRING}"
+S3_PREFIX=f"csv-changes/{DATESTRING}"
 S3_KEY = f"s3://{S3_BUCKET}/{S3_PREFIX}/agdc.dataset_changes.csv.gz"
 BACKUP_PATH = "/scripts/backup"
 
@@ -65,7 +53,7 @@ DEFAULT_ARGS = {
         "DB_DATABASE": DB_DATABASE,
         "DB_PORT": "5432",
         "BACKUP_PATH": BACKUP_PATH,
-        "DATESTRING": S3_IMPORT_DATE,
+        "DATESTRING": DATESTRING,
         "S3_BUCKET": S3_BUCKET,
         "S3_PREFIX": S3_PREFIX,
         "S3_KEY": S3_KEY
