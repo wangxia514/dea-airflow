@@ -94,30 +94,14 @@ def copy_cmd_tile(msg_id, tile):
 
     return [
         "echo sinergise -> disk [datastrip]",
-        "echo "
-        + sync(
-            "--request-payer requester",
-            f"s3://{SOURCE_BUCKET}/{datastrip}",
-            f"/transfer/{msg_id}/{datastrip}",
-        ),
         sync(
             "--request-payer requester",
             f"s3://{SOURCE_BUCKET}/{datastrip}",
             f"/transfer/{msg_id}/{datastrip}",
         ),
         "echo disk -> cache [datastrip]",
-        "echo "
-        + sync(
-            f"/transfer/{msg_id}/{datastrip}", f"s3://{TRANSFER_BUCKET}/{datastrip}"
-        ),
         sync(f"/transfer/{msg_id}/{datastrip}", f"s3://{TRANSFER_BUCKET}/{datastrip}"),
         "echo sinergise -> disk [tile]",
-        "echo "
-        + sync(
-            "--request-payer requester",
-            f"s3://{SOURCE_BUCKET}/{path}",
-            f"/transfer/{msg_id}/{path}",
-        ),
         sync(
             "--request-payer requester",
             f"s3://{SOURCE_BUCKET}/{path}",
@@ -153,7 +137,7 @@ pipeline = DAG(
     doc_md=__doc__,
     default_args=default_args,
     description="DEA Sentinel-2 NRT processing",
-    concurrency=2,
+    concurrency=2,  # TODO fix this
     max_active_runs=1,
     catchup=False,
     params={},
@@ -194,22 +178,21 @@ with pipeline:
         is_delete_operator_pod=True,
     )
 
-    # WAGL_RUN = KubernetesPodOperator(
-    #     namespace="processing",
-    #     name="dea-s2-wagl-nrt",
-    #     task_id="dea-s2-wagl-nrt",
-    #     image_pull_policy="IfNotPresent",
-    #     image=WAGL_IMAGE,
-    #     # TODO: affinity=affinity,
-    #     arguments=["--version"],
-    #     labels={"runner": "airflow"},
-    #     get_logs=True,
-    #     volumes=[ancillary_volume],
-    #     volume_mounts=[ancillary_volume_mount],
-    #     is_delete_operator_pod=True,
-    # )
+    WAGL_RUN = KubernetesPodOperator(
+        namespace="processing",
+        name="dea-s2-wagl-nrt",
+        task_id="dea-s2-wagl-nrt",
+        image_pull_policy="IfNotPresent",
+        image=WAGL_IMAGE,
+        # TODO: affinity=affinity,
+        arguments=["--version"],
+        labels={"runner": "airflow"},
+        get_logs=True,
+        volumes=[ancillary_volume],
+        volume_mounts=[ancillary_volume_mount],
+        is_delete_operator_pod=True,
+    )
 
     END = DummyOperator(task_id="end")
 
-    # START >> SENSOR >> COPY >> WAGL_RUN >> END
-    START >> SENSOR >> CMD >> COPY >> END
+    START >> SENSOR >> CMD >> COPY >> WAGL_RUN >> END
