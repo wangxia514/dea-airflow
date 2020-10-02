@@ -29,7 +29,7 @@ DEFAULT_ARGS = {
     "email": ["nikita.gandhi@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 0,
+    "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "env_vars": {
         "AWS_DEFAULT_REGION": "ap-southeast-2",
