@@ -88,9 +88,9 @@ def filter_scenes(**context):
         sqs_hook.send_message(PROCESS_SCENE_QUEUE, message_body)
 
 
-def subdag(parent_dag):
+def subdag():
     result = DAG(
-        dag_id=f"{parent_dag}.children",
+        dag_id="k8s_wagl_nrt_filter.filter_subdag",
         default_args=default_args,
         schedule_interval=None,
     )
@@ -133,9 +133,7 @@ pipeline = DAG(
 with pipeline:
     START = DummyOperator(task_id="start")
 
-    FILTER_SUBDAG = SubDagOperator(
-        task_id="filter_subdag", subdag=subdag("filter_subdag")
-    )
+    FILTER_SUBDAG = SubDagOperator(task_id="filter_subdag", subdag=subdag())
 
     END = DummyOperator(task_id="end")
 
