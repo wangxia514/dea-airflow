@@ -24,6 +24,9 @@ PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea
 # unfortunately this is the max
 NUM_MESSAGES_TO_POLL = 10
 
+# so we overcompensate
+NUM_PARALLEL_PIPELINE = 50
+
 TILE_LIST = "assets/S2_aoi.csv"
 
 
@@ -73,22 +76,20 @@ def filter_scenes(**context):
         task_ids=f"filter_scene_queue_sensor_{index}", key="messages"
     )["Messages"]
 
-    australia = australian_region_codes()
-
     messages = [
-        message for message in all_messages if region_code(message) in australia
+        message
+        for message in all_messages
+        if region_code(message) in australian_region_codes()
     ]
 
     sqs_hook = SQSHook(aws_conn_id=AWS_CONN_ID)
 
     for message in messages:
         message_body = json.dumps(decode(message))
-        print("sending message")
-        print(message_body)
         sqs_hook.send_message(PROCESS_SCENE_QUEUE, message_body)
 
 
-def subdag():
+def filter_subdag():
     result = DAG(
         dag_id="k8s_wagl_nrt_filter.filter_subdag",
         default_args=default_args,
@@ -96,7 +97,7 @@ def subdag():
     )
 
     with result:
-        for index in range(50):
+        for index in range(NUM_PARALLEL_PIPELINE):
             SENSOR = SQSSensor(
                 task_id=f"filter_scene_queue_sensor_{index}",
                 sqs_queue=FILTER_SCENE_QUEUE,
@@ -121,7 +122,7 @@ pipeline = DAG(
     doc_md=__doc__,
     default_args=default_args,
     description="DEA Sentinel-2 NRT scene filter",
-    concurrency=50,
+    concurrency=NUM_PARALLEL_PIPELINE,
     max_active_runs=1,
     catchup=False,
     params={},
@@ -132,9 +133,7 @@ pipeline = DAG(
 
 with pipeline:
     START = DummyOperator(task_id="start")
-
-    FILTER_SUBDAG = SubDagOperator(task_id="filter_subdag", subdag=subdag())
-
+    FILTER_SUBDAG = SubDagOperator(task_id="filter_subdag", subdag=filter_subdag())
     END = DummyOperator(task_id="end")
 
     START >> FILTER_SUBDAG >> END
