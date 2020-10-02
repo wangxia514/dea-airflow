@@ -1,15 +1,12 @@
-"""
-# NCI to RDS Datacube DB migration
+# -*- coding: utf-8 -*-
 
-DAG to periodically sync NCI datacube to RDS mainly for the purpose of
+"""
+### DEA NCI dev database - summarize datacube
+
+DAG to periodically/weekly to run summarize datacube
 running [Explorer](https://github.com/opendatacube/datacube-explorer)
 and [Resto](https://github.com/jjrom/resto).
 
-[Waits for S3Key](https://gist.github.com/nehiljain/6dace5faccb680653f7ea4d5d5273946)
-for a day's backup to be available via
-[S3KeySensor](https://airflow.apache.org/docs/stable/_api/airflow/sensors/s3_key_sensor/index.html)
-and executes downstream task including verifying backup
-integrity using md5sum
 """
 
 from airflow import DAG
@@ -29,7 +26,7 @@ DEFAULT_ARGS = {
     "email": ["nikita.gandhi@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 0,
+    "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "env_vars": {
         "AWS_DEFAULT_REGION": "ap-southeast-2",
