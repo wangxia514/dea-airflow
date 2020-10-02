@@ -85,8 +85,7 @@ def decode(message):
 
 
 def sync(*args):
-    return "aws s3 sync " + " ".join(args)
-    # return "aws s3 sync --only-show-errors " + " ".join(args)
+    return "aws s3 sync --only-show-errors " + " ".join(args)
 
 
 def copy_cmd_tile(msg_id, tile):
@@ -94,27 +93,36 @@ def copy_cmd_tile(msg_id, tile):
     path = tile["path"]
 
     return [
-        "aws sts get-caller-identity",
         "echo sinergise -> disk [datastrip]",
-        "sleep 20",
+        "echo "
+        + sync(
+            "--request-payer requester",
+            f"s3://{SOURCE_BUCKET}/{datastrip}",
+            f"/transfer/{msg_id}/{datastrip}",
+        ),
         sync(
             "--request-payer requester",
             f"s3://{SOURCE_BUCKET}/{datastrip}",
             f"/transfer/{msg_id}/{datastrip}",
         ),
-        "sleep 20",
         "echo disk -> cache [datastrip]",
-        "sleep 20",
+        "echo "
+        + sync(
+            f"/transfer/{msg_id}/{datastrip}", f"s3://{TRANSFER_BUCKET}/{datastrip}"
+        ),
         sync(f"/transfer/{msg_id}/{datastrip}", f"s3://{TRANSFER_BUCKET}/{datastrip}"),
-        "sleep 20",
         "echo sinergise -> disk [tile]",
-        "sleep 20",
+        "echo "
+        + sync(
+            "--request-payer requester",
+            f"s3://{SOURCE_BUCKET}/{path}",
+            f"/transfer/{msg_id}/{path}",
+        ),
         sync(
             "--request-payer requester",
             f"s3://{SOURCE_BUCKET}/{path}",
             f"/transfer/{msg_id}/{path}",
         ),
-        "sleep 20",
         "echo disk -> cache [tile]",
         sync(f"/transfer/{msg_id}/{path}", f"s3://{TRANSFER_BUCKET}/{path}"),
     ]
