@@ -24,13 +24,14 @@ from datetime import datetime, timedelta
 # Templated DAG arguments
 DB_HOSTNAME = "db-writer"
 DB_DATABASE = "nci_20200925"
-DATESTRING = "{{ ds }}"
+# DATESTRING = "{{ ds }}"
+DATESTRING = "2020-10-02"
 S3_IMPORT_DATE = "{{ dag_run.conf and dag_run.conf.get('s3importdate', '') }}"
 S3_BUCKET = "nci-db-dump"
-if S3_IMPORT_DATE == '':
-    S3_PREFIX=f"csv-changes/{DATESTRING}"
-else:
+if S3_IMPORT_DATE and S3_IMPORT_DATE != "{}":
     S3_PREFIX=f"csv-changes/{S3_IMPORT_DATE}"
+else:
+    S3_PREFIX=f"csv-changes/{DATESTRING}"
 S3_KEY = f"s3://{S3_BUCKET}/{S3_PREFIX}/agdc.dataset_changes.csv.gz"
 BACKUP_PATH = "/scripts/backup"
 
