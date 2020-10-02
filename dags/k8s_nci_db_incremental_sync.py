@@ -13,6 +13,7 @@ integrity using md5sum
 """
 
 from airflow import DAG
+from airflow.models import Variable
 from airflow.sensors.s3_key_sensor import S3KeySensor
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
@@ -24,8 +25,8 @@ from datetime import datetime, timedelta
 # Templated DAG arguments
 DB_HOSTNAME = "db-writer"
 DB_DATABASE = "nci_20200925"
-S3_IMPORT_DATE = "{{ ds }}"
-S3_IMPORT_DATE = "{{ dag_run.conf.s3importdate if dag_run }}"
+#DATESTRING = "{{ ds }}"
+S3_IMPORT_DATE = Variable.get('{{ dag_run.conf.s3importdate if dag_run}}', default_var='{{ ds }}')
 S3_BUCKET = "nci-db-dump"
 S3_PREFIX=f"csv-changes/{S3_IMPORT_DATE}"
 S3_KEY = f"s3://{S3_BUCKET}/{S3_PREFIX}/agdc.dataset_changes.csv.gz"
