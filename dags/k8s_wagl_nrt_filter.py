@@ -117,7 +117,7 @@ with pipeline:
         FILTER = PythonOperator(
             task_id=f"filter_scenes_{index}",
             python_callable=filter_scenes,
-            op_args={"index": index},
+            op_kwargs={"index": index},
             provide_context=True,
         )
 
