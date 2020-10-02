@@ -94,6 +94,7 @@ def copy_cmd_tile(msg_id, tile):
     path = tile["path"]
 
     return [
+        "aws sts get-caller-identity",
         "echo sinergise -> disk [datastrip]",
         sync(
             "--request-payer requester",
