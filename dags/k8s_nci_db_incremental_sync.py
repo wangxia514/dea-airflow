@@ -65,6 +65,7 @@ DEFAULT_ARGS = {
         "DB_DATABASE": DB_DATABASE,
         "DB_PORT": "5432",
         "BACKUP_PATH": BACKUP_PATH,
+        "DATESTRING": S3_IMPORT_DATE,
         "S3_BUCKET": S3_BUCKET,
         "S3_PREFIX": S3_PREFIX,
         "S3_KEY": S3_KEY
