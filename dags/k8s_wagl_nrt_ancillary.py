@@ -85,6 +85,27 @@ SYNC_JOBS = [
     "date",
 ]
 
+affinity = {
+    "nodeAffinity": {
+        "requiredDuringSchedulingIgnoredDuringExecution": {
+            "nodeSelectorTerms": [
+                {
+                    "matchExpressions": [
+                        {
+                            "key": "nodetype",
+                            "operator": "In",
+                            "values": [
+                                "spot",
+                            ],
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
+
+
 default_args = {
     "owner": "Imam Alam",
     "depends_on_past": False,
@@ -96,6 +117,19 @@ default_args = {
     "retry_delay": timedelta(minutes=30),
     "secrets": [Secret("env", None, "wagl-nrt-aws-creds")],
 }
+
+
+ancillary_volume_mount = VolumeMount(
+    name="wagl-nrt-ancillary-volume",
+    mount_path="/ancillary",
+    sub_path=None,
+    read_only=False,
+)
+
+ancillary_volume = Volume(
+    name="wagl-nrt-ancillary-volume",
+    configs={"persistentVolumeClaim": {"claimName": "wagl-nrt-ancillary-volume"}},
+)
 
 
 pipeline = DAG(
@@ -111,18 +145,6 @@ pipeline = DAG(
     tags=["k8s", "dea", "psc", "wagl", "nrt"],
 )
 
-ancillary_volume_mount = VolumeMount(
-    name="wagl-nrt-ancillary-volume",
-    mount_path="/ancillary",
-    sub_path=None,
-    read_only=False,
-)
-
-ancillary_volume = Volume(
-    name="wagl-nrt-ancillary-volume",
-    configs={"persistentVolumeClaim": {"claimName": "wagl-nrt-ancillary-volume"}},
-)
-
 with pipeline:
     START = DummyOperator(task_id="start")
 
@@ -135,7 +157,7 @@ with pipeline:
         name="sync_ancillaries",
         task_id="sync_ancillaries",
         get_logs=True,
-        # TODO: affinity=affinity,
+        affinity=affinity,
         volumes=[ancillary_volume],
         volume_mounts=[ancillary_volume_mount],
         is_delete_operator_pod=True,

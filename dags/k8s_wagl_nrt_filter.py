@@ -20,8 +20,7 @@ AWS_CONN_ID = "wagl_nrt_manual"
 FILTER_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-filter-scene"
 PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-process-scene"
 
-# TODO get this back to 100
-NUM_MESSAGES_TO_POLL = 10
+NUM_MESSAGES_TO_POLL = 100
 
 TILE_LIST = "assets/S2_aoi.csv"
 
@@ -95,7 +94,7 @@ pipeline = DAG(
     max_active_runs=1,
     catchup=False,
     params={},
-    schedule_interval=None,  # TODO timedelta(minutes=10),
+    schedule_interval=timedelta(minutes=15),
     tags=["k8s", "dea", "psc", "wagl", "nrt"],
 )
 
