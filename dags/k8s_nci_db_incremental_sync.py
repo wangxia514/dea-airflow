@@ -20,18 +20,32 @@ from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
+from dateutil.parser import parse
+
+def is_date(string, fuzzy=False):
+    """
+    Return whether the string can be interpreted as a date.
+
+    :param string: str, string to check for date
+    :param fuzzy: bool, ignore unknown tokens in string if True
+    """
+    try:
+        parse(string, fuzzy=fuzzy)
+        return True
+
+    except ValueError:
+        return False
 
 # Templated DAG arguments
 DB_HOSTNAME = "db-writer"
 DB_DATABASE = "nci_20200925"
-# DATESTRING = "{{ ds }}"
-DATESTRING = "2020-10-02"
+DATESTRING = "{{ ds }}"
 S3_IMPORT_DATE = "{{ dag_run.conf and dag_run.conf.get('s3importdate', '') }}"
 S3_BUCKET = "nci-db-dump"
-if S3_IMPORT_DATE:
-    S3_PREFIX=f"csv-changes/{DATESTRING}"
-else:
+if is_date(S3_IMPORT_DATE):
     S3_PREFIX=f"csv-changes/{S3_IMPORT_DATE}"
+else:
+    S3_PREFIX=f"csv-changes/{DATESTRING}"
 S3_KEY = f"s3://{S3_BUCKET}/{S3_PREFIX}/agdc.dataset_changes.csv.gz"
 BACKUP_PATH = "/scripts/backup"
 
@@ -50,7 +64,6 @@ DEFAULT_ARGS = {
         "DB_DATABASE": DB_DATABASE,
         "DB_PORT": "5432",
         "BACKUP_PATH": BACKUP_PATH,
-        "DATESTRING": S3_IMPORT_DATE,
         "S3_BUCKET": S3_BUCKET,
         "S3_PREFIX": S3_PREFIX,
         "S3_KEY": S3_KEY
