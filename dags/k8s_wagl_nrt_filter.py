@@ -20,7 +20,7 @@ AWS_CONN_ID = "wagl_nrt_manual"
 FILTER_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-filter-scene"
 PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-process-scene"
 
-NUM_MESSAGES_TO_POLL = 100
+NUM_MESSAGES_TO_POLL = 500
 
 TILE_LIST = "assets/S2_aoi.csv"
 
