@@ -84,76 +84,9 @@ def decode(message):
     return json.loads(message["Body"])
 
 
-# def copy_tile(client, tile, safe_tags):
-#     datastrips = client.list_objects_v2(
-#         Bucket=SOURCE_BUCKET,
-#         Prefix=tile["datastrip"]["path"],
-#         RequestPayer="requester",
-#     )
-#
-#     for obj in datastrips["Contents"]:
-#         print("copying", obj["Key"], "from", SOURCE_BUCKET, "to", TRANSFER_BUCKET)
-#         client.copy_object(
-#             ACL="bucket-owner-full-control",
-#             CopySource={"Bucket": SOURCE_BUCKET, "Key": obj["Key"]},
-#             Bucket=TRANSFER_BUCKET,
-#             TaggingDirective="REPLACE",
-#             Tagging=safe_tags,
-#             StorageClass="STANDARD",
-#             Key=obj["Key"],
-#             RequestPayer="requester",
-#         )
-#
-#     tiles = client.list_objects_v2(
-#         Bucket=SOURCE_BUCKET, Prefix=tile["path"], RequestPayer="requester"
-#     )
-#
-#     for obj in tiles["Contents"]:
-#         print("copying", obj["key"], "from", SOURCE_BUCKET, "to", TRANSFER_BUCKET)
-#         client.copy_object(
-#             ACL="bucket-owner-full-control",
-#             CopySource={"Bucket": SOURCE_BUCKET, "Key": obj["Key"]},
-#             Bucket=TRANSFER_BUCKET,
-#             Key=obj["Key"],
-#             TaggingDirective="REPLACE",
-#             Tagging=safe_tags,
-#             StorageClass="STANDARD",
-#             RequestPayer="requester",
-#         )
-
-
-# def copy_scenes(**context):
-#     task_instance = context["task_instance"]
-#     # index = context["index"]
-#     all_messages = task_instance.xcom_pull(
-#         task_ids="process_scene_queue_sensor", key="messages"
-#     )["Messages"]
-#
-#     s3_hook = S3Hook(aws_conn_id=AWS_CONN_ID)
-#     client = s3_hook.get_conn()
-#
-#     print("s3_hook", s3_hook, type(s3_hook))
-#     print("client", client, type(client))
-#
-#     # tags to assign to objects
-#     safe_tags = urlencode({}, quote_via=quote_plus)
-#
-#     messages = all_messages
-#     for message in messages:
-#         print("this is the message I got")
-#         print(message)
-#         msg_dict = decode(message)
-#         print("copying")
-#         print(msg_dict)
-#         for tile in msg_dict["tiles"]:
-#             copy_tile(client, tile, safe_tags)
-#
-#     # forward it to dea-s2-wagl-nrt
-#     task_instance.xcom_push(key="messages", value=all_messages)
-
-
 def sync(*args):
-    return "aws s3 sync --only-show-errors " + " ".join(args)
+    return "aws s3 sync " + " ".join(args)
+    # return "aws s3 sync --only-show-errors " + " ".join(args)
 
 
 def copy_cmd_tile(msg_id, tile):
@@ -161,17 +94,21 @@ def copy_cmd_tile(msg_id, tile):
     path = tile["path"]
 
     return [
+        "echo sinergise -> disk [datastrip]",
         sync(
             "--request-payer requester",
             f"s3://{SOURCE_BUCKET}/{datastrip}",
             f"/transfer/{msg_id}/{datastrip}",
         ),
+        "echo disk -> cache [datastrip]",
         sync(f"/transfer/{msg_id}/{datastrip}", f"s3://{TRANSFER_BUCKET}/{datastrip}"),
+        "echo sinergise -> disk [tile]",
         sync(
             "--request-payer requester",
             f"s3://{SOURCE_BUCKET}/{path}",
             f"/transfer/{msg_id}/{path}",
         ),
+        "echo disk -> cache [tile]",
         sync(f"/transfer/{msg_id}/{path}", f"s3://{TRANSFER_BUCKET}/{path}"),
     ]
 
@@ -186,11 +123,7 @@ def copy_cmd(**context):
     messages = all_messages  # TODO take care of index
     assert len(messages) == 1
     message = messages[0]
-    print("this is the message I got")
-    print(message)
     msg_dict = decode(message)
-    print("copying")
-    print(msg_dict)
 
     cmd = []
     for tile in msg_dict["tiles"]:
@@ -228,13 +161,6 @@ with pipeline:
         python_callable=copy_cmd,
         provide_context=True,
     )
-
-    # COPY = PythonOperator(
-    #     task_id=f"copy_scenes",
-    #     python_callable=copy_scenes,
-    #     execution_timeout=timedelta(hours=2),
-    #     provide_context=True,
-    # )
 
     COPY = KubernetesPodOperator(
         namespace="processing",
