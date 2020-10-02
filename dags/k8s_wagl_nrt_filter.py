@@ -20,7 +20,8 @@ AWS_CONN_ID = "wagl_nrt_manual"
 FILTER_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-filter-scene"
 PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-process-scene"
 
-NUM_MESSAGES_TO_POLL = 500
+# unfortunately this is the max
+NUM_MESSAGES_TO_POLL = 10
 
 TILE_LIST = "assets/S2_aoi.csv"
 
@@ -66,14 +67,15 @@ def region_code(message):
 
 def filter_scenes(**context):
     task_instance = context["task_instance"]
+    index = context["index"]
     all_messages = task_instance.xcom_pull(
-        task_ids="filter_scene_queue_sensor", key="messages"
+        task_ids=f"filter_scene_queue_sensor_{index}", key="messages"
     )["Messages"]
 
     australia = australian_region_codes()
 
     messages = [
-        message for message in all_messages  # TODO if region_code(message) in australia
+        message for message in all_messages if region_code(message) in australia
     ]
 
     sqs_hook = SQSHook(aws_conn_id=AWS_CONN_ID)
@@ -90,7 +92,7 @@ pipeline = DAG(
     doc_md=__doc__,
     default_args=default_args,
     description="DEA Sentinel-2 NRT scene filter",
-    concurrency=1,
+    concurrency=50,
     max_active_runs=1,
     catchup=False,
     params={},
@@ -102,17 +104,21 @@ pipeline = DAG(
 with pipeline:
     START = DummyOperator(task_id="start")
 
-    SENSOR = SQSSensor(
-        task_id="filter_scene_queue_sensor",
-        sqs_queue=FILTER_SCENE_QUEUE,
-        aws_conn_id=AWS_CONN_ID,
-        max_messages=NUM_MESSAGES_TO_POLL,
-    )
-
-    FILTER = PythonOperator(
-        task_id="filter_scenes", python_callable=filter_scenes, provide_context=True
-    )
-
     END = DummyOperator(task_id="end")
 
-    START >> SENSOR >> FILTER >> END
+    for index in range(50):
+        SENSOR = SQSSensor(
+            task_id=f"filter_scene_queue_sensor_{index}",
+            sqs_queue=FILTER_SCENE_QUEUE,
+            aws_conn_id=AWS_CONN_ID,
+            max_messages=NUM_MESSAGES_TO_POLL,
+        )
+
+        FILTER = PythonOperator(
+            task_id=f"filter_scenes_{index}",
+            python_callable=filter_scenes,
+            op_args={"index": index},
+            provide_context=True,
+        )
+
+        START >> SENSOR >> FILTER >> END
