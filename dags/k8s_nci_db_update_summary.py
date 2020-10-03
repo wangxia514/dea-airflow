@@ -9,11 +9,14 @@ and [Resto](https://github.com/jjrom/resto).
 
 """
 
+import pendulum
 from airflow import DAG
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
+
+local_tz = pendulum.timezone("Australia/Canberra")
 
 # Templated DAG arguments
 DB_HOSTNAME = "db-writer"
@@ -22,7 +25,7 @@ DB_DATABASE = "nci_20200925"
 DEFAULT_ARGS = {
     "owner": "Nikita Gandhi",
     "depends_on_past": False,
-    "start_date": datetime(2020, 10, 3),
+    "start_date": datetime(2020, 10, 3, tzinfo=local_tz),
     "email": ["nikita.gandhi@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
@@ -54,6 +57,7 @@ dag = DAG(
     max_active_runs=1,
     tags=["k8s"],
     schedule_interval="5 1 * * sat",    # every saturday 1:05AM
+    dagrun_timeout=timedelta(minutes=60*13)
 )
 
 affinity = {

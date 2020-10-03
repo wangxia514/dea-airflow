@@ -17,6 +17,7 @@ for a day's backup to be available via
 and executes downstream task
 """
 
+import pendulum
 from airflow import DAG
 from airflow.sensors.s3_key_sensor import S3KeySensor
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
@@ -26,11 +27,12 @@ from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
 
+local_tz = pendulum.timezone("Australia/Canberra")
 
 # Templated DAG arguments
 DB_HOSTNAME = "db-writer"
 DB_DATABASE = "nci_20200925"
-DATESTRING = "{{ ds }}"
+DATESTRING = "{{ macros.ds_add(ds, -1) }}"  # get s3 key for previous day
 # NOTE: uncomment if you want to run DAG manually to import for specific date -  {"s3importdate": "<import-date>"}
 # DATESTRING = '{{ dag_run.conf["s3importdate"] }}'
 S3_BUCKET = "nci-db-dump"
@@ -41,7 +43,7 @@ BACKUP_PATH = "/scripts/backup"
 DEFAULT_ARGS = {
     "owner": "Nikita Gandhi",
     "depends_on_past": False,
-    "start_date": datetime(2020, 9, 24),
+    "start_date": datetime(2020, 9, 24, tzinfo=local_tz),
     "email": ["nikita.gandhi@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
