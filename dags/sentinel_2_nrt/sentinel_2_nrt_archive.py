@@ -22,10 +22,8 @@ from sentinel_2_nrt.subdag_ows_views import ows_update_extent_subdag
 from env_var.infra import DB_DATABASE, DB_HOSTNAME, SECRET_OWS_NAME, SECRET_AWS_NAME
 from airflow.operators.subdag_operator import SubDagOperator
 from sentinel_2_nrt.subdag_explorer_summary import explorer_refresh_stats_subdag
+from sentinel_2_nrt.env_cfg import ARCHIVE_CONDITION, ARCHIVE_PRODUCTS
 
-
-ARCHIVE_CONDITION = "[$(date -d '-365 day' +%F), $(date -d '-91 day' +%F)]"
-ARCHIVE_PRODUCTS = "s2a_nrt_granule s2b_nrt_granule"
 
 DAG_NAME = "sentinel_2_nrt_archive"
 
