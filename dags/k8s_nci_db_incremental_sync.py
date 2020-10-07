@@ -70,7 +70,7 @@ DEFAULT_ARGS = {
 }
 
 # Point to Geoscience Australia / OpenDataCube Dockerhub
-S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.33.g50e2acc"
+S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.37.gecc8ab3"
 
 dag = DAG(
     "k8s_nci_db_incremental_sync",
