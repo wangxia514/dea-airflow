@@ -77,7 +77,7 @@ def ows_update_extent_subdag(
             )
         )
     else:
-        products = UPDATE_EXTENT_PRODUCTS
+        products = " ".join(UPDATE_EXTENT_PRODUCTS)
 
     # append ows specific env_vars to args
     ows_env_cfg = {

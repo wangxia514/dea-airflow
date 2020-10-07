@@ -43,7 +43,7 @@ def explorer_refresh_stats_subdag(
             )
         )
     else:
-        products = INDEXING_PRODUCTS
+        products = " ".join(INDEXING_PRODUCTS)
 
     EXPLORER_BASH_COMMAND = [
         "bash",
