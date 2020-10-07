@@ -29,7 +29,12 @@ from airflow.kubernetes.secret import Secret
 from airflow.operators.subdag_operator import SubDagOperator
 from sentinel_2_nrt.subdag_ows_views import ows_update_extent_subdag
 
-from env_var.infra import DB_DATABASE, DB_HOSTNAME, SECRET_OWS_NAME, SECRET_AWS_NAME
+from env_var.infra import (
+    DB_DATABASE,
+    DB_HOSTNAME,
+    SECRET_OWS_WRITER_NAME,
+    SECRET_AWS_NAME,
+)
 from sentinel_2_nrt.env_cfg import (
     UPDATE_EXTENT_PRODUCTS,
 )
@@ -53,8 +58,6 @@ DEFAULT_ARGS = {
     },
     # Lift secrets into environment variables
     "secrets": [
-        Secret("env", "DB_USERNAME", SECRET_OWS_NAME, "postgres-username"),
-        Secret("env", "DB_PASSWORD", SECRET_OWS_NAME, "postgres-password"),
         Secret("env", "AWS_DEFAULT_REGION", SECRET_AWS_NAME, "AWS_DEFAULT_REGION"),
     ],
 }

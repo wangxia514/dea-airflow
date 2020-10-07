@@ -10,9 +10,10 @@ INDEXING_ROLE = Variable.get("processing_indexing_role", "dea-dev-eks-orchestrat
 
 # secrets name available in processing namespace
 SECRET_AWS_NAME = Variable.get("processing_user_secret", "indexing-aws-creds-sandbox")
-SECRET_EXPLORER_NAME = Variable.get("explorer_db_secret", "explorer-db")
-SECRET_OWS_NAME = Variable.get("ows_db_secret", "ows-db")
+SECRET_EXPLORER_WRITER_NAME = Variable.get("db_explorer_writer_secret", "explorer-writer")
+SECRET_OWS_WRITER_NAME = Variable.get("db_ows_writer_secret", "ows-writer")
+SECRET_ODC_WRITER_NAME = Variable.get("db_odc_writer_secret", "odc-writer")
 
 # DB config
-DB_DATABASE = Variable.get("db_database", "ows_prod_20200827")
+DB_DATABASE = Variable.get("db_database", "ows")
 DB_HOSTNAME = Variable.get("db_hostname", "db-writer")

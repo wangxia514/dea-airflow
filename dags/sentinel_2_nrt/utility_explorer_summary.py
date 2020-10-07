@@ -31,7 +31,6 @@ from sentinel_2_nrt.subdag_explorer_summary import explorer_refresh_stats_subdag
 from env_var.infra import (
     DB_DATABASE,
     DB_HOSTNAME,
-    SECRET_EXPLORER_NAME,
     SECRET_AWS_NAME,
 )
 from sentinel_2_nrt.env_cfg import (
