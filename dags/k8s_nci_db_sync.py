@@ -79,7 +79,7 @@ affinity = {
                     "key": "nodetype",
                     "operator": "In",
                     "values": [
-                        "spot",
+                        "ondemand",
                     ]
                 }]
             }]
