@@ -24,9 +24,10 @@ from airflow.operators.dummy_operator import DummyOperator
 # from env_var.infra import DB_HOSTNAME
 
 # Templated DAG arguments
+DATESTRING = "{{ ds_nodash }}"
 DB_HOSTNAME = "db-writer"
-DB_DATABASE = "nci_{{ ds_nodash }}"
-FILE_PREFIX = "dea-db.nci.org.au-{{ ds_nodash }}"
+DB_DATABASE = f"nci_{DATESTRING}"
+FILE_PREFIX = f"dea-db.nci.org.au-{DATESTRING}"
 S3_KEY = f"s3://nci-db-dump/prod/{FILE_PREFIX}-datacube.pgdump"
 S3_KEY = f"s3://nci-db-dump/prod/{FILE_PREFIX}-datacube.pgdump"
 BACKUP_PATH = "/scripts/backup"
@@ -37,7 +38,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "depends_on_past": False,
-    "start_date": datetime(2020, 9, 15),
+    "start_date": datetime(2020, 10, 7),
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "env_vars": {
@@ -46,7 +47,8 @@ DEFAULT_ARGS = {
         "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
         "DB_PORT": "5432",
-        "BACKUP_PATH": BACKUP_PATH
+        "BACKUP_PATH": BACKUP_PATH,
+        "DATESTRING": DATESTRING
     },
     # Use K8S secrets to send DB Creds
     # Lift secrets into environment variables for datacube
@@ -57,7 +59,7 @@ DEFAULT_ARGS = {
 }
 
 # Point to Geoscience Australia / OpenDataCube Dockerhub
-S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.33.g50e2acc"
+S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.37.gecc8ab3"
 EXPLORER_IMAGE = "opendatacube/explorer:2.2.1"
 
 dag = DAG(
