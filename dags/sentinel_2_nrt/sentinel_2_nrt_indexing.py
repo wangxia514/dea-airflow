@@ -56,17 +56,16 @@ DEFAULT_ARGS = {
     ],
 }
 
-record_path_list_with_prefix = ['--record-path ' + path for path in PRODUCT_RECORD_PATHS]
+record_path_list_with_prefix = [
+    "--record-path " + path for path in PRODUCT_RECORD_PATHS
+]
+index_product_string = " ".join(INDEXING_PRODUCTS)
+record_path_string = " ".join(record_path_list_with_prefix)
 
 INDEXING_BASH_COMMAND = [
     "bash",
     "-c",
-    dedent(
-        """
-            sqs-to-dc %s "%s" --skip-lineage --allow-unsafe %s;
-        """
-    )
-    % (SQS_QUEUE_NAME, " ".join(INDEXING_PRODUCTS), " ".join(record_path_list_with_prefix)),
+    f'sqs-to-dc {SQS_QUEUE_NAME} "{index_product_string}" {record_path_string} --skip-lineage --allow-unsafe',
 ]
 
 
