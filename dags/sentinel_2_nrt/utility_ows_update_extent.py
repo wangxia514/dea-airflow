@@ -78,7 +78,7 @@ def parse_dagrun_conf(products, **kwargs):
     if products:
         return products
     else:
-        return UPDATE_EXTENT_PRODUCTS
+        return " ".join(UPDATE_EXTENT_PRODUCTS)
 
 
 SET_REFRESH_PRODUCT_TASK_NAME = "parse_dagrun_conf"
