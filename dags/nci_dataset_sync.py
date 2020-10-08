@@ -78,8 +78,9 @@ default_args = {
 with DAG('nci_dataset_sync',
          default_args=default_args,
          catchup=False,
-         schedule_interval=None,
+         schedule_interval='0 2 * * 2',  # 2am every Tuesday Morning (TODO: except for TZ)
          tags=['nci', 'landsat_c2'],
+         default_view="tree",
          ) as dag:
     for product in SYNCED_PRODUCTS:
         submit_sync = SSHOperator(

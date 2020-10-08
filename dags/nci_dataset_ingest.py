@@ -8,9 +8,9 @@ All steps except the k
 from textwrap import dedent
 from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
-from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
 
+from airflow.sensors.external_task_sensor import ExternalTaskSensor
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
 INGEST_PRODUCTS = {
@@ -46,6 +46,7 @@ ingest_dag = DAG(
     catchup=False,
     schedule_interval=None,
     tags=['nci', 'landsat_c2'],
+    default_view="tree",
 )
 
 with ingest_dag:
@@ -86,7 +87,12 @@ with ingest_dag:
         --queue-size {{params.queue_size}} --executor distributed DSCHEDULER
     """)
 
-    for ing_product in INGEST_PRODUCTS.values():
+    for src_product, ing_product in INGEST_PRODUCTS.items():
+        wait_for_sync = ExternalTaskSensor(
+            task_id=f'wait_for_sync_{src_product}',
+            external_dag_id='nci_dataset_sync',
+            external_task_id=f'wait_for_{src_product}',
+        )
         save_tasks = SSHOperator(
             task_id=f'save_tasks_{ing_product}',
             ssh_conn_id='lpgs_gadi',
@@ -118,4 +124,4 @@ with ingest_dag:
             pbs_job_id="{{ ti.xcom_pull(task_ids='%s') }}" % submit_task_id
         )
 
-        save_tasks >> test_tasks >> submit_ingest_job >> wait_for_completion
+        wait_for_sync >> save_tasks >> test_tasks >> submit_ingest_job >> wait_for_completion

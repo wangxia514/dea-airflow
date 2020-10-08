@@ -6,13 +6,13 @@ from textwrap import dedent
 
 from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
-from airflow.operators.dummy_operator import DummyOperator
+from airflow.sensors.external_task_sensor import ExternalTaskSensor
 
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
 default_args = {
     'owner': 'Damien Ayers',
-    'depends_on_past': False,  # Very important, will cause a single failure to propagate forever
+    'depends_on_past': False,  # Very important to be False, otherwise a single failure will propagate forever
     'start_date': datetime(2020, 2, 17),
     'retries': 0,
     'retry_delay': timedelta(minutes=1),
@@ -37,6 +37,7 @@ dag = DAG(
     catchup=False,
     schedule_interval=None,
     tags=['nci', 'landsat_c2'],
+    default_view="tree",
 )
 
 with dag:
@@ -49,6 +50,12 @@ with dag:
         """)
 
     for product in fc_products:
+        ing_product = product.replace('fc', 'nbart')
+        ingest_completed = ExternalTaskSensor(
+            task_id=f'ingest_completed_{ing_product}',
+            external_dag_id='nci_dataset_ingest',
+            external_task_id=f'wait_for_{ing_product}_ingest'
+        )
         generate_tasks = SSHOperator(
             command=COMMON + dedent("""
                 APP_CONFIG="$(datacube-fc list | grep "{{ params.product }}")";

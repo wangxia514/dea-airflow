@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
+from airflow.sensors.external_task_sensor import ExternalTaskSensor, ExternalTaskMarker
 
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
@@ -23,15 +24,14 @@ default_args = {
     }
 }
 
-dag = DAG(
-    'nci_wofs',
-    default_args=default_args,
-    catchup=False,
-    schedule_interval=None,
-    tags=['nci', 'landsat_c2'],
-)
-
-with dag:
+with DAG(
+        'nci_wofs',
+        default_args=default_args,
+        catchup=False,
+        schedule_interval=None,
+        tags=['nci', 'landsat_c2'],
+        default_view="tree",
+):
     COMMON = """
           {% set work_dir = '/g/data/v10/work/wofs_albers/' + ts_nodash %}
           module use /g/data/v10/public/modules/modulefiles;
@@ -40,6 +40,11 @@ with dag:
           set -eux
           APP_CONFIG=/g/data/v10/public/modules/$(module info-loaded dea)/wofs/config/wofs_albers.yaml
     """
+
+    ingest_completed = ExternalTaskSensor(
+        task_id='ingest_completed',
+        external_dag_id='nci_dataset_ingest'
+    )
     generate_wofs_tasks = SSHOperator(
         task_id='generate_wofs_tasks',
         command=COMMON + """
@@ -121,5 +126,7 @@ with dag:
         timeout=60 * 20,
     )
 
-    generate_wofs_tasks >> test_wofs_tasks >> submit_wofs_job >> wait_for_wofs_albers
+    ExternalTaskMarker()
+
+    ingest_completed >> generate_wofs_tasks >> test_wofs_tasks >> submit_wofs_job >> wait_for_wofs_albers
     wait_for_wofs_albers >> check_for_errors
