@@ -1,5 +1,5 @@
 """
-# Sentinel-2_nrt Indexing from SQS
+# Sentinel-2_nrt Batch Indexing From S3
 
 DAG to periodically index Sentinel-2 NRT data.
 
@@ -10,8 +10,6 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.kubernetes.volume import Volume
-from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 
 from textwrap import dedent
@@ -22,15 +20,12 @@ from sentinel_2_nrt.images import INDEXER_IMAGE
 from env_var.infra import (
     DB_DATABASE,
     DB_HOSTNAME,
-    SECRET_OWS_WRITER_NAME,
     SECRET_ODC_WRITER_NAME,
     SECRET_AWS_NAME,
     INDEXING_ROLE,
 )
 from sentinel_2_nrt.env_cfg import (
-    SQS_QUEUE_NAME,
     INDEXING_PRODUCTS,
-    PRODUCT_RECORD_PATHS,
 )
 
 # DAG CONFIGURATION
@@ -47,6 +42,7 @@ DEFAULT_ARGS = {
         # TODO: Pass these via templated params in DAG Run
         "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
+        "DB_PORT": "5432",
     },
     # Lift secrets into environment variables
     "secrets": [
@@ -56,27 +52,35 @@ DEFAULT_ARGS = {
     ],
 }
 
-record_path_list_with_prefix = [
-    "--record-path " + path for path in PRODUCT_RECORD_PATHS
-]
-index_product_string = " ".join(INDEXING_PRODUCTS)
-record_path_string = " ".join(record_path_list_with_prefix)
+uri_list = []
+for n in range(1, 4):
+    uri_date = (datetime.today() - timedelta(days=n)).strftime("%Y-%m-%d")
+    URI = f"s://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/{uri_date}/**/ARD-METADATA.yaml"
+    uri_list.append(URI)
+
+uri_string = " ".join(uri_list)
 
 INDEXING_BASH_COMMAND = [
     "bash",
     "-c",
-    f'sqs-to-dc {SQS_QUEUE_NAME} "{index_product_string}" {record_path_string} --skip-lineage --allow-unsafe',
+    dedent(
+        """
+            for uri in %s; do
+               s3-to-dc $uri "%s" --skip-lineage;
+            done
+        """
+    )
+    % (uri_string, " ".join(INDEXING_PRODUCTS)),
 ]
-
 
 # THE DAG
 dag = DAG(
-    "sentinel_2_nrt_indexing",
+    "sentinel_2_nrt_batch_indexing",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
-    schedule_interval="0 */1 * * *",  # hourly
+    schedule_interval="0 6 * * *",
     catchup=False,
-    tags=["k8s", "sentinel-2"],
+    tags=["k8s", "sentinel-2", "batch-indexing"],
 )
 
 with dag:
@@ -86,9 +90,9 @@ with dag:
         image_pull_policy="IfNotPresent",
         annotations={"iam.amazonaws.com/role": INDEXING_ROLE},
         arguments=INDEXING_BASH_COMMAND,
-        labels={"step": "sqs-to-rds"},
+        labels={"step": "s3-to-rds"},
         name="datacube-index",
-        task_id="indexing-task",
+        task_id="batch-indexing-task",
         get_logs=True,
         is_delete_operator_pod=True,
     )
