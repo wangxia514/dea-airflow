@@ -21,7 +21,7 @@ from env_var.infra import (
     SECRET_AWS_NAME,
 )
 
-DAG_NAME = "sentinel_2_nrt_update"
+DAG_NAME = "sentinel_2_nrt_mv_update"
 
 # DAG CONFIGURATION
 DEFAULT_ARGS = {
