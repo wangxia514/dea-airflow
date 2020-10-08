@@ -128,7 +128,7 @@ with dag:
     RESTORE_NCI_INCREMENTAL_SYNC = KubernetesPodOperator(
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
-        annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-processing-dbsync"},
+        annotations={"iam.amazonaws.com/role": "svc-dea-sandbox-eks-processing-dbsync"},
         cmds=["./import_from_s3.sh"],
         image_pull_policy="Always",
         labels={"step": "s3-to-rds"},
