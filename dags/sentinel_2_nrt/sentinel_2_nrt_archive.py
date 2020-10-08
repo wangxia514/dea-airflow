@@ -19,13 +19,16 @@ import kubernetes.client.models as k8s
 from sentinel_2_nrt.images import INDEXER_IMAGE, OWS_IMAGE
 from sentinel_2_nrt.subdag_ows_views import ows_update_extent_subdag
 
-from env_var.infra import DB_DATABASE, DB_HOSTNAME, SECRET_OWS_NAME, SECRET_AWS_NAME
+from env_var.infra import (
+    DB_DATABASE,
+    DB_HOSTNAME,
+    SECRET_AWS_NAME,
+    SECRET_ODC_WRITER_NAME,
+)
 from airflow.operators.subdag_operator import SubDagOperator
 from sentinel_2_nrt.subdag_explorer_summary import explorer_refresh_stats_subdag
+from sentinel_2_nrt.env_cfg import ARCHIVE_CONDITION, ARCHIVE_PRODUCTS
 
-
-ARCHIVE_CONDITION = "[$(date -d '-365 day' +%F), $(date -d '-91 day' +%F)]"
-ARCHIVE_PRODUCTS = "s2a_nrt_granule s2b_nrt_granule"
 
 DAG_NAME = "sentinel_2_nrt_archive"
 
@@ -64,8 +67,8 @@ DEFAULT_ARGS = {
     },
     # Lift secrets into environment variables
     "secrets": [
-        Secret("env", "DB_USERNAME", SECRET_OWS_NAME, "postgres-username"),
-        Secret("env", "DB_PASSWORD", SECRET_OWS_NAME, "postgres-password"),
+        Secret("env", "DB_USERNAME", SECRET_ODC_WRITER_NAME, "postgres-username"),
+        Secret("env", "DB_PASSWORD", SECRET_ODC_WRITER_NAME, "postgres-password"),
         Secret("env", "AWS_DEFAULT_REGION", SECRET_AWS_NAME, "AWS_DEFAULT_REGION"),
     ],
 }

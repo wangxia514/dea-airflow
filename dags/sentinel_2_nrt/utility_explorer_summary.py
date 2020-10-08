@@ -31,7 +31,6 @@ from sentinel_2_nrt.subdag_explorer_summary import explorer_refresh_stats_subdag
 from env_var.infra import (
     DB_DATABASE,
     DB_HOSTNAME,
-    SECRET_EXPLORER_NAME,
     SECRET_AWS_NAME,
 )
 from sentinel_2_nrt.env_cfg import (
@@ -77,7 +76,7 @@ def parse_dagrun_conf(products, **kwargs):
     if products:
         return products
     else:
-        return INDEXING_PRODUCTS
+        return " ".join(INDEXING_PRODUCTS)
 
 
 SET_REFRESH_PRODUCT_TASK_NAME = "parse_dagrun_conf"
