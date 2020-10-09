@@ -19,6 +19,7 @@ c2_default_args = {
     'email_on_retry': False,
     'retries': 3,
     'retry_delay': 5 * 60,
+    'ssh_conn_id': 'lpgs_gadi',
     'params': {
         'project': 'v10',
         'queue': 'normal',
