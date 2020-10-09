@@ -115,13 +115,13 @@ with dag:
         name="ows-update-ranges",
         task_id="update-ranges-task",
         get_logs=True,
-        init_container=k8s.V1Container(
+        init_containers=[k8s.V1Container(
             image=OWS_CONFIG_IMAGE,
             command=["cp"],
             args=["-f", OWS_CFG_IMAGEPATH, OWS_CFG_PATH],
             volume_mounts=["ows-config-volume"],
             name="mount-ows-config"
-        )
+        )]
     )
 
     SUMMARY = KubernetesPodOperator(

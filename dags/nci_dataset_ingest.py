@@ -3,14 +3,15 @@
 
 This DAG executes everything using Gadi at the NCI.
 
-All steps except the k
 """
 from textwrap import dedent
+
 from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
-from airflow.operators.dummy_operator import DummyOperator
-from datetime import datetime, timedelta
+from airflow.sensors.external_task_sensor import ExternalTaskSensor
 
+from nci_common import c2_schedule_interval, c2_default_args
+from operators.ssh_operators import ShortCircuitSSHOperator
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
 INGEST_PRODUCTS = {
@@ -22,30 +23,13 @@ INGEST_PRODUCTS = {
     'ls7_pq_scene': 'ls7_pq_albers',
 }
 
-default_args = {
-    'owner': 'Damien Ayers',
-    'depends_on_past': False,
-    'start_date': datetime(2020, 3, 4),
-    'email': ['damien.ayers@ga.gov.au'],
-    'email_on_failure': True,
-    'email_on_retry': False,
-    'retries': 3,
-    'retry_delay': timedelta(minutes=5),
-    'params': {
-        'project': 'v10',
-        'queue': 'normal',
-        'module': 'dea',
-        'year': '2020',
-        'queue_size': '10000',
-    }
-}
-
 ingest_dag = DAG(
     'nci_dataset_ingest',
-    default_args=default_args,
+    default_args=c2_default_args,
     catchup=False,
-    schedule_interval=None,
+    schedule_interval=c2_schedule_interval,
     tags=['nci', 'landsat_c2'],
+    default_view="tree",
 )
 
 with ingest_dag:
@@ -60,17 +44,17 @@ with ingest_dag:
         cd {{work_dir}};
     """
 
-    save_tasks_command = dedent(COMMON + """
+    save_tasks_command = COMMON + dedent("""
         INGESTION_CONFIG=/g/data/v10/public/modules/$(module info-loaded dea)/lib/python3.6/site-packages/digitalearthau/config/ingestion/{{ params.ing_product }}.yaml
             
         datacube -v ingest --year {{params.year}} --config-file ${INGESTION_CONFIG} --save-tasks {{task_file}}
     """)
 
-    test_tasks_command = dedent(COMMON + """
+    test_tasks_command = COMMON + dedent("""
         datacube -v ingest --allow-product-changes --load-tasks {{task_file}} --dry-run
     """)
 
-    qsubbed_ingest_command = dedent(COMMON + """
+    qsubbed_ingest_command = COMMON + dedent("""
         {% set distributed_script = '/home/547/lpgs/bin/run_distributed.sh' %}
 
         qsub \
@@ -86,7 +70,12 @@ with ingest_dag:
         --queue-size {{params.queue_size}} --executor distributed DSCHEDULER
     """)
 
-    for ing_product in INGEST_PRODUCTS.values():
+    for src_product, ing_product in INGEST_PRODUCTS.items():
+        wait_for_sync = ExternalTaskSensor(
+            task_id=f'wait_for_sync_{src_product}',
+            external_dag_id='nci_dataset_sync',
+            external_task_id=f'wait_for_{src_product}',
+        )
         save_tasks = SSHOperator(
             task_id=f'save_tasks_{ing_product}',
             ssh_conn_id='lpgs_gadi',
@@ -94,14 +83,21 @@ with ingest_dag:
             params={'ing_product': ing_product},
             timeout=90,
         )
-        test_tasks = SSHOperator(
+        test_tasks = ShortCircuitSSHOperator(
             task_id=f'test_tasks_{ing_product}',
             ssh_conn_id='lpgs_gadi',
             command=test_tasks_command,
             params={'ing_product': ing_product},
             timeout=90,
         )
+        test_tasks.doc_md = dedent("""
+                ## Instructions
+                Perform some manual checks that the number of COGs to be generated seems to be about right.
 
+                You can also do spot checks that files don't already exist in S3.
+
+                Once you're happy, mark this job as **Success** for the DAG to continue running.
+            """)
         submit_task_id = f'submit_ingest_{ing_product}'
         submit_ingest_job = SSHOperator(
             task_id=submit_task_id,
@@ -118,4 +114,4 @@ with ingest_dag:
             pbs_job_id="{{ ti.xcom_pull(task_ids='%s') }}" % submit_task_id
         )
 
-        save_tasks >> test_tasks >> submit_ingest_job >> wait_for_completion
+        wait_for_sync >> save_tasks >> test_tasks >> submit_ingest_job >> wait_for_completion

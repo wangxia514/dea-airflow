@@ -2,15 +2,13 @@
 # NCI Database Backup and Upload to S3
 
 """
+from datetime import datetime, timedelta
 from textwrap import dedent
 
+import pendulum
 from airflow import DAG
 from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.contrib.operators.ssh_operator import SSHOperator
-
-from datetime import datetime, timedelta
-
-import pendulum
 
 local_tz = pendulum.timezone("Australia/Canberra")
 
@@ -20,7 +18,7 @@ default_args = {
     'retries': 0,
     'retry_delay': timedelta(minutes=5),
     'start_date': datetime(2020, 5, 1, 1, tzinfo=local_tz),
-    'timeout': 60*60*2,  # For running SSH Commands
+    'timeout': 60 * 60 * 2,  # For running SSH Commands
     'ssh_conn_id': 'lpgs_gadi',
     'remote_host': 'gadi-dm.nci.org.au',
     'email_on_failure': True,
@@ -34,7 +32,6 @@ with DAG('nci_db_backup',
          max_active_runs=1,
          tags=['nci'],
          ) as dag:
-
     COMMON = dedent('''
         set -e
         # Load dea module to ensure that pg_dump version and the server version
@@ -76,12 +73,12 @@ with DAG('nci_db_backup',
     aws_conn = AwsHook(aws_conn_id='aws_nci_db_backup')
     upload_to_s3 = SSHOperator(
         task_id='upload_to_s3',
-        params={
-            'aws_conn': aws_conn.get_credentials(),
-        },
+        params=dict(aws_conn=aws_conn),
         command=COMMON + dedent('''
-            export AWS_ACCESS_KEY_ID={{params.aws_conn.access_key}}
-            export AWS_SECRET_ACCESS_KEY={{params.aws_conn.secret_key}}
+            {% set aws_creds = params.aws_conn.get_credentials() -%}
+            
+            export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
+            export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
 
             s3_dump_file=s3://nci-db-dump/prod/"${file_prefix}-datacube.pgdump"
             aws s3 cp "${file_prefix}-datacube.pgdump" "${s3_dump_file}" --no-progress
@@ -119,12 +116,12 @@ with DAG('nci_db_backup',
 
     upload_csvs_to_s3 = SSHOperator(
         task_id='upload_csvs_to_s3',
-        params={
-            'aws_conn': aws_conn.get_credentials(),
-        },
+        params=dict(aws_conn=aws_conn),
         command=COMMON + dedent('''
-            export AWS_ACCESS_KEY_ID={{params.aws_conn.access_key}}
-            export AWS_SECRET_ACCESS_KEY={{params.aws_conn.secret_key}}
+            {% set aws_creds = params.aws_conn.get_credentials() -%}
+            
+            export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
+            export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
 
 
             output_dir=$TMPDIR/pg_csvs_${datestring}

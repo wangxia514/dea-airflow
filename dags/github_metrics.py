@@ -118,7 +118,7 @@ dag = DAG(
     catchup=False,
     default_args=default_args,
     schedule_interval="@daily",
-    default_view="graph",
+    default_view="tree",
     tags=["nci"],
     doc_md=__doc__,
 )
