@@ -19,22 +19,18 @@ accident, but haven't come up with anything yet.
 If you have Docker available, by far the easiest development setup is to use
 Docker Compose.
 
+First, initialise some environment variables:
+
 ``` bash
-python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())' 
-docker-compose up
-
-docker-compose exec webserver /bin/bash
-. /entrypoint.sh
-airflow connections --add --conn_id lpgs_gadi --conn_uri 'ssh://dra547@gadi.nci.org.au'
-
+python -c 'from cryptography.fernet import Fernet; print("FERNET_KEY=" + Fernet.generate_key().decode())' > .env
+echo UID=`id -u` >> .env
+echo GID=`id -g` >> .env
 ```
 
+Then start up `docker-compose`:
+
 ``` bash
 docker-compose up
-docker-compose exec 
-docker-compose run --rm webserver airflow upgradedb
-docker-compose run --rm webserver airflow connections --add --conn_id lpgs_gadi --conn_uri ssh://dra547@gadi.nci.org.au/
-docker-compose exec webserver /entrypoint.sh airflow connections --add --conn_id dea_public_data_upload --conn_uri s3://foo:bar@dea-public-data-dev/
 ```
 
 ## Local Editing of DAG's
@@ -48,7 +44,7 @@ pip install pylint pylint-airflow
 pylint dags plugins
 ```
 
-### Pre-commit setup
+## Pre-commit setup
 
 A [pre-commit](https://pre-commit.com/) config is provided to automatically format
 and check your code changes. This allows you to immediately catch and fix
