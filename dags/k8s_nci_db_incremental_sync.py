@@ -32,12 +32,10 @@ local_tz = pendulum.timezone("Australia/Canberra")
 # Templated DAG arguments
 DB_HOSTNAME = "db-writer"
 DB_DATABASE = "nci_20200925"
-if "{{ dag_run }}" is None:
-    # When scheduler run the DAG
-    DATESTRING = "{{ ds }}"
-else:
-    # When manually execute DAG
-    DATESTRING = '{{ dag_run.conf["s3importdate"] }}'
+DATESTRING = "{{ ds }}"
+s3importdate = "{{ if dag_run.conf and dag_run.conf.get('s3importdate') else '' }}"
+if s3importdate != '':
+    DATESTRING = s3importdate
 # DATESTRING = "{{ macros.ds_add(ds, -1) }}"  # get s3 key for previous day
 # NOTE: uncomment if you want to run DAG manually to import for specific date -  {"s3importdate": "<import-date>"}
 S3_BUCKET = "nci-db-dump"
