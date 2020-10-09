@@ -24,7 +24,6 @@ from env_var.infra import (
     DB_HOSTNAME,
     SECRET_OWS_NAME,
     SECRET_AWS_NAME,
-    INDEXING_ROLE,
 )
 from sentinel_2_nrt.env_cfg import (
     INDEXING_PRODUCTS,
@@ -92,7 +91,6 @@ with dag:
         namespace="processing",
         image=INDEXER_IMAGE,
         image_pull_policy="IfNotPresent",
-        annotations={"iam.amazonaws.com/role": INDEXING_ROLE},
         arguments=INDEXING_BASH_COMMAND,
         labels={"step": "s3-to-rds"},
         name="datacube-index",
