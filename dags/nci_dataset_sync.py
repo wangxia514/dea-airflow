@@ -70,7 +70,6 @@ with DAG('nci_dataset_sync',
     for product in SYNCED_PRODUCTS:
         submit_sync = SSHOperator(
             task_id=f'submit_sync_{product}',
-            ssh_conn_id='lpgs_gadi',
             command=SYNC_COMMAND,
             params={'product': product,
                     'sync_prefix_path': SYNC_PREFIX_PATH[product],
@@ -82,9 +81,7 @@ with DAG('nci_dataset_sync',
 
         wait_for_completion = PBSJobSensor(
             task_id=f'wait_for_{product}',
-            ssh_conn_id='lpgs_gadi',
             pbs_job_id="{{ ti.xcom_pull(task_ids='submit_sync_%s') }}" % product,
-
         )
 
         submit_sync >> wait_for_completion

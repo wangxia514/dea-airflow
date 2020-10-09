@@ -78,14 +78,12 @@ with ingest_dag:
         )
         save_tasks = SSHOperator(
             task_id=f'save_tasks_{ing_product}',
-            ssh_conn_id='lpgs_gadi',
             command=save_tasks_command,
             params={'ing_product': ing_product},
             timeout=90,
         )
         test_tasks = ShortCircuitSSHOperator(
             task_id=f'test_tasks_{ing_product}',
-            ssh_conn_id='lpgs_gadi',
             command=test_tasks_command,
             params={'ing_product': ing_product},
             timeout=90,
@@ -101,7 +99,6 @@ with ingest_dag:
         submit_task_id = f'submit_ingest_{ing_product}'
         submit_ingest_job = SSHOperator(
             task_id=submit_task_id,
-            ssh_conn_id='lpgs_gadi',
             command=qsubbed_ingest_command,
             params={'ing_product': ing_product},
             do_xcom_push=True,
@@ -110,7 +107,6 @@ with ingest_dag:
         )
         wait_for_completion = PBSJobSensor(
             task_id=f'wait_for_{ing_product}_ingest',
-            ssh_conn_id='lpgs_gadi',
             pbs_job_id="{{ ti.xcom_pull(task_ids='%s') }}" % submit_task_id
         )
 
