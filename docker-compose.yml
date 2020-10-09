@@ -14,7 +14,7 @@ services:
         max-size: 10m
         max-file: "3"
   setup-airflow:
-    image: apache/airflow:1.10.12
+    image: &image apache/airflow:1.10.11
     depends_on:
       - postgres
     environment: &env
@@ -22,15 +22,18 @@ services:
       # Uncomment and add fernet key to encrypt/decrypt secrets. For details see
       # https://airflow.readthedocs.io/en/stable/howto/secure-connections.html
       - AIRFLOW__CORE__FERNET_KEY=${FERNET_KEY}
-      # - EXECUTOR=Local
       - AIRFLOW__SMTP__SMTP_HOST=maildev
       - AIRFLOW__CORE__ENABLE_XCOM_PICKLING=False
       - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
-      - HOST_USER_ID=1000
-      - HOST_GROUP_ID=1000
-    command: "bash -c 'airflow upgradedb && airflow connections --add --conn_id lpgs_gadi --conn_uri ssh://dra547@gadi.nci.org.au/ && airflow connections --add --conn_id dea_public_data_upload --conn_uri s3://foo:bar@dea-public-data-dev/ && airflow connections --add --conn_id aws_nci_db_backup --conn_uri s3://foo:bar@dea-db-backups/'"
+      # Default Connections Used in the DEA Airflow deployment
+      - AIRFLOW_CONN_LPGS_GADI=ssh://dra547@gadi.nci.org.au/
+      - AIRFLOW_CONN_DEA_PUBLIC_DATA_UPLOAD=s3://foo:bar@dea-public-data-dev/
+      - AIRFLOW_CONN_AWS_NCI_DB_BACKUP=s3://foo:bar@dea-db-backups/
+      - HOST_USER_ID=${UID}
+      - HOST_GROUP_ID=${GID}
+    command: bash -c 'airflow upgradedb'
   webserver:
-    image: apache/airflow:1.10.12
+    image: *image
     restart: always
     depends_on:
       - postgres
@@ -40,7 +43,7 @@ services:
       options:
         max-size: 10m
         max-file: "3"
-    volumes:
+    volumes: &volumes
       - ./dags:/opt/airflow/dags
       - ./plugins:/opt/airflow/plugins
       - ./scripts:/opt/airflow/scripts
@@ -56,7 +59,7 @@ services:
       timeout: 30s
       retries: 3
   scheduler:
-    image: apache/airflow:1.10.12
+    image: *image
     restart: always
     depends_on:
       - postgres
@@ -66,13 +69,7 @@ services:
       options:
         max-size: 10m
         max-file: "3"
-    volumes:
-      - ./dags:/opt/airflow/dags
-      - ./plugins:/opt/airflow/plugins
-      - ./scripts:/opt/airflow/scripts
-      - logs/:/opt/airflow/logs
-      - ./requirements.txt:/opt/airflow/requirements.txt
-      - /dev/urandom:/dev/random   # Required to get non-blocking entropy source
+    volumes: *volumes
     command: scheduler
     ports:
       - "8793:8793"
