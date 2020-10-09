@@ -35,7 +35,7 @@ DB_DATABASE = "nci_20201007"
 DATESTRING = "{{ ds }}"
 S3_BUCKET = "nci-db-dump"
 S3_PREFIX=f"csv-changes/{DATESTRING}"
-S3_KEY = f"s3://{S3_BUCKET}/{S3_PREFIX}/agdc.dataset_changes.csv.gz"
+S3_KEY = f"s3://{S3_BUCKET}/{S3_PREFIX}/md5sums"
 BACKUP_PATH = "/scripts/backup"
 
 DEFAULT_ARGS = {
@@ -67,7 +67,7 @@ DEFAULT_ARGS = {
 }
 
 # Point to Geoscience Australia / OpenDataCube Dockerhub
-S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.37.gecc8ab3"
+S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.41.g1e13fcc"
 
 dag = DAG(
     "k8s_nci_db_incremental_sync",

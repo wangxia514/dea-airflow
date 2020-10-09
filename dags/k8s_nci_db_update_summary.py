@@ -57,7 +57,7 @@ dag = DAG(
     max_active_runs=1,
     tags=["k8s"],
     schedule_interval="5 1 * * sat",    # every saturday 1:05AM
-    dagrun_timeout=timedelta(minutes=60*13),
+    dagrun_timeout=timedelta(minutes=60*20),
 )
 
 affinity = {
