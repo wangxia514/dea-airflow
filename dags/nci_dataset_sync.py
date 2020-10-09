@@ -1,11 +1,12 @@
 """
 # Index (Sync) new Collection 2 ARD Datasets on the NCI
 """
-from datetime import datetime, timedelta
+from textwrap import dedent
 
 from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
 
+from nci_common import c2_default_args, c2_schedule_interval
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
 SYNCED_PRODUCTS = ['ls8_nbar_scene',
@@ -39,7 +40,7 @@ SYNC_SUFFIX_PATH = {
     'ls7_pq_legacy_scene': '/??/output/pqa/'
 }
 
-SYNC_COMMAND = """
+SYNC_COMMAND = dedent("""
   {% set work_dir = '/g/data/v10/work/sync/' + params.product + '/' + ds -%}
   {% set sync_cache_dir = work_dir + '/cache' -%}
   {% set sync_path = params.sync_prefix_path + params.year + params.sync_suffix_path -%}
@@ -57,28 +58,12 @@ SYNC_COMMAND = """
       module use /g/data/v10/public/modules/modulefiles/; \
       module load {{ params.module }}; \
       dea-sync -vvv --cache-folder {{sync_cache_dir}} -j 1 --update-locations --index-missing {{ sync_path }}"
-"""
-
-default_args = {
-    'owner': 'Damien Ayers',
-    'depends_on_past': False,
-    'start_date': datetime(2020, 3, 4),
-    'email': ['damien.ayers@ga.gov.au'],
-    'email_on_failure': True,
-    'retries': 0,
-    'retry_delay': timedelta(minutes=5),
-    'params': {
-        'project': 'v10',
-        'queue': 'normal',
-        'module': 'dea',
-        'year': '2020'
-    }
-}
+""")
 
 with DAG('nci_dataset_sync',
-         default_args=default_args,
+         default_args=c2_default_args,
          catchup=False,
-         schedule_interval='0 2 * * 2',  # 2am every Tuesday Morning (TODO: except for TZ)
+         schedule_interval=c2_schedule_interval,
          tags=['nci', 'landsat_c2'],
          default_view="tree",
          ) as dag:
@@ -101,4 +86,5 @@ with DAG('nci_dataset_sync',
             pbs_job_id="{{ ti.xcom_pull(task_ids='submit_sync_%s') }}" % product,
 
         )
+
         submit_sync >> wait_for_completion

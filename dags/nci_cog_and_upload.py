@@ -15,27 +15,24 @@ Once the list of files to create is checked checked, the
 for the DAG to continue running.
 
 """
+import logging
 import os
-from datetime import datetime, timedelta
+from datetime import timedelta
 from textwrap import dedent
 
-from airflow import DAG, AirflowException
+from airflow import DAG
 from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.contrib.operators.ssh_operator import SSHOperator
-from airflow.models import Variable
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python_operator import ShortCircuitOperator
+from airflow.operators.sensors import ExternalTaskSensor
 
-from operators.ssh_operators import ShortCircuitSSHOperator
+from nci_common import c2_default_args, c2_schedule_interval
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
 DEST = os.environ.get(
     "COG_OUTPUT_DESTINATION",
     "s3://dea-public-data/"
 )
-
-# Default to the stable dea module on the NCI, but can be changed
-# using an Airflow variable
-NCI_MODULE = Variable.get("nci_module", "dea")
 
 # TODO: This is duplicated from the configuration file for dea-cogger
 # It's much better to specify a more specific path in S3 otherwise sync
@@ -50,65 +47,63 @@ TIMEOUT = timedelta(days=1)
 
 
 def check_num_tasks(upstream_task_id, ti, **kwargs):
-    """
-    Check the number of COG tasks to complete
+    """ Check the number of COG tasks to complete
 
     Short circuit if there are none. Ask for manual verification if there are lots,
     otherwise continue.
-
     """
     response = ti.xcom_pull(task_ids=upstream_task_id)
     last_line = response.split('\n')
     num_tasks = int(last_line)
 
     if num_tasks == 0:
-        raise AirflowException("Nothing to do, stopping.")
+        logging.info("Nothing to do, stopping.")
+        return False
     elif num_tasks >= 1000:
         # TODO: Maybe send email as well
-        raise AirflowException("Please review, this looks like an unusually large number of COGs to generate. If correct, set this task to success.")
+        logging.info(
+            "Please review, this looks like an unusually large number of COGs to generate. "
+            "If correct, set this task to success.")
+        return False
 
     # Otherwise, carry on
     return num_tasks
 
 
-default_args = {
-    'owner': 'Damien Ayers',
-    'start_date': datetime(2020, 3, 12),
-    'retries': 0,
-    'retry_delay': timedelta(minutes=1),
-    'ssh_conn_id': 'lpgs_gadi',
-    'email': 'damien.ayers@ga.gov.au',
-    'email_on_failure': True,
-    'params': {
-        'project': 'v10',
-        'queue': 'normal',
-        'module': NCI_MODULE,
-        'year': '2020'
-    }
-}
-
 dag = DAG(
     'nci_cog_and_upload',
     doc_md=__doc__,
-    default_args=default_args,
+    default_args=c2_default_args,
     catchup=False,
-    schedule_interval=None,
+    schedule_interval=c2_schedule_interval,
     template_searchpath='templates/',
-    max_active_runs=1,
-    default_view='graph',
+    default_view='tree',
     tags=['nci', 'landsat_c2'],
 )
 
 with dag:
     for product, prefix_path in COG_S3PREFIX_PATH.items():
-        COMMON = """
+        COMMON = dedent("""
                 {% set work_dir = '/g/data/v10/work/cog/' + params.product + '/' + ts_nodash -%}
                 module load {{params.module}}
                 set -eux
-        """
+        """)
+
+        if 'wofs' in product:
+            external_dag_id = 'nci_wofs'
+            external_task_id = None
+        else:
+            external_dag_id = 'nci_fractional_cover'
+            external_task_id = f'wait_for_{product}'
+        processing_completed = ExternalTaskSensor(
+            task_id=f'processing_completed_{product}',
+            external_dag_id=external_dag_id,
+            external_task_id=external_task_id
+        )
+
         download_s3_inventory = SSHOperator(
             task_id=f'download_s3_inventory_{product}',
-            command=dedent(COMMON + '''
+            command=COMMON + dedent('''
                 mkdir -p {{work_dir}}
 
                 dea-cogger save-s3-inventory --product-name "{{ params.product }}" --output-dir "{{work_dir}}"
@@ -117,7 +112,7 @@ with dag:
         )
         generate_work_list = SSHOperator(
             task_id=f'generate_work_list_{product}',
-            command=dedent(COMMON + """
+            command=COMMON + dedent("""
                 cd {{work_dir}}
 
                 dea-cogger generate-work-list --product-name "{{params.product}}" \\
@@ -128,9 +123,9 @@ with dag:
             timeout=60 * 60 * 2,
             params={'product': product},
         )
-        check_work_file = SSHOperator(
-            task_id=f'check_work_file_{product}',
-            command=dedent(COMMON + '''
+        count_num_tasks = SSHOperator(
+            task_id=f'count_num_tasks_{product}',
+            command=COMMON + dedent('''
                 {% set file_list = work_dir + '/' + params.product + '_file_list.txt' -%}
                 test -f {{file_list}}
                 wc -l {{file_list}} | awk '{print $1}'
@@ -139,13 +134,11 @@ with dag:
             do_xcom_push=True
         )
         # Thanks https://stackoverflow.com/questions/48580341/how-to-add-manual-tasks-in-an-apache-airflow-dag
-        check_for_work = PythonOperator(
+        check_for_work = ShortCircuitOperator(
             task_id=f"check_for_work_{product}",
             python_callable=check_num_tasks,
             op_args=[f'check_work_file_{product}'],
             provide_context=True,
-            retries=1,
-            retry_delay=TIMEOUT,
         )
         check_for_work.doc_md = dedent("""
                 ## Instructions
@@ -158,7 +151,7 @@ with dag:
         submit_task_id = f'submit_cog_convert_job_{product}'
         submit_bulk_cog_convert = SSHOperator(
             task_id=submit_task_id,
-            command=dedent(COMMON + """
+            command=COMMON + dedent("""
                 cd {{work_dir}}
                 mkdir -p out
                 
@@ -194,7 +187,7 @@ with dag:
         validate_task_id = f'submit_validate_cog_job_{product}'
         validate_cogs = SSHOperator(
             task_id=validate_task_id,
-            command=dedent(COMMON + """
+            command=COMMON + dedent("""
                 cd {{work_dir}}
                 
                 qsub <<EOF
@@ -225,14 +218,14 @@ with dag:
 
         )
 
-        # public_data_upload = Connection(conn_id='dea_public_data_upload')
         aws_connection = AwsHook(aws_conn_id='dea_public_data_upload')
         upload_to_s3 = SSHOperator(
             task_id=f'upload_to_s3_{product}',
-            command=dedent(COMMON + """
+            command=COMMON + dedent("""
+            {% set aws_creds = params.aws_conn.get_credentials() -%}
 
-            export AWS_ACCESS_KEY_ID={{params.aws_conn.access_key}}
-            export AWS_SECRET_ACCESS_KEY={{params.aws_conn.secret_key}}
+            export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
+            export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
 
             # See what AWS creds we've got
             aws sts get-caller-identity
@@ -246,20 +239,21 @@ with dag:
             """),
             remote_host='gadi-dm.nci.org.au',
             params={'product': product,
-                    'aws_conn': aws_connection.get_credentials(),
+                    'aws_conn': aws_connection,
                     'dest': DEST,
                     'prefix_path': prefix_path},
         )
 
+        # Remove cog converted files after aws s3 sync
         delete_nci_cogs = SSHOperator(
             task_id=f'delete_nci_cogs_{product}',
-            # Remove cog converted files after aws s3 sync
-            command=dedent(COMMON + """
+            command=COMMON + dedent("""
             rm -vrf "{{work_dir}}/out"
             """),
             params={'product': product},
         )
 
-        download_s3_inventory >> generate_work_list >> check_for_work >> submit_bulk_cog_convert
+        processing_completed >> download_s3_inventory
+        download_s3_inventory >> generate_work_list >> count_num_tasks >> check_for_work >> submit_bulk_cog_convert
         submit_bulk_cog_convert >> wait_for_cog_convert >> validate_cogs >> wait_for_validate_job
         wait_for_validate_job >> upload_to_s3 >> delete_nci_cogs

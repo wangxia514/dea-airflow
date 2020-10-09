@@ -1,30 +1,14 @@
 """
 # Produce and Index Fractional Cover on the NCI
 """
-from datetime import datetime, timedelta
 from textwrap import dedent
 
 from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.sensors.external_task_sensor import ExternalTaskSensor
 
+from nci_common import c2_schedule_interval, c2_default_args
 from sensors.pbs_job_complete_sensor import PBSJobSensor
-
-default_args = {
-    'owner': 'Damien Ayers',
-    'depends_on_past': False,  # Very important to be False, otherwise a single failure will propagate forever
-    'start_date': datetime(2020, 2, 17),
-    'retries': 0,
-    'retry_delay': timedelta(minutes=1),
-    'ssh_conn_id': 'lpgs_gadi',
-    'email_on_failure': True,
-    'email': 'damien.ayers@ga.gov.au',
-    'params': {
-        'project': 'v10',
-        'queue': 'normal',
-        'module': 'dea',
-    }
-}
 
 fc_products = [
     'ls7_fc_albers',
@@ -33,9 +17,9 @@ fc_products = [
 
 dag = DAG(
     'nci_fractional_cover',
-    default_args=default_args,
+    default_args=c2_default_args,
     catchup=False,
-    schedule_interval=None,
+    schedule_interval=c2_schedule_interval,
     tags=['nci', 'landsat_c2'],
     default_view="tree",
 )
@@ -114,4 +98,4 @@ with dag:
             timeout=60 * 60 * 24 * 7,
         )
 
-        generate_tasks >> test_tasks >> submit_fc_job >> wait_for_completion
+        ingest_completed >> generate_tasks >> test_tasks >> submit_fc_job >> wait_for_completion
