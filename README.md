@@ -1,10 +1,41 @@
-# Geoscience Australia DEA Airflow DAG's repository
+# Geoscience Australia DEA Airflow DAGs repository
 
-## Development
+## Deployment Workflow
 
-### Local Editing of DAG's
+This repository contains two branches, `master` and `develop`.
 
-DAG's can be locally edited and validated. Development can be done in `conda` or `venv` according to developer preference. Grab everything airflow and write DAG's. Use `autopep8` and `pylint` to achieve import validation and consistent formatting as the CI pipeline for this repository matures.
+The `master` branch requires Pull Requests and code reviews to merge code into
+it. It deploys automatically to the [Production (Sandbox) Airflow deployment](https://airflow.sandbox.dea.ga.gov.au/home).
+
+The `develop` branch accepts pushes directly, or via Pull Request, and deploys
+automatically to the [Development Airflow](https://airflow.dev.dea.ga.gov.au/home).
+
+We're not happy with this strategy, and are looking for an alternative that
+doesn't have us deploying and inadvertently running code in multiple places by
+accident, but haven't come up with anything yet.
+
+## Development Using Docker
+
+If you have Docker available, by far the easiest development setup is to use
+Docker Compose.
+
+First, initialise some environment variables:
+
+``` bash
+python -c 'from cryptography.fernet import Fernet; print("FERNET_KEY=" + Fernet.generate_key().decode())' > .env
+echo UID=`id -u` >> .env
+echo GID=`id -g` >> .env
+```
+
+Then start up `docker-compose`:
+
+``` bash
+docker-compose up
+```
+
+## Local Editing of DAG's
+
+DAGs can be locally edited and validated. Development can be done in `conda` or `venv` according to developer preference. Grab everything airflow and write DAGs. Use `autopep8` and `pylint` to achieve import validation and consistent formatting as the CI pipeline for this repository matures.
 
 ```bash
 pip install apache-airflow[aws,kubernetes,postgres,redis,ssh,celery]
@@ -13,7 +44,7 @@ pip install pylint pylint-airflow
 pylint dags plugins
 ```
 
-### Pre-commit setup
+## Pre-commit setup
 
 A [pre-commit](https://pre-commit.com/) config is provided to automatically format
 and check your code changes. This allows you to immediately catch and fix
