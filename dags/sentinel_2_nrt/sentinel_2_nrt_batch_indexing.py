@@ -60,12 +60,7 @@ URI = f"s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/{uri_date}/**/ARD-METADA
 INDEXING_BASH_COMMAND = [
     "bash",
     "-c",
-    dedent(
-        """
-            s3-to-dc %s "%s" --skip-lineage;
-        """
-    )
-    % (URI, INDEXING_PRODUCTS),
+    f's3-to-dc {URI} "{INDEXING_PRODUCTS}" --skip-lineage',
 ]
 
 CREATION_DT_PATCH_COMMAND = [
