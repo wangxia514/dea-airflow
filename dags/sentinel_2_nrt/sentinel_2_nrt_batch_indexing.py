@@ -55,7 +55,7 @@ DEFAULT_ARGS = {
 uri_list = []
 for n in range(1, 4):
     uri_date = (datetime.today() - timedelta(days=n)).strftime("%Y-%m-%d")
-    URI = f"s://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/{uri_date}/**/ARD-METADATA.yaml"
+    URI = f"s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/{uri_date}/**/ARD-METADATA.yaml"
     uri_list.append(URI)
 
 uri_string = " ".join(uri_list)
