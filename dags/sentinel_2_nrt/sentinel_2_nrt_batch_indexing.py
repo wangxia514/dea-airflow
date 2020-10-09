@@ -57,7 +57,7 @@ DEFAULT_ARGS = {
 }
 
 uri_list = []
-for n in range(1, 4):
+for n in range(1, 8):  # cover an entire week
     uri_date = (datetime.today() - timedelta(days=n)).strftime("%Y-%m-%d")
     URI = f"s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/{uri_date}/**/ARD-METADATA.yaml"
     uri_list.append(URI)
