@@ -32,7 +32,7 @@ local_tz = pendulum.timezone("Australia/Canberra")
 # Templated DAG arguments
 DB_HOSTNAME = "db-writer"
 DB_DATABASE = "nci_20200925"
-if "{{ dag_run }}" is None:
+if (("{{ dag_run }}" is None) and ("s3importdate" in '{{ dag_run.conf }}')):
     DATESTRING = "{{ ds }}"
 else:
     DATESTRING = '{{ dag_run.conf["s3importdate"] }}'
