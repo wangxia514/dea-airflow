@@ -10,6 +10,10 @@ This workflow is designed to automate the process where new dataset for an ODC p
 | datacube explorer    | https://github.com/opendatacube/datacube-explorer |
 
 
+Other known names are:
+- ows-data
+- k8s-orchestrate
+
 ### Database setup
 
 | schemas | creator and owner |
