@@ -11,8 +11,8 @@ from textwrap import dedent
 
 import kubernetes.client.models as k8s
 
-from sentinel_2_nrt.images import OWS_CONFIG_IMAGE, OWS_IMAGE
-from sentinel_2_nrt.env_cfg import (
+from sqs_processing_workflow.images import OWS_CONFIG_IMAGE, OWS_IMAGE
+from sqs_processing_workflow.env_cfg import (
     OWS_CFG_PATH,
     OWS_CFG_MOUNT_PATH,
     OWS_CFG_IMAGEPATH,

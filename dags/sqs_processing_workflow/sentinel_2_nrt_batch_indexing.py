@@ -16,7 +16,7 @@ from textwrap import dedent
 
 import kubernetes.client.models as k8s
 
-from sentinel_2_nrt.images import INDEXER_IMAGE
+from sqs_processing_workflow.images import INDEXER_IMAGE
 from env_var.infra import (
     DB_DATABASE,
     DB_HOSTNAME,
@@ -24,7 +24,7 @@ from env_var.infra import (
     SECRET_AWS_NAME,
     INDEXING_ROLE,
 )
-from sentinel_2_nrt.env_cfg import (
+from sqs_processing_workflow.env_cfg import (
     INDEXING_PRODUCTS,
 )
 

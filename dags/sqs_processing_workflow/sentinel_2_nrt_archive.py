@@ -16,8 +16,8 @@ from textwrap import dedent
 
 import kubernetes.client.models as k8s
 
-from sentinel_2_nrt.images import INDEXER_IMAGE, OWS_IMAGE
-from sentinel_2_nrt.subdag_ows_views import ows_update_extent_subdag
+from sqs_processing_workflow.images import INDEXER_IMAGE, OWS_IMAGE
+from sqs_processing_workflow.subdag_ows_views import ows_update_extent_subdag
 
 from env_var.infra import (
     DB_DATABASE,
@@ -26,8 +26,10 @@ from env_var.infra import (
     SECRET_ODC_WRITER_NAME,
 )
 from airflow.operators.subdag_operator import SubDagOperator
-from sentinel_2_nrt.subdag_explorer_summary import explorer_refresh_stats_subdag
-from sentinel_2_nrt.env_cfg import ARCHIVE_CONDITION, ARCHIVE_PRODUCTS
+from sqs_processing_workflow.subdag_explorer_summary import (
+    explorer_refresh_stats_subdag,
+)
+from sqs_processing_workflow.env_cfg import ARCHIVE_CONDITION, ARCHIVE_PRODUCTS
 
 
 DAG_NAME = "sentinel_2_nrt_archive"
