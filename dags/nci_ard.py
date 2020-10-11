@@ -17,20 +17,21 @@ from sensors.pbs_job_complete_sensor import PBSJobSensor
 params = {
     "project": "v10",
     "queue": "normal",
-    "module_ass": "ard-scene-select-py3-dea/20200909",
+    "module_ass": "ard-scene-select-py3-dea/20201009",
     "index_arg": "--index-datacube-env "
     "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
     "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
     "config_arg": "",
-    "scene_limit": "",
+    "scene_limit": "--scene-limit 3",
     "products_arg": "",
     "pkgdir_arg": "/g/data/xu18/ga",
     "base_dir": "/g/data/v10/work/c3_ard/",
+    "days_to_exclude_arg": """--days-to-exclude '["2020-08-09:2020-09-03"]'""",
+    "run_ard_arg": "", #--run-ard
 }
+# params["days_to_exclude_arg"] = """--days-to-exclude '["2020-06-26:2020-06-26"]'"""
 ssh_conn_id = "lpgs_gadi"
-schedule_interval = None
-
-params["scene_limit"] = "--scene-limit 1"
+schedule_interval = "0 16 * * *"
 
 # Having the info above as variables and some empty values
 # means I can easily test by adding some test code here
@@ -95,7 +96,8 @@ with dag:
                   --walltime 02:30:00 \
                   {{ params.index_arg }} \
                   {{ params.scene_limit }}\
-                  --run-ard "
+                  {{ params.days_to_exclude_arg }} \
+                  {{ params.run_ard_arg }} "
         """,
         timeout=60 * 20,
         do_xcom_push=True,
