@@ -27,13 +27,15 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from airflow.operators.subdag_operator import SubDagOperator
-from sentinel_2_nrt.subdag_explorer_summary import explorer_refresh_stats_subdag
+from sqs_processing_workflow.subdag_explorer_summary import (
+    explorer_refresh_stats_subdag,
+)
 from env_var.infra import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_AWS_NAME,
 )
-from sentinel_2_nrt.env_cfg import (
+from sqs_processing_workflow.env_cfg import (
     INDEXING_PRODUCTS,
 )
 

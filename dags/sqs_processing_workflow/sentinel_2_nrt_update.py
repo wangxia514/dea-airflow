@@ -13,8 +13,10 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from airflow.operators.subdag_operator import SubDagOperator
-from sentinel_2_nrt.subdag_ows_views import ows_update_extent_subdag
-from sentinel_2_nrt.subdag_explorer_summary import explorer_refresh_stats_subdag
+from sqs_processing_workflow.subdag_ows_views import ows_update_extent_subdag
+from sqs_processing_workflow.subdag_explorer_summary import (
+    explorer_refresh_stats_subdag,
+)
 from env_var.infra import (
     DB_DATABASE,
     DB_HOSTNAME,
