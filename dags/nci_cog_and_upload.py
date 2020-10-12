@@ -137,7 +137,7 @@ with dag:
         check_for_work = ShortCircuitOperator(
             task_id=f"check_for_work_{product}",
             python_callable=check_num_tasks,
-            op_args=[f'check_work_file_{product}'],
+            op_args=[f'count_num_tasks_{product}'],
             provide_context=True,
         )
         check_for_work.doc_md = dedent("""
