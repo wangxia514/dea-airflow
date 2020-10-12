@@ -32,9 +32,15 @@ PRODUCT_RECORD_PATHS = (
     "L2/sentinel-2-nbar/S2MSIARD_NBAR/*/*/ARD-METADATA.yaml",
     "WOfS/WOFLs/v2.1.5/combined/*/*/*/*/*/*.yaml",
     "fractional-cover/fc/v2.2.1/*/*/*/*/*/*/*.yaml",
+    "WOfS/nrt/v2.1.6/s2/combined/*/*/*.yaml",
 )
 # ows layer product to be updated
-UPDATE_EXTENT_PRODUCTS = ("s2_nrt_granule_nbar_t", "wofs_albers", "fc_albers_combined")
+UPDATE_EXTENT_PRODUCTS = (
+    "s2_nrt_granule_nbar_t",
+    "wofs_albers",
+    "fc_albers_combined",
+    "s2_nrt_wofs",
+)
 
 # batch indexing s3 paths
 S2_NRT_S3_PATHS = "s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/**/ARD-METADATA.yaml"
