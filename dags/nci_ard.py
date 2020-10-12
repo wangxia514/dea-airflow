@@ -17,7 +17,7 @@ from sensors.pbs_job_complete_sensor import PBSJobSensor
 params = {
     "project": "v10",
     "queue": "normal",
-    "module_ass": "ard-scene-select-py3-dea/20200909",
+    "module_ass": "ard-scene-select-py3-dea/20201009",
     "index_arg": "--index-datacube-env "
     "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
     "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
@@ -26,7 +26,10 @@ params = {
     "products_arg": "",
     "pkgdir_arg": "/g/data/xu18/ga",
     "base_dir": "/g/data/v10/work/c3_ard/",
+    "days_to_exclude_arg": """--days-to-exclude '["2020-08-09:2020-09-03"]'""",
+    "run_ard_arg": "--run-ard",
 }
+
 ssh_conn_id = "lpgs_gadi"
 schedule_interval = "0 16 * * *"
 
@@ -93,7 +96,8 @@ with dag:
                   --walltime 02:30:00 \
                   {{ params.index_arg }} \
                   {{ params.scene_limit }}\
-                  --run-ard "
+                  {{ params.days_to_exclude_arg }} \
+                  {{ params.run_ard_arg }} "
         """,
         timeout=60 * 20,
         do_xcom_push=True,
