@@ -14,6 +14,11 @@ Once the list of files to create is checked checked, the
 `manual_sign_off_<product-name>` task should be selected, and marked as **Success**
 for the DAG to continue running.
 
+**Upstream Dependencies:**
+
+ * [WOfS](/tree?dag_id=nci_wofs)
+ * [Fractional Cover](/tree?dag_id=nci_fractional_cover)
+
 """
 import logging
 import os

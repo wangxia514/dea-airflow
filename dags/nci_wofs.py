@@ -1,22 +1,29 @@
 """
 # Produce WOfS on the NCI via PBS
+
+**Upstream dependency:**
+[Ingestion](/tree?dag_id=nci_dataset_ingest)
+
+**Downstream dependency:**
+[COG and Upload](/tree?dag_id=nci_cog_and_upload)
+
 """
 from textwrap import dedent
 
 from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.sensors.external_task_sensor import ExternalTaskSensor
-
 from nci_common import c2_default_args, c2_schedule_interval
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
 dag = DAG(
-        'nci_wofs',
-        default_args=c2_default_args,
-        catchup=False,
-        schedule_interval=c2_schedule_interval,
-        tags=['nci', 'landsat_c2'],
-        default_view="tree",
+    'nci_wofs',
+    doc_md=__doc__,
+    default_args=c2_default_args,
+    catchup=False,
+    schedule_interval=c2_schedule_interval,
+    tags=['nci', 'landsat_c2'],
+    default_view="tree",
 )
 with dag:
     COMMON = dedent("""
