@@ -1,16 +1,27 @@
 """
 # Sentinel-2_nrt process env configs read from variables if environment specific
+# - ows pod setup configurations
+# - SQS name
+# - Process configuration
+# - - archival
+# - - - product names and archival condition
+# - - indexing
+# - - - product names and indexing condition
+# - - web application mv updates
+# - - - explorer update product names
+# - - - ows update product names
 """
 
 # OWS pod specific configuration
 OWS_CFG_PATH = "/env/config/ows_cfg.py"
 OWS_CFG_MOUNT_PATH = "/env/config"
 OWS_CFG_PATH = OWS_CFG_MOUNT_PATH + "/ows_cfg.py"
-OWS_CFG_IMAGEPATH = "/opt/dea-config/dev/services/wms/ows/ows_cfg.py"
+OWS_CFG_IMAGEPATH = "/opt/dea-config/prod/services/wms/ows/ows_cfg.py"
 
 # TODO: The archive condition is for sentinel_2_nrt, set different condition for different products
 ARCHIVE_PRODUCTS = "s2a_nrt_granule s2b_nrt_granule"
 ARCHIVE_CONDITION = "[$(date -d '-365 day' +%F), $(date -d '-91 day' +%F)]"
+
 
 # products to be indexed
 # TODO: This list need to be split when multiple SQS queues are setup for different products
