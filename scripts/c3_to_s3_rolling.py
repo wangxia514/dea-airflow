@@ -183,6 +183,13 @@ def get_common_message_attributes(stac_doc: Dict) -> Dict:
             ),
         }
 
+    maturity = dicttoolz.get_in(["properties", "dea:dataset_maturity"], stac_doc)
+    if maturity:
+        msg_attributes["maturity"] = {
+            "DataType": "String",
+            "StringValue": dicttoolz.get_in(["properties", "dea:dataset_maturity"], stac_doc),
+        }
+
     bbox = dicttoolz.get_in(["bbox"], stac_doc)
     if bbox and len(bbox) > 3:
         msg_attributes["bbox.ll_lon"] = {
