@@ -5,13 +5,11 @@ This subdag can be called by other dags
 
 from airflow import DAG
 from textwrap import dedent
-from datetime import datetime, timedelta
-
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from sqs_processing_workflow.env_cfg import INDEXING_PRODUCTS
 from sqs_processing_workflow.images import EXPLORER_IMAGE
-from env_var.infra import DB_DATABASE, SECRET_EXPLORER_WRITER_NAME, SECRET_AWS_NAME
+from env_var.infra import SECRET_EXPLORER_WRITER_NAME
 
 
 EXPLORER_SECRETS = [
