@@ -24,7 +24,6 @@ from env_var.infra import (
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
     SECRET_AWS_NAME,
-    INDEXING_ROLE,
 )
 from sentinel_2_nrt.env_cfg import (
     INDEXING_PRODUCTS,

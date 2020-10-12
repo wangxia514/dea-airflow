@@ -18,16 +18,16 @@ from textwrap import dedent
 
 import kubernetes.client.models as k8s
 
-from sentinel_2_nrt.images import INDEXER_IMAGE, CREATION_DT_PATCHER_IMAGE
+from sentinel_2_nrt.images import INDEXER_IMAGE
 from env_var.infra import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
     SECRET_AWS_NAME,
     INDEXING_ROLE,
+    SQS_QUEUE_NAME,
 )
 from sentinel_2_nrt.env_cfg import (
-    SQS_QUEUE_NAME,
     INDEXING_PRODUCTS,
     PRODUCT_RECORD_PATHS,
 )

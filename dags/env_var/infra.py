@@ -19,3 +19,6 @@ SECRET_ODC_WRITER_NAME = Variable.get("db_odc_writer_secret", "odc-writer")
 # DB config
 DB_DATABASE = Variable.get("db_database", "ows")
 DB_HOSTNAME = Variable.get("db_hostname", "db-writer")
+
+# AWS SQS
+SQS_QUEUE_NAME = Variable.get("sqs_queue_name", "dea-dev-eks-ows-dag")
