@@ -10,13 +10,7 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.kubernetes.volume import Volume
-from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
-
-from textwrap import dedent
-
-import kubernetes.client.models as k8s
 
 from sentinel_2_nrt.images import INDEXER_IMAGE
 from env_var.infra import (

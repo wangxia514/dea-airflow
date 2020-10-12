@@ -14,8 +14,6 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 
 from textwrap import dedent
 
-import kubernetes.client.models as k8s
-
 from sentinel_2_nrt.images import INDEXER_IMAGE
 from sentinel_2_nrt.subdag_ows_views import ows_update_extent_subdag
 

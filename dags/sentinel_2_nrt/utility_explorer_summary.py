@@ -20,11 +20,9 @@ dag_run.conf format:
 """
 
 from airflow import DAG
-from textwrap import dedent
 from datetime import datetime, timedelta
 from airflow.operators.python_operator import PythonOperator
 
-from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from airflow.operators.subdag_operator import SubDagOperator
 from sentinel_2_nrt.subdag_explorer_summary import explorer_refresh_stats_subdag
