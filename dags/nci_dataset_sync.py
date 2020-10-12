@@ -1,13 +1,17 @@
 """
 # Index (Sync) new Collection 2 ARD Datasets on the NCI
+
+
+**Downstream dependency:**
+
+ * [Ingest](/tree?dag_id=nci_dataset_ingest)
 """
 from textwrap import dedent
 
 from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
-
-from nci_common import c2_default_args, c2_schedule_interval
 from sensors.pbs_job_complete_sensor import PBSJobSensor
+from nci_common import c2_default_args, c2_schedule_interval
 
 SYNCED_PRODUCTS = ['ls8_nbar_scene',
                    'ls8_nbart_scene',
@@ -61,6 +65,7 @@ SYNC_COMMAND = dedent("""
 """)
 
 with DAG('nci_dataset_sync',
+         doc_md=__doc__,
          default_args=c2_default_args,
          catchup=False,
          schedule_interval=c2_schedule_interval,

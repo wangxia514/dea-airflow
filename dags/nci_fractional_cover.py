@@ -1,12 +1,17 @@
 """
 # Produce and Index Fractional Cover on the NCI
+
+**Upstream dependency:**
+[Ingestion](/tree?dag_id=nci_dataset_ingest)
+
+**Downstream dependency:**
+[COG and Upload](/tree?dag_id=nci_cog_and_upload)
 """
 from textwrap import dedent
 
 from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.sensors.external_task_sensor import ExternalTaskSensor
-
 from nci_common import c2_schedule_interval, c2_default_args
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
@@ -17,6 +22,7 @@ fc_products = [
 
 dag = DAG(
     'nci_fractional_cover',
+    doc_md=__doc__,
     default_args=c2_default_args,
     catchup=False,
     schedule_interval=c2_schedule_interval,

@@ -3,6 +3,13 @@
 
 This DAG executes everything using Gadi at the NCI.
 
+**Upstream dependency:**
+[Dataset Sync](/tree?dag_id=nci_dataset_sync)
+
+**Downstream dependencies:**
+
+ * [WOfS](/tree?dag_id=nci_wofs)
+ * [Fractional Cover](/tree?dag_id=nci_fractional_cover)
 """
 from textwrap import dedent
 
@@ -25,6 +32,7 @@ INGEST_PRODUCTS = {
 
 ingest_dag = DAG(
     'nci_dataset_ingest',
+    doc_md=__doc__,
     default_args=c2_default_args,
     catchup=False,
     schedule_interval=c2_schedule_interval,

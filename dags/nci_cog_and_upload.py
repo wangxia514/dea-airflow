@@ -14,6 +14,11 @@ Once the list of files to create is checked checked, the
 `manual_sign_off_<product-name>` task should be selected, and marked as **Success**
 for the DAG to continue running.
 
+**Upstream Dependencies:**
+
+ * [WOfS](/tree?dag_id=nci_wofs)
+ * [Fractional Cover](/tree?dag_id=nci_fractional_cover)
+
 """
 import logging
 import os
@@ -137,7 +142,7 @@ with dag:
         check_for_work = ShortCircuitOperator(
             task_id=f"check_for_work_{product}",
             python_callable=check_num_tasks,
-            op_args=[f'check_work_file_{product}'],
+            op_args=[f'count_num_tasks_{product}'],
             provide_context=True,
         )
         check_for_work.doc_md = dedent("""
