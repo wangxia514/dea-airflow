@@ -18,7 +18,6 @@ from sentinel_2_nrt.subdag_explorer_summary import explorer_refresh_stats_subdag
 from env_var.infra import (
     DB_DATABASE,
     DB_HOSTNAME,
-    SECRET_OWS_NAME,
     SECRET_AWS_NAME,
 )
 
@@ -41,8 +40,6 @@ DEFAULT_ARGS = {
     },
     # Lift secrets into environment variables
     "secrets": [
-        Secret("env", "DB_USERNAME", SECRET_OWS_NAME, "postgres-username"),
-        Secret("env", "DB_PASSWORD", SECRET_OWS_NAME, "postgres-password"),
         Secret("env", "AWS_DEFAULT_REGION", SECRET_AWS_NAME, "AWS_DEFAULT_REGION"),
     ],
 }

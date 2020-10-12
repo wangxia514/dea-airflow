@@ -18,6 +18,12 @@ from sentinel_2_nrt.env_cfg import (
     OWS_CFG_IMAGEPATH,
     UPDATE_EXTENT_PRODUCTS,
 )
+from env_var.infra import SECRET_OWS_WRITER_NAME
+
+OWS_SECRETS = [
+    Secret("env", "DB_USERNAME", SECRET_OWS_WRITER_NAME, "postgres-username"),
+    Secret("env", "DB_PASSWORD", SECRET_OWS_WRITER_NAME, "postgres-password"),
+]
 
 # MOUNT OWS_CFG via init_container
 # for main container mount
@@ -71,7 +77,7 @@ def ows_update_extent_subdag(
             )
         )
     else:
-        products = UPDATE_EXTENT_PRODUCTS
+        products = " ".join(UPDATE_EXTENT_PRODUCTS)
 
     # append ows specific env_vars to args
     ows_env_cfg = {
@@ -109,6 +115,7 @@ def ows_update_extent_subdag(
         namespace="processing",
         image=OWS_IMAGE,
         arguments=OWS_BASH_COMMAND,
+        secrets=OWS_SECRETS,
         labels={"step": "ows-mv"},
         name="ows-update-extents",
         task_id="ows-update-extents",
