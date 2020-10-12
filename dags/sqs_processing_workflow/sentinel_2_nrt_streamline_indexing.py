@@ -22,9 +22,9 @@ from env_var.infra import (
     SECRET_ODC_WRITER_NAME,
     SECRET_AWS_NAME,
     INDEXING_ROLE,
+    SQS_QUEUE_NAME,
 )
 from sqs_processing_workflow.env_cfg import (
-    SQS_QUEUE_NAME,
     INDEXING_PRODUCTS,
     PRODUCT_RECORD_PATHS,
 )
@@ -72,7 +72,7 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval="0 */1 * * *",  # hourly
     catchup=False,
-    tags=["k8s", "sentinel-2"],
+    tags=["k8s", "sentinel-2", "streamline-indexing"],
 )
 
 with dag:
