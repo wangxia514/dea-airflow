@@ -164,30 +164,28 @@ def get_common_message_attributes(stac_doc: Dict) -> Dict:
     if product:
         msg_attributes["product"] = {
             "DataType": "String",
-            "StringValue": dicttoolz.get_in(["properties", "odc:product"], stac_doc),
+            "StringValue": product,
         }
 
     datetime = dicttoolz.get_in(["properties", "datetime"], stac_doc)
     if datetime:
         msg_attributes["datetime"] = {
             "DataType": "String",
-            "StringValue": dicttoolz.get_in(["properties", "datetime"], stac_doc),
+            "StringValue": datetime,
         }
 
     cloudcover = dicttoolz.get_in(["properties", "eo:cloud_cover"], stac_doc)
     if cloudcover:
         msg_attributes["cloudcover"] = {
             "DataType": "Number",
-            "StringValue": str(
-                dicttoolz.get_in(["properties", "eo:cloud_cover"], stac_doc)
-            ),
+            "StringValue": str(cloudcover),
         }
 
     maturity = dicttoolz.get_in(["properties", "dea:dataset_maturity"], stac_doc)
     if maturity:
         msg_attributes["maturity"] = {
             "DataType": "String",
-            "StringValue": dicttoolz.get_in(["properties", "dea:dataset_maturity"], stac_doc),
+            "StringValue": maturity,
         }
 
     bbox = dicttoolz.get_in(["bbox"], stac_doc)
