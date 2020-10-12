@@ -37,6 +37,9 @@ PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea
 SOURCE_BUCKET = "sentinel-s2-l1c"
 TRANSFER_BUCKET = "dea-dev-nrt-scene-cache"
 
+BUCKET_REGION = "ap-southeast-2"
+S3_PREFIX = "s3://dea-public-data-dev/L2/sentinel-2-nrt/S2MSIARD/"
+
 # each DAG instance should process one scene only
 # so NUM_WORKERS = NUM_MESSAGES_TO_POLL
 # TODO take care of workers with no task with PythonBranchOperator?
@@ -88,28 +91,53 @@ def sync(*args):
     return "aws s3 sync --only-show-errors " + " ".join(args)
 
 
-def copy_cmd_tile(msg_id, tile):
-    datastrip = tile["datastrip"]["path"]
-    path = tile["path"]
+def copy_cmd_tile(tile_info):
+    datastrip = tile_info["datastrip"]
+    path = tile_info["path"]
+    granule_id = tile_info["granule_id"]
 
     return [
         "echo sinergise -> disk [datastrip]",
         sync(
             "--request-payer requester",
             f"s3://{SOURCE_BUCKET}/{datastrip}",
-            f"/transfer/{msg_id}/{datastrip}",
+            f"/transfer/{granule_id}/{datastrip}",
         ),
         "echo disk -> cache [datastrip]",
-        sync(f"/transfer/{msg_id}/{datastrip}", f"s3://{TRANSFER_BUCKET}/{datastrip}"),
+        sync(
+            f"/transfer/{granule_id}/{datastrip}", f"s3://{TRANSFER_BUCKET}/{datastrip}"
+        ),
         "echo sinergise -> disk [tile]",
         sync(
             "--request-payer requester",
             f"s3://{SOURCE_BUCKET}/{path}",
-            f"/transfer/{msg_id}/{path}",
+            f"/transfer/{granule_id}/{path}",
         ),
         "echo disk -> cache [tile]",
-        sync(f"/transfer/{msg_id}/{path}", f"s3://{TRANSFER_BUCKET}/{path}"),
+        sync(f"/transfer/{granule_id}/{path}", f"s3://{TRANSFER_BUCKET}/{path}"),
     ]
+
+
+def get_tile_info(msg_dict):
+    assert len(msg_dict["tiles"]) == 1, "was not expecting multi-tile granule"
+    tile = msg_dict["tiles"][0]
+
+    return dict(
+        granule_id=msg_dict["id"],
+        path=tile["path"],
+        datastrip=tile["datastrip"]["path"],
+    )
+
+
+def tile_args(tile_info):
+    path = tile_info["path"]
+    datastrip = tile_info["datastrip"]
+
+    return dict(
+        granule_id=tile_info["granule_id"],
+        granule_url=f"s3://{TRANSFER_BUCKET}/{path}",
+        datastrip_url=f"s3://{TRANSFER_BUCKET}/{datastrip}",
+    )
 
 
 def copy_cmd(**context):
@@ -122,14 +150,13 @@ def copy_cmd(**context):
     messages = all_messages  # TODO take care of index
     assert len(messages) == 1
     message = messages[0]
+
     msg_dict = decode(message)
+    tile_info = get_tile_info(msg_dict)
 
-    cmd = []
-    for tile in msg_dict["tiles"]:
-        cmd += copy_cmd_tile(msg_dict["id"], tile)
-
-    # forward it to the copy task
-    task_instance.xcom_push(key="cmd", value=" &&\n".join(cmd))
+    # forward it to the copy and processing tasks
+    task_instance.xcom_push(key="cmd", value=" &&\n".join(copy_cmd_tile(tile_info)))
+    task_instance.xcom_push(key="args", value=tile_args(tile_info))
 
 
 pipeline = DAG(
@@ -185,8 +212,21 @@ with pipeline:
         image_pull_policy="IfNotPresent",
         image=WAGL_IMAGE,
         # TODO: affinity=affinity,
-        arguments=["--version"],
+        arguments=[
+            "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['granule_url'] }}",
+            "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['datastrip_url'] }}",
+            "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['granule_id'] }}",
+            BUCKET_REGION,
+            S3_PREFIX,
+        ],
         labels={"runner": "airflow"},
+        env_vars=dict(
+            bucket_region=BUCKET_REGION,
+            datastrip_url="{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['datastrip_url'] }}",
+            granule_url="{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['granule_url'] }}",
+            granule_id="{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['granule_id'] }}",
+            s3_prefix=S3_PREFIX,
+        ),
         get_logs=True,
         volumes=[ancillary_volume],
         volume_mounts=[ancillary_volume_mount],
