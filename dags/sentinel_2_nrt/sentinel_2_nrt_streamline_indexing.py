@@ -10,25 +10,20 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.kubernetes.volume import Volume
-from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 
-from textwrap import dedent
-
-import kubernetes.client.models as k8s
-
-from sentinel_2_nrt.images import INDEXER_IMAGE, CREATION_DT_PATCHER_IMAGE
+from sentinel_2_nrt.images import INDEXER_IMAGE
 from env_var.infra import (
     DB_DATABASE,
     DB_HOSTNAME,
-    SECRET_OWS_NAME,
+    SECRET_ODC_WRITER_NAME,
     SECRET_AWS_NAME,
     INDEXING_ROLE,
+    SQS_QUEUE_NAME,
 )
 from sentinel_2_nrt.env_cfg import (
-    SQS_QUEUE_NAME,
     INDEXING_PRODUCTS,
+    PRODUCT_RECORD_PATHS,
 )
 
 # DAG CONFIGURATION
@@ -49,35 +44,23 @@ DEFAULT_ARGS = {
     },
     # Lift secrets into environment variables
     "secrets": [
-        Secret("env", "DB_USERNAME", SECRET_OWS_NAME, "postgres-username"),
-        Secret("env", "DB_PASSWORD", SECRET_OWS_NAME, "postgres-password"),
+        Secret("env", "DB_USERNAME", SECRET_ODC_WRITER_NAME, "postgres-username"),
+        Secret("env", "DB_PASSWORD", SECRET_ODC_WRITER_NAME, "postgres-password"),
         Secret("env", "AWS_DEFAULT_REGION", SECRET_AWS_NAME, "AWS_DEFAULT_REGION"),
     ],
 }
+
+record_path_list_with_prefix = [
+    "--record-path " + path for path in PRODUCT_RECORD_PATHS
+]
+index_product_string = " ".join(INDEXING_PRODUCTS)
+record_path_string = " ".join(record_path_list_with_prefix)
 
 
 INDEXING_BASH_COMMAND = [
     "bash",
     "-c",
-    dedent(
-        """
-            sqs-to-dc %s "%s" --skip-lineage --allow-unsafe --record-path "L2/sentinel-2-nrt/S2MSIARD/*/*/ARD-METADATA.yaml" --limit 1;
-        """
-    )
-    % (SQS_QUEUE_NAME, INDEXING_PRODUCTS),
-]
-
-CREATION_DT_PATCH_COMMAND = [
-    "bash",
-    "-c",
-    dedent(
-        """
-            for product in %s; do
-                python3 creation_dt_patch.py --product $product --apply-patch;
-            done;
-        """
-    )
-    % (INDEXING_PRODUCTS),
+    f'sqs-to-dc {SQS_QUEUE_NAME} "{index_product_string}" {record_path_string} --skip-lineage --allow-unsafe',
 ]
 
 
@@ -105,17 +88,3 @@ with dag:
         get_logs=True,
         is_delete_operator_pod=True,
     )
-
-    PATCH = KubernetesPodOperator(
-        namespace="processing",
-        image=CREATION_DT_PATCHER_IMAGE,
-        image_pull_policy="IfNotPresent",
-        arguments=CREATION_DT_PATCH_COMMAND,
-        labels={"step": "add-creation-dt"},
-        name="nrt-creation-dt",
-        task_id="creation-dt-task",
-        get_logs=True,
-        is_delete_operator_pod=True,
-    )
-
-    INDEXING >> PATCH

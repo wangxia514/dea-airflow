@@ -20,25 +20,20 @@ dag_run.conf format:
 """
 
 from airflow import DAG
-from textwrap import dedent
 from datetime import datetime, timedelta
-from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
 
-from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from airflow.operators.subdag_operator import SubDagOperator
 from sentinel_2_nrt.subdag_explorer_summary import explorer_refresh_stats_subdag
 from env_var.infra import (
     DB_DATABASE,
     DB_HOSTNAME,
-    SECRET_EXPLORER_NAME,
     SECRET_AWS_NAME,
 )
 from sentinel_2_nrt.env_cfg import (
     INDEXING_PRODUCTS,
 )
-from sentinel_2_nrt.test_subdag import subdag_test
 
 DAG_NAME = "utility_explorer-refresh-stats"
 
@@ -79,7 +74,7 @@ def parse_dagrun_conf(products, **kwargs):
     if products:
         return products
     else:
-        return INDEXING_PRODUCTS
+        return " ".join(INDEXING_PRODUCTS)
 
 
 SET_REFRESH_PRODUCT_TASK_NAME = "parse_dagrun_conf"

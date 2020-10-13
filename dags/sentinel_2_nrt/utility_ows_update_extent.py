@@ -21,18 +21,14 @@ dag_run.conf format:
 
 from airflow import DAG
 from datetime import datetime, timedelta
-from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
 
-
-from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from airflow.operators.subdag_operator import SubDagOperator
 from sentinel_2_nrt.subdag_ows_views import ows_update_extent_subdag
 from env_var.infra import (
     DB_DATABASE,
     DB_HOSTNAME,
-    SECRET_OWS_NAME,
     SECRET_AWS_NAME,
 )
 from sentinel_2_nrt.env_cfg import (
@@ -58,8 +54,6 @@ DEFAULT_ARGS = {
     },
     # Lift secrets into environment variables
     "secrets": [
-        Secret("env", "DB_USERNAME", SECRET_OWS_NAME, "postgres-username"),
-        Secret("env", "DB_PASSWORD", SECRET_OWS_NAME, "postgres-password"),
         Secret("env", "AWS_DEFAULT_REGION", SECRET_AWS_NAME, "AWS_DEFAULT_REGION"),
     ],
 }
@@ -80,7 +74,7 @@ def parse_dagrun_conf(products, **kwargs):
     if products:
         return products
     else:
-        return UPDATE_EXTENT_PRODUCTS
+        return " ".join(UPDATE_EXTENT_PRODUCTS)
 
 
 SET_REFRESH_PRODUCT_TASK_NAME = "parse_dagrun_conf"
