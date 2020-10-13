@@ -23,8 +23,6 @@ from airflow import DAG
 from datetime import datetime, timedelta
 from airflow.operators.python_operator import PythonOperator
 
-
-from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from airflow.operators.subdag_operator import SubDagOperator
 from sqs_processing_workflow.subdag_ows_views import ows_update_extent_subdag
@@ -32,7 +30,6 @@ from sqs_processing_workflow.subdag_ows_views import ows_update_extent_subdag
 from env_var.infra import (
     DB_DATABASE,
     DB_HOSTNAME,
-    SECRET_OWS_WRITER_NAME,
     SECRET_AWS_NAME,
 )
 from sqs_processing_workflow.env_cfg import (

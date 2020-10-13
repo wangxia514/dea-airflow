@@ -14,9 +14,7 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 
 from textwrap import dedent
 
-import kubernetes.client.models as k8s
-
-from sqs_processing_workflow.images import INDEXER_IMAGE, OWS_IMAGE
+from sqs_processing_workflow.images import INDEXER_IMAGE
 from sqs_processing_workflow.subdag_ows_views import ows_update_extent_subdag
 
 from env_var.infra import (

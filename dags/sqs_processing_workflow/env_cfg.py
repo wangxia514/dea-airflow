@@ -18,9 +18,6 @@ OWS_CFG_MOUNT_PATH = "/env/config"
 OWS_CFG_PATH = OWS_CFG_MOUNT_PATH + "/ows_cfg.py"
 OWS_CFG_IMAGEPATH = "/opt/dea-config/prod/services/wms/ows/ows_cfg.py"
 
-# AWS env
-SQS_QUEUE_NAME = "dea-sandbox-eks-ows-dag"
-
 # TODO: The archive condition is for sentinel_2_nrt, set different condition for different products
 ARCHIVE_PRODUCTS = "s2a_nrt_granule s2b_nrt_granule"
 ARCHIVE_CONDITION = "[$(date -d '-365 day' +%F), $(date -d '-91 day' +%F)]"
