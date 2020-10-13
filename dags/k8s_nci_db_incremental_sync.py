@@ -18,6 +18,7 @@ and executes downstream task
 """
 
 import pendulum
+import os
 from airflow import DAG
 from airflow.sensors.s3_key_sensor import S3KeySensor
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
@@ -116,9 +117,9 @@ s3_backup_volume = Volume(name="s3-backup-volume", configs=s3_backup_volume_conf
 
 def set_datestring(date_string, **kwargs):
     if date_string:
-        DATESTRING = date_string
+        os.environ['DATESTRING'] = date_string
 
-    return DATESTRING
+    return os.environ['DATESTRING']
 
 with dag:
     START = DummyOperator(task_id="nci-db-incremental-sync")
