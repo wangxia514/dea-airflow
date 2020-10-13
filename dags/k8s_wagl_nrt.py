@@ -29,7 +29,9 @@ default_args = {
     "secrets": [Secret("env", None, "wagl-nrt-aws-creds")],
 }
 
-WAGL_IMAGE = "451924316694.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:rc-20190109-5"
+WAGL_IMAGE = (
+    "451924316694.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:patch-20201012-1"
+)
 S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.36.g1347ee8"
 
 PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-process-scene"
