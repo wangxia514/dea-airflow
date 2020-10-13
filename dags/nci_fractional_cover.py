@@ -13,6 +13,7 @@ from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.sensors.external_task_sensor import ExternalTaskSensor
 from nci_common import c2_schedule_interval, c2_default_args
+from operators.ssh_operators import ShortCircuitSSHOperator
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
 fc_products = [
@@ -44,7 +45,8 @@ with dag:
         ingest_completed = ExternalTaskSensor(
             task_id=f'ingest_completed_{ing_product}',
             external_dag_id='nci_dataset_ingest',
-            external_task_id=f'wait_for_{ing_product}_ingest'
+            external_task_id=f'wait_for_{ing_product}_ingest',
+            mode='reschedule'
         )
         generate_tasks = SSHOperator(
             command=COMMON + dedent("""
@@ -60,7 +62,7 @@ with dag:
             task_id=f'generate_tasks_{product}',
             timeout=60 * 20,
         )
-        test_tasks = SSHOperator(
+        test_tasks = ShortCircuitSSHOperator(
             command=COMMON + dedent("""
                 cd {{work_dir}}
                 datacube-fc run -vv --dry-run --input-filename {{work_dir}}/tasks.pickle

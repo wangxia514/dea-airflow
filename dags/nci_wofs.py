@@ -14,6 +14,7 @@ from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.sensors.external_task_sensor import ExternalTaskSensor
 from nci_common import c2_default_args, c2_schedule_interval
+from operators.ssh_operators import ShortCircuitSSHOperator
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
 dag = DAG(
@@ -37,7 +38,8 @@ with dag:
 
     ingest_completed = ExternalTaskSensor(
         task_id='ingest_completed',
-        external_dag_id='nci_dataset_ingest'
+        external_dag_id='nci_dataset_ingest',
+        mode='reschedule'
     )
     generate_wofs_tasks = SSHOperator(
         task_id='generate_wofs_tasks',
@@ -52,7 +54,7 @@ with dag:
         timeout=60 * 60 * 2,
     )
 
-    test_wofs_tasks = SSHOperator(
+    test_wofs_tasks = ShortCircuitSSHOperator(
         task_id='test_wofs_tasks',
         command=COMMON + dedent("""
             cd {{work_dir}}

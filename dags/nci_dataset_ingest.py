@@ -83,6 +83,7 @@ with ingest_dag:
             task_id=f'wait_for_sync_{src_product}',
             external_dag_id='nci_dataset_sync',
             external_task_id=f'wait_for_{src_product}',
+            mode='reschedule',
         )
         save_tasks = SSHOperator(
             task_id=f'save_tasks_{ing_product}',
