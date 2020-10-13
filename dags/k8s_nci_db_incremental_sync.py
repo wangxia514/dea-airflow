@@ -18,7 +18,6 @@ and executes downstream task
 """
 
 import pendulum
-import os
 from airflow import DAG
 from airflow.sensors.s3_key_sensor import S3KeySensor
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
@@ -26,7 +25,6 @@ from airflow.kubernetes.secret import Secret
 from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators.python_operator import PythonOperator
 from datetime import datetime, timedelta
 
 local_tz = pendulum.timezone("Australia/Canberra")
@@ -36,8 +34,9 @@ DB_HOSTNAME = "db-writer"
 DB_DATABASE = "nci_20200925"
 DATESTRING = "{{ ds }}"
 # DATESTRING = "{{ macros.ds_add(ds, -1) }}"  # get s3 key for previous day
+# TODO: implement a logic to run DAG manually to import for specific date -  {"s3importdate": "<import-date>"}
 S3_BUCKET = "nci-db-dump"
-S3_PREFIX = f"csv-changes/{DATESTRING}"
+S3_PREFIX=f"csv-changes/{DATESTRING}"
 S3_KEY = f"s3://{S3_BUCKET}/{S3_PREFIX}/md5sums"
 BACKUP_PATH = "/scripts/backup"
 
@@ -56,8 +55,8 @@ DEFAULT_ARGS = {
         "DB_DATABASE": DB_DATABASE,
         "DB_PORT": "5432",
         "BACKUP_PATH": BACKUP_PATH,
-        "S3_BUCKET": S3_BUCKET,
         "DATESTRING": DATESTRING,
+        "S3_BUCKET": S3_BUCKET,
         "S3_PREFIX": S3_PREFIX,
         "S3_KEY": S3_KEY
     },
@@ -123,7 +122,7 @@ with dag:
         name="s3-backup-sense",
         task_id="s3-backup-sense",
         poke_interval=60 * 30,
-        bucket_key=S3_PREFIX,
+        bucket_key=S3_KEY,
         aws_conn_id="aws_nci_db_backup",
     )
 
