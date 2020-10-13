@@ -20,12 +20,13 @@ for the DAG to continue running.
  * [Fractional Cover](/tree?dag_id=nci_fractional_cover)
 
 """
+import base64
 import logging
 import os
 from datetime import timedelta
 from textwrap import dedent
 
-from airflow import DAG
+from airflow import DAG, AirflowException
 from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.operators.python_operator import ShortCircuitOperator
@@ -58,18 +59,19 @@ def check_num_tasks(upstream_task_id, ti, **kwargs):
     otherwise continue.
     """
     response = ti.xcom_pull(task_ids=upstream_task_id)
-    last_line = response.split('\n')
-    num_tasks = int(last_line)
+    # XCom responses from SSHOperator are base64 encoded
+    num_tasks = int(base64.b64decode(response))
 
     if num_tasks == 0:
         logging.info("Nothing to do, stopping.")
         return False
     elif num_tasks >= 1000:
-        # TODO: Maybe send email as well
         logging.info(
             "Please review, this looks like an unusually large number of COGs to generate. "
             "If correct, set this task to success.")
-        return False
+        raise AirflowException(
+            "Please review, this looks like an unusually large number of COGs to generate. "
+            "If correct, set this task to success.")
 
     # Otherwise, carry on
     return num_tasks
@@ -145,6 +147,7 @@ with dag:
             python_callable=check_num_tasks,
             op_args=[f'count_num_tasks_{product}'],
             provide_context=True,
+            email=['damien.ayers@ga.gov.au', 'alex.leith@ga.gov.au']
         )
         check_for_work.doc_md = dedent("""
                 ## Instructions
