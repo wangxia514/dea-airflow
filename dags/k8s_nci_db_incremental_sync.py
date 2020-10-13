@@ -118,6 +118,8 @@ s3_backup_volume = Volume(name="s3-backup-volume", configs=s3_backup_volume_conf
 def set_datestring(date_string, **kwargs):
     if date_string:
         os.environ['DATESTRING'] = date_string
+        os.environ['S3_PREFIX'] = f"csv-changes/{DATESTRING}"
+        os.environ['S3_KEY'] = f"s3://{S3_BUCKET}/{S3_PREFIX}/md5sums"
 
     return os.environ['DATESTRING']
 
@@ -129,7 +131,7 @@ with dag:
         task_id="set-s3-import-datestring",
         python_callable=set_datestring,
         op_args=["{{ dag_run.conf.s3importdate }}"],
-        # provide_context=True,
+        provide_context=True,
     )
 
     # Wait for S3 Key
