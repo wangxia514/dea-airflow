@@ -10,7 +10,7 @@ OWS_CFG_IMAGEPATH = "/opt/dea-config/dev/services/wms/ows/ows_cfg.py"
 
 # TODO: The archive condition is for sentinel_2_nrt, set different condition for different products
 ARCHIVE_PRODUCTS = "s2a_nrt_granule s2b_nrt_granule"
-ARCHIVE_CONDITION = "[$(date -d '-365 day' +%F), $(date -d '-91 day' +%F)]"
+ARCHIVE_CONDITION = "[$(date -d '-365 day' +%F), $(date -d '-93 day' +%F)]"
 
 
 # products to be indexed
