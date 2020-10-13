@@ -37,8 +37,8 @@ DB_DATABASE = "nci_20200925"
 DATESTRING = "{{ ds }}"
 # DATESTRING = "{{ macros.ds_add(ds, -1) }}"  # get s3 key for previous day
 S3_BUCKET = "nci-db-dump"
-S3_PREFIX=f"csv-changes/{DATESTRING}"
-S3_KEY = f"s3://{S3_BUCKET}/{S3_PREFIX}/md5sums"
+# S3_PREFIX=f"csv-changes/{DATESTRING}"
+# S3_KEY = f"s3://{S3_BUCKET}/{S3_PREFIX}/md5sums"
 BACKUP_PATH = "/scripts/backup"
 
 DEFAULT_ARGS = {
@@ -56,10 +56,10 @@ DEFAULT_ARGS = {
         "DB_DATABASE": DB_DATABASE,
         "DB_PORT": "5432",
         "BACKUP_PATH": BACKUP_PATH,
-        "DATESTRING": DATESTRING,
         "S3_BUCKET": S3_BUCKET,
-        "S3_PREFIX": S3_PREFIX,
-        "S3_KEY": S3_KEY
+        # "DATESTRING": DATESTRING,
+        # "S3_PREFIX": S3_PREFIX,
+        # "S3_KEY": S3_KEY
     },
     # Use K8S secrets to send DB Creds
     # Lift secrets into environment variables for datacube
@@ -118,10 +118,15 @@ s3_backup_volume = Volume(name="s3-backup-volume", configs=s3_backup_volume_conf
 def set_datestring(date_string, **kwargs):
     if date_string:
         os.environ['DATESTRING'] = date_string
+        os.environ['S3_PREFIX'] = f"csv-changes/{date_string}"
+        os.environ['S3_KEY'] = f"s3://{S3_BUCKET}/{os.environ.get('S3_PREFIX')}/md5sums"
+    else:
+        os.environ['DATESTRING'] = DATESTRING
         os.environ['S3_PREFIX'] = f"csv-changes/{DATESTRING}"
-        os.environ['S3_KEY'] = f"s3://{S3_BUCKET}/{S3_PREFIX}/md5sums"
+        os.environ['S3_KEY'] = f"s3://{S3_BUCKET}/{os.environ.get('S3_PREFIX')}/md5sums"
 
     return os.environ['DATESTRING']
+
 
 with dag:
     START = DummyOperator(task_id="nci-db-incremental-sync")
@@ -140,7 +145,7 @@ with dag:
         name="s3-backup-sense",
         task_id="s3-backup-sense",
         poke_interval=60 * 30,
-        bucket_key=S3_KEY,
+        bucket_key=os.environ.get('S3_PREFIX'),
         aws_conn_id="aws_nci_db_backup",
     )
 
