@@ -38,7 +38,8 @@ with dag:
 
     ingest_completed = ExternalTaskSensor(
         task_id='ingest_completed',
-        external_dag_id='nci_dataset_ingest'
+        external_dag_id='nci_dataset_ingest',
+        mode='reschedule'
     )
     generate_wofs_tasks = SSHOperator(
         task_id='generate_wofs_tasks',

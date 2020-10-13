@@ -45,7 +45,8 @@ with dag:
         ingest_completed = ExternalTaskSensor(
             task_id=f'ingest_completed_{ing_product}',
             external_dag_id='nci_dataset_ingest',
-            external_task_id=f'wait_for_{ing_product}_ingest'
+            external_task_id=f'wait_for_{ing_product}_ingest',
+            mode='reschedule'
         )
         generate_tasks = SSHOperator(
             command=COMMON + dedent("""

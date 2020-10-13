@@ -103,7 +103,8 @@ with dag:
         processing_completed = ExternalTaskSensor(
             task_id=f'processing_completed_{product}',
             external_dag_id=external_dag_id,
-            external_task_id=external_task_id
+            external_task_id=external_task_id,
+            mode='reschedule'
         )
 
         download_s3_inventory = SSHOperator(
