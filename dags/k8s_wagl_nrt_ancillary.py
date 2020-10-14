@@ -22,10 +22,21 @@ def sync(*args):
 
 
 def brdf_doys(doy):
+    def clip(doy):
+        if doy < 1:
+            return 1
+        if doy > 361:
+            return 361
+        return doy
+
     if (doy - 1 / 8).is_integer():
         doys = {doy}
     else:
-        doys = {(doy // 8) * 8 + 1, ((doy // 8) + 1) * 8 + 1}
+        doys = {
+            clip(((doy // 8) - 1) * 8 + 1),
+            clip((doy // 8) * 8 + 1),
+            clip(((doy // 8) + 1) * 8 + 1),
+        }
 
     return {str(d).zfill(3) for d in doys}
 
