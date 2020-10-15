@@ -54,19 +54,19 @@ DEFAULT_ARGS = {
         Secret(
             "env",
             "AWS_DEFAULT_REGION",
-            "indexing-aws-creds-sandbox",
+            "processing-aws-creds-sandbox",
             "AWS_DEFAULT_REGION",
         ),
         Secret(
             "env",
             "AWS_ACCESS_KEY_ID",
-            "indexing-aws-creds-sandbox",
+            "processing-aws-creds-sandbox",
             "AWS_ACCESS_KEY_ID",
         ),
         Secret(
             "env",
             "AWS_SECRET_ACCESS_KEY",
-            "indexing-aws-creds-sandbox",
+            "processing-aws-creds-sandbox",
             "AWS_SECRET_ACCESS_KEY",
         ),
     ],
@@ -78,7 +78,7 @@ dag = DAG(
     "k8s_index_ls_c3",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
-    schedule_interval='0 */1 * * *',
+    schedule_interval="0 */1 * * *",
     catchup=False,
     tags=["k8s", "landsat_c3"],
 )
