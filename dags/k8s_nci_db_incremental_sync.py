@@ -26,13 +26,28 @@ from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
+from airflow.operators.python_operator import PythonOperator
 
 local_tz = pendulum.timezone("Australia/Canberra")
 
 # Templated DAG arguments
 DB_HOSTNAME = "db-writer"
 DB_DATABASE = "nci_20200925"
-DATESTRING = "{{ ds }}"
+DATESTRING_NOW = "{{ ds }}"
+
+DATESTRING_CUSTOM = "{{ dag_run.conf['DATESTRING'] }}"
+
+if DATESTRING_CUSTOM is not None:
+    DATESTRING = DATESTRING_CUSTOM
+else:
+    DATESTRING = DATESTRING_NOW
+
+
+def log_things(*args, **kwargs):
+    print('DATESTRING', DATESTRING)
+    print('DATESTRING-CUSTOM', DATESTRING_CUSTOM)
+    print('DATESTRING-NOW', DATESTRING_NOW)
+
 # DATESTRING = "{{ macros.ds_add(ds, -1) }}"  # get s3 key for previous day
 # TODO: implement a logic to run DAG manually to import for specific date -  {"s3importdate": "<import-date>"}
 S3_BUCKET = "nci-db-dump"
@@ -116,6 +131,12 @@ s3_backup_volume = Volume(name="s3-backup-volume", configs=s3_backup_volume_conf
 with dag:
     START = DummyOperator(task_id="nci-db-incremental-sync")
 
+    PRINT_DATESTRING = PythonOperator(
+        task_id="print-datestring",
+        python_callable=log_things,
+        provide_context=True,
+    )
+
     # Wait for S3 Key
     S3_BACKUP_SENSE = S3KeySensor(
         labels={"step": "s3-backup-sense"},
@@ -146,6 +167,7 @@ with dag:
     # Task complete
     COMPLETE = DummyOperator(task_id="done")
 
+    START >> PRINT_DATESTRING
     START >> S3_BACKUP_SENSE
     S3_BACKUP_SENSE >> RESTORE_NCI_INCREMENTAL_SYNC
     RESTORE_NCI_INCREMENTAL_SYNC >> COMPLETE
