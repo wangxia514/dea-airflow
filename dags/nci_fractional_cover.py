@@ -16,7 +16,8 @@ from nci_common import c2_schedule_interval, c2_default_args
 from operators.ssh_operators import ShortCircuitSSHOperator
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
-fc_products = [
+DAYS = 60 * 60 * 24
+FC_PRODUCTS = [
     'ls7_fc_albers',
     'ls8_fc_albers',
 ]
@@ -40,13 +41,14 @@ with dag:
 
         """)
 
-    for product in fc_products:
+    for product in FC_PRODUCTS:
         ing_product = product.replace('fc', 'nbart')
         ingest_completed = ExternalTaskSensor(
             task_id=f'ingest_completed_{ing_product}',
             external_dag_id='nci_dataset_ingest',
             external_task_id=f'wait_for_{ing_product}_ingest',
-            mode='reschedule'
+            mode='reschedule',
+            timeout=1 * DAYS,
         )
         generate_tasks = SSHOperator(
             command=COMMON + dedent("""

@@ -13,7 +13,7 @@ from textwrap import dedent
 from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.sensors.external_task_sensor import ExternalTaskSensor
-from nci_common import c2_default_args, c2_schedule_interval
+from nci_common import c2_default_args, c2_schedule_interval, HOURS, MINUTES, DAYS
 from operators.ssh_operators import ShortCircuitSSHOperator
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
@@ -39,7 +39,8 @@ with dag:
     ingest_completed = ExternalTaskSensor(
         task_id='ingest_completed',
         external_dag_id='nci_dataset_ingest',
-        mode='reschedule'
+        mode='reschedule',
+        timeout=1 * DAYS,
     )
     generate_wofs_tasks = SSHOperator(
         task_id='generate_wofs_tasks',
@@ -51,7 +52,7 @@ with dag:
             datacube-wofs --version
             datacube-wofs generate -vv --app-config=${APP_CONFIG} --year {{params.year}} --output-filename tasks.pickle
         """),
-        timeout=60 * 60 * 2,
+        timeout=2 * HOURS,
     )
 
     test_wofs_tasks = ShortCircuitSSHOperator(
@@ -61,7 +62,7 @@ with dag:
             datacube-wofs inspect-taskfile tasks.pickle
             datacube-wofs check-existing --input-filename tasks.pickle
         """),
-        timeout=60 * 20,
+        timeout=20 * MINUTES,
     )
     # TODO Should probably use an intermediate task here to calculate job size
     # based on number of tasks.
@@ -91,12 +92,12 @@ with dag:
               mpirun datacube-wofs run-mpi -v --input-filename {{work_dir}}/tasks.pickle"
         """),
         do_xcom_push=True,
-        timeout=60 * 20,
+        timeout=5 * MINUTES,
     )
     wait_for_wofs_albers = PBSJobSensor(
         task_id='wait_for_wofs_albers',
         pbs_job_id="{{ ti.xcom_pull(task_ids='%s') }}" % submit_task_id,
-        timeout=60 * 60 * 24 * 7,
+        timeout=1 * DAYS,
     )
     check_for_errors = SSHOperator(
         task_id='check_for_errors',
@@ -119,7 +120,7 @@ with dag:
         # TODO: There's also a json-lines output file we can check.
 
         """),
-        timeout=60 * 20,
+        timeout=20 * MINUTES,
     )
 
     ingest_completed >> generate_wofs_tasks >> test_wofs_tasks >> submit_wofs_job >> wait_for_wofs_albers

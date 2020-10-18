@@ -11,7 +11,7 @@ from textwrap import dedent
 from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from sensors.pbs_job_complete_sensor import PBSJobSensor
-from nci_common import c2_default_args, c2_schedule_interval
+from nci_common import c2_default_args, c2_schedule_interval, MINUTES
 
 SYNCED_PRODUCTS = ['ls8_nbar_scene',
                    'ls8_nbart_scene',
@@ -81,7 +81,7 @@ with DAG('nci_dataset_sync',
                     'sync_suffix_path': SYNC_SUFFIX_PATH[product],
                     },
             do_xcom_push=True,
-            timeout=90,  # For running SSH Commands
+            timeout=5 * MINUTES,  # For running SSH Commands
         )
 
         wait_for_completion = PBSJobSensor(

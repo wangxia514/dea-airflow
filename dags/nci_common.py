@@ -28,3 +28,6 @@ c2_default_args = {
         'queue_size': '10000',
     }
 }
+HOURS = 60 * 60
+MINUTES = 60
+DAYS = HOURS * 24

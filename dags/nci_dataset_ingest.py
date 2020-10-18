@@ -21,6 +21,7 @@ from nci_common import c2_schedule_interval, c2_default_args
 from operators.ssh_operators import ShortCircuitSSHOperator
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
+DAYS = 60 * 60 * 24
 INGEST_PRODUCTS = {
     'ls8_nbar_scene': 'ls8_nbar_albers',
     'ls8_nbart_scene': 'ls8_nbart_albers',
@@ -84,6 +85,7 @@ with ingest_dag:
             external_dag_id='nci_dataset_sync',
             external_task_id=f'wait_for_{src_product}',
             mode='reschedule',
+            timeout=1 * DAYS,
         )
         save_tasks = SSHOperator(
             task_id=f'save_tasks_{ing_product}',

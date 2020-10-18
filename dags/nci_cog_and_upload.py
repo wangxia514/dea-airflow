@@ -31,7 +31,7 @@ from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.operators.python_operator import ShortCircuitOperator
 from airflow.operators.sensors import ExternalTaskSensor
 
-from nci_common import c2_default_args, c2_schedule_interval
+from nci_common import c2_default_args, c2_schedule_interval, HOURS, MINUTES, DAYS
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
 UPLOAD_DESTINATION = os.environ.get(
@@ -48,9 +48,6 @@ COG_S3PREFIX_PATH = {
     'ls7_fc_albers': 'fractional-cover/fc/v2.2.1/ls7/'
 }
 
-HOURS = 60 * 60
-MINUTES = 60
-DAYS = HOURS * 24
 MANUAL_CHECK_THRESHOLD = 5000
 
 
