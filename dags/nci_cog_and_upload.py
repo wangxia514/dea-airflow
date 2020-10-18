@@ -152,7 +152,9 @@ with dag:
             python_callable=check_num_tasks,
             op_args=[f'count_num_tasks_{product}'],
             provide_context=True,
-            retries=0,  # This doesn't depend on anything but the airflow database, no need to retry
+            retries=1,
+            # If the check fails, wait this long before FAILING all the follow Tasks
+            max_retry_delay=timedelta(days=3)
         )
         check_for_work.doc_md = dedent("""
                 ## Instructions
