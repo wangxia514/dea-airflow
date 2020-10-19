@@ -35,7 +35,6 @@ DB_DATABASE = "nci_20201007"
 DATESTRING = (
     "{% if dag_run.conf %}{{ dag_run.conf.DATESTRING }}{% else %}{{ ds }}{% endif %}"
 )
-# DATESTRING = "{{ macros.ds_add(ds, -1) }}"  # get s3 key for previous day
 S3_BUCKET = "nci-db-dump"
 S3_PREFIX = f"csv-changes/{DATESTRING}"
 S3_KEY = f"s3://{S3_BUCKET}/{S3_PREFIX}/md5sums"
