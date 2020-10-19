@@ -12,11 +12,10 @@ from textwrap import dedent
 from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.sensors.external_task_sensor import ExternalTaskSensor
-from nci_common import c2_schedule_interval, c2_default_args
+from nci_common import c2_schedule_interval, c2_default_args, DAYS
 from operators.ssh_operators import ShortCircuitSSHOperator
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
-DAYS = 60 * 60 * 24
 FC_PRODUCTS = [
     'ls7_fc_albers',
     'ls8_fc_albers',

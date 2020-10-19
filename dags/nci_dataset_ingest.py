@@ -17,11 +17,10 @@ from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.sensors.external_task_sensor import ExternalTaskSensor
 
-from nci_common import c2_schedule_interval, c2_default_args
+from nci_common import c2_schedule_interval, c2_default_args, DAYS
 from operators.ssh_operators import ShortCircuitSSHOperator
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
-DAYS = 60 * 60 * 24
 INGEST_PRODUCTS = {
     'ls8_nbar_scene': 'ls8_nbar_albers',
     'ls8_nbart_scene': 'ls8_nbart_albers',
