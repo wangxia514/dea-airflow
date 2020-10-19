@@ -32,9 +32,12 @@ local_tz = pendulum.timezone("Australia/Canberra")
 # Templated DAG arguments
 DB_HOSTNAME = "db-writer"
 DB_DATABASE = "nci_20201007"
-DATESTRING = "{{ ds }}"
+DATESTRING = (
+    "{% if dag_run.conf %}{{ dag_run.conf.DATESTRING }}{% else %}{{ ds }}{% endif %}"
+)
+# DATESTRING = "{{ macros.ds_add(ds, -1) }}"  # get s3 key for previous day
 S3_BUCKET = "nci-db-dump"
-S3_PREFIX=f"csv-changes/{DATESTRING}"
+S3_PREFIX = f"csv-changes/{DATESTRING}"
 S3_KEY = f"s3://{S3_BUCKET}/{S3_PREFIX}/md5sums"
 BACKUP_PATH = "/scripts/backup"
 
@@ -56,7 +59,7 @@ DEFAULT_ARGS = {
         "DATESTRING": DATESTRING,
         "S3_BUCKET": S3_BUCKET,
         "S3_PREFIX": S3_PREFIX,
-        "S3_KEY": S3_KEY
+        "S3_KEY": S3_KEY,
     },
     # Use K8S secrets to send DB Creds
     # Lift secrets into environment variables for datacube
@@ -77,37 +80,35 @@ dag = DAG(
     concurrency=1,
     max_active_runs=1,
     tags=["k8s"],
-    schedule_interval='45 0 * * *',     # every day 0:45AM
-    dagrun_timeout=timedelta(minutes=60*3),
+    schedule_interval="45 0 * * *",  # every day 0:45AM
+    dagrun_timeout=timedelta(minutes=60 * 3),
 )
 
 affinity = {
     "nodeAffinity": {
         "requiredDuringSchedulingIgnoredDuringExecution": {
-            "nodeSelectorTerms": [{
-                "matchExpressions": [{
-                    "key": "nodetype",
-                    "operator": "In",
-                    "values": [
-                        "ondemand",
+            "nodeSelectorTerms": [
+                {
+                    "matchExpressions": [
+                        {
+                            "key": "nodetype",
+                            "operator": "In",
+                            "values": [
+                                "ondemand",
+                            ],
+                        }
                     ]
-                }]
-            }]
+                }
+            ]
         }
     }
 }
 
-s3_backup_volume_mount = VolumeMount(name="s3-backup-volume",
-                                     mount_path=BACKUP_PATH,
-                                     sub_path=None,
-                                     read_only=False)
+s3_backup_volume_mount = VolumeMount(
+    name="s3-backup-volume", mount_path=BACKUP_PATH, sub_path=None, read_only=False
+)
 
-s3_backup_volume_config = {
-    "persistentVolumeClaim":
-        {
-            "claimName": "s3-backup-volume"
-        }
-}
+s3_backup_volume_config = {"persistentVolumeClaim": {"claimName": "s3-backup-volume"}}
 
 s3_backup_volume = Volume(name="s3-backup-volume", configs=s3_backup_volume_config)
 
@@ -143,7 +144,6 @@ with dag:
 
     # Task complete
     COMPLETE = DummyOperator(task_id="done")
-
 
     START >> S3_BACKUP_SENSE
     S3_BACKUP_SENSE >> RESTORE_NCI_INCREMENTAL_SYNC
