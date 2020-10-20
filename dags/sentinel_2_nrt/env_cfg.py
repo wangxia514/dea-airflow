@@ -40,6 +40,7 @@ UPDATE_EXTENT_PRODUCTS = (
     "wofs_albers",
     "fc_albers_combined",
     "s2_nrt_wofs",
+    "s2_ard_granule_nbar_t",
 )
 
 # batch indexing s3 paths
