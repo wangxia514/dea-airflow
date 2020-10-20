@@ -214,13 +214,15 @@ with pipeline:
         image_pull_policy="IfNotPresent",
         image=WAGL_IMAGE,
         # TODO: affinity=affinity,
-        arguments=[
-            "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['granule_url'] }}",
-            "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['datastrip_url'] }}",
-            "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['granule_id'] }}",
-            BUCKET_REGION,
-            S3_PREFIX,
-        ],
+        entrypoint="/bin/bash",
+        arguments=["-c", "source activate wagl; aws sts get-caller-identity"],
+        # arguments=[
+        #     "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['granule_url'] }}",
+        #     "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['datastrip_url'] }}",
+        #     "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['granule_id'] }}",
+        #     BUCKET_REGION,
+        #     S3_PREFIX,
+        # ],
         labels={"runner": "airflow"},
         env_vars=dict(
             bucket_region=BUCKET_REGION,
