@@ -200,7 +200,8 @@ with pipeline:
         cmds=[
             "bash",
             "-c",
-            "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='cmd') }}",
+            # "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='cmd') }}",
+            "aws sts get-caller-identity",
         ],
         labels={"runner": "airflow"},
         get_logs=True,
