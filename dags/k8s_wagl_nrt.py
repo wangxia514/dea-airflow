@@ -26,7 +26,7 @@ default_args = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
-    "secrets": [Secret("env", None, "wagl-nrt-aws-creds")],
+    # "secrets": [Secret("env", None, "wagl-nrt-aws-creds")],
 }
 
 WAGL_IMAGE = (
@@ -196,12 +196,13 @@ with pipeline:
         task_id="dea-s2-wagl-nrt-copy-scene",
         image_pull_policy="IfNotPresent",
         image=S3_TO_RDS_IMAGE,
+        annotations={"iam.amazonaws.com/role": "dea-dev-eks-wagl-nrt"},
         # TODO: affinity=affinity,
         cmds=[
             "bash",
             "-c",
             # "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='cmd') }}",
-            "aws sts get-caller-identity",
+            "aws sts get-caller-identity; date > somefile; aws cp somefile s3://dea-public-data-dev/L2/sentinel-2-nrt/S2MSIARD",
         ],
         labels={"runner": "airflow"},
         get_logs=True,
