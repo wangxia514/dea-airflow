@@ -202,7 +202,7 @@ with pipeline:
             "bash",
             "-c",
             # "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='cmd') }}",
-            "aws sts get-caller-identity; date > somefile; aws s3 cp somefile s3://dea-public-data-dev/L2/sentinel-2-nrt/S2MSIARD",
+            "aws sts get-caller-identity; date > somefile; aws s3 cp somefile s3://dea-public-data-dev/L2/sentinel-2-nrt/S2MSIARD/somefile",
         ],
         labels={"runner": "airflow"},
         get_logs=True,
