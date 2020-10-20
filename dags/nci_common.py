@@ -14,7 +14,7 @@ c2_default_args = {
     'owner': 'Damien Ayers',
     'depends_on_past': False,
     'start_date': c2_start_date,
-    'email': ['damien.ayers@ga.gov.au'],
+    'email': ['damien.ayers@ga.gov.au', "alex.leith@ga.gov.au", "david.gavin@ga.gov.au"],
     'email_on_failure': True,
     'email_on_retry': False,
     'retries': 3,
@@ -28,3 +28,6 @@ c2_default_args = {
         'queue_size': '10000',
     }
 }
+HOURS = 60 * 60
+MINUTES = 60
+DAYS = HOURS * 24

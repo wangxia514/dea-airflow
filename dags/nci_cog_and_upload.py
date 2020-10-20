@@ -8,11 +8,10 @@ This DAG runs tasks on Gadi at the NCI. It:
  * runs a batch convert of NetCDF to COG (Inside a scheduled PBS job)
  * Uploads the COGs to S3
 
-There is currently a manual step required before the COGs are generated.
-
-Once the list of files to create is checked checked, the
-`manual_sign_off_<product-name>` task should be selected, and marked as **Success**
-for the DAG to continue running.
+If the number of COGs to be generated is above a threshold (currently 5000),
+an email will be sent requesting manual verification. This is to prevent an
+error resulting in converting and uploading huge numbers of new files, e.g. if
+a directory name is changed without code being uploaded.
 
 **Upstream Dependencies:**
 
@@ -32,10 +31,10 @@ from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.operators.python_operator import ShortCircuitOperator
 from airflow.operators.sensors import ExternalTaskSensor
 
-from nci_common import c2_default_args, c2_schedule_interval
+from nci_common import c2_default_args, c2_schedule_interval, HOURS, MINUTES, DAYS
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
-DEST = os.environ.get(
+UPLOAD_DESTINATION = os.environ.get(
     "COG_OUTPUT_DESTINATION",
     "s3://dea-public-data/"
 )
@@ -49,7 +48,7 @@ COG_S3PREFIX_PATH = {
     'ls7_fc_albers': 'fractional-cover/fc/v2.2.1/ls7/'
 }
 
-TIMEOUT = timedelta(days=1)
+MANUAL_CHECK_THRESHOLD = 5000
 
 
 def check_num_tasks(upstream_task_id, ti, **kwargs):
@@ -65,13 +64,15 @@ def check_num_tasks(upstream_task_id, ti, **kwargs):
     if num_tasks == 0:
         logging.info("Nothing to do, stopping.")
         return False
-    elif num_tasks >= 1000:
-        logging.info(
-            "Please review, this looks like an unusually large number of COGs to generate. "
-            "If correct, set this task to success.")
-        raise AirflowException(
-            "Please review, this looks like an unusually large number of COGs to generate. "
-            "If correct, set this task to success.")
+    elif num_tasks >= MANUAL_CHECK_THRESHOLD:
+        msg = (
+            f"Please review. Requested to generate {num_tasks} COGs in {ti.task_id}. "
+            f"This is higher than the manual check threshold of {MANUAL_CHECK_THRESHOLD}. " 
+            "If this is okay, click the Mark Success link, or sign in to Airflow and mark this task as Successful "
+            "to continue COG generation and upload."
+        )
+        logging.info(msg)
+        raise AirflowException(msg)
 
     # Otherwise, carry on
     return num_tasks
@@ -106,7 +107,8 @@ with dag:
             task_id=f'processing_completed_{product}',
             external_dag_id=external_dag_id,
             external_task_id=external_task_id,
-            mode='reschedule'
+            mode='reschedule',
+            timeout=1 * DAYS,
         )
 
         download_s3_inventory = SSHOperator(
@@ -128,7 +130,7 @@ with dag:
                  --time-range "time in [2019-01-01, 2020-12-31]"
             """),
             # --time-range "time in [{{prev_ds}}, {{ds}}]"
-            timeout=60 * 60 * 2,
+            timeout=2 * HOURS,
             params={'product': product},
         )
         count_num_tasks = SSHOperator(
@@ -147,7 +149,9 @@ with dag:
             python_callable=check_num_tasks,
             op_args=[f'count_num_tasks_{product}'],
             provide_context=True,
-            email=['damien.ayers@ga.gov.au', 'alex.leith@ga.gov.au']
+            retries=1,
+            # If the check fails, wait this long before FAILING all the follow Tasks
+            max_retry_delay=timedelta(days=3)
         )
         check_for_work.doc_md = dedent("""
                 ## Instructions
@@ -183,14 +187,14 @@ with dag:
                 EOF
             """),
             do_xcom_push=True,
-            timeout=60 * 5,
+            timeout=5 * MINUTES,
             params={'product': product},
         )
 
         wait_for_cog_convert = PBSJobSensor(
             task_id=f'wait_for_cog_convert_{product}',
             pbs_job_id="{{ ti.xcom_pull(task_ids='%s') }}" % submit_task_id,
-            timeout=60 * 60 * 24 * 7,
+            timeout=1 * DAYS,
         )
 
         validate_task_id = f'submit_validate_cog_job_{product}'
@@ -217,13 +221,13 @@ with dag:
                 EOF
             """),
             do_xcom_push=True,
-            timeout=60 * 5,
+            timeout=5 * MINUTES,
             params={'product': product},
         )
         wait_for_validate_job = PBSJobSensor(
             task_id=f'wait_for_cog_validate_{product}',
             pbs_job_id="{{ ti.xcom_pull(task_ids='%s') }}" % validate_task_id,
-            timeout=60 * 60 * 24 * 7,
+            timeout=1 * DAYS,
 
         )
 
@@ -249,7 +253,7 @@ with dag:
             remote_host='gadi-dm.nci.org.au',
             params={'product': product,
                     'aws_conn': aws_connection,
-                    'dest': DEST,
+                    'dest': UPLOAD_DESTINATION,
                     'prefix_path': prefix_path},
         )
 
