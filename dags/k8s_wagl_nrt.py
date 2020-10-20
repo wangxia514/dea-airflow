@@ -205,7 +205,6 @@ with pipeline:
         labels={"runner": "airflow"},
         get_logs=True,
         is_delete_operator_pod=True,
-        env_vars={"AWS_DEFAULT_REGION": "ap-southeast-2"},
     )
 
     WAGL_RUN = KubernetesPodOperator(
