@@ -24,6 +24,7 @@ INDEXING_PRODUCTS = (
     "ls5_fc_albers",
     "ls7_fc_albers",
     "ls8_fc_albers",
+    "sentinel2_wofs_nrt",
 )
 # S3 Record list for indexing products
 # TODO: This list need to be split when multiple SQS queues are setup for different products
