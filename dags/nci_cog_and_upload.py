@@ -9,8 +9,8 @@ This DAG runs tasks on Gadi at the NCI. It:
  * Uploads the COGs to S3
 
 If the number of COGs to be generated is above a threshold (currently 5000),
-and email will be sent requesting manual verification. This is to prevent an
-error resulting in converting and uploading huge numbers of new files, eg. if
+an email will be sent requesting manual verification. This is to prevent an
+error resulting in converting and uploading huge numbers of new files, e.g. if
 a directory name is changed without code being uploaded.
 
 **Upstream Dependencies:**
