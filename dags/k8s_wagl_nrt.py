@@ -214,7 +214,7 @@ with pipeline:
         image_pull_policy="IfNotPresent",
         image=WAGL_IMAGE,
         # TODO: affinity=affinity,
-        cmds=["/scripts/process-scenes.sh"],
+        cmds=["/scripts/process-scene.sh"],
         arguments=[
             "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['granule_url'] }}",
             "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['datastrip_url'] }}",
