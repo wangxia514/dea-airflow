@@ -217,7 +217,7 @@ with pipeline:
         cmds=["/bin/bash"],
         arguments=[
             "-c",
-            "source activate wagl; date > /tmp/some_date.txt; aws s3 cp /tmp/some_date.txt s3://dea-public-data-dev/L2/sentinel-2-nrt/S2MSIARD/some_date.txt",
+            "source activate wagl; date > some_date.txt; aws s3 cp some_date.txt s3://dea-public-data-dev/L2/sentinel-2-nrt/S2MSIARD/some_date.txt",
         ],
         #         cmds=["/scripts/process-scene.sh"],
         #         arguments=[
