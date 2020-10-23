@@ -64,8 +64,8 @@ DEFAULT_ARGS = {
     # Lift secrets into environment variables for datacube database connectivity
     # Use this db-users to import dataset csvs from s3
     "secrets": [
-        Secret("env", "DB_ADMIN_USER", "explorer-nci-admin", "postgres-username"),
         Secret("env", "DB_DATABASE", "explorer-nci-admin", "database-name"),
+        Secret("env", "DB_ADMIN_USER", "explorer-nci-admin", "postgres-username"),
         Secret("env", "DB_ADMIN_PASSWORD", "explorer-nci-admin", "postgres-password"),
     ],
 }
