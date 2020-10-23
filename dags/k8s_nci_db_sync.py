@@ -52,10 +52,11 @@ DEFAULT_ARGS = {
         "DATESTRING": DATESTRING
     },
     # Use K8S secrets to send DB Creds
-    # Lift secrets into environment variables for datacube
+    # Lift secrets into environment variables for datacube database connectivity
+    # Use this db-users to create scratch explorer-nci database
     "secrets": [
-        Secret("env", "DB_USERNAME", "explorer-admin", "postgres-username"),
-        Secret("env", "DB_PASSWORD", "explorer-admin", "postgres-password"),
+        Secret("env", "DB_USERNAME", "explorer-nci-admin", "postgres-username"),
+        Secret("env", "DB_PASSWORD", "explorer-nci-admin", "postgres-password"),
     ],
 }
 

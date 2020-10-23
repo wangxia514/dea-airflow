@@ -31,7 +31,6 @@ local_tz = pendulum.timezone("Australia/Canberra")
 
 # Templated DAG arguments
 DB_HOSTNAME = "db-writer"
-DB_DATABASE = "nci_20201007"
 DATESTRING = (
     "{% if dag_run.conf %}{{ dag_run.conf.DATESTRING }}{% else %}{{ ds }}{% endif %}"
 )
@@ -52,7 +51,6 @@ DEFAULT_ARGS = {
     "env_vars": {
         "AWS_DEFAULT_REGION": "ap-southeast-2",
         "DB_HOSTNAME": DB_HOSTNAME,
-        "DB_DATABASE": DB_DATABASE,
         "DB_PORT": "5432",
         "BACKUP_PATH": BACKUP_PATH,
         "DATESTRING": DATESTRING,
@@ -61,10 +59,12 @@ DEFAULT_ARGS = {
         "S3_KEY": S3_KEY,
     },
     # Use K8S secrets to send DB Creds
-    # Lift secrets into environment variables for datacube
+    # Lift secrets into environment variables for datacube database connectivity
+    # Use this db-users to import dataset csvs from s3
     "secrets": [
-        Secret("env", "DB_ADMIN_USER", "explorer-admin", "postgres-username"),  # To run import from s3
-        Secret("env", "DB_ADMIN_PASSWORD", "explorer-admin", "postgres-password"),
+        Secret("env", "DB_DATABASE", "explorer-nci-admin", "database-name"),
+        Secret("env", "DB_ADMIN_USER", "explorer-nci-admin", "postgres-username"),
+        Secret("env", "DB_ADMIN_PASSWORD", "explorer-nci-admin", "postgres-password"),
     ],
 }
 
