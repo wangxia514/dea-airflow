@@ -102,20 +102,23 @@ def copy_cmd_tile(tile_info):
         sync(
             "--request-payer requester",
             f"s3://{SOURCE_BUCKET}/{datastrip}",
-            f"/transfer/{granule_id}/{datastrip}",
+            f"/ancillary/transfer/{granule_id}/{datastrip}",
         ),
         "echo disk -> cache [datastrip]",
         sync(
-            f"/transfer/{granule_id}/{datastrip}", f"s3://{TRANSFER_BUCKET}/{datastrip}"
+            f"/ancillary/transfer/{granule_id}/{datastrip}",
+            f"s3://{TRANSFER_BUCKET}/{datastrip}",
         ),
         "echo sinergise -> disk [tile]",
         sync(
             "--request-payer requester",
             f"s3://{SOURCE_BUCKET}/{path}",
-            f"/transfer/{granule_id}/{path}",
+            f"/ancillary/transfer/{granule_id}/{path}",
         ),
         "echo disk -> cache [tile]",
-        sync(f"/transfer/{granule_id}/{path}", f"s3://{TRANSFER_BUCKET}/{path}"),
+        sync(
+            f"/ancillary/transfer/{granule_id}/{path}", f"s3://{TRANSFER_BUCKET}/{path}"
+        ),
     ]
 
 
@@ -196,6 +199,7 @@ with pipeline:
         image_pull_policy="IfNotPresent",
         image=S3_TO_RDS_IMAGE,
         affinity=affinity,
+        startup_timeout_seconds=900,
         cmds=[
             "bash",
             "-c",
@@ -213,6 +217,7 @@ with pipeline:
         image_pull_policy="IfNotPresent",
         image=WAGL_IMAGE,
         affinity=affinity,
+        startup_timeout_seconds=900,
         cmds=["/scripts/process-scene.sh"],
         arguments=[
             "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['granule_url'] }}",
