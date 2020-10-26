@@ -49,7 +49,6 @@ NUM_MESSAGES_TO_POLL = 1
 
 AWS_CONN_ID = "wagl_nrt_manual"
 
-# TODO use this
 affinity = {
     "nodeAffinity": {
         "requiredDuringSchedulingIgnoredDuringExecution": {
@@ -196,7 +195,7 @@ with pipeline:
         task_id="dea-s2-wagl-nrt-copy-scene",
         image_pull_policy="IfNotPresent",
         image=S3_TO_RDS_IMAGE,
-        # TODO: affinity=affinity,
+        affinity=affinity,
         cmds=[
             "bash",
             "-c",
@@ -213,7 +212,7 @@ with pipeline:
         task_id="dea-s2-wagl-nrt",
         image_pull_policy="IfNotPresent",
         image=WAGL_IMAGE,
-        # TODO: affinity=affinity,
+        affinity=affinity,
         cmds=["/scripts/process-scene.sh"],
         arguments=[
             "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['granule_url'] }}",
