@@ -119,6 +119,7 @@ def copy_cmd_tile(tile_info):
         sync(
             f"/ancillary/transfer/{granule_id}/{path}", f"s3://{TRANSFER_BUCKET}/{path}"
         ),
+        "rm -rf /ancillary/transfer/{granule_id}",
     ]
 
 
