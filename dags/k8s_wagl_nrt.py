@@ -201,6 +201,7 @@ with pipeline:
         image=S3_TO_RDS_IMAGE,
         affinity=affinity,
         startup_timeout_seconds=900,
+        volumes=[ancillary_volume],
         cmds=[
             "bash",
             "-c",
