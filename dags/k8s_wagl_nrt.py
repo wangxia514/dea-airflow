@@ -202,6 +202,7 @@ with pipeline:
         affinity=affinity,
         startup_timeout_seconds=900,
         volumes=[ancillary_volume],
+        volume_mounts=[ancillary_volume_mount],
         cmds=[
             "bash",
             "-c",
