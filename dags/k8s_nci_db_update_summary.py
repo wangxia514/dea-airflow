@@ -56,7 +56,6 @@ dag = DAG(
     max_active_runs=1,
     tags=["k8s"],
     schedule_interval="5 1 * * sat",    # every saturday 1:05AM
-    dagrun_timeout=timedelta(hours=24),
 )
 
 affinity = {
@@ -90,7 +89,7 @@ with dag:
         get_logs=True,
         is_delete_operator_pod=True,
         affinity=affinity,
-        execution_timeout=timedelta(hours=15),
+        execution_timeout=timedelta(days=1),
     )
 
     # Task complete
