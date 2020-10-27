@@ -210,7 +210,8 @@ with pipeline:
         ],
         labels={"runner": "airflow"},
         resources=dict(
-            requests=dict(memory="2G", cpu="1000m"),
+            request_memory="2G",
+            request_cpu="1000m",
         ),
         get_logs=True,
         is_delete_operator_pod=True,
@@ -244,7 +245,8 @@ with pipeline:
         volumes=[ancillary_volume],
         volume_mounts=[ancillary_volume_mount],
         resources=dict(
-            requests=dict(memory="6G", cpu="1000m"),
+            request_memory="6G",
+            request_cpu="1000m",
         ),
         is_delete_operator_pod=True,
     )
