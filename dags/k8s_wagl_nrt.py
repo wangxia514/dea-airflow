@@ -212,6 +212,8 @@ with pipeline:
         resources=dict(
             request_memory="2G",
             request_cpu="100m",
+            limit_memory="3G",
+            limit_cpu="1000m",
         ),
         get_logs=True,
         is_delete_operator_pod=True,
@@ -247,6 +249,8 @@ with pipeline:
         resources=dict(
             request_memory="6G",
             request_cpu="1000m",
+            limit_memory="10G",
+            limit_cpu="2000m",
         ),
         is_delete_operator_pod=True,
     )
