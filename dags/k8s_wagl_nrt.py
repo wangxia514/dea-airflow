@@ -211,7 +211,7 @@ with pipeline:
         labels={"runner": "airflow"},
         resources=dict(
             request_memory="2G",
-            request_cpu="1000m",
+            request_cpu="100m",
         ),
         get_logs=True,
         is_delete_operator_pod=True,
