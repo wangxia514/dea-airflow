@@ -7,7 +7,6 @@ This DAG uses k8s executors and in cluster with relevant tooling
 and configuration installed.
 
 """
-import os
 from datetime import datetime, timedelta
 
 from airflow import DAG
@@ -102,7 +101,7 @@ with dag:
             arguments=[
                 "sqs-to-dc",
                 "--stac",
-                os.environ[f"{product.upper()}_SQS_INDEXING_QUEUE"],
+                f"${product.upper()}_SQS_INDEXING_QUEUE",
                 f"ga_ls_{product}_3",
             ],
             labels={"step": "sqs-dc-indexing"},
