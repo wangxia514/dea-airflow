@@ -15,7 +15,6 @@ from airflow.contrib.sensors.aws_sqs_sensor import SQSSensor
 from airflow.kubernetes.secret import Secret
 from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
-from airflow.kubernetes.pod import Resources
 from airflow.hooks.S3_hook import S3Hook
 
 default_args = {
@@ -210,7 +209,7 @@ with pipeline:
             "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='cmd') }}",
         ],
         labels={"runner": "airflow"},
-        resources=Resources(
+        resources=dict(
             request_memory="2G",
             request_cpu="100m",
             limit_memory="3G",
@@ -247,7 +246,7 @@ with pipeline:
         get_logs=True,
         volumes=[ancillary_volume],
         volume_mounts=[ancillary_volume_mount],
-        resources=Resources(
+        resources=dict(
             request_memory="6G",
             request_cpu="1000m",
             limit_memory="10G",
