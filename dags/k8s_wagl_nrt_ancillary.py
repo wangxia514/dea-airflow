@@ -8,6 +8,7 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.kubernetes.secret import Secret
 from airflow.kubernetes.volume import Volume
+from airflow.kubernetes.pod import Resources
 from airflow.kubernetes.volume_mount import VolumeMount
 
 
@@ -171,7 +172,7 @@ with pipeline:
         affinity=affinity,
         volumes=[ancillary_volume],
         volume_mounts=[ancillary_volume_mount],
-        resources=dict(
+        resources=Resources(
             request_memory="2G",
             request_cpu="100m",
             limit_memory="3G",
