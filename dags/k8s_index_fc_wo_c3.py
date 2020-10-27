@@ -17,13 +17,12 @@ from airflow.operators.dummy_operator import DummyOperator
 DEFAULT_ARGS = {
     "owner": "Alex Leith",
     "depends_on_past": False,
-    "start_date": datetime(2020, 6, 1),
+    "start_date": datetime(2020, 10, 1),
     "email": ["alex.leith@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
-    "products": "ga_ls5t_ard_3 ga_ls7e_ard_3 ga_ls8c_ard_3",
     "env_vars": {
         "DB_HOSTNAME": "db-writer",
     },
@@ -99,10 +98,9 @@ with dag:
             image=INDEXER_IMAGE,
             image_pull_policy="IfNotPresent",
             arguments=[
-                "sqs-to-dc",
-                "--stac",
-                f"${product.upper()}_SQS_INDEXING_QUEUE",
-                f"ga_ls_{product}_3",
+                "bash",
+                "-c",
+                f"sqs-to-dc --stac ${product.upper()}_SQS_INDEXING_QUEUE ga_ls_{product}_3",
             ],
             labels={"step": "sqs-dc-indexing"},
             name=f"datacube-index-{product}",
