@@ -89,7 +89,7 @@ with dag:
         get_logs=True,
         is_delete_operator_pod=True,
         affinity=affinity,
-        execution_timeout=timedelta(days=1),
+        # execution_timeout=timedelta(days=1),
     )
 
     # Task complete
