@@ -26,7 +26,7 @@ params = {
     "products_arg": "",
     "pkgdir_arg": "/g/data/xu18/ga",
     "base_dir": "/g/data/v10/work/c3_ard/",
-    "days_to_exclude_arg": """--days-to-exclude '["2020-08-09:2020-09-03"]'""",
+    "days_to_exclude_arg": "",
     "run_ard_arg": "--run-ard",
 }
 
