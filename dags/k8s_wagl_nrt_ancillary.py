@@ -171,12 +171,12 @@ with pipeline:
         affinity=affinity,
         volumes=[ancillary_volume],
         volume_mounts=[ancillary_volume_mount],
-        #         resources=dict(
-        #             request_memory="2G",
-        #             request_cpu="100m",
-        #             limit_memory="3G",
-        #             limit_cpu="1000m",
-        #         ),
+        resources=dict(
+            #             request_memory="2G",
+            #             request_cpu="100m",
+            #             limit_memory="3G",
+            #             limit_cpu="1000m",
+        ),
         is_delete_operator_pod=True,
     )
 
