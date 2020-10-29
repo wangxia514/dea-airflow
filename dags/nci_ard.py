@@ -62,7 +62,7 @@ if aws_develop:
     ssh_conn_id = "lpgs_gadi"
     params["pkgdir_arg"] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test/"
     # schedule_interval = "15 08 * * *"
-    # schedule_interval = "12 * * * *"
+    schedule_interval = None
 else:
     ssh_conn_id = "dsg547"
     params["pkgdir_arg"] = "/g/data/u46/users/dsg547/results_airflow/"
