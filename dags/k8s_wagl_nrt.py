@@ -247,10 +247,8 @@ with pipeline:
         volumes=[ancillary_volume],
         volume_mounts=[ancillary_volume_mount],
         resources=dict(
-            request_memory="6G",
-            request_cpu="1000m",
-            limit_memory="10G",
-            limit_cpu="2000m",
+            request_memory=6,
+            request_cpu=1,
         ),
         is_delete_operator_pod=True,
     )
