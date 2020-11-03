@@ -93,6 +93,8 @@ SYNC_JOBS = [
         for doy in brdf_doys(DOY)
     ],
     "find /ancillary/ -type f",
+    # this is needed because we want the wagl_nrt user to have write access
+    "find /ancillary/ -type d | xargs chmod g+w",
     "date",
 ]
 
