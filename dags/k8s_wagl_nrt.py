@@ -16,6 +16,8 @@ from airflow.kubernetes.secret import Secret
 from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.hooks.S3_hook import S3Hook
+from airflow.contrib.hooks.aws_sqs_hook import SQSHook
+from airflow.utils.trigger_rule import TriggerRule
 
 default_args = {
     "owner": "Imam Alam",
@@ -35,12 +37,15 @@ WAGL_IMAGE = (
 S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.36.g1347ee8"
 
 PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-process-scene"
+DEADLETTER_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-process-scene-deadletter"
 
 SOURCE_BUCKET = "sentinel-s2-l1c"
 TRANSFER_BUCKET = "dea-dev-nrt-scene-cache"
 
 BUCKET_REGION = "ap-southeast-2"
 S3_PREFIX = "s3://dea-public-data-dev/L2/sentinel-2-nrt/S2MSIARD/"
+
+AWS_CONN_ID = "wagl_nrt_manual"
 
 # each DAG instance should process one scene only
 # so NUM_WORKERS = NUM_MESSAGES_TO_POLL
@@ -145,7 +150,7 @@ def tile_args(tile_info):
     )
 
 
-def copy_cmd(**context):
+def fetch_sqs_message(context):
     task_instance = context["task_instance"]
     # index = context["index"]
     all_messages = task_instance.xcom_pull(
@@ -154,14 +159,28 @@ def copy_cmd(**context):
 
     messages = all_messages  # TODO take care of index
     assert len(messages) == 1
-    message = messages[0]
+    return messages[0]
+
+
+def copy_cmd(**context):
+    message = fetch_sqs_message(context)
 
     msg_dict = decode(message)
     tile_info = get_tile_info(msg_dict)
 
     # forward it to the copy and processing tasks
+    task_instance = context["task_instance"]
     task_instance.xcom_push(key="cmd", value=" &&\n".join(copy_cmd_tile(tile_info)))
     task_instance.xcom_push(key="args", value=tile_args(tile_info))
+
+
+def wagl_failed(**context):
+    message = fetch_sqs_message(context)
+    sqs_hook = SQSHook(aws_conn_id=AWS_CONN_ID)
+    message_body = json.dumps(decode(message))
+    sqs_hook.send_message(DEADLETTER_SCENE_QUEUE, message_body)
+
+    raise ValueError("processing failed")
 
 
 pipeline = DAG(
@@ -209,12 +228,6 @@ with pipeline:
             "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='cmd') }}",
         ],
         labels={"runner": "airflow"},
-        resources=dict(
-            request_memory="2G",
-            request_cpu="100m",
-            limit_memory="3G",
-            limit_cpu="1000m",
-        ),
         get_logs=True,
         is_delete_operator_pod=True,
     )
@@ -246,13 +259,17 @@ with pipeline:
         get_logs=True,
         volumes=[ancillary_volume],
         volume_mounts=[ancillary_volume_mount],
-        resources=dict(
-            request_memory=6,
-            request_cpu=1,
-        ),
         is_delete_operator_pod=True,
+    )
+
+    FAILED = PythonOperator(
+        task_id="wagl-nrt-failed",
+        python_callable=wagl_failed,
+        provide_context=True,
+        trigger_rule=TriggerRule.ALL_FAILED,
     )
 
     END = DummyOperator(task_id="end")
 
     START >> SENSOR >> CMD >> COPY >> WAGL_RUN >> END
+    WAGL_RUN >> FAILED
