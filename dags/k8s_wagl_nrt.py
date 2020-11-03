@@ -32,7 +32,7 @@ default_args = {
 }
 
 WAGL_IMAGE = (
-    "451924316694.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:patch-20201021-7"
+    "451924316694.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:patch-20201021-8"
 )
 S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.36.g1347ee8"
 
