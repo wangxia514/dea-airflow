@@ -261,6 +261,7 @@ with pipeline:
         get_logs=True,
         volumes=[ancillary_volume],
         volume_mounts=[ancillary_volume_mount],
+        retries=2,
         is_delete_operator_pod=True,
     )
 
