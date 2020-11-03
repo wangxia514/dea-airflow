@@ -51,7 +51,7 @@ dag = DAG(
     "k8s_index_wo_fc_c3_backlog",
     default_args=DEFAULT_ARGS,
     schedule_interval=DEFAULT_ARGS["schedule_interval"],
-    tags=["k8s", "Landsat_c3"],
+    tags=["k8s", "landsat_c3"],
     catchup=False,
 )
 
