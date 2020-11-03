@@ -168,6 +168,7 @@ with pipeline:
         name="sync_ancillaries",
         task_id="sync_ancillaries",
         get_logs=True,
+        startup_timeout_seconds=300,
         affinity=affinity,
         volumes=[ancillary_volume],
         volume_mounts=[ancillary_volume_mount],

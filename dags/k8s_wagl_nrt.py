@@ -219,7 +219,7 @@ with pipeline:
         image_pull_policy="IfNotPresent",
         image=S3_TO_RDS_IMAGE,
         affinity=affinity,
-        startup_timeout_seconds=900,
+        startup_timeout_seconds=300,
         volumes=[ancillary_volume],
         volume_mounts=[ancillary_volume_mount],
         cmds=[
@@ -240,7 +240,7 @@ with pipeline:
         image_pull_policy="IfNotPresent",
         image=WAGL_IMAGE,
         affinity=affinity,
-        startup_timeout_seconds=900,
+        startup_timeout_seconds=300,
         cmds=["/scripts/process-scene.sh"],
         arguments=[
             "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['granule_url'] }}",
@@ -266,6 +266,7 @@ with pipeline:
     FAILED = PythonOperator(
         task_id="wagl-nrt-failed",
         python_callable=wagl_failed,
+        retries=0,
         provide_context=True,
         trigger_rule=TriggerRule.ALL_FAILED,
     )
