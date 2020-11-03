@@ -5,14 +5,13 @@ DAG to index Sentinel-2 backlog data.
 
 """
 from datetime import datetime, timedelta
-
-from airflow import DAG
-from airflow.kubernetes.secret import Secret
-from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
-
 from textwrap import dedent
 
 import kubernetes.client.models as k8s
+from airflow import DAG
+from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+from airflow.kubernetes.secret import Secret
+from airflow.operators.subdag_operator import SubDagOperator
 
 DEFAULT_ARGS = {
     "owner": "Alex Leith",
@@ -44,26 +43,23 @@ DEFAULT_ARGS = {
         ),
     ],
 }
+TASK_ARGS = {
+    "secrets": DEFAULT_ARGS["secrets"],
+    "start_date": DEFAULT_ARGS["start_date"],
+}
 
 INDEXER_IMAGE = "opendatacube/datacube-index:0.0.12"
 
-dag = DAG(
-    "k8s_index_wo_fc_c3_backlog",
-    default_args=DEFAULT_ARGS,
-    schedule_interval=DEFAULT_ARGS["schedule_interval"],
-    tags=["k8s", "landsat_c3", "backlog"],
-    catchup=False,
-)
 
-with dag:
-    # This needs to be updated in the future in case more zones have been added
-    # Rows should be from 88 to 116, and paths from 67 to 91
-    # paths = range(88, 117)
-    rows = range(67, 92)
-    products = ["ga_ls_fc_3", "ga_ls_wo_3"]
-    utm_zones = range(26, 42)
+def load_subdag(parent_dag_name, child_dag_name, product, rows, args):
+    """
+    Make us a subdag to hide all the sub tasks
+    """
+    subdag = DAG(
+        dag_id=f"{parent_dag_name}.{child_dag_name}", default_args=args, catchup=False
+    )
 
-    for product in products:
+    with subdag:
         for row in rows:
             # for path in paths:
             INDEXING = KubernetesPodOperator(
@@ -82,4 +78,32 @@ with dag:
                 task_id=f"{product}--Backlog-indexing-row--{row}",
                 get_logs=True,
                 is_delete_operator_pod=True,
+                dag=subdag,
             )
+    return subdag
+
+
+DAG_NAME = "k8s_index_wo_fc_c3_backlog"
+
+dag = DAG(
+    dag_id=DAG_NAME,
+    default_args=DEFAULT_ARGS,
+    schedule_interval=DEFAULT_ARGS["schedule_interval"],
+    tags=["k8s", "landsat_c3", "backlog"],
+    catchup=False,
+)
+
+with dag:
+    # Rows should be from 88 to 116, and paths from 67 to 91
+    # paths = range(88, 117)
+    rows = range(67, 92)
+    products = ["ga_ls_fc_3", "ga_ls_wo_3"]
+
+    for product in products:
+        TASK_NAME = f"{product}--backlog"
+        index_backlog = SubDagOperator(
+            task_id=TASK_NAME,
+            subdag=load_subdag(DAG_NAME, TASK_NAME, product, rows, TASK_ARGS),
+            default_args=TASK_ARGS,
+            dag=dag,
+        )
