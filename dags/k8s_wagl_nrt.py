@@ -240,6 +240,8 @@ with pipeline:
         image=WAGL_IMAGE,
         affinity=affinity,
         startup_timeout_seconds=300,
+        # this is the wagl_nrt user in the wagl container
+        security_context=dict(runAsUser=10015, runAsGroup=10015, fsGroup=10015),
         cmds=["/scripts/process-scene.sh"],
         arguments=[
             "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['granule_url'] }}",
