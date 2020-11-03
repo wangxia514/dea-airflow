@@ -228,7 +228,6 @@ with pipeline:
             "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='cmd') }}",
         ],
         labels={"runner": "airflow"},
-        resources=dict(request_memory="2G"),
         get_logs=True,
         is_delete_operator_pod=True,
     )
