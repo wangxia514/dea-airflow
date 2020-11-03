@@ -180,7 +180,7 @@ def wagl_failed(**context):
     message_body = json.dumps(decode(message))
     sqs_hook.send_message(DEADLETTER_SCENE_QUEUE, message_body)
 
-    raise ValueError("processing failed")
+    raise ValueError(f"processing failed for {message_body}")
 
 
 pipeline = DAG(
