@@ -246,7 +246,7 @@ with pipeline:
         RUN = KubernetesPodOperator(
             namespace="processing",
             name="dea-s2-wagl-nrt",
-            task_id="dea-s2-wagl-nrt",
+            task_id=f"dea-s2-wagl-nrt-{index}",
             image_pull_policy="IfNotPresent",
             image=WAGL_IMAGE,
             affinity=affinity,
@@ -264,9 +264,9 @@ with pipeline:
             labels={"runner": "airflow"},
             env_vars=dict(
                 bucket_region=BUCKET_REGION,
-                datastrip_url="{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['datastrip_url'] }}",
-                granule_url="{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['granule_url'] }}",
-                granule_id="{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['granule_id'] }}",
+                datastrip_url=f"{{ task_instance.xcom_pull(task_ids='copy_cmd_{index}', key='args')['datastrip_url'] }}",
+                granule_url=f"{{ task_instance.xcom_pull(task_ids='copy_cmd_{index}', key='args')['granule_url'] }}",
+                granule_id=f"{{ task_instance.xcom_pull(task_ids='copy_cmd_{index}', key='args')['granule_id'] }}",
                 s3_prefix=S3_PREFIX,
             ),
             get_logs=True,
