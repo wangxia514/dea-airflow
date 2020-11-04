@@ -156,9 +156,12 @@ def fetch_sqs_message(context):
     # index = context["index"]
     all_messages = task_instance.xcom_pull(
         task_ids="process_scene_queue_sensor", key="messages"
-    )["Messages"]
+    )
 
-    messages = all_messages  # TODO take care of index
+    if all_messages is None:
+        raise KeyError("no messages")
+
+    messages = all_messages["Messages"]  # TODO take care of index
     assert len(messages) == 1
     return messages[0]
 
@@ -176,11 +179,15 @@ def copy_cmd(**context):
 
 
 def dag_failed(**context):
-    message = fetch_sqs_message(context)
+    try:
+        message = fetch_sqs_message(context)
+    except KeyError:
+        # no messages
+        return
+
     sqs_hook = SQSHook(aws_conn_id=AWS_CONN_ID)
     message_body = json.dumps(decode(message))
     sqs_hook.send_message(DEADLETTER_SCENE_QUEUE, message_body)
-
     raise ValueError(f"processing failed for {message_body}")
 
 
@@ -277,8 +284,6 @@ with pipeline:
     )
 
     # TODO this should send out the SNS notification
-    SUCCESS = DummyOperator(task_id="success")
+    SNS = DummyOperator(task_id="sns_broadcast")
 
-    SENSOR >> CMD >> COPY >> RUN >> SUCCESS
-
-    RUN >> DAG_FAILED
+    SENSOR >> CMD >> COPY >> RUN >> SNS >> DAG_FAILED
