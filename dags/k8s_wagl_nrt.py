@@ -240,7 +240,12 @@ with pipeline:
                 + str(index)
                 + "', key='cmd') }}",
             ],
-            labels={"runner": "airflow"},
+            labels={
+                "runner": "airflow",
+                "product": "Sentinel-2",
+                "app": "nrt",
+                "stage": "copy-scene",
+            },
             get_logs=True,
             is_delete_operator_pod=True,
         )
@@ -269,7 +274,12 @@ with pipeline:
                 BUCKET_REGION,
                 S3_PREFIX,
             ],
-            labels={"runner": "airflow"},
+            labels={
+                "runner": "airflow",
+                "product": "Sentinel-2",
+                "app": "nrt",
+                "stage": "wagl",
+            },
             env_vars=dict(
                 bucket_region=BUCKET_REGION,
                 datastrip_url="{{ task_instance.xcom_pull(task_ids='copy_cmd_"

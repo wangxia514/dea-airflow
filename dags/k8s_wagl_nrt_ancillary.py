@@ -174,6 +174,12 @@ with pipeline:
         affinity=affinity,
         volumes=[ancillary_volume],
         volume_mounts=[ancillary_volume_mount],
+        labels={
+            "runner": "airflow",
+            "product": "Sentinel-2",
+            "app": "nrt",
+            "stage": "sync-ancillaries",
+        },
         is_delete_operator_pod=True,
     )
 
