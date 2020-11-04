@@ -282,7 +282,7 @@ with pipeline:
         trigger_rule=TriggerRule.ALL_FAILED,
     )
 
-    END = DummyOperator(task_id="end")
+    END = DummyOperator(task_id="end", trigger_rule=TriggerRule.ONE_SUCCESS)
 
     START >> SENSOR >> CMD >> COPY >> WAGL_RUN >> END
     WAGL_RUN >> FAILED
