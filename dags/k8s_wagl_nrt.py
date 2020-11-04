@@ -269,6 +269,11 @@ with pipeline:
         is_delete_operator_pod=True,
     )
 
+    NO_MESSAGES = DummyOperator(
+        task_id="wagl-no-messages",
+        trigger_rule=TriggerRule.ALL_FAILED,
+    )
+
     FAILED = PythonOperator(
         task_id="wagl-nrt-failed",
         python_callable=wagl_failed,
@@ -281,3 +286,4 @@ with pipeline:
 
     START >> SENSOR >> CMD >> COPY >> WAGL_RUN >> END
     WAGL_RUN >> FAILED
+    SENSOR >> NO_MESSAGES >> END
