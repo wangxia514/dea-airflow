@@ -276,21 +276,20 @@ with pipeline:
         trigger_rule=TriggerRule.ALL_FAILED,
     )
 
-    # this succeeds when there was an SQS message
-    MSG = PythonOperator(
-        task_id="there_were_messages",
+    WAGL_FAILED = PythonOperator(
+        task_id="wagl_failed",
         python_callable=just_fail,
+        trigger_rule=TriggerRule.ALL_FAILED,
         retries=0,
         provide_context=True,
     )
 
     # this is meant to mark the failure of the whole DAG
-    FAILED = PythonOperator(
+    DAG_FAILED = PythonOperator(
         task_id="dag_failed",
         python_callable=dag_failed,
         retries=0,
         provide_context=True,
-        trigger_rule=TriggerRule.ALL_FAILED,
     )
 
     # if either there were no messages, or the scene has been processed, the DAG is successful
@@ -299,6 +298,9 @@ with pipeline:
     SENSOR >> CMD >> COPY >> RUN >> SUCCESS
     SENSOR >> NO_MESSAGES >> SUCCESS
 
+    # flag if wagl or some upstream has failed
+    RUN >> WAGL_FAILED
+
     # to fail, however, the wagl run needs to fail, but also there needs to be an SQS message
-    RUN >> FAILED
-    MSG >> FAILED
+    SENSOR >> DAG_FAILED
+    WAGL_FAILED >> DAG_FAILED
