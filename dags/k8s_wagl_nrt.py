@@ -185,7 +185,7 @@ def dag_failed(**context):
 
 
 def just_fail(**context):
-    raise ValueError("there were messages")
+    raise ValueError("wagl processing failed")
 
 
 pipeline = DAG(
