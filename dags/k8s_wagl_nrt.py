@@ -276,7 +276,7 @@ with pipeline:
 
     # this is meant to mark the success failure of the whole DAG
     END = PythonOperator(
-        task_id="dag_failed",
+        task_id="dag_result",
         python_callable=dag_result,
         retries=0,
         provide_context=True,
