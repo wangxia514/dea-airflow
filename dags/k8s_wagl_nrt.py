@@ -288,4 +288,5 @@ with pipeline:
     SENSOR >> NO_MESSAGES >> SUCCESS
 
     # to fail, however, the wagl run needs to fail, but also there needs to be an SQS message
-    SUCCESS >> DAG_FAILED
+    RUN >> DAG_FAILED
+    NO_MESSAGES >> DAG_FAILED
