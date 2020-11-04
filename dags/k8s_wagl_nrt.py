@@ -205,6 +205,8 @@ with pipeline:
         sqs_queue=PROCESS_SCENE_QUEUE,
         aws_conn_id=AWS_CONN_ID,
         max_messages=NUM_MESSAGES_TO_POLL,
+        retries=0,
+        execution_timeout=timedelta(minutes=1),
     )
 
     CMD = PythonOperator(
@@ -263,6 +265,7 @@ with pipeline:
         volumes=[ancillary_volume],
         volume_mounts=[ancillary_volume_mount],
         retries=2,
+        execution_timeout=timedelta(minutes=150),
         is_delete_operator_pod=True,
     )
 
