@@ -178,11 +178,11 @@ def copy_cmd(**context):
     task_instance.xcom_push(key="args", value=tile_args(tile_info))
 
 
-def dag_failed(**context):
+def dag_result(**context):
     try:
         message = fetch_sqs_message(context)
     except KeyError:
-        # no messages
+        # no messages, success
         return
 
     sqs_hook = SQSHook(aws_conn_id=AWS_CONN_ID)
@@ -274,10 +274,10 @@ with pipeline:
         is_delete_operator_pod=True,
     )
 
-    # this is meant to mark the failure of the whole DAG
-    DAG_FAILED = PythonOperator(
+    # this is meant to mark the success failure of the whole DAG
+    END = PythonOperator(
         task_id="dag_failed",
-        python_callable=dag_failed,
+        python_callable=dag_result,
         retries=0,
         provide_context=True,
         trigger_rule=TriggerRule.ALL_FAILED,
@@ -286,4 +286,4 @@ with pipeline:
     # TODO this should send out the SNS notification
     SNS = DummyOperator(task_id="sns_broadcast")
 
-    SENSOR >> CMD >> COPY >> RUN >> SNS >> DAG_FAILED
+    SENSOR >> CMD >> COPY >> RUN >> SNS >> END
