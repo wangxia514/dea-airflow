@@ -183,6 +183,10 @@ def dag_failed(**context):
     raise ValueError(f"processing failed for {message_body}")
 
 
+def just_fail(**context):
+    raise ValueError("there were messages")
+
+
 pipeline = DAG(
     "k8s_wagl_nrt",
     doc_md=__doc__,
@@ -266,11 +270,21 @@ with pipeline:
         is_delete_operator_pod=True,
     )
 
+    # this fails when SQS message sensor times out
     NO_MESSAGES = DummyOperator(
         task_id="no_messages",
         trigger_rule=TriggerRule.ALL_FAILED,
     )
 
+    # this succeeds when there was an SQS message
+    MSG = PythonOperator(
+        task_id="there_were_messages",
+        python_callable=just_fail,
+        retries=0,
+        provide_context=True,
+    )
+
+    # this is meant to mark the failure of the whole DAG
     FAILED = PythonOperator(
         task_id="dag_failed",
         python_callable=dag_failed,
@@ -279,8 +293,12 @@ with pipeline:
         trigger_rule=TriggerRule.ALL_FAILED,
     )
 
+    # if either there were no messages, or the scene has been processed, the DAG is successful
     SUCCESS = DummyOperator(task_id="success", trigger_rule=TriggerRule.ONE_SUCCESS)
 
     SENSOR >> CMD >> COPY >> RUN >> SUCCESS
-    SUCCESS >> FAILED
     SENSOR >> NO_MESSAGES >> SUCCESS
+
+    # to fail, however, the wagl run needs to fail, but also there needs to be an SQS message
+    RUN >> FAILED
+    MSG >> FAILED
