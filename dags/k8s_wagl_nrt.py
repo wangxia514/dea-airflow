@@ -174,7 +174,7 @@ def copy_cmd(**context):
     task_instance.xcom_push(key="args", value=tile_args(tile_info))
 
 
-def wagl_failed(**context):
+def dag_failed(**context):
     message = fetch_sqs_message(context)
     sqs_hook = SQSHook(aws_conn_id=AWS_CONN_ID)
     message_body = json.dumps(decode(message))
@@ -274,8 +274,8 @@ with pipeline:
     )
 
     FAILED = PythonOperator(
-        task_id="wagl-nrt-failed",
-        python_callable=wagl_failed,
+        task_id="dag_failed",
+        python_callable=dag_failed,
         retries=0,
         provide_context=True,
         trigger_rule=TriggerRule.ALL_FAILED,
