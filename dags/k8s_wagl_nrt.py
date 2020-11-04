@@ -266,12 +266,6 @@ with pipeline:
         is_delete_operator_pod=True,
     )
 
-    # this fails when SQS message sensor times out
-    NO_MESSAGES = DummyOperator(
-        task_id="no_messages",
-        trigger_rule=TriggerRule.ALL_FAILED,
-    )
-
     # this is meant to mark the failure of the whole DAG
     DAG_FAILED = PythonOperator(
         task_id="dag_failed",
@@ -281,12 +275,9 @@ with pipeline:
         trigger_rule=TriggerRule.ALL_FAILED,
     )
 
-    # if either there were no messages, or the scene has been processed, the DAG is successful
-    SUCCESS = DummyOperator(task_id="success", trigger_rule=TriggerRule.ONE_SUCCESS)
+    # TODO this should send out the SNS notification
+    SUCCESS = DummyOperator(task_id="success")
 
     SENSOR >> CMD >> COPY >> RUN >> SUCCESS
-    SENSOR >> NO_MESSAGES >> SUCCESS
 
-    # to fail, however, the wagl run needs to fail, but also there needs to be an SQS message
     RUN >> DAG_FAILED
-    NO_MESSAGES >> DAG_FAILED
