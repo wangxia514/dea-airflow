@@ -236,7 +236,9 @@ with pipeline:
             cmds=[
                 "bash",
                 "-c",
-                f"{{ task_instance.xcom_pull(task_ids='copy_cmd_{index}', key='cmd') }}",
+                "{{ task_instance.xcom_pull(task_ids='copy_cmd_"
+                + str(index)
+                + "', key='cmd') }}",
             ],
             labels={"runner": "airflow"},
             get_logs=True,
@@ -255,18 +257,30 @@ with pipeline:
             security_context=dict(runAsUser=10015, runAsGroup=10015, fsGroup=10015),
             cmds=["/scripts/process-scene.sh"],
             arguments=[
-                f"{{ task_instance.xcom_pull(task_ids='copy_cmd_{index}', key='args')['granule_url'] }}",
-                f"{{ task_instance.xcom_pull(task_ids='copy_cmd_{index}', key='args')['datastrip_url'] }}",
-                f"{{ task_instance.xcom_pull(task_ids='copy_cmd_{index}', key='args')['granule_id'] }}",
+                "{{ task_instance.xcom_pull(task_ids='copy_cmd_"
+                + str(index)
+                + "', key='args')['granule_url'] }}",
+                "{{ task_instance.xcom_pull(task_ids='copy_cmd_"
+                + str(index)
+                + "', key='args')['datastrip_url'] }}",
+                "{{ task_instance.xcom_pull(task_ids='copy_cmd_"
+                + str(index)
+                + "', key='args')['granule_id'] }}",
                 BUCKET_REGION,
                 S3_PREFIX,
             ],
             labels={"runner": "airflow"},
             env_vars=dict(
                 bucket_region=BUCKET_REGION,
-                datastrip_url=f"{{ task_instance.xcom_pull(task_ids='copy_cmd_{index}', key='args')['datastrip_url'] }}",
-                granule_url=f"{{ task_instance.xcom_pull(task_ids='copy_cmd_{index}', key='args')['granule_url'] }}",
-                granule_id=f"{{ task_instance.xcom_pull(task_ids='copy_cmd_{index}', key='args')['granule_id'] }}",
+                datastrip_url="{{ task_instance.xcom_pull(task_ids='copy_cmd_"
+                + str(index)
+                + "', key='args')['datastrip_url'] }}",
+                granule_url="{{ task_instance.xcom_pull(task_ids='copy_cmd_"
+                + str(index)
+                + "', key='args')['granule_url'] }}",
+                granule_id="{{ task_instance.xcom_pull(task_ids='copy_cmd_"
+                + str(index)
+                + "', key='args')['granule_id'] }}",
                 s3_prefix=S3_PREFIX,
             ),
             get_logs=True,
