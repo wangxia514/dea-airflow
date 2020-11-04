@@ -184,10 +184,6 @@ def dag_failed(**context):
     raise ValueError(f"processing failed for {message_body}")
 
 
-def just_fail(**context):
-    raise ValueError("wagl processing failed")
-
-
 pipeline = DAG(
     "k8s_wagl_nrt",
     doc_md=__doc__,
@@ -277,12 +273,9 @@ with pipeline:
         trigger_rule=TriggerRule.ALL_FAILED,
     )
 
-    WAGL_FAILED = PythonOperator(
+    WAGL_FAILED = DummyOperator(
         task_id="wagl_failed",
-        python_callable=just_fail,
         trigger_rule=TriggerRule.ALL_FAILED,
-        retries=0,
-        provide_context=True,
     )
 
     # this is meant to mark the failure of the whole DAG
