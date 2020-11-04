@@ -197,8 +197,6 @@ pipeline = DAG(
 )
 
 with pipeline:
-    START = DummyOperator(task_id="start")
-
     SENSOR = SQSSensor(
         task_id="process_scene_queue_sensor",
         sqs_queue=PROCESS_SCENE_QUEUE,
@@ -234,7 +232,7 @@ with pipeline:
         is_delete_operator_pod=True,
     )
 
-    WAGL_RUN = KubernetesPodOperator(
+    RUN = KubernetesPodOperator(
         namespace="processing",
         name="dea-s2-wagl-nrt",
         task_id="dea-s2-wagl-nrt",
@@ -269,7 +267,7 @@ with pipeline:
     )
 
     NO_MESSAGES = DummyOperator(
-        task_id="wagl-no-messages",
+        task_id="no_messages",
         trigger_rule=TriggerRule.ALL_FAILED,
     )
 
@@ -281,8 +279,8 @@ with pipeline:
         trigger_rule=TriggerRule.ALL_FAILED,
     )
 
-    END = DummyOperator(task_id="end", trigger_rule=TriggerRule.ONE_SUCCESS)
+    SUCCESS = DummyOperator(task_id="success", trigger_rule=TriggerRule.ONE_SUCCESS)
 
-    START >> SENSOR >> CMD >> COPY >> WAGL_RUN >> END
-    END >> FAILED
-    SENSOR >> NO_MESSAGES >> END
+    SENSOR >> CMD >> COPY >> RUN >> SUCCESS
+    SUCCESS >> FAILED
+    SENSOR >> NO_MESSAGES >> SUCCESS
