@@ -48,9 +48,11 @@ S3_PREFIX = "s3://dea-public-data-dev/L2/sentinel-2-nrt/S2MSIARD/"
 AWS_CONN_ID = "wagl_nrt_manual"
 
 # each DAG instance should process one scene only
-# so NUM_WORKERS = NUM_MESSAGES_TO_POLL
-# TODO take care of workers with no task with PythonBranchOperator?
-NUM_MESSAGES_TO_POLL = 1
+# TODO so this should be 1 in production
+NUM_MESSAGES_TO_POLL = 10
+
+# TODO then this should be 30
+NUM_PARALLEL_PIPELINE = 3
 
 AWS_CONN_ID = "wagl_nrt_manual"
 
@@ -152,16 +154,16 @@ def tile_args(tile_info):
 
 def fetch_sqs_message(context):
     task_instance = context["task_instance"]
-    # index = context["index"]
+    index = context["index"]
     all_messages = task_instance.xcom_pull(
-        task_ids="process_scene_queue_sensor", key="messages"
+        task_ids=f"process_scene_queue_sensor_{index}", key="messages"
     )
 
     if all_messages is None:
         raise KeyError("no messages")
 
-    messages = all_messages["Messages"]  # TODO take care of index
-    assert len(messages) == 1
+    messages = all_messages["Messages"]
+    # assert len(messages) == 1
     return messages[0]
 
 
@@ -195,94 +197,97 @@ pipeline = DAG(
     doc_md=__doc__,
     default_args=default_args,
     description="DEA Sentinel-2 NRT processing",
-    concurrency=2,  # TODO fix this
+    concurrency=NUM_PARALLEL_PIPELINE,
     max_active_runs=1,
     catchup=False,
     params={},
-    schedule_interval=None,
+    schedule_interval=None,  # TODO timedelta(minutes=30),
     tags=["k8s", "dea", "psc", "wagl", "nrt"],
 )
 
 with pipeline:
-    SENSOR = SQSSensor(
-        task_id="process_scene_queue_sensor",
-        sqs_queue=PROCESS_SCENE_QUEUE,
-        aws_conn_id=AWS_CONN_ID,
-        max_messages=NUM_MESSAGES_TO_POLL,
-        retries=0,
-        execution_timeout=timedelta(minutes=1),
-    )
+    for index in range(NUM_PARALLEL_PIPELINE):
+        SENSOR = SQSSensor(
+            task_id=f"process_scene_queue_sensor_{index}",
+            sqs_queue=PROCESS_SCENE_QUEUE,
+            aws_conn_id=AWS_CONN_ID,
+            max_messages=NUM_MESSAGES_TO_POLL,
+            retries=0,
+            execution_timeout=timedelta(minutes=1),
+        )
 
-    CMD = PythonOperator(
-        task_id="copy_cmd",
-        python_callable=copy_cmd,
-        provide_context=True,
-    )
+        CMD = PythonOperator(
+            task_id=f"copy_cmd_{index}",
+            python_callable=copy_cmd,
+            op_kwargs={"index": index},
+            provide_context=True,
+        )
 
-    COPY = KubernetesPodOperator(
-        namespace="processing",
-        name="dea-s2-wagl-nrt-copy-scene",
-        task_id="dea-s2-wagl-nrt-copy-scene",
-        image_pull_policy="IfNotPresent",
-        image=S3_TO_RDS_IMAGE,
-        affinity=affinity,
-        startup_timeout_seconds=300,
-        volumes=[ancillary_volume],
-        volume_mounts=[ancillary_volume_mount],
-        cmds=[
-            "bash",
-            "-c",
-            "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='cmd') }}",
-        ],
-        labels={"runner": "airflow"},
-        get_logs=True,
-        is_delete_operator_pod=True,
-    )
+        COPY = KubernetesPodOperator(
+            namespace="processing",
+            name="dea-s2-wagl-nrt-copy-scene",
+            task_id=f"dea-s2-wagl-nrt-copy-scene-{index}",
+            image_pull_policy="IfNotPresent",
+            image=S3_TO_RDS_IMAGE,
+            affinity=affinity,
+            startup_timeout_seconds=300,
+            volumes=[ancillary_volume],
+            volume_mounts=[ancillary_volume_mount],
+            cmds=[
+                "bash",
+                "-c",
+                f"{{ task_instance.xcom_pull(task_ids='copy_cmd_{index}', key='cmd') }}",
+            ],
+            labels={"runner": "airflow"},
+            get_logs=True,
+            is_delete_operator_pod=True,
+        )
 
-    RUN = KubernetesPodOperator(
-        namespace="processing",
-        name="dea-s2-wagl-nrt",
-        task_id="dea-s2-wagl-nrt",
-        image_pull_policy="IfNotPresent",
-        image=WAGL_IMAGE,
-        affinity=affinity,
-        startup_timeout_seconds=300,
-        # this is the wagl_nrt user in the wagl container
-        security_context=dict(runAsUser=10015, runAsGroup=10015, fsGroup=10015),
-        cmds=["/scripts/process-scene.sh"],
-        arguments=[
-            "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['granule_url'] }}",
-            "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['datastrip_url'] }}",
-            "{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['granule_id'] }}",
-            BUCKET_REGION,
-            S3_PREFIX,
-        ],
-        labels={"runner": "airflow"},
-        env_vars=dict(
-            bucket_region=BUCKET_REGION,
-            datastrip_url="{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['datastrip_url'] }}",
-            granule_url="{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['granule_url'] }}",
-            granule_id="{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['granule_id'] }}",
-            s3_prefix=S3_PREFIX,
-        ),
-        get_logs=True,
-        volumes=[ancillary_volume],
-        volume_mounts=[ancillary_volume_mount],
-        retries=2,
-        execution_timeout=timedelta(minutes=150),
-        is_delete_operator_pod=True,
-    )
+        RUN = KubernetesPodOperator(
+            namespace="processing",
+            name="dea-s2-wagl-nrt",
+            task_id="dea-s2-wagl-nrt",
+            image_pull_policy="IfNotPresent",
+            image=WAGL_IMAGE,
+            affinity=affinity,
+            startup_timeout_seconds=300,
+            # this is the wagl_nrt user in the wagl container
+            security_context=dict(runAsUser=10015, runAsGroup=10015, fsGroup=10015),
+            cmds=["/scripts/process-scene.sh"],
+            arguments=[
+                f"{{ task_instance.xcom_pull(task_ids='copy_cmd_{index}', key='args')['granule_url'] }}",
+                f"{{ task_instance.xcom_pull(task_ids='copy_cmd_{index}', key='args')['datastrip_url'] }}",
+                f"{{ task_instance.xcom_pull(task_ids='copy_cmd_{index}', key='args')['granule_id'] }}",
+                BUCKET_REGION,
+                S3_PREFIX,
+            ],
+            labels={"runner": "airflow"},
+            env_vars=dict(
+                bucket_region=BUCKET_REGION,
+                datastrip_url="{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['datastrip_url'] }}",
+                granule_url="{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['granule_url'] }}",
+                granule_id="{{ task_instance.xcom_pull(task_ids='copy_cmd', key='args')['granule_id'] }}",
+                s3_prefix=S3_PREFIX,
+            ),
+            get_logs=True,
+            volumes=[ancillary_volume],
+            volume_mounts=[ancillary_volume_mount],
+            retries=2,
+            execution_timeout=timedelta(minutes=150),
+            is_delete_operator_pod=True,
+        )
 
-    # this is meant to mark the success failure of the whole DAG
-    END = PythonOperator(
-        task_id="dag_result",
-        python_callable=dag_result,
-        retries=0,
-        provide_context=True,
-        trigger_rule=TriggerRule.ALL_FAILED,
-    )
+        # this is meant to mark the success failure of the whole DAG
+        END = PythonOperator(
+            task_id=f"dag_result_{index}",
+            python_callable=dag_result,
+            retries=0,
+            op_kwargs={"index": index},
+            provide_context=True,
+            trigger_rule=TriggerRule.ALL_FAILED,
+        )
 
-    # TODO this should send out the SNS notification
-    SNS = DummyOperator(task_id="sns_broadcast")
+        # TODO this should send out the SNS notification
+        SNS = DummyOperator(task_id=f"sns_broadcast_{index}")
 
-    SENSOR >> CMD >> COPY >> RUN >> SNS >> END
+        SENSOR >> CMD >> COPY >> RUN >> SNS >> END
