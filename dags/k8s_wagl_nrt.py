@@ -198,7 +198,7 @@ pipeline = DAG(
     default_args=default_args,
     description="DEA Sentinel-2 NRT processing",
     concurrency=NUM_PARALLEL_PIPELINE,
-    max_active_runs=1,
+    max_active_runs=10,
     catchup=False,
     params={},
     schedule_interval=timedelta(minutes=30),
