@@ -54,6 +54,8 @@ NUM_MESSAGES_TO_POLL = 10
 # TODO then this should be 30
 NUM_PARALLEL_PIPELINE = 3
 
+MAX_ACTIVE_RUNS = 10
+
 AWS_CONN_ID = "wagl_nrt_manual"
 
 affinity = {
@@ -197,8 +199,8 @@ pipeline = DAG(
     doc_md=__doc__,
     default_args=default_args,
     description="DEA Sentinel-2 NRT processing",
-    concurrency=NUM_PARALLEL_PIPELINE,
-    max_active_runs=10,
+    concurrency=MAX_ACTIVE_RUNS * NUM_PARALLEL_PIPELINE,
+    max_active_runs=MAX_ACTIVE_RUNS,
     catchup=False,
     params={},
     schedule_interval=timedelta(minutes=30),
