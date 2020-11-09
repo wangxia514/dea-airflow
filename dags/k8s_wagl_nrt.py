@@ -35,7 +35,7 @@ default_args = {
 }
 
 WAGL_IMAGE = (
-    "451924316694.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:patch-20201021-8"
+    "451924316694.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:patch-20201021-9"
 )
 S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.36.g1347ee8"
 
@@ -197,6 +197,18 @@ def dag_result(**context):
     raise ValueError(f"processing failed for {message_body}")
 
 
+def sns_broadcast(**context):
+    task_instance = context["task_instance"]
+    index = context["index"]
+    msg = task_instance.xcom_pull(
+        task_id=f"dea-s2-wagl-nrt-{index}", key="return_value"
+    )
+    print(msg)
+
+
+# this is a hack
+# as of airflow 1.10.11, setting resources key seems to have a bug
+# it add superfluous keys to the specs with nulls as values and k8s does not like that
 class PatchedResources(Resources):
     def to_k8s_client_obj(self):
         result = dict(requests={}, limits={})
@@ -214,6 +226,7 @@ class PatchedResources(Resources):
         return k8s.V1ResourceRequirements(**result)
 
 
+# so we patch the operator with the fixed version of `Resources`
 def _set_resources(self, resources):
     if not resources:
         return []
@@ -251,6 +264,7 @@ with pipeline:
             provide_context=True,
         )
 
+        # apply monkey patch to fix `Resources`
         _set_resources_backup = KubernetesPodOperator._set_resources
         KubernetesPodOperator._set_resources = _set_resources
 
@@ -337,9 +351,11 @@ with pipeline:
             volume_mounts=[ancillary_volume_mount],
             retries=2,
             execution_timeout=timedelta(minutes=150),
+            xcom_push=True,
             is_delete_operator_pod=True,
         )
 
+        # unapply monkey patch
         KubernetesPodOperator._set_resources = _set_resources_backup
 
         # this is meant to mark the success failure of the whole DAG
@@ -353,6 +369,11 @@ with pipeline:
         )
 
         # TODO this should send out the SNS notification
-        SNS = DummyOperator(task_id=f"sns_broadcast_{index}")
+        SNS = PythonOperator(
+            task_id=f"sns_broadcast_{index}",
+            python_callable=sns_broadcast,
+            op_kwargs={"index": index},
+            provide_context=True,
+        )
 
         SENSOR >> CMD >> COPY >> RUN >> SNS >> END
