@@ -201,7 +201,7 @@ def sns_broadcast(**context):
     task_instance = context["task_instance"]
     index = context["index"]
     msg = task_instance.xcom_pull(
-        task_id=f"dea-s2-wagl-nrt-{index}", key="return_value"
+        task_ids=f"dea-s2-wagl-nrt-{index}", key="return_value"
     )
     print(msg)
 
