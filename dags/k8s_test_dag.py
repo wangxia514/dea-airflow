@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+from airflow.kubernetes.pod import Resources
 
-import mock
+from unittest.mock import patch
 
 default_args = {
     "owner": "Imam Alam",
@@ -27,14 +28,10 @@ pipeline = DAG(
 )
 
 
-def fake_resources(self):
-    raise ValueError("gotcha!")
-
-
 with pipeline:
-    with mock.patch("airflow.kubernetes.Resources") as mock_resources:
-        mock_resources.to_k8s_client_obj = fake_resources
-
+    with patch.object(
+        Resources, "to_k8s_client_obj", side_effect=KeyError
+    ) as mock_resources:
         COPY = KubernetesPodOperator(
             namespace="processing",
             name="test_dag",
