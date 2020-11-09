@@ -9,6 +9,7 @@ import json
 from airflow import DAG
 
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+from airflow.contrib.operators.kubernetes_pod_operator import Resources
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.contrib.sensors.aws_sqs_sensor import SQSSensor
@@ -18,6 +19,8 @@ from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.hooks.S3_hook import S3Hook
 from airflow.contrib.hooks.aws_sqs_hook import SQSHook
 from airflow.utils.trigger_rule import TriggerRule
+
+import kubernetes.client.models as k8s
 
 default_args = {
     "owner": "Imam Alam",
@@ -194,6 +197,29 @@ def dag_result(**context):
     raise ValueError(f"processing failed for {message_body}")
 
 
+class PatchedResources(Resources):
+    def to_k8s_client_obj(self):
+        result = dict(requests={}, limits={})
+
+        if self.request_memory is not None:
+            result["requests"]["memory"] = self.request_memory
+        if self.request_cpu is not None:
+            result["requests"]["cpu"] = self.request_memory
+
+        if self.limit_memory is not None:
+            result["limits"]["memory"] = self.limit_memory
+        if self.limit_cpu is not None:
+            result["limits"]["cpu"] = self.limit_memory
+
+        return k8s.V1ResourceRequirements(**result)
+
+
+def _set_resources(self, resources):
+    if not resources:
+        return []
+    return [PatchedResources(**resources)]
+
+
 pipeline = DAG(
     "k8s_wagl_nrt",
     doc_md=__doc__,
@@ -224,6 +250,9 @@ with pipeline:
             op_kwargs={"index": index},
             provide_context=True,
         )
+
+        _set_resources_backup = KubernetesPodOperator._set_resources
+        KubernetesPodOperator._set_resources = _set_resources
 
         COPY = KubernetesPodOperator(
             namespace="processing",
@@ -302,6 +331,8 @@ with pipeline:
             execution_timeout=timedelta(minutes=150),
             is_delete_operator_pod=True,
         )
+
+        KubernetesPodOperator._set_resources = _set_resources_backup
 
         # this is meant to mark the success failure of the whole DAG
         END = PythonOperator(
