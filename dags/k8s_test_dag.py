@@ -27,11 +27,19 @@ pipeline = DAG(
     tags=["k8s", "dea", "psc", "wagl", "nrt"],
 )
 
+resources = {
+    "request_memory": "2G",
+    "request_cpu": "1000m",
+}
 
 with pipeline:
     with patch.object(
         Resources, "to_k8s_client_obj", side_effect=KeyError
     ) as mock_resources:
+        res = Resources(**resources)
+        val = res.to_k8s_client_obj()
+        raise ValueError(val)
+
         COPY = KubernetesPodOperator(
             namespace="processing",
             name="test_dag",
@@ -44,10 +52,6 @@ with pipeline:
                 "product": "Sentinel-2",
                 "app": "nrt",
                 "stage": "test",
-            },
-            resources={
-                "request_memory": "2G",
-                "request_cpu": "1000m",
             },
             get_logs=True,
             is_delete_operator_pod=True,
