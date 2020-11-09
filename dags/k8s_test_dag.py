@@ -40,6 +40,9 @@ with pipeline:
             "app": "nrt",
             "stage": "test",
         },
+        resources={
+            "limit_memory": "2G",
+        },
         get_logs=True,
         is_delete_operator_pod=True,
     )
