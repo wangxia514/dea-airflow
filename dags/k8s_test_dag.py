@@ -57,7 +57,7 @@ with pipeline:
         task_id="test_dag",
         image_pull_policy="IfNotPresent",
         image="ubuntu:18.04",
-        cmds=["echo", "test dag please ignore"],
+        cmds=["tail", "-f", "/dev/null"],
         resources=resources,
         labels={
             "runner": "airflow",
