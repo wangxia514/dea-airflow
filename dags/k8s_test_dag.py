@@ -34,7 +34,9 @@ resources = {
 
 with pipeline:
     with patch.object(
-        Resources, "to_k8s_client_obj", side_effect=KeyError
+        Resources,
+        "to_k8s_client_obj",
+        return_value={"requests": {"memory": "2G", "cpu": "1000m"}},
     ) as mock_resources:
         res = Resources(**resources)
         val = res.to_k8s_client_obj()
