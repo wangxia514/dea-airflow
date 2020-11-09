@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 
+import mock
 
 default_args = {
     "owner": "Imam Alam",
@@ -26,24 +27,31 @@ pipeline = DAG(
 )
 
 
+def fake_resources(self):
+    raise ValueError("gotcha!")
+
+
 with pipeline:
-    COPY = KubernetesPodOperator(
-        namespace="processing",
-        name="test_dag",
-        task_id="test_dag",
-        image_pull_policy="IfNotPresent",
-        image="ubuntu:18.04",
-        cmds=["echo", "test dag please ignore"],
-        labels={
-            "runner": "airflow",
-            "product": "Sentinel-2",
-            "app": "nrt",
-            "stage": "test",
-        },
-        resources={
-            "request_memory": "2G",
-            "request_cpu": "1000m",
-        },
-        get_logs=True,
-        is_delete_operator_pod=True,
-    )
+    with mock.patch("airflow.kubernetes.Resources") as mock_resources:
+        mock_resources.to_k8s_client_obj = fake_resources
+
+        COPY = KubernetesPodOperator(
+            namespace="processing",
+            name="test_dag",
+            task_id="test_dag",
+            image_pull_policy="IfNotPresent",
+            image="ubuntu:18.04",
+            cmds=["echo", "test dag please ignore"],
+            labels={
+                "runner": "airflow",
+                "product": "Sentinel-2",
+                "app": "nrt",
+                "stage": "test",
+            },
+            resources={
+                "request_memory": "2G",
+                "request_cpu": "1000m",
+            },
+            get_logs=True,
+            is_delete_operator_pod=True,
+        )
