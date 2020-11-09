@@ -38,7 +38,6 @@ with pipeline:
     ) as mock_resources:
         res = Resources(**resources)
         val = res.to_k8s_client_obj()
-        raise ValueError(val)
 
         COPY = KubernetesPodOperator(
             namespace="processing",
@@ -46,7 +45,7 @@ with pipeline:
             task_id="test_dag",
             image_pull_policy="IfNotPresent",
             image="ubuntu:18.04",
-            cmds=["echo", "test dag please ignore"],
+            cmds=["echo", "test dag please ignore", f"{val}"],
             labels={
                 "runner": "airflow",
                 "product": "Sentinel-2",
