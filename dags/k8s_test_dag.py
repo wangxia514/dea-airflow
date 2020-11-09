@@ -50,7 +50,7 @@ with pipeline:
             image_pull_policy="IfNotPresent",
             image="ubuntu:18.04",
             cmds=["echo", "test dag please ignore", f"{val}"],
-            # resources=resources,
+            resources=resources,
             labels={
                 "runner": "airflow",
                 "product": "Sentinel-2",
