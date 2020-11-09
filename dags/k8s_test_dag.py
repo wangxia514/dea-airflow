@@ -40,14 +40,17 @@ with pipeline:
         "to_k8s_client_obj",
         return_value={"requests": {"memory": "2G", "cpu": "1000m"}},
     ) as mock_resources:
+        res = Resources(**resources)
+        val = res.to_k8s_client_obj()
+
         COPY = KubernetesPodOperator(
             namespace="processing",
             name="test_dag",
             task_id="test_dag",
             image_pull_policy="IfNotPresent",
             image="ubuntu:18.04",
-            cmds=["echo", "test dag please ignore"],
-            resources=resources,
+            cmds=["echo", "test dag please ignore", f"{val}"],
+            # resources=resources,
             labels={
                 "runner": "airflow",
                 "product": "Sentinel-2",
