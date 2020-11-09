@@ -34,28 +34,38 @@ resources = {
     "request_cpu": "1000m",
 }
 
-with pipeline:
-    with patch(
-        "airflow.contrib.operators.kubernetes_pod_operator.Resources.to_k8s_client_obj",
-        return_value={"requests": {"memory": "3G", "cpu": "1000m"}},
-    ):
-        res = Resources(**resources)
-        val = res.to_k8s_client_obj()
 
-        COPY = KubernetesPodOperator(
-            namespace="processing",
-            name="test_dag",
-            task_id="test_dag",
-            image_pull_policy="IfNotPresent",
-            image="ubuntu:18.04",
-            cmds=["echo", "test dag please ignore", f"{val}"],
-            resources=resources,
-            labels={
-                "runner": "airflow",
-                "product": "Sentinel-2",
-                "app": "nrt",
-                "stage": "test",
-            },
-            get_logs=True,
-            is_delete_operator_pod=True,
-        )
+class PatchResources(Resources):
+    def to_k8s_client_obj(self):
+        return {"requests": {"memory": "1Gi"}}
+
+
+def _set_resources(resources):
+    if not resources:
+        return []
+    return [PatchResources(**resources)]
+
+
+with pipeline:
+    _set_resources_backup = KubernetesPodOperator._set_resources
+    KubernetesPodOperator._set_resources = _set_resources
+
+    COPY = KubernetesPodOperator(
+        namespace="processing",
+        name="test_dag",
+        task_id="test_dag",
+        image_pull_policy="IfNotPresent",
+        image="ubuntu:18.04",
+        cmds=["echo", "test dag please ignore"],
+        resources=resources,
+        labels={
+            "runner": "airflow",
+            "product": "Sentinel-2",
+            "app": "nrt",
+            "stage": "test",
+        },
+        get_logs=True,
+        is_delete_operator_pod=True,
+    )
+
+    KubernetesPodOperator._set_resources = _set_resources_backup
