@@ -41,7 +41,8 @@ with pipeline:
             "stage": "test",
         },
         resources={
-            "limit_memory": "2G",
+            "request_memory": "2G",
+            "request_cpu": "1000m",
         },
         get_logs=True,
         is_delete_operator_pod=True,
