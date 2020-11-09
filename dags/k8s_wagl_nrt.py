@@ -277,6 +277,10 @@ with pipeline:
                 "app": "nrt",
                 "stage": "copy-scene",
             },
+            resources={
+                "request_cpu": "1000m",
+                "request_memory": "2Gi",
+            },
             get_logs=True,
             is_delete_operator_pod=True,
         )
@@ -325,6 +329,10 @@ with pipeline:
                 s3_prefix=S3_PREFIX,
             ),
             get_logs=True,
+            resources={
+                "request_cpu": "1000m",
+                "request_memory": "6Gi",
+            },
             volumes=[ancillary_volume],
             volume_mounts=[ancillary_volume_mount],
             retries=2,
