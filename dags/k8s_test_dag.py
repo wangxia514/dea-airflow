@@ -45,6 +45,7 @@ with pipeline:
             image_pull_policy="IfNotPresent",
             image="ubuntu:18.04",
             cmds=["echo", "test dag please ignore"],
+            resources=resources,
             labels={
                 "runner": "airflow",
                 "product": "Sentinel-2",
