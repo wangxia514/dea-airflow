@@ -208,7 +208,10 @@ def sns_broadcast(**context):
 
 # this is a hack
 # as of airflow 1.10.11, setting resources key seems to have a bug
-# it add superfluous keys to the specs with nulls as values and k8s does not like that
+# https://github.com/apache/airflow/issues/9827
+# it adds superfluous keys to the specs with nulls as values and k8s does not like that
+# it probably was fixed here: https://github.com/apache/airflow/pull/10084
+# once we upgrade airflow, this hack will not be need anymore
 class PatchedResources(Resources):
     def to_k8s_client_obj(self):
         result = dict(requests={}, limits={})
