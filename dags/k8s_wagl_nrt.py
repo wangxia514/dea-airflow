@@ -204,12 +204,12 @@ class PatchedResources(Resources):
         if self.request_memory is not None:
             result["requests"]["memory"] = self.request_memory
         if self.request_cpu is not None:
-            result["requests"]["cpu"] = self.request_memory
+            result["requests"]["cpu"] = self.request_cpu
 
         if self.limit_memory is not None:
             result["limits"]["memory"] = self.limit_memory
         if self.limit_cpu is not None:
-            result["limits"]["cpu"] = self.limit_memory
+            result["limits"]["cpu"] = self.limit_cpu
 
         return k8s.V1ResourceRequirements(**result)
 
