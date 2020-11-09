@@ -40,7 +40,8 @@ class PatchResources(Resources):
         return {"requests": {"memory": "1Gi"}}
 
 
-def _set_resources(resources):
+def _set_resources(*args):
+    self, resources = args
     if not resources:
         return []
     return [PatchResources(**resources)]
