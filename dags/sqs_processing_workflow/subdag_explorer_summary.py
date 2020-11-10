@@ -45,14 +45,7 @@ def explorer_refresh_stats_subdag(
     EXPLORER_BASH_COMMAND = [
         "bash",
         "-c",
-        dedent(
-            """
-            for product in %s; do
-                cubedash-gen --no-init-database --refresh-stats --force-refresh $product;
-            done;
-        """
-        )
-        % (products),
+        f"cubedash-gen --no-init-database --refresh-stats --force-refresh {products}",
     ]
 
     dag_subdag = DAG(
