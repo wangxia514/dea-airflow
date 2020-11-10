@@ -27,7 +27,7 @@ pipeline = DAG(
 
 
 def send(**context):
-    return {"return_value": {"dataset": "dataset-to-index"}}
+    return {"dataset": "dataset-to-index"}
 
 
 def receive(**context):
