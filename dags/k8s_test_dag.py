@@ -42,7 +42,11 @@ def receive(**context):
     msg = task_instance.xcom_pull(task_ids="send", key="return_value")
 
     sns_hook = AwsSnsHook(aws_conn_id=AWS_CONN_ID)
-    sns_hook.publish_to_target(PUBLISH_S2_NRT_SNS, json.dumps(msg))
+    print(sns_hook)
+    msg_str = json.dumps(msg)
+    print(msg_str)
+    print(PUBLISH_S2_NRT_SNS)
+    sns_hook.publish_to_target(PUBLISH_S2_NRT_SNS, msg_str)
 
 
 with pipeline:
