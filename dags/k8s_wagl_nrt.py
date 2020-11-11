@@ -13,6 +13,7 @@ from airflow.contrib.operators.kubernetes_pod_operator import Resources
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.contrib.sensors.aws_sqs_sensor import SQSSensor
+from airflow.contrib.hooks.aws_sns_hook import AwsSnsHook
 from airflow.kubernetes.secret import Secret
 from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
@@ -41,6 +42,7 @@ S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.36.g1347ee8"
 
 PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-process-scene"
 DEADLETTER_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-process-scene-deadletter"
+PUBLISH_S2_NRT_SNS = "arn:aws:sns:ap-southeast-2:451924316694:dea-dev-eks-wagl-s2-nrt"
 
 SOURCE_BUCKET = "sentinel-s2-l1c"
 TRANSFER_BUCKET = "dea-dev-nrt-scene-cache"
@@ -203,7 +205,11 @@ def sns_broadcast(**context):
     msg = task_instance.xcom_pull(
         task_ids=f"dea-s2-wagl-nrt-{index}", key="return_value"
     )
-    print(msg)
+
+    msg_str = json.dumps(msg)
+
+    sns_hook = AwsSnsHook(aws_conn_id=AWS_CONN_ID)
+    sns_hook.publish_to_target(PUBLISH_S2_NRT_SNS, msg_str)
 
 
 # this is a hack
