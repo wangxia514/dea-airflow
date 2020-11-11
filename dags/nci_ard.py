@@ -57,7 +57,7 @@ params["scene_limit"] = "--scene-limit 5"
 params["products_arg"] = """--products '["usgs_ls8c_level1_1"]'"""
 params["days_to_exclude_arg"] = ""
 #  if you use it it looks like """--days-to-exclude '["2020-06-26:2020-06-26"]'"""
-params["run_ard_arg"] = ""
+#params["run_ard_arg"] = ""
 
 aws_develop = True
 if aws_develop:
