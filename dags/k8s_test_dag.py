@@ -3,8 +3,6 @@ from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from airflow.contrib.hooks.aws_sns_hook import AwsSnsHook
 
-import json
-
 
 AWS_CONN_ID = "wagl_nrt_manual"
 PUBLISH_S2_NRT_SNS = "arn:aws:sns:ap-southeast-2:451924316694:dea-dev-eks-wagl-s2-nrt"
@@ -43,10 +41,9 @@ def receive(**context):
 
     sns_hook = AwsSnsHook(aws_conn_id=AWS_CONN_ID)
     print(sns_hook)
-    msg_str = json.dumps(msg)
-    print(msg_str)
+    print(msg)
     print(PUBLISH_S2_NRT_SNS)
-    sns_hook.publish_to_target(PUBLISH_S2_NRT_SNS, msg_str)
+    sns_hook.publish_to_target(PUBLISH_S2_NRT_SNS, msg)
 
 
 with pipeline:
