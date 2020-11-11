@@ -7,7 +7,7 @@ import json
 
 
 AWS_CONN_ID = "wagl_nrt_manual"
-PUBLISH_S2_NRT_SNS = "arn:aws:sns:ap-southeast-2:451924316694:dea-dev-eks-wagl-s2-nrt:44aa163c-791d-40cd-8959-0e6a008ab45f"
+PUBLISH_S2_NRT_SNS = "arn:aws:sns:ap-southeast-2:451924316694:dea-dev-eks-wagl-s2-nrt"
 
 
 default_args = {
