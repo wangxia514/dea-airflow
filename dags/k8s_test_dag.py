@@ -1,3 +1,5 @@
+import json
+
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
@@ -32,18 +34,16 @@ pipeline = DAG(
 
 
 def send(**context):
-    return {"default": {"dataset": "dataset-to-index"}}
+    return {"dataset": "dataset-to-index"}
 
 
 def receive(**context):
     task_instance = context["task_instance"]
     msg = task_instance.xcom_pull(task_ids="send", key="return_value")
+    msg_str = json.dumps(msg)
 
     sns_hook = AwsSnsHook(aws_conn_id=AWS_CONN_ID)
-    print(sns_hook)
-    print(msg)
-    print(PUBLISH_S2_NRT_SNS)
-    sns_hook.publish_to_target(PUBLISH_S2_NRT_SNS, msg)
+    sns_hook.publish_to_target(PUBLISH_S2_NRT_SNS, msg_str)
 
 
 with pipeline:
