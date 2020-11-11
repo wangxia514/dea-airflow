@@ -17,12 +17,13 @@ from sensors.pbs_job_complete_sensor import PBSJobSensor
 params = {
     "project": "v10",
     "queue": "normal",
-    "module_ass": "ard-scene-select-py3-dea/20201009",
+    "module_ass": "ard-scene-select-py3-dea/20201111",
     "index_arg": "--index-datacube-env "
     "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
     "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
     "config_arg": "",
     "scene_limit": "",
+    "interim_days_wait": "",
     "products_arg": "",
     "pkgdir_arg": "/g/data/xu18/ga",
     "base_dir": "/g/data/v10/work/c3_ard/",
@@ -48,11 +49,11 @@ params[
 ] = "--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/index-test-odc.env"
 params[
     "wagl_env"
-] = "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env"
+] = "/g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/non-prod/prod-wagl.env"
 params[
     "config_arg"
 ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf"
-# params["scene_limit"] = "--scene-limit 2"
+params["scene_limit"] = "--scene-limit 5"
 params["products_arg"] = """--products '["usgs_ls8c_level1_1"]'"""
 params["days_to_exclude_arg"] = ""
 #  if you use it it looks like """--days-to-exclude '["2020-06-26:2020-06-26"]'"""
@@ -60,11 +61,14 @@ params["run_ard_arg"] = ""
 
 aws_develop = True
 if aws_develop:
+    # run this from airflow dev
     ssh_conn_id = "lpgs_gadi"
     params["pkgdir_arg"] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test/"
     # schedule_interval = "15 08 * * *"
     schedule_interval = None
+    params["interim_days_wait"] = "--interim-days-wait 5"
 else:
+    # run this from local dev
     ssh_conn_id = "dsg547"
     params["pkgdir_arg"] = "/g/data/u46/users/dsg547/results_airflow/"
     schedule_interval = None
@@ -117,6 +121,7 @@ with dag:
               -- /bin/bash -l -c \
                   "module use /g/data/v10/public/modules/modulefiles/; \
                   module use /g/data/v10/private/modules/modulefiles/; \
+                  module use /g/data/v10/public/test_modules/modulefiles; \
                   module load {{ params.module_ass }}; \
                   ard-scene-select \
                 {{ params.products_arg }} \
@@ -128,7 +133,8 @@ with dag:
                   --project {{ params.project }} \
                   --walltime 02:30:00 \
                   {{ params.index_arg }} \
-                  {{ params.scene_limit }}\
+                  {{ params.scene_limit }} \ 
+                  {{ params.interim_days_wait }} \
                   {{ params.days_to_exclude_arg }} \
                   {{ params.run_ard_arg }} "
         """,
