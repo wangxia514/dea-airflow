@@ -34,18 +34,20 @@ local_tz = pendulum.timezone("Australia/Canberra")
 
 collection3_products = ["ga_ls5t_ard_3", "ga_ls7e_ard_3", "ga_ls8c_ard_3"]
 
+# Split embedded SQL and Shell Script hunks to enable fancy IDE highlighting and error checking
+# language=SQL
 SQL_QUERY = """SELECT dsl.uri_body, ds.archived, ds.added, 
     to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra' as exec_dt 
     FROM agdc.dataset ds 
     INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id 
     INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref 
     WHERE dst.name='{{ params.product }}' 
-    AND (ds.added BETWEEN 
-    (to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra') 
-    AND (to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra') 
-    OR ds.archived BETWEEN 
-    (to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra') 
-    AND (to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra') ) ;"""
+        AND (ds.added BETWEEN 
+                (to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra') 
+                AND (to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra') 
+            OR ds.archived BETWEEN 
+                (to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra') 
+                AND (to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra') ) ;"""
 
 # language="Shell Script"
 LIST_SCENES_COMMAND = dedent("""
