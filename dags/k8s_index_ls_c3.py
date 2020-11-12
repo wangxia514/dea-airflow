@@ -22,10 +22,10 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.operators.dummy_operator import DummyOperator
 
 DEFAULT_ARGS = {
-    "owner": "Sachit Rajbhandari",
+    "owner": "Damien Ayers",
     "depends_on_past": False,
     "start_date": datetime(2020, 6, 1),
-    "email": ["sachit.rajbhandari@ga.gov.au"],
+    "email": ["damien.ayers@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 1,

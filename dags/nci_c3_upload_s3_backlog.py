@@ -99,14 +99,14 @@ RUN_UPLOAD_SCRIPT = """
 
 def create_dag(dag_id, product, start_date, end_date):
     default_args = {
-        "owner": "Sachit Rajbhandari",
+        "owner": "Damien Ayers",
         "start_date": start_date,
         "end_date": end_date,
         "retries": 1,
         "retry_delay": timedelta(minutes=5),
         "timeout": 1200,  # For running SSH Commands
         "email_on_failure": True,
-        "email": "sachit.rajbhandari@ga.gov.au",
+        "email": "damien.ayers@ga.gov.au",
         "ssh_conn_id": "lpgs_gadi",
         "aws_conn_id": "dea_public_data_landsat_3_sync",
     }

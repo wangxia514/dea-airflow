@@ -102,13 +102,13 @@ RUN_UPLOAD_SCRIPT = """
 """
 
 default_args = {
-    "owner": "Sachit Rajbhandari",
+    "owner": "Damien Ayers",
     "start_date": datetime(2020, 9, 25, tzinfo=local_tz),
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "timeout": 1200,  # For running SSH Commands
     "email_on_failure": True,
-    "email": "sachit.rajbhandari@ga.gov.au",
+    "email": "damien.ayers@ga.gov.au",
     "ssh_conn_id": "lpgs_gadi",
     "aws_conn_id": "dea_public_data_landsat_3_sync",
 }

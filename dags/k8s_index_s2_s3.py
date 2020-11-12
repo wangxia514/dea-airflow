@@ -18,10 +18,10 @@ from airflow.kubernetes.secret import Secret
 
 
 DEFAULT_ARGS = {
-    "owner": "Sachit Rajbhandari",
+    "owner": "Damien Ayers",
     "depends_on_past": False,
     "start_date": datetime(2020, 2, 21),
-    "email": ["sachit.rajbhandari@ga.gov.au"],
+    "email": ["damien.ayers@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 0,
