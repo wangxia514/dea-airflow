@@ -98,10 +98,8 @@ with dag:
     # Uploading s2_to_s3_rolling.py script to NCI
     sftp_s2_to_s3_script = SFTPOperator(
         task_id="sftp_s2_to_s3_script",
-        local_filepath=Path(
-            Path(configuration.get('core', 'dags_folder')).parent
-        ).joinpath("scripts/s2_to_s3_rolling.py").as_posix(),
-        remote_filepath="{}/s2_to_s3_rolling.py".format(WORK_DIR),
+        local_filepath=str(Path(configuration.get('core', 'dags_folder').parent / "scripts/s2_to_s3_rolling.py")),
+        remote_filepath="/g/data/v10/work/s2_nbar_rolling_archive/{{ds}}/s2_to_s3_rolling.py",
         operation=SFTPOperation.PUT,
         create_intermediate_dirs=True
     )
@@ -111,9 +109,22 @@ with dag:
         # language="Shell Script"
         command=COMMON + dedent(f"""
         
-            python - <<EOF > s3_paths_list.txt
-            {PYTHON_SCRIPT}
+            #python - <<EOF > s3_paths_list.txt
+            #{PYTHON_SCRIPT}
+            #EOF
+
+            for product_name in s2a_ard_granule, s2b_ard_granule; do
+            # SELECT ds.id, 's3://dea-public-data/L2/sentinel-2-nbar/S2MSIARD_NBAR/' || substring(ds.metadata#>>'{extent,center_dt}' for 10) || '/' || replace(ds.metadata#>>'{tile_id}', 'L1C', 'ARD') || '/ARD-METADATA.yaml',  ds.archived, ds.added
+            psql --csv --quiet --tuples-only --no-psqlrc -h dea-db.nci.org.au datacube <<EOF >> s3_paths_list.txt
+            SELECT 's3://dea-public-data/L2/sentinel-2-nbar/S2MSIARD_NBAR/' || substring(ds.metadata#>>'{extent,center_dt}' for 10) || '/' || replace(ds.metadata#>>'{tile_id}', 'L1C', 'ARD') || '/ARD-METADATA.yaml'
+                FROM agdc.dataset ds
+                INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id
+                INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref
+                WHERE dst.name='$product_name'
+                  AND (ds.added BETWEEN {{ execution_date }} AND {{ prev_execution_date }}
+                   OR ds.archived BETWEEN {{ execution_date }} AND {{ prev_execution_date }};
             EOF
+            done
         
         """),
         remote_host='gadi-dm.nci.org.au',
