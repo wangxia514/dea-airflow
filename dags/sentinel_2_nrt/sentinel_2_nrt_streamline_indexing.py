@@ -13,6 +13,7 @@ from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 
 from sentinel_2_nrt.images import INDEXER_IMAGE
+from sentinel_2_nrt import _set_resources
 from env_var.infra import (
     DB_DATABASE,
     DB_HOSTNAME,
@@ -76,7 +77,8 @@ dag = DAG(
 )
 
 with dag:
-    KubernetesPodOperator(
+    KubernetesPodOperator._set_resources = _set_resources
+    INDEXING = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
         image_pull_policy="IfNotPresent",
