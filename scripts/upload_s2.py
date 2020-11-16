@@ -3,8 +3,10 @@
 Script to sync Sentinel-2 data from NCI to AWS S3 bucket
 """
 
+import logging
 import re
 import subprocess
+import sys
 from pathlib import Path
 
 import click
@@ -19,6 +21,16 @@ S3_BUCKET = 'dea-public-data'
 
 S3 = None
 
+_LOG = logging.getLogger(__name__)
+
+
+def setup_logging():
+    if sys.stdout.isatty():
+        _LOG.setLevel(logging.INFO)
+        _LOG.addHandler(TqdmLoggingHandler())
+    else:
+        logging.basicConfig()
+
 
 @click.command()
 @click.argument('s3_urls', type=click.File('r'))
@@ -29,24 +41,26 @@ def main(s3_urls):
     Pass in a file containing destination S3 urls that need to be uploaded.
 
     """
+    setup_logging()
+
     global S3
     S3 = s3_client()
     urls_to_upload = [url.strip() for url in s3_urls.readlines()]
 
-    tqdm.write(f"{len(urls_to_upload)} datasets to upload.")
-    for s3_url in tqdm(urls_to_upload, unit='datasets'):
+    _LOG.info(f"{len(urls_to_upload)} datasets to upload.")
+    for s3_url in tqdm(urls_to_upload, unit='datasets', disable=None):
         s3_url = s3_url.strip()
 
         granule_id = s3_url_to_granule_id(s3_url)
-        tqdm.write(f"Uploading {granule_id} to {s3_url}")
+        _LOG.info(f"Uploading {granule_id}.")
 
         upload_dataset_without_yaml(granule_id, S3_BUCKET)
 
-        tqdm.write(f" Uploaded.")
+        _LOG.info(f" Uploaded.")
 
         local_path = Path(NCI_DIR) / granule_id
         upload_dataset_doc(local_path / 'ARD-METADATA.yaml', s3_url)
-        tqdm.write("Metadata written.")
+        _LOG.info(f"Metadata uploaded ({s3_url}).")
 
 
 def s3_url_to_granule_id(s3_url):
@@ -76,7 +90,7 @@ def upload_dataset_without_yaml(granule_id, _s3_bucket):
     try:
         subprocess.run(command, shell=True, check=True, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
-        tqdm.write(f"Upload failed, stdout: {e.stdout}, stderr: {e.stderr}")
+        _LOG.info(f"Upload failed, stdout: {e.stdout}, stderr: {e.stderr}")
         raise e
 
 
@@ -117,9 +131,24 @@ def munge_metadata(nci_dataset):
             'version': '1.0.0'}
     })
 
-    # Create dataset ID based on Kirill's magic
+    # Create a deterministic dataset ID based on these inputs
     nci_dataset['id'] = str(odc_uuid("s2_to_s3_rolling", "1.0.0", [nci_dataset['id']]))
     return nci_dataset
+
+
+class TqdmLoggingHandler(logging.Handler):
+    def __init__(self, level=logging.NOTSET):
+        super().__init__(level)
+
+    def emit(self, record):
+        try:
+            msg = self.format(record)
+            tqdm.write(msg)
+            self.flush()
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except:
+            self.handleError(record)
 
 
 if __name__ == '__main__':
