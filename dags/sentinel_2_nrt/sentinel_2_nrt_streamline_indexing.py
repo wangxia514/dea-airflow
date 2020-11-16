@@ -87,4 +87,10 @@ with dag:
         task_id="streamline-indexing-task",
         get_logs=True,
         is_delete_operator_pod=True,
+        resources={
+            "request_cpu": "250m",
+            "request_memory": "32Mi",
+            "limit_cpu": "500m",
+            "limit_memory": "64Mi",
+        },
     )
