@@ -21,7 +21,6 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
-    "schedule_interval": "@once",
     "retry_delay": timedelta(minutes=5),
     "env_vars": {
         "DB_HOSTNAME": "db-writer",
@@ -88,7 +87,7 @@ DAG_NAME = "k8s_index_wo_fc_c3_backlog"
 dag = DAG(
     dag_id=DAG_NAME,
     default_args=DEFAULT_ARGS,
-    schedule_interval=DEFAULT_ARGS["schedule_interval"],
+    schedule_interval="@once",
     tags=["k8s", "landsat_c3", "backlog"],
     catchup=False,
 )
