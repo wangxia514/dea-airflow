@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
-
+from sentinel_2_nrt import _set_resources
 from textwrap import dedent
 
 from sentinel_2_nrt.images import INDEXER_IMAGE
@@ -87,6 +87,7 @@ dag = DAG(
 )
 
 with dag:
+    KubernetesPodOperator._set_resources = _set_resources
     INDEXING = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,

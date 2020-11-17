@@ -6,7 +6,7 @@ from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
-
+from sentinel_2_nrt import _set_resources
 from textwrap import dedent
 
 import kubernetes.client.models as k8s
@@ -110,7 +110,7 @@ def ows_update_extent_subdag(
         default_args=args,
         catchup=False,
     )
-
+    KubernetesPodOperator._set_resources = _set_resources
     KubernetesPodOperator(
         namespace="processing",
         image=OWS_IMAGE,

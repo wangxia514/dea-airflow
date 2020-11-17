@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
-
+from sentinel_2_nrt import _set_resources
 from textwrap import dedent
 
 from sentinel_2_nrt.images import INDEXER_IMAGE
@@ -26,6 +26,7 @@ from env_var.infra import (
 from airflow.operators.subdag_operator import SubDagOperator
 from sentinel_2_nrt.subdag_explorer_summary import explorer_refresh_stats_subdag
 from sentinel_2_nrt.env_cfg import ARCHIVE_CONDITION, ARCHIVE_PRODUCTS
+from sentinel_2_nrt import _set_resources
 
 DAG_NAME = "sentinel_2_nrt_archive"
 
@@ -81,7 +82,7 @@ dag = DAG(
 )
 
 with dag:
-
+    KubernetesPodOperator._set_resources = _set_resources
     ARCHIVE_EXTRANEOUS_DS = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
