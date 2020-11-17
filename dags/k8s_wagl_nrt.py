@@ -45,7 +45,7 @@ DEADLETTER_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/
 PUBLISH_S2_NRT_SNS = "arn:aws:sns:ap-southeast-2:451924316694:dea-dev-eks-wagl-s2-nrt"
 
 SOURCE_BUCKET = "sentinel-s2-l1c"
-TRANSFER_BUCKET = "dea-dev-nrt-scene-cache"
+TRANSFER_BUCKET = "dea-dev-eks-nrt-scene-cache"
 
 BUCKET_REGION = "ap-southeast-2"
 S3_PREFIX = "s3://dea-public-data-dev/L2/sentinel-2-nrt/S2MSIARD/"
@@ -310,8 +310,8 @@ with pipeline:
         )
 
         runResource = {
-            "request_cpu":"100m",
-            "request_memory":"6Gi",
+            "request_cpu": "100m",
+            "request_memory": "6Gi",
         }
         RUN = KubernetesPodOperator(
             namespace="processing",
