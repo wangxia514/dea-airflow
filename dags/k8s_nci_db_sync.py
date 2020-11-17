@@ -110,8 +110,6 @@ with dag:
 
     # Wait for S3 Key
     S3_BACKUP_SENSE = S3KeySensor(
-        labels={"step": "s3-backup-sense"},
-        name="s3-backup-sense",
         task_id="s3-backup-sense",
         poke_interval=60 * 30,
         bucket_key=S3_KEY,

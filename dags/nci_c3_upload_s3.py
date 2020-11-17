@@ -21,21 +21,36 @@ This DAG takes following input parameters from `nci_c3_upload_s3_config` variabl
 
 """
 from datetime import datetime, timedelta
-from textwrap import dedent
 from pathlib import Path
-
-from airflow import DAG, configuration
-from airflow.contrib.hooks.aws_hook import AwsHook
-from airflow.contrib.operators.ssh_operator import SSHOperator
-from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
+from textwrap import dedent
 
 import pendulum
+from airflow import DAG, configuration
+from airflow.contrib.hooks.aws_hook import AwsHook
+from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
+from airflow.contrib.operators.ssh_operator import SSHOperator
 
 local_tz = pendulum.timezone("Australia/Canberra")
 
 collection3_products = ["ga_ls5t_ard_3", "ga_ls7e_ard_3", "ga_ls8c_ard_3"]
 
-LIST_SCENES_COMMAND = """
+# Split embedded SQL and Shell Script hunks to enable fancy IDE highlighting and error checking
+# language=SQL
+SQL_QUERY = """SELECT dsl.uri_body, ds.archived, ds.added, 
+    to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra' as exec_dt 
+    FROM agdc.dataset ds 
+    INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id 
+    INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref 
+    WHERE dst.name='{{ params.product }}' 
+        AND (ds.added BETWEEN 
+                (to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra') 
+                AND (to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra') 
+            OR ds.archived BETWEEN 
+                (to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra') 
+                AND (to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra') ) ;"""
+
+# language="Shell Script"
+LIST_SCENES_COMMAND = dedent("""
     mkdir -p {{ work_dir }};
     cd {{ work_dir }}
     
@@ -54,25 +69,14 @@ LIST_SCENES_COMMAND = """
     set -x
 
     args="-h dea-db.nci.org.au datacube -t -A -F,"
-    query="SELECT dsl.uri_body, ds.archived, ds.added, 
-    to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra' as exec_dt 
-    FROM agdc.dataset ds 
-    INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id 
-    INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref 
-    WHERE dst.name='{{ params.product }}' 
-    AND (ds.added BETWEEN 
-    (to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra') 
-    AND (to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra') 
-    OR ds.archived BETWEEN 
-    (to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra') 
-    AND (to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra') )
-    ;"
+    query="%s"
     output_file={{ work_dir }}/{{ params.product }}.csv
     psql ${args} -c "${query}" -o ${output_file}
     cat ${output_file}
-"""
+""") % SQL_QUERY
 
-RUN_UPLOAD_SCRIPT = """
+# language="Shell Script"
+RUN_UPLOAD_SCRIPT = dedent("""
     {% set aws_creds = params.aws_hook.get_credentials() -%}
     cd {{ work_dir }}
 
@@ -99,16 +103,16 @@ RUN_UPLOAD_SCRIPT = """
             --explorerbaseurl '{{ var.json.nci_c3_upload_s3_config.explorerbaseurl }}' \
             --snstopic '{{ var.json.nci_c3_upload_s3_config.snstopic }}' \
             {{ var.json.nci_c3_upload_s3_config.doupdate }}
-"""
+""")
 
 default_args = {
-    "owner": "Sachit Rajbhandari",
+    "owner": "Damien Ayers",
     "start_date": datetime(2020, 9, 25, tzinfo=local_tz),
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "timeout": 1200,  # For running SSH Commands
     "email_on_failure": True,
-    "email": "sachit.rajbhandari@ga.gov.au",
+    "email": "damien.ayers@ga.gov.au",
     "ssh_conn_id": "lpgs_gadi",
     "aws_conn_id": "dea_public_data_landsat_3_sync",
 }
@@ -127,25 +131,22 @@ dag = DAG(
 with dag:
     for product in collection3_products:
         WORK_DIR = f'/g/data/v10/work/c3_upload_s3/{product}/{"{{ ts_nodash }}"}'
-        COMMON = """
-                {% set work_dir = '/g/data/v10/work/c3_upload_s3/'
-                + params.product  +'/' + ts_nodash -%}
-                """
+        COMMON = dedent("""
+                {% set work_dir = '/g/data/v10/work/c3_upload_s3/' + params.product  +'/' + ts_nodash -%}
+                """)
         # List all the scenes to be uploaded to S3 bucket
         list_scenes = SSHOperator(
             task_id=f"list_{product}_scenes",
             ssh_conn_id="lpgs_gadi",
-            command=dedent(COMMON + LIST_SCENES_COMMAND),
+            command=COMMON + LIST_SCENES_COMMAND,
             params={"product": product},
             do_xcom_push=False,
         )
         # Uploading c3_to_s3_rolling.py script to NCI
         sftp_c3_to_s3_script = SFTPOperator(
             task_id=f"sftp_c3_to_s3_script_{product}",
-            local_filepath=Path(Path(configuration.get("core", "dags_folder")).parent)
-                .joinpath("scripts/c3_to_s3_rolling.py")
-                .as_posix(),
-            remote_filepath="{}/c3_to_s3_rolling.py".format(WORK_DIR),
+            local_filepath=str(Path(configuration.get("core", "dags_folder")).parent / "scripts/c3_to_s3_rolling.py"),
+            remote_filepath=f"{WORK_DIR}/c3_to_s3_rolling.py",
             operation=SFTPOperation.PUT,
             create_intermediate_dirs=True,
         )
@@ -153,7 +154,7 @@ with dag:
         aws_hook = AwsHook(aws_conn_id=dag.default_args["aws_conn_id"])
         execute_c3_to_s3_script = SSHOperator(
             task_id=f"execute_c3_to_s3_script_{product}",
-            command=dedent(COMMON + RUN_UPLOAD_SCRIPT),
+            command=COMMON + RUN_UPLOAD_SCRIPT,
             remote_host="gadi-dm.nci.org.au",
             params={
                 "aws_hook": aws_hook,
@@ -165,13 +166,11 @@ with dag:
         clean_nci_work_dir = SSHOperator(
             task_id=f"clean_nci_work_dir_{product}",
             # Remove work dir after aws s3 sync
-            command=dedent(
-                COMMON
-                + """
+            command=COMMON + dedent("""
                     set -eux
                     rm -vrf "{{ work_dir }}"
                 """
-            ),
+                                    ),
             params={"product": product},
         )
         list_scenes >> sftp_c3_to_s3_script
