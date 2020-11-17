@@ -310,8 +310,8 @@ with pipeline:
         )
 
         runResource = {
-            request_cpu="100m",
-            request_memory="6Gi",
+            "request_cpu":"100m",
+            "request_memory":"6Gi",
         }
         RUN = KubernetesPodOperator(
             namespace="processing",
