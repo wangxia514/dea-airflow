@@ -212,36 +212,6 @@ def sns_broadcast(**context):
     sns_hook.publish_to_target(PUBLISH_S2_NRT_SNS, msg_str)
 
 
-# this is a hack
-# as of airflow 1.10.11, setting resources key seems to have a bug
-# https://github.com/apache/airflow/issues/9827
-# it adds superfluous keys to the specs with nulls as values and k8s does not like that
-# it probably was fixed here: https://github.com/apache/airflow/pull/10084
-# once we upgrade airflow, this hack will not be need anymore
-# class PatchedResources(Resources):
-#     def to_k8s_client_obj(self):
-#         result = dict(requests={}, limits={})
-
-#         if self.request_memory is not None:
-#             result["requests"]["memory"] = self.request_memory
-#         if self.request_cpu is not None:
-#             result["requests"]["cpu"] = self.request_cpu
-
-#         if self.limit_memory is not None:
-#             result["limits"]["memory"] = self.limit_memory
-#         if self.limit_cpu is not None:
-#             result["limits"]["cpu"] = self.limit_cpu
-
-#         return k8s.V1ResourceRequirements(**result)
-
-
-# # so we patch the operator with the fixed version of `Resources`
-# def _set_resources(self, resources):
-#     if not resources:
-#         return []
-#     return [PatchedResources(**resources)]
-
-
 pipeline = DAG(
     "k8s_wagl_nrt",
     doc_md=__doc__,
@@ -273,14 +243,6 @@ with pipeline:
             provide_context=True,
         )
 
-        # # apply monkey patch to fix `Resources`
-        # _set_resources_backup = KubernetesPodOperator._set_resources
-        # KubernetesPodOperator._set_resources = _set_resources
-
-        copyResource = {
-            "request_cpu": "100m",
-            "request_memory": "2Gi",
-        }
         COPY = KubernetesPodOperator(
             namespace="processing",
             name="dea-s2-wagl-nrt-copy-scene",
@@ -304,15 +266,14 @@ with pipeline:
                 "app": "nrt",
                 "stage": "copy-scene",
             },
-            resources=copyResource,
+            resources={
+                "request_cpu": "100m",
+                "request_memory": "2Gi",
+            },
             get_logs=True,
             is_delete_operator_pod=True,
         )
 
-        runResource = {
-            "request_cpu": "100m",
-            "request_memory": "6Gi",
-        }
         RUN = KubernetesPodOperator(
             namespace="processing",
             name="dea-s2-wagl-nrt",
@@ -357,7 +318,10 @@ with pipeline:
                 s3_prefix=S3_PREFIX,
             ),
             get_logs=True,
-            resources=runResource,
+            resources={
+                "request_cpu": "100m",
+                "request_memory": "6Gi",
+            },
             volumes=[ancillary_volume],
             volume_mounts=[ancillary_volume_mount],
             retries=2,
@@ -365,9 +329,6 @@ with pipeline:
             do_xcom_push=True,
             is_delete_operator_pod=True,
         )
-
-        # unapply monkey patch
-        # KubernetesPodOperator._set_resources = _set_resources_backup
 
         # this is meant to mark the success failure of the whole DAG
         END = PythonOperator(
