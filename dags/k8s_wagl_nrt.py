@@ -273,10 +273,14 @@ with pipeline:
             provide_context=True,
         )
 
-        # apply monkey patch to fix `Resources`
-        _set_resources_backup = KubernetesPodOperator._set_resources
-        KubernetesPodOperator._set_resources = _set_resources
+        # # apply monkey patch to fix `Resources`
+        # _set_resources_backup = KubernetesPodOperator._set_resources
+        # KubernetesPodOperator._set_resources = _set_resources
 
+        copyResource = Resources(
+            request_cpu="100m",
+            request_memory="2Gi",
+        )
         COPY = KubernetesPodOperator(
             namespace="processing",
             name="dea-s2-wagl-nrt-copy-scene",
@@ -300,14 +304,15 @@ with pipeline:
                 "app": "nrt",
                 "stage": "copy-scene",
             },
-            resources={
-                "request_cpu": "1000m",
-                "request_memory": "2Gi",
-            },
+            resources=copyResource,
             get_logs=True,
             is_delete_operator_pod=True,
         )
 
+        runResource = Resources(
+            request_cpu="100m",
+            request_memory="6Gi",
+        )
         RUN = KubernetesPodOperator(
             namespace="processing",
             name="dea-s2-wagl-nrt",
@@ -352,10 +357,7 @@ with pipeline:
                 s3_prefix=S3_PREFIX,
             ),
             get_logs=True,
-            resources={
-                "request_cpu": "1000m",
-                "request_memory": "6Gi",
-            },
+            resources=runResource,
             volumes=[ancillary_volume],
             volume_mounts=[ancillary_volume_mount],
             retries=2,
