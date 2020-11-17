@@ -367,7 +367,7 @@ with pipeline:
         )
 
         # unapply monkey patch
-        KubernetesPodOperator._set_resources = _set_resources_backup
+        # KubernetesPodOperator._set_resources = _set_resources_backup
 
         # this is meant to mark the success failure of the whole DAG
         END = PythonOperator(
