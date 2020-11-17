@@ -11,7 +11,6 @@ from airflow.kubernetes.secret import Secret
 from sentinel_2_nrt.env_cfg import INDEXING_PRODUCTS
 from sentinel_2_nrt.images import EXPLORER_IMAGE
 from env_var.infra import SECRET_EXPLORER_WRITER_NAME
-from sentinel_2_nrt import _set_resources
 
 EXPLORER_SECRETS = [
     Secret("env", "DB_USERNAME", SECRET_EXPLORER_WRITER_NAME, "postgres-username"),
@@ -54,7 +53,7 @@ def explorer_refresh_stats_subdag(
         default_args=args,
         catchup=False,
     )
-    KubernetesPodOperator._set_resources = _set_resources
+
     KubernetesPodOperator(
         namespace="processing",
         image=EXPLORER_IMAGE,

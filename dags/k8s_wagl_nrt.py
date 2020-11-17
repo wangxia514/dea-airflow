@@ -218,28 +218,28 @@ def sns_broadcast(**context):
 # it adds superfluous keys to the specs with nulls as values and k8s does not like that
 # it probably was fixed here: https://github.com/apache/airflow/pull/10084
 # once we upgrade airflow, this hack will not be need anymore
-class PatchedResources(Resources):
-    def to_k8s_client_obj(self):
-        result = dict(requests={}, limits={})
+# class PatchedResources(Resources):
+#     def to_k8s_client_obj(self):
+#         result = dict(requests={}, limits={})
 
-        if self.request_memory is not None:
-            result["requests"]["memory"] = self.request_memory
-        if self.request_cpu is not None:
-            result["requests"]["cpu"] = self.request_cpu
+#         if self.request_memory is not None:
+#             result["requests"]["memory"] = self.request_memory
+#         if self.request_cpu is not None:
+#             result["requests"]["cpu"] = self.request_cpu
 
-        if self.limit_memory is not None:
-            result["limits"]["memory"] = self.limit_memory
-        if self.limit_cpu is not None:
-            result["limits"]["cpu"] = self.limit_cpu
+#         if self.limit_memory is not None:
+#             result["limits"]["memory"] = self.limit_memory
+#         if self.limit_cpu is not None:
+#             result["limits"]["cpu"] = self.limit_cpu
 
-        return k8s.V1ResourceRequirements(**result)
+#         return k8s.V1ResourceRequirements(**result)
 
 
-# so we patch the operator with the fixed version of `Resources`
-def _set_resources(self, resources):
-    if not resources:
-        return []
-    return [PatchedResources(**resources)]
+# # so we patch the operator with the fixed version of `Resources`
+# def _set_resources(self, resources):
+#     if not resources:
+#         return []
+#     return [PatchedResources(**resources)]
 
 
 pipeline = DAG(
