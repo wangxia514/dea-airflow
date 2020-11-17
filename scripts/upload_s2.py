@@ -25,11 +25,24 @@ _LOG = logging.getLogger(__name__)
 
 
 def setup_logging():
+    # Create handlers
     if sys.stdout.isatty():
-        _LOG.setLevel(logging.INFO)
-        _LOG.addHandler(TqdmLoggingHandler())
+        c_handler = TqdmLoggingHandler()
     else:
-        logging.basicConfig()
+        c_handler = logging.StreamHandler()
+    f_handler = logging.FileHandler('file.log')
+    c_handler.setLevel(logging.WARNING)
+    f_handler.setLevel(logging.ERROR)
+
+    # Create formatters and add it to handlers
+    c_format = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
+    f_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    c_handler.setFormatter(c_format)
+    f_handler.setFormatter(f_format)
+
+    # Add handlers to the logger
+    _LOG.addHandler(f_handler)
+    _LOG.addHandler(c_handler)
 
 
 @click.command()
