@@ -77,7 +77,7 @@ dag = DAG(
     "k8s_index_wo_fc_c3",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
-    schedule_interval="0 */1 * * *",
+    schedule_interval="0,30 * * * * *",
     catchup=False,
     tags=["k8s", "landsat_c3"],
 )
