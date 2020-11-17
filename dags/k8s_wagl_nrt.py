@@ -277,10 +277,10 @@ with pipeline:
         # _set_resources_backup = KubernetesPodOperator._set_resources
         # KubernetesPodOperator._set_resources = _set_resources
 
-        copyResource = Resources(
-            request_cpu="100m",
-            request_memory="2Gi",
-        )
+        copyResource = {
+            "request_cpu": "100m",
+            "request_memory": "2Gi",
+        }
         COPY = KubernetesPodOperator(
             namespace="processing",
             name="dea-s2-wagl-nrt-copy-scene",
@@ -309,10 +309,10 @@ with pipeline:
             is_delete_operator_pod=True,
         )
 
-        runResource = Resources(
+        runResource = {
             request_cpu="100m",
             request_memory="6Gi",
-        )
+        }
         RUN = KubernetesPodOperator(
             namespace="processing",
             name="dea-s2-wagl-nrt",
