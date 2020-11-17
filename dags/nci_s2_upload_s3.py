@@ -5,17 +5,9 @@ This DAG runs tasks on Gadi at the NCI. This DAG routinely sync Sentinel-2
 data from NCI to AWS S3 bucket. It:
 
  * Uploads `Sentinel-2 to S3 rolling` script to NCI work folder.
- * Executes uploaded rolling script to upload `Sentinel-2` data to AWS `S3` bucket.
- * Cleans working folder at `NCI` after upload completion.
+ * Finds all the new data added since the last run, saves them into a txt file
+ * Executes the upload script to upload the data and mangle and upload the metadata file to S3
 
-This DAG takes following input parameters from `nci_s2_upload_s3_config` variable:
-
- * `s3bucket`: Name of the S3 bucket. `"dea-public-data"`
- * `doupdate`: Select update option as below to replace granules and metadata.
-    * `'granule_metadata'` to update granules and metadata;
-    * `'granule' to update'` granules without metadata;
-    * `'metadata'` to update only metadata;
-    * `'no'` or don't set to avoid update of existing granules/metadata..
 """
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -30,20 +22,6 @@ from airflow.contrib.operators.ssh_operator import SSHOperator
 from nci_common import HOURS, MINUTES
 
 local_tz = pendulum.timezone("Australia/Canberra")
-
-# language=SQL
-# SQL_QUERY = """SELECT dsl.uri_body, ds.archived, ds.added,
-#     to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra' as exec_dt
-#     FROM agdc.dataset ds
-#     INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id
-#     INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref
-#     WHERE dst.name='{{ params.product }}'
-#         AND (ds.added BETWEEN
-#                 (to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra')
-#                 AND (to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra')
-#             OR ds.archived BETWEEN
-#                 (to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra')
-#                 AND (to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra') ) ;"""
 
 # language="Shell Script"
 COMMON = dedent("""
@@ -64,7 +42,7 @@ COMMON = dedent("""
 
 default_args = {
     'owner': 'Damien Ayers',
-    'start_date': datetime(2019, 12, 6, tzinfo=local_tz),
+    'start_date': datetime(2019, 12, 4, tzinfo=local_tz),
     'retries': 1,
     'retry_delay': timedelta(minutes=5),
     'email_on_failure': True,
@@ -85,20 +63,6 @@ dag = DAG(
 )
 
 with dag:
-    # # language=Python
-    # PYTHON_SCRIPT = dedent("""
-    #         from datacube import Datacube
-    #         dc = Datacube()
-    #         engine = dc.index._db._engine
-    #         result = engine.execute('''INSERT_QUERY_HERE''')
-    #         ids = [id for id, in result]
-    #         datasets = dc.index.datasets.bulk_get(ids)
-    #         for dataset in datasets:
-    #             # return f"s3://dea-public-data/L2/sentinel-2-nbar/S2MSIARD_NBAR/{ds.key_time.strftime('%Y-%m-%d')}/{ds.metadata_doc['tile_id'].replace('L1C', 'ARD')}/ARD-METADATA.yaml"
-    #             # Don't trust the datetimes that are exposed!
-    #             print(f"s3://dea-public-data/L2/sentinel-2-nbar/S2MSIARD_NBAR/{ds.metadata_doc['extent']['center_dt'][:10]}/{ds.metadata_doc['tile_id'].replace('L1C', 'ARD')}/ARD-METADATA.yaml")
-    # """)
-    # PYTHON_SCRIPT = PYTHON_SCRIPT.replace('INSERT_QUERY_HERE', SQL_QUERY)
     # Uploading s2_to_s3_rolling.py script to NCI
     upload_uploader_script = SFTPOperator(
         task_id="upload_uploader_script",
@@ -110,15 +74,13 @@ with dag:
     # language="Shell Script"
     generate_list = SSHOperator(
         task_id='generate_list_of_s2_to_upload',
-        # python - <<EOF > s3_paths_list.txt
-        # {PYTHON_SCRIPT}
-        # EOF
         # language="Shell Script"
         command=COMMON + dedent("""
         
             for product_name in s2a_ard_granule, s2b_ard_granule; do
                 echo Searching for $product_name datasets.
-            psql --variable=ON_ERROR_STOP=1 --csv --quiet --tuples-only --no-psqlrc -h dea-db.nci.org.au datacube <<EOF >> s3_paths_list.txt
+            psql --variable=ON_ERROR_STOP=1 --csv --quiet --tuples-only --no-psqlrc \
+                 -h dea-db.nci.org.au datacube <<EOF >> s3_paths_list.txt
             SELECT 's3://dea-public-data/L2/sentinel-2-nbar/S2MSIARD_NBAR/' 
                     || substring(ds.metadata#>>'{extent,center_dt}' for 10) || '/' 
                     || replace(ds.metadata#>>'{tile_id}', 'L1C', 'ARD') || '/ARD-METADATA.yaml'
