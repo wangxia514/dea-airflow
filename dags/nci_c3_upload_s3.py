@@ -38,7 +38,7 @@ collection3_products = ["ga_ls5t_ard_3", "ga_ls7e_ard_3", "ga_ls8c_ard_3"]
 LIST_SCENES_COMMAND = """
     mkdir -p {{ work_dir }};
     cd {{ work_dir }}
-    
+
     echo "Execution next_date: {{ next_execution_date }} - {{ next_execution_date.timestamp() }}"
     echo "Execution date in UTC: {{ execution_date }} - {{ execution_date.timestamp() }}"
     echo "Now in UTC: `date -u`"
@@ -54,17 +54,17 @@ LIST_SCENES_COMMAND = """
     set -x
 
     args="-h dea-db.nci.org.au datacube -t -A -F,"
-    query="SELECT dsl.uri_body, ds.archived, ds.added, 
-    to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra' as exec_dt 
-    FROM agdc.dataset ds 
-    INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id 
-    INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref 
-    WHERE dst.name='{{ params.product }}' 
-    AND (ds.added BETWEEN 
-    (to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra') 
-    AND (to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra') 
-    OR ds.archived BETWEEN 
-    (to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra') 
+    query="SELECT dsl.uri_body, ds.archived, ds.added,
+    to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra' as exec_dt
+    FROM agdc.dataset ds
+    INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id
+    INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref
+    WHERE dst.name='{{ params.product }}'
+    AND (ds.added BETWEEN
+    (to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra')
+    AND (to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra')
+    OR ds.archived BETWEEN
+    (to_timestamp({{ execution_date.timestamp() }}) at time zone 'Australia/Canberra')
     AND (to_timestamp({{ next_execution_date.timestamp() }}) at time zone 'Australia/Canberra') )
     ;"
     output_file={{ work_dir }}/{{ params.product }}.csv
@@ -103,12 +103,12 @@ RUN_UPLOAD_SCRIPT = """
 
 
 default_args = {
-    "owner": "Sachit Rajbhandari",
+    "owner": "Alex Leith",
     "start_date": datetime(2020, 6, 24, tzinfo=local_tz),
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "email_on_failure": True,
-    "email": "sachit.rajbhandari@ga.gov.au",
+    "email": "alex.leith@ga.gov.au",
     "ssh_conn_id": "lpgs_gadi",
     "aws_conn_id": "dea_public_data_landsat_3_sync",
 }

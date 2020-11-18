@@ -15,10 +15,10 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.operators.dummy_operator import DummyOperator
 
 DEFAULT_ARGS = {
-    "owner": "Sachit Rajbhandari",
+    "owner": "Alex Leith",
     "depends_on_past": False,
     "start_date": datetime(2020, 6, 1),
-    "email": ["sachit.rajbhandari@ga.gov.au"],
+    "email": ["alex.leith@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
@@ -72,7 +72,7 @@ dag = DAG(
     "k8s_index_ls_c3",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
-    schedule_interval='0 */1 * * *',
+    schedule_interval="0 */1 * * *",
     catchup=False,
     tags=["k8s", "landsat_c3"],
 )
