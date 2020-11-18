@@ -39,7 +39,7 @@ jobs:
           pip install apache-airflow[aws,kubernetes,postgres,redis,ssh,celery]==1.10.12
           pip install pylint pylint-airflow
           pylint --load-plugins=pylint_airflow --disable=C,W --disable=similarities dags
-      - name: check dags
+      - name: setup airflow
         run: |
           export AIRFLOW__CORE__LOAD_EXAMPLES="False"
           export AIRFLOW__CORE__PLUGINS_FOLDER="/home/runner/work/dea-airflow/dea-airflow/plugins"
@@ -48,4 +48,10 @@ jobs:
           airflow connections --add --conn_id aws_nci_db_backup --conn_type aws --conn_login AWSKEY --conn_password AWS_PASS
           airflow connections --add --conn_id lpgs_gadi --conn_type ssh --conn_login USERNAME --conn_password PASS
           airflow info
-          airflow list_dags
+      - name: Run list_dags
+        run: |
+          daglist=`airflow list_dags`
+          errorstring="Failed to import"
+          if [[ $daglist == *"$errorstring" ]]; then
+              exit 1
+          fi
