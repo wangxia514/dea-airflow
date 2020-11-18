@@ -7,6 +7,8 @@ import logging
 import re
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures._base import as_completed
 from pathlib import Path
 
 import click
@@ -47,7 +49,8 @@ def setup_logging():
 
 @click.command()
 @click.argument('s3_urls', type=click.File('r'))
-def main(s3_urls):
+@click.option('--workers', type=int, default=4)
+def main(s3_urls, workers):
     """
     Script to sync Sentinel-2 data from NCI to AWS S3 bucket
 
@@ -61,19 +64,22 @@ def main(s3_urls):
     urls_to_upload = [url.strip() for url in s3_urls.readlines()]
 
     _LOG.info(f"{len(urls_to_upload)} datasets to upload.")
-    for s3_url in tqdm(urls_to_upload, unit='datasets', disable=None):
-        s3_url = s3_url.strip()
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        futures = [executor.submit(upload_dataset, s3_url) for s3_url in urls_to_upload]
 
-        granule_id = s3_url_to_granule_id(s3_url)
-        _LOG.info(f"Uploading {granule_id}.")
+        for future in tqdm(as_completed(futures), total=len(urls_to_upload), unit='datasets', disable=None)
+            _LOG.info(f"Metadata uploaded ({future.result()}).")
 
-        upload_dataset_without_yaml(granule_id, S3_BUCKET)
 
-        _LOG.info(f" Uploaded.")
+def upload_dataset(s3_url):
+    granule_id = s3_url_to_granule_id(s3_url)
+    _LOG.info(f"Uploading {granule_id}.")
 
-        local_path = Path(NCI_DIR) / granule_id
-        upload_dataset_doc(local_path / 'ARD-METADATA.yaml', s3_url)
-        _LOG.info(f"Metadata uploaded ({s3_url}).")
+    upload_dataset_without_yaml(granule_id, S3_BUCKET)
+
+    local_path = Path(NCI_DIR) / granule_id
+    upload_dataset_doc(local_path / 'ARD-METADATA.yaml', s3_url)
+    return s3_url
 
 
 def s3_url_to_granule_id(s3_url):
