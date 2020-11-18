@@ -48,6 +48,7 @@ jobs:
           airflow connections --add --conn_id aws_nci_db_backup --conn_type aws --conn_login AWSKEY --conn_password AWS_PASS
           airflow connections --add --conn_id lpgs_gadi --conn_type ssh --conn_login USERNAME --conn_password PASS
           airflow info
+          airflow list_dags
       - name: Run list_dags
         run: |
           daglist=`airflow list_dags`
