@@ -52,7 +52,8 @@ jobs:
       - name: Run list_dags
         run: |
           daglist=`airflow list_dags`
-          errorstring="Failed to import"
+          errorstring="Error"
+          echo $daglist
           if [[ $daglist == *"$errorstring"* ]]; then
               echo "error found"
               exit 1
