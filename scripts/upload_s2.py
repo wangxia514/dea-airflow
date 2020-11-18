@@ -25,20 +25,20 @@ _LOG = logging.getLogger(__name__)
 
 
 def setup_logging():
-    # Create handlers
+    """Log to stdout (via TQDM if running interactively) as well as into a file."""
     if sys.stdout.isatty():
         c_handler = TqdmLoggingHandler()
     else:
         c_handler = logging.StreamHandler()
-    f_handler = logging.FileHandler('file.log')
-    c_handler.setLevel(logging.WARNING)
-    f_handler.setLevel(logging.ERROR)
+    f_handler = logging.FileHandler('s3_uploads.log')
+    c_handler.setLevel(logging.INFO)
+    f_handler.setLevel(logging.INFO)
 
     # Create formatters and add it to handlers
-    c_format = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
-    f_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    c_handler.setFormatter(c_format)
-    f_handler.setFormatter(f_format)
+    # c_format = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    c_handler.setFormatter(formatter)
+    f_handler.setFormatter(formatter)
 
     # Add handlers to the logger
     _LOG.addHandler(f_handler)
