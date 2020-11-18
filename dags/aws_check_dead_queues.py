@@ -75,5 +75,4 @@ with dag:
         task_id="check_queues",
         python_callable=_check_queues,
         op_kwargs=dict(aws_conn="sandbox_aws"),
-        provide_context=True,
     )
