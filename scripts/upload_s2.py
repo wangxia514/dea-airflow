@@ -23,11 +23,12 @@ S3_BUCKET = 'dea-public-data'
 
 S3 = None
 
-_LOG = logging.getLogger(__name__)
+_LOG = logging.getLogger()
 
 
 def setup_logging():
     """Log to stdout (via TQDM if running interactively) as well as into a file."""
+    _LOG.setLevel(logging.INFO)
     if sys.stdout.isatty():
         c_handler = TqdmLoggingHandler()
     else:
@@ -49,7 +50,7 @@ def setup_logging():
 
 @click.command()
 @click.argument('s3_urls', type=click.File('r'))
-@click.option('--workers', type=int, default=4)
+@click.option('--workers', type=int, default=10)
 def main(s3_urls, workers):
     """
     Script to sync Sentinel-2 data from NCI to AWS S3 bucket
@@ -67,13 +68,12 @@ def main(s3_urls, workers):
     with ThreadPoolExecutor(max_workers=workers) as executor:
         futures = [executor.submit(upload_dataset, s3_url) for s3_url in urls_to_upload]
 
-        for future in tqdm(as_completed(futures), total=len(urls_to_upload), unit='datasets', disable=None)
-            _LOG.info(f"Metadata uploaded ({future.result()}).")
+        for future in tqdm(as_completed(futures), total=len(urls_to_upload), unit='datasets', disable=None):
+            _LOG.info(f"Completed uploaded: {future.result()}")
 
 
 def upload_dataset(s3_url):
     granule_id = s3_url_to_granule_id(s3_url)
-    _LOG.info(f"Uploading {granule_id}.")
 
     upload_dataset_without_yaml(granule_id, S3_BUCKET)
 
