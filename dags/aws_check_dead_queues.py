@@ -35,6 +35,7 @@ DEAD_QUEUES = [
 
 
 def _check_queues(aws_conn):
+    print(f"Connecting using {aws_conn}")
     sqs_hook = SQSHook(aws_conn)
     sqs = sqs_hook.get_resource_type("sqs")
 
@@ -48,12 +49,13 @@ def _check_queues(aws_conn):
             print(f"{queue.title} queue '{queue.name}' has {queue_size} items on it.")
             bad_queues.append(queue)
 
+    newline_with_dot = "\n  * "
     message = dedent(
         f"""
-        Found {len(bad_queues)} dead queues that have messages on them.
-        These are the culprits:
-        {', '.join(q.name for q in DEAD_QUEUES)}
-        """
+Found {len(bad_queues)} dead queues that have messages on them.
+These are the culprits:
+  * {newline_with_dot.join(q.name for q in DEAD_QUEUES)}
+"""
     )
 
     if len(bad_queues) > 0:
@@ -65,8 +67,8 @@ dag = DAG(
     catchup=False,
     default_args=default_args,
     schedule_interval="@daily",
-    default_view="tree",
-    tags=["aws"],
+    default_view="graph",
+    tags=["aws", "landsat_c3"],
     doc_md=__doc__,
 )
 
