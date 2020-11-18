@@ -77,7 +77,8 @@ with dag:
         # language="Shell Script"
         command=COMMON + dedent("""
         
-            for product_name in s2a_ard_granule, s2b_ard_granule; do
+            rm -f s3_paths_list.txt  # In case we've been run before
+            for product_name in s2a_ard_granule s2b_ard_granule; do
                 echo Searching for $product_name datasets.
             psql --variable=ON_ERROR_STOP=1 --csv --quiet --tuples-only --no-psqlrc \
                  -h dea-db.nci.org.au datacube <<EOF >> s3_paths_list.txt
@@ -88,8 +89,7 @@ with dag:
                 INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id
                 INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref
                 WHERE dst.name='$product_name'
-                  AND ds.added BETWEEN '{{ prev_execution_date }}' AND '{{ next_execution_date }}'
-                   OR ds.archived BETWEEN '{{ prev_execution_date }}' AND '{{ next_execution_date }}';
+                  AND ds.added BETWEEN '{{ prev_execution_date }}' AND '{{ execution_date }}';
             EOF
             done
 
