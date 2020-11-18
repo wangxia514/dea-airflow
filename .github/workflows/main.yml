@@ -52,6 +52,6 @@ jobs:
         run: |
           daglist=`airflow list_dags`
           errorstring="Failed to import"
-          if [[ $daglist == *"$errorstring" ]]; then
+          if [[ $daglist == *"$errorstring"* ]]; then
               exit 1
           fi
