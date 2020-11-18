@@ -17,7 +17,7 @@ default_args = {
     "start_date": datetime(2020, 6, 15),
     "email": ["alex.leith@ga.gov.au"],
     "email_on_failure": True,
-    "aws_account": "processing-aws-creds-sandbox",
+    "aws_account": "aws-dead-queue-checker",
 }
 
 Queue = namedtuple("Queue", ["title", "name"])
@@ -41,8 +41,8 @@ def _check_queues(aws_conn):
     bad_queues = []
 
     for queue in DEAD_QUEUES:
-        queue = sqs.get_queue_by_name(QueueName=queue.name)
-        queue_size = int(queue.attributes.get("ApproximateNumberOfMessages"))
+        sqs_queue = sqs.get_queue_by_name(QueueName=queue.name)
+        queue_size = int(sqs_queue.attributes.get("ApproximateNumberOfMessages"))
 
         if queue_size > 0:
             print(f"{queue.title} queue '{queue.name}' has {queue_size} items on it.")
