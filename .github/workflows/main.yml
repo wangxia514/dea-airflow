@@ -41,6 +41,7 @@ jobs:
           pylint --load-plugins=pylint_airflow --disable=C,W --disable=similarities dags
       - name: check dags
         run: |
+          export AIRFLOW__CORE__LOAD_EXAMPLES="False"
           export AIRFLOW__CORE__PLUGINS_FOLDER="/home/runner/work/dea-airflow/dea-airflow/plugins"
           export AIRFLOW__CORE__DAGS_FOLDER="/home/runner/work/dea-airflow/dea-airflow/dags"
           airflow initdb
