@@ -35,7 +35,7 @@ DEAD_QUEUES = [
 
 
 def _check_queues(aws_conn):
-    sqs_hook = SQSHook(aws_conn_id=default_args["aws_account"])
+    sqs_hook = SQSHook(aws_conn)
     sqs = sqs_hook.get_resource_type("sqs")
 
     bad_queues = []
@@ -74,6 +74,5 @@ with dag:
     CHECK_QUEUES = PythonOperator(
         task_id="check_queues",
         python_callable=_check_queues,
-        op_kwargs=dict(aws_conn="sandbox_aws"),
-        provide_context=True,
+        op_kwargs=dict(aws_conn=default_args["aws_account"]),
     )
