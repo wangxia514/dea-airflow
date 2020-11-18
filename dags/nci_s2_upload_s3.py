@@ -42,7 +42,7 @@ COMMON = dedent("""
 
 default_args = {
     'owner': 'Damien Ayers',
-    'start_date': datetime(2019, 12, 4, tzinfo=local_tz),
+    'start_date': datetime(2020, 11, 1, tzinfo=local_tz),
     'retries': 1,
     'retry_delay': timedelta(minutes=5),
     'email_on_failure': True,
@@ -52,10 +52,10 @@ default_args = {
 }
 
 dag = DAG(
-    'nci_s2_upload_s3',
+    'nci_s2_upload_s3_v2',
     doc_md=__doc__,
     default_args=default_args,
-    catchup=False,
+    catchup=True,
     schedule_interval='@daily',
     max_active_runs=4,
     default_view='tree',
