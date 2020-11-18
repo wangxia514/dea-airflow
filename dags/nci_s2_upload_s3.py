@@ -31,13 +31,13 @@ from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
 
 
 default_args = {
-    "owner": "Sachit Rajbhandari",
+    "owner": "Alex Leith",
     "start_date": datetime(2019, 12, 6),
     "end_date": datetime(2020, 8, 26),
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "email_on_failure": True,
-    "email": "sachit.rajbhandari@ga.gov.au",
+    "email": "alex.leith@ga.gov.au",
     "ssh_conn_id": "lpgs_gadi",
     "aws_conn_id": "dea_public_data_upload",
 }

@@ -104,14 +104,14 @@ RUN_UPLOAD_SCRIPT = """
 
 def create_dag(dag_id, product, start_date, end_date):
     default_args = {
-        "owner": "Sachit Rajbhandari",
+        "owner": "Alex Leith",
         "start_date": start_date,
         "end_date": end_date,
         "retries": 0,
         "retry_delay": timedelta(minutes=5),
         "timeout": 1200,  # For running SSH Commands
         "email_on_failure": True,
-        "email": "sachit.rajbhandari@ga.gov.au",
+        "email": "alex.leith@ga.gov.au",
         "ssh_conn_id": "lpgs_gadi",
         "aws_conn_id": "dea_public_data_landsat_3_sync",
     }
@@ -145,8 +145,8 @@ def create_dag(dag_id, product, start_date, end_date):
         sftp_c3_to_s3_script = SFTPOperator(
             task_id=f"sftp_c3_to_s3_script_{product}",
             local_filepath=Path(Path(configuration.get("core", "dags_folder")).parent)
-                .joinpath("scripts/c3_to_s3_rolling.py")
-                .as_posix(),
+            .joinpath("scripts/c3_to_s3_rolling.py")
+            .as_posix(),
             remote_filepath="{}/c3_to_s3_rolling.py".format(WORK_DIR),
             operation=SFTPOperation.PUT,
             create_intermediate_dirs=True,
