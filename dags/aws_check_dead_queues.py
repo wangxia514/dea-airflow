@@ -17,7 +17,6 @@ default_args = {
     "start_date": datetime(2020, 6, 15),
     "email": ["alex.leith@ga.gov.au"],
     "email_on_failure": True,
-    "aws_account": "aws-dead-queue-checker",
 }
 
 Queue = namedtuple("Queue", ["title", "name"])
@@ -76,5 +75,5 @@ with dag:
     CHECK_QUEUES = PythonOperator(
         task_id="check_queues",
         python_callable=_check_queues,
-        op_kwargs=dict(aws_conn=default_args["aws_account"]),
+        op_kwargs=dict(aws_conn="aws-dead-queue-checker"),
     )
