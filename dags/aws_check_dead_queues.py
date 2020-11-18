@@ -53,7 +53,7 @@ def _check_queues(aws_conn):
         f"""
 Found {len(bad_queues)} dead queues that have messages on them.
 These are the culprits:
-  * {newline_with_dot.join(q.name for q in DEAD_QUEUES)}
+{bad_queues_str}
 """
     )
 
