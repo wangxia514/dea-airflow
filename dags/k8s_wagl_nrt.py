@@ -319,7 +319,7 @@ with pipeline:
             ),
             get_logs=True,
             resources={
-                "request_cpu": "100m",
+                "request_cpu": "800m",
                 "request_memory": "6Gi",
             },
             volumes=[ancillary_volume],
