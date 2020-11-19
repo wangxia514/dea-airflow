@@ -70,10 +70,10 @@ affinity = {
                 {
                     "matchExpressions": [
                         {
-                            "key": "nodetype",
+                            "key": "nodegroup",
                             "operator": "In",
                             "values": [
-                                "spot",
+                                "memory-optimised-wagl-nrt-r5-l",
                             ],
                         }
                     ]
