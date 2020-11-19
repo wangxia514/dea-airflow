@@ -44,16 +44,20 @@ jobs:
           export AIRFLOW__CORE__LOAD_EXAMPLES="False"
           export AIRFLOW__CORE__PLUGINS_FOLDER="/home/runner/work/dea-airflow/dea-airflow/plugins"
           export AIRFLOW__CORE__DAGS_FOLDER="/home/runner/work/dea-airflow/dea-airflow/dags"
+          # create a airflowignore to ignore certain dags that are broken during testing
+          echo "lpgs_qsub_jobs_report.py" > /home/runner/work/dea-airflow/dea-airflow/dags/.airflowignore
+          echo "nci_cog_and_upload.py" >> /home/runner/work/dea-airflow/dea-airflow/dags/.airflowignore
+
           airflow initdb
           airflow connections --add --conn_id aws_nci_db_backup --conn_type aws --conn_login AWSKEY --conn_password AWS_PASS
           airflow connections --add --conn_id lpgs_gadi --conn_type ssh --conn_login USERNAME --conn_password PASS
           airflow info
           airflow list_dags
 
-          # # check if list_dags has error if yes exit CI
-          # daglist=`airflow list_dags`
-          # errorstring="Error"
-          # if [[ $daglist == *"$errorstring"* ]]; then
-          #     echo "error in dags"
-          #     exit 1
-          # fi
+          # check if list_dags has error if yes exit CI
+          daglist=`airflow list_dags`
+          errorstring="Error"
+          if [[ $daglist == *"$errorstring"* ]]; then
+              echo "error in dags"
+              exit 1
+          fi
