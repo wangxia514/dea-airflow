@@ -319,7 +319,7 @@ with pipeline:
             ),
             get_logs=True,
             resources={
-                "request_cpu": "900m",
+                "request_cpu": "500m",
                 "request_memory": "6Gi",
             },
             volumes=[ancillary_volume],
@@ -340,7 +340,6 @@ with pipeline:
             trigger_rule=TriggerRule.ALL_FAILED,
         )
 
-        # TODO this should send out the SNS notification
         SNS = PythonOperator(
             task_id=f"sns_broadcast_{index}",
             python_callable=sns_broadcast,
