@@ -267,7 +267,7 @@ with pipeline:
                 "stage": "copy-scene",
             },
             resources={
-                "request_cpu": "100m",
+                "request_cpu": "1000m",
                 "request_memory": "2Gi",
             },
             get_logs=True,
@@ -319,13 +319,13 @@ with pipeline:
             ),
             get_logs=True,
             resources={
-                "request_cpu": "500m",
-                "request_memory": "6Gi",
+                "request_cpu": "1000m",
+                "request_memory": "12Gi",
             },
             volumes=[ancillary_volume],
             volume_mounts=[ancillary_volume_mount],
             retries=2,
-            execution_timeout=timedelta(minutes=150),
+            execution_timeout=timedelta(minutes=180),
             do_xcom_push=True,
             is_delete_operator_pod=True,
         )
