@@ -164,7 +164,7 @@ with pipeline:
     SYNC = KubernetesPodOperator(
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
-        annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-wagl-nrt"},
+        annotations={"iam.amazonaws.com/role": "svc-dea-sandbox-eks-wagl-nrt"},
         cmds=["bash", "-c", " &&\n".join(SYNC_JOBS)],
         image_pull_policy="Always",
         name="sync_ancillaries",
