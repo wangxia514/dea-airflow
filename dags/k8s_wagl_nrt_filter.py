@@ -18,8 +18,8 @@ from airflow.contrib.hooks.aws_sqs_hook import SQSHook
 
 AWS_CONN_ID = "wagl_nrt_manual"
 
-FILTER_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-filter-scene"
-PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-process-scene"
+FILTER_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/060378307146/dea-sandbox-eks-wagl-s2-nrt-filter-scene"
+PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/060378307146/dea-sandbox-eks-wagl-s2-nrt-process-scene"
 
 # unfortunately this is the max
 NUM_MESSAGES_TO_POLL = 10
