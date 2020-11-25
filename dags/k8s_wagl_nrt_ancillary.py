@@ -44,6 +44,10 @@ def brdf_doys(doy):
 SYNC_JOBS = [
     "date",
     "echo garbage cleanup",
+    "mkdir -p /ancillary/granules/",
+    "mkdir -p /ancillary/output/",
+    "mkdir -p /ancillary/transfer/",
+    "mkdir -p /ancillary/upload/",
     "find /ancillary/granules/ -type f -mtime +1 -delete",
     "find /ancillary/output/ -type f -mtime +1 -delete",
     "find /ancillary/transfer/ -type f -mtime +1 -delete",
