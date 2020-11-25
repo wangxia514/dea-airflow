@@ -69,6 +69,7 @@ SYNC_JOBS = [
     "echo extracting land sea rasters",
     "tar xvf /ancillary/Land_Sea_Rasters.tar.z -C /ancillary/",
     "echo removing existing water vapour",
+    "mkdir -p /ancillary/water_vapour/",
     "find /ancillary/water_vapour/ -type f -exec rm {} \;",
     "echo synching water vapour",
     *[
@@ -82,6 +83,7 @@ SYNC_JOBS = [
         + ([NOW.year - 1] if NOW.month == 1 and NOW.day < 7 else [])
     ],
     "echo removing existing brdf",
+    "mkdir -p /ancillary/brdf-jl/",
     "find /ancillary/brdf-jl/ -type f -exec rm {} \;",
     "echo synching brdf",
     *[
