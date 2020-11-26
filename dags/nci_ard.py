@@ -43,19 +43,23 @@ schedule_interval = "0 16 * * *"
 # sed '/#\/\*/,/#\*\// d' dags/nci_ard.py > ../nci_ard.py
 # params[""] =
 
-params["project"] = "u46"
-params[
-    "index_arg"
-] = "--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/index-test-odc.env"
+use_test_db = False
+if use_test_db:
+    params[
+        "index_arg"
+    ] = "--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/index-test-odc.env"
 
-params[
-    "config_arg"
-] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf"
-params["scene_limit"] = "--scene-limit 5"
-params["products_arg"] = """--products '["usgs_ls8c_level1_1"]'"""
-params["days_to_exclude_arg"] = ""
+    params[
+        "config_arg"
+    ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf"
+    params["products_arg"] = """--products '["usgs_ls8c_level1_1"]'"""
+else:
+    params["run_ard_arg"] = ""
+
+
+# params["days_to_exclude_arg"] = ""
 #  if you use it it looks like """--days-to-exclude '["2020-06-26:2020-06-26"]'"""
-#params["run_ard_arg"] = ""
+# params["run_ard_arg"] = ""
 
 aws_develop = True
 if aws_develop:
@@ -64,10 +68,14 @@ if aws_develop:
     params["pkgdir_arg"] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test/"
     # schedule_interval = "15 08 * * *"
     schedule_interval = None
+
+    # A fail safe
+    params["scene_limit"] = "--scene-limit 1"
     params["run_ard_arg"] = ""
 else:
     # run this from local dev
     ssh_conn_id = "dsg547"
+    params["project"] = "u46"
     params["pkgdir_arg"] = "/g/data/u46/users/dsg547/results_airflow/"
     schedule_interval = None
 params["base_dir"] = params["pkgdir_arg"]
