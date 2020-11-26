@@ -53,9 +53,6 @@ if use_test_db:
         "config_arg"
     ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf"
     params["products_arg"] = """--products '["usgs_ls8c_level1_1"]'"""
-else:
-    params["run_ard_arg"] = ""
-
 
 # params["days_to_exclude_arg"] = ""
 #  if you use it it looks like """--days-to-exclude '["2020-06-26:2020-06-26"]'"""
@@ -65,13 +62,20 @@ aws_develop = True
 if aws_develop:
     # run this from airflow dev
     ssh_conn_id = "lpgs_gadi"
-    params["pkgdir_arg"] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test/"
     # schedule_interval = "15 08 * * *"
     schedule_interval = None
 
+    small_prod_run = True
+    if small_prod_run:
+        params["pkgdir_arg"] = params["base_dir"]
+        params["scene_limit"] = "--scene-limit 1"
+    else:
+        params["pkgdir_arg"] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test/"
+        params["run_ard_arg"] = ""
+
     # A fail safe
     params["scene_limit"] = "--scene-limit 1"
-    params["run_ard_arg"] = ""
+    #
 else:
     # run this from local dev
     # Add the storage for u46 back
