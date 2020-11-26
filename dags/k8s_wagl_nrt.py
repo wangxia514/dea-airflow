@@ -222,6 +222,7 @@ pipeline = DAG(
     catchup=False,
     params={},
     # TODO schedule_interval=timedelta(minutes=30),
+    schedule_interval=None,
     tags=["k8s", "dea", "psc", "wagl", "nrt"],
 )
 
