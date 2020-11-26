@@ -220,8 +220,7 @@ pipeline = DAG(
     max_active_runs=MAX_ACTIVE_RUNS,
     catchup=False,
     params={},
-    # TODO schedule_interval=timedelta(minutes=30),
-    schedule_interval=None,
+    schedule_interval=timedelta(minutes=30),
     tags=["k8s", "dea", "psc", "wagl", "nrt"],
 )
 
@@ -324,9 +323,8 @@ with pipeline:
             },
             volumes=[ancillary_volume],
             volume_mounts=[ancillary_volume_mount],
-            # TODO retries=2,
-            retries=0,
-            # TODO execution_timeout=timedelta(minutes=180),
+            retries=2,
+            execution_timeout=timedelta(minutes=180),
             do_xcom_push=True,
             is_delete_operator_pod=True,
         )
