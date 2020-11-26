@@ -74,6 +74,9 @@ if aws_develop:
     params["run_ard_arg"] = ""
 else:
     # run this from local dev
+    # Add the storage for u46 back
+    # -l storage=gdata/v10+scratch/v10+gdata/if87+gdata/fj7+scratch/fj7+scratch/u46+gdata/u46 \
+
     ssh_conn_id = "dsg547"
     params["project"] = "u46"
     params["pkgdir_arg"] = "/g/data/u46/users/dsg547/results_airflow/"
@@ -122,7 +125,7 @@ with dag:
               -q  {{ params.queue }}  \
               -W umask=33 \
               -l wd,walltime=0:30:00,mem=15GB,ncpus=1 -m abe \
-              -l storage=gdata/v10+scratch/v10+gdata/if87+gdata/fj7+scratch/fj7+scratch/u46+gdata/u46 \
+              -l storage=gdata/v10+scratch/v10+gdata/if87+gdata/fj7+scratch/fj7 \
               -P  {{ params.project }} -o {{ params.base_dir }}{{ log_ext }} -e {{ params.base_dir }}{{ log_ext }}  \
               -- /bin/bash -l -c \
                   "module use /g/data/v10/public/modules/modulefiles/; \
