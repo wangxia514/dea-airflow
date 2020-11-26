@@ -36,7 +36,7 @@ default_args = {
 }
 
 WAGL_IMAGE = (
-    "451924316694.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:patch-20201126-4"
+    "451924316694.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:patch-20201126-3"
 )
 S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.36.g1347ee8"
 
@@ -220,7 +220,8 @@ pipeline = DAG(
     max_active_runs=MAX_ACTIVE_RUNS,
     catchup=False,
     params={},
-    schedule_interval=timedelta(minutes=30),
+    # schedule_interval=timedelta(minutes=30),
+    schedule_interval=None,
     tags=["k8s", "dea", "psc", "wagl", "nrt"],
 )
 
