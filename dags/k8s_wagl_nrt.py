@@ -36,7 +36,7 @@ default_args = {
 }
 
 WAGL_IMAGE = (
-    "451924316694.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:patch-20201125-1"
+    "451924316694.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:patch-20201126-1"
 )
 S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.36.g1347ee8"
 
@@ -324,8 +324,9 @@ with pipeline:
             },
             volumes=[ancillary_volume],
             volume_mounts=[ancillary_volume_mount],
-            retries=2,
-            execution_timeout=timedelta(minutes=180),
+            # TODO retries=2,
+            retries=0,
+            # TODO execution_timeout=timedelta(minutes=180),
             do_xcom_push=True,
             is_delete_operator_pod=True,
         )
