@@ -47,9 +47,7 @@ params["project"] = "u46"
 params[
     "index_arg"
 ] = "--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/index-test-odc.env"
-params[
-    "wagl_env"
-] = "/g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/non-prod/prod-wagl.env"
+
 params[
     "config_arg"
 ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf"
