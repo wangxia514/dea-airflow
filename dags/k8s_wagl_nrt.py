@@ -36,7 +36,7 @@ default_args = {
 }
 
 WAGL_IMAGE = (
-    "451924316694.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:patch-20201126-1"
+    "451924316694.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:patch-20201126-2"
 )
 S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.36.g1347ee8"
 
@@ -73,7 +73,7 @@ affinity = {
                             "key": "nodegroup",
                             "operator": "In",
                             "values": [
-                                "memory-optimised-wagl-nrt-r5-l",
+                                "memory-optimised-wagl-s2-nrt-r5-l",
                             ],
                         }
                     ]
@@ -113,27 +113,26 @@ def copy_cmd_tile(tile_info):
 
     return [
         "echo sinergise -> disk [datastrip]",
+        "mkdir -p /transfer",
         sync(
             "--request-payer requester",
             f"s3://{SOURCE_BUCKET}/{datastrip}",
-            f"/ancillary/transfer/{granule_id}/{datastrip}",
+            f"/transfer/{granule_id}/{datastrip}",
         ),
         "echo disk -> cache [datastrip]",
         sync(
-            f"/ancillary/transfer/{granule_id}/{datastrip}",
+            f"/transfer/{granule_id}/{datastrip}",
             f"s3://{TRANSFER_BUCKET}/{datastrip}",
         ),
         "echo sinergise -> disk [tile]",
         sync(
             "--request-payer requester",
             f"s3://{SOURCE_BUCKET}/{path}",
-            f"/ancillary/transfer/{granule_id}/{path}",
+            f"/transfer/{granule_id}/{path}",
         ),
         "echo disk -> cache [tile]",
-        sync(
-            f"/ancillary/transfer/{granule_id}/{path}", f"s3://{TRANSFER_BUCKET}/{path}"
-        ),
-        f"rm -rf /ancillary/transfer/{granule_id}",
+        sync(f"/transfer/{granule_id}/{path}", f"s3://{TRANSFER_BUCKET}/{path}"),
+        f"rm -rf /transfer/{granule_id}",
     ]
 
 
