@@ -17,7 +17,7 @@ from sensors.pbs_job_complete_sensor import PBSJobSensor
 params = {
     "project": "v10",
     "queue": "normal",
-    "module_ass": "ard-scene-select-py3-dea/20201111",
+    "module_ass": "ard-scene-select-py3-dea/20201126",
     "index_arg": "--index-datacube-env "
     "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
     "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
@@ -66,7 +66,7 @@ if aws_develop:
     params["pkgdir_arg"] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test/"
     # schedule_interval = "15 08 * * *"
     schedule_interval = None
-    params["interim_days_wait"] = "--interim-days-wait 5"
+    params["run_ard_arg"] = ""
 else:
     # run this from local dev
     ssh_conn_id = "dsg547"
