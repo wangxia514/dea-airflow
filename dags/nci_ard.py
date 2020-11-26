@@ -134,7 +134,6 @@ with dag:
               -- /bin/bash -l -c \
                   "module use /g/data/v10/public/modules/modulefiles/; \
                   module use /g/data/v10/private/modules/modulefiles/; \
-                  module use /g/data/v10/public/test_modules/modulefiles; \
                   module load {{ params.module_ass }}; \
                   ard-scene-select \
                 {{ params.products_arg }} \
