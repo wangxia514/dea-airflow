@@ -65,7 +65,7 @@ if aws_develop:
     # schedule_interval = "15 08 * * *"
     schedule_interval = None
 
-    small_prod_run = True
+    small_prod_run = False
     if small_prod_run:
         params["pkgdir_arg"] = params["base_dir"]
         params["scene_limit"] = "--scene-limit 1"
