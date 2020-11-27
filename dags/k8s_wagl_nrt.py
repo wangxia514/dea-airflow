@@ -249,7 +249,7 @@ with pipeline:
             image_pull_policy="IfNotPresent",
             image=S3_TO_RDS_IMAGE,
             affinity=affinity,
-            startup_timeout_seconds=300,
+            startup_timeout_seconds=600,
             volumes=[ancillary_volume],
             volume_mounts=[ancillary_volume_mount],
             cmds=[
@@ -280,7 +280,7 @@ with pipeline:
             image_pull_policy="IfNotPresent",
             image=WAGL_IMAGE,
             affinity=affinity,
-            startup_timeout_seconds=300,
+            startup_timeout_seconds=600,
             # this is the wagl_nrt user in the wagl container
             security_context=dict(runAsUser=10015, runAsGroup=10015, fsGroup=10015),
             cmds=["/scripts/process-scene.sh"],
