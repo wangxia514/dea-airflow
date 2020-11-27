@@ -17,12 +17,13 @@ from sensors.pbs_job_complete_sensor import PBSJobSensor
 params = {
     "project": "v10",
     "queue": "normal",
-    "module_ass": "ard-scene-select-py3-dea/20201009",
+    "module_ass": "ard-scene-select-py3-dea/20201126",
     "index_arg": "--index-datacube-env "
     "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
     "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
     "config_arg": "",
     "scene_limit": "",
+    "interim_days_wait": "",
     "products_arg": "",
     "pkgdir_arg": "/g/data/xu18/ga",
     "base_dir": "/g/data/v10/work/c3_ard/",
@@ -79,7 +80,7 @@ with dag:
               -q  {{ params.queue }}  \
               -W umask=33 \
               -l wd,walltime=0:30:00,mem=15GB,ncpus=1 -m abe \
-              -l storage=gdata/v10+scratch/v10+gdata/if87+gdata/fj7+scratch/fj7+scratch/u46+gdata/u46 \
+              -l storage=gdata/v10+scratch/v10+gdata/if87+gdata/fj7+scratch/fj7 \
               -P  {{ params.project }} -o {{ params.base_dir }}{{ log_ext }} -e {{ params.base_dir }}{{ log_ext }}  \
               -- /bin/bash -l -c \
                   "module use /g/data/v10/public/modules/modulefiles/; \
@@ -95,7 +96,8 @@ with dag:
                   --project {{ params.project }} \
                   --walltime 02:30:00 \
                   {{ params.index_arg }} \
-                  {{ params.scene_limit }}\
+                  {{ params.scene_limit }} \
+                  {{ params.interim_days_wait }} \
                   {{ params.days_to_exclude_arg }} \
                   {{ params.run_ard_arg }} "
         """,
