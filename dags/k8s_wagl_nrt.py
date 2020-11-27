@@ -53,11 +53,11 @@ S3_PREFIX = "s3://dea-public-data-dev/L2/sentinel-2-nrt/S2MSIARD/"
 AWS_CONN_ID = "wagl_nrt_manual"
 
 # each DAG instance should process one scene only
-# TODO so this should be 1 in production
-NUM_MESSAGES_TO_POLL = 10
+# TODO so this should be 10 in dev
+NUM_MESSAGES_TO_POLL = 1
 
-# TODO then this should be 30
-NUM_PARALLEL_PIPELINE = 3
+# TODO then this should be 3 in dev
+NUM_PARALLEL_PIPELINE = 30
 
 MAX_ACTIVE_RUNS = 10
 
