@@ -43,15 +43,6 @@ def brdf_doys(doy):
 
 SYNC_JOBS = [
     "date",
-    "echo garbage cleanup",
-    "mkdir -p /ancillary/granules/",
-    "mkdir -p /ancillary/output/",
-    "mkdir -p /ancillary/transfer/",
-    "mkdir -p /ancillary/upload/",
-    "find /ancillary/granules/ -type f -mtime +1 -delete",
-    "find /ancillary/output/ -type f -mtime +1 -delete",
-    "find /ancillary/transfer/ -type f -mtime +1 -delete",
-    "find /ancillary/upload/ -type f -mtime +1 -delete",
     "echo synching ozone",
     sync("s3://ga-sentinel/ancillary/lookup_tables/ozone/", "/ancillary/ozone"),
     "echo synching dsm",
@@ -77,6 +68,7 @@ SYNC_JOBS = [
     ),
     "echo extracting land sea rasters",
     "tar xvf /ancillary/Land_Sea_Rasters.tar.z -C /ancillary/",
+    "chown -R root:10015 /ancillary/Land_Sea_Rasters/",
     "echo removing existing water vapour",
     "mkdir -p /ancillary/water_vapour/",
     "find /ancillary/water_vapour/ -type f -exec rm {} \;",
