@@ -59,7 +59,7 @@ NUM_MESSAGES_TO_POLL = 1
 # TODO then this should be 3 in dev
 NUM_PARALLEL_PIPELINE = 30
 
-MAX_ACTIVE_RUNS = 10
+MAX_ACTIVE_RUNS = 15
 
 AWS_CONN_ID = "wagl_nrt_manual"
 
