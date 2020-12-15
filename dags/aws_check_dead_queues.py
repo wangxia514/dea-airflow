@@ -48,7 +48,7 @@ def _check_queues(aws_conn):
             print(f"{queue.title} queue '{queue.name}' has {queue_size} items on it.")
             bad_queues.append(queue)
 
-    bad_queues_str = "\n".join(f" * {q.name}" for q in DEAD_QUEUES)
+    bad_queues_str = "\n".join(f" * {q.name}" for q in bad_queues)
     message = dedent(
         f"""
 Found {len(bad_queues)} dead queues that have messages on them.
