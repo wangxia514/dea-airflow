@@ -24,6 +24,7 @@ from env_var.infra import (
 from sqs_processing_workflow.env_cfg import (
     INDEXING_PRODUCTS,
     PRODUCT_RECORD_PATHS,
+    NODE_AFFINITY,
 )
 
 # DAG CONFIGURATION
@@ -83,5 +84,6 @@ with dag:
         name="datacube-index",
         task_id="indexing-task",
         get_logs=True,
+        affinity=NODE_AFFINITY,
         is_delete_operator_pod=True,
     )

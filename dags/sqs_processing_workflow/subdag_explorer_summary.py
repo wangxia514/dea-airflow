@@ -7,7 +7,7 @@ from airflow import DAG
 from textwrap import dedent
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
-from sqs_processing_workflow.env_cfg import INDEXING_PRODUCTS
+from sqs_processing_workflow.env_cfg import INDEXING_PRODUCTS, NODE_AFFINITY
 from sqs_processing_workflow.images import EXPLORER_IMAGE
 from env_var.infra import SECRET_EXPLORER_WRITER_NAME
 
@@ -63,6 +63,7 @@ def explorer_refresh_stats_subdag(
         name="explorer-summary",
         task_id="explorer-summary-task",
         get_logs=True,
+        affinity=NODE_AFFINITY,
         is_delete_operator_pod=True,
         dag=dag_subdag,
     )

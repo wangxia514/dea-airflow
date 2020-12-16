@@ -27,7 +27,11 @@ from airflow.operators.subdag_operator import SubDagOperator
 from sqs_processing_workflow.subdag_explorer_summary import (
     explorer_refresh_stats_subdag,
 )
-from sqs_processing_workflow.env_cfg import ARCHIVE_CONDITION, ARCHIVE_PRODUCTS
+from sqs_processing_workflow.env_cfg import (
+    ARCHIVE_CONDITION,
+    ARCHIVE_PRODUCTS,
+    NODE_AFFINITY,
+)
 
 
 DAG_NAME = "sentinel_2_nrt_archive"
@@ -92,6 +96,7 @@ with dag:
         labels={"step": "ds-arch"},
         name="datacube-dataset-archive",
         task_id="archive-nrt-datasets",
+        affinity=NODE_AFFINITY,
         get_logs=True,
         is_delete_operator_pod=True,
     )

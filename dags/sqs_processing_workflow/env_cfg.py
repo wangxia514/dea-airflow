@@ -44,7 +44,32 @@ PRODUCT_RECORD_PATHS = (
     "fractional-cover/fc/v2.2.1/*/*/*/*/*/*/*.yaml",
 )
 # ows layer product to be updated
-UPDATE_EXTENT_PRODUCTS = ("s2_nrt_granule_nbar_t", "wofs_albers", "fc_albers_combined", "s2_ard_granule_nbar_t")
+UPDATE_EXTENT_PRODUCTS = (
+    "s2_nrt_granule_nbar_t",
+    "wofs_albers",
+    "fc_albers_combined",
+    "s2_ard_granule_nbar_t",
+)
 
 # batch indexing s3 paths
 S2_NRT_S3_PATHS = "s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/**/ARD-METADATA.yaml"
+
+NODE_AFFINITY = {
+    "nodeAffinity": {
+        "requiredDuringSchedulingIgnoredDuringExecution": {
+            "nodeSelectorTerms": [
+                {
+                    "matchExpressions": [
+                        {
+                            "key": "nodetype",
+                            "operator": "In",
+                            "values": [
+                                "ondemand",
+                            ],
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
