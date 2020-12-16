@@ -54,14 +54,12 @@ S3_PREFIX = "s3://dea-public-data-dev/L2/sentinel-2-nrt/S2MSIARD/"
 
 AWS_CONN_ID = "wagl_nrt_manual"
 
-# each DAG instance should process one scene only
-# TODO so this should be 10 in dev for 10% capacity
-NUM_MESSAGES_TO_POLL = 1
-
-# TODO if the concurrency bottleneck is solve, turn it up to 30
 NUM_PARALLEL_PIPELINE = 5
-
 MAX_ACTIVE_RUNS = 15
+
+# this should be 10 in dev for 10% capacity
+# then it would just discard the other 9 messages polled
+NUM_MESSAGES_TO_POLL = 1
 
 AWS_CONN_ID = "wagl_nrt_manual"
 
@@ -222,7 +220,7 @@ pipeline = DAG(
     max_active_runs=MAX_ACTIVE_RUNS,
     catchup=False,
     params={},
-    schedule_interval=timedelta(minutes=30),
+    schedule_interval=timedelta(minutes=5),
     tags=["k8s", "dea", "psc", "wagl", "nrt"],
 )
 
