@@ -22,6 +22,7 @@ from env_var.infra import (
 )
 from sentinel_2_nrt.env_cfg import (
     INDEXING_PRODUCTS,
+    NODE_AFFINITY,
 )
 
 # DAG CONFIGURATION
@@ -95,5 +96,6 @@ with dag:
         name="datacube-index",
         task_id="batch-indexing-task",
         get_logs=True,
+        affinity=NODE_AFFINITY,
         is_delete_operator_pod=True,
     )

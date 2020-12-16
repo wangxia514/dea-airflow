@@ -24,7 +24,7 @@ from env_var.infra import (
 )
 from airflow.operators.subdag_operator import SubDagOperator
 from sentinel_2_nrt.subdag_explorer_summary import explorer_refresh_stats_subdag
-from sentinel_2_nrt.env_cfg import ARCHIVE_CONDITION, ARCHIVE_PRODUCTS
+from sentinel_2_nrt.env_cfg import ARCHIVE_CONDITION, ARCHIVE_PRODUCTS, NODE_AFFINITY
 
 DAG_NAME = "sentinel_2_nrt_archive"
 
@@ -88,6 +88,7 @@ with dag:
         name="datacube-dataset-archive",
         task_id="archive-nrt-datasets",
         get_logs=True,
+        affinity=NODE_AFFINITY,
         is_delete_operator_pod=True,
     )
 

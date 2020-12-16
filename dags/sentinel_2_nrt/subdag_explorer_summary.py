@@ -8,7 +8,7 @@ from textwrap import dedent
 
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
-from sentinel_2_nrt.env_cfg import INDEXING_PRODUCTS
+from sentinel_2_nrt.env_cfg import INDEXING_PRODUCTS, NODE_AFFINITY
 from sentinel_2_nrt.images import EXPLORER_IMAGE
 from env_var.infra import SECRET_EXPLORER_WRITER_NAME
 
@@ -64,6 +64,7 @@ def explorer_refresh_stats_subdag(
         task_id="explorer-summary-task",
         get_logs=True,
         is_delete_operator_pod=True,
+        affinity=NODE_AFFINITY,
         dag=dag_subdag,
     )
 

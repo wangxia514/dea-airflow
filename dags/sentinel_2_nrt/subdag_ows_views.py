@@ -16,6 +16,7 @@ from sentinel_2_nrt.env_cfg import (
     OWS_CFG_MOUNT_PATH,
     OWS_CFG_IMAGEPATH,
     UPDATE_EXTENT_PRODUCTS,
+    NODE_AFFINITY,
 )
 from env_var.infra import SECRET_OWS_WRITER_NAME
 
@@ -123,6 +124,7 @@ def ows_update_extent_subdag(
         volume_mounts=[ows_cfg_mount],
         init_containers=[config_container],
         is_delete_operator_pod=True,
+        affinity=NODE_AFFINITY,
         dag=dag_subdag,
     )
 
