@@ -10,5 +10,5 @@ OWS_CONFIG_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/geoscience
 
 
 EXPLORER_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/explorer:2.2.1"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/explorer:2.2.4"
 )
