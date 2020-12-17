@@ -45,7 +45,7 @@ DEFAULT_ARGS = {
     ],
 }
 
-EXPLORER_IMAGE = "opendatacube/explorer:2.2.2"
+EXPLORER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/explorer:2.2.4"
 
 dag = DAG(
     "k8s_nci_db_update_summary",
