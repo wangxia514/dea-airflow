@@ -9,8 +9,7 @@ from datetime import datetime, timedelta
 default_args = {
     'owner': 'Damien Ayers',
     'start_date': datetime(2020, 3, 12),
-    'retries': 1,
-    'retry_delay': timedelta(minutes=1),
+    'retries': 0,
     'timeout': 1200,  # For running SSH Commands
     'email_on_failure': True,
     'email': 'damien.ayers@ga.gov.au',
@@ -28,6 +27,7 @@ with dag:
         task_id=f'build_dea_env_module',
         ssh_conn_id='lpgs_gadi',
         command="""
+        set -eux
         cd ~/dea-orchestration/
         git reset --hard
         git pull

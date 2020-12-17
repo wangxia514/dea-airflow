@@ -9,8 +9,7 @@ from datetime import datetime, timedelta
 default_args = {
     'owner': 'Damien Ayers',
     'start_date': datetime(2020, 3, 12),
-    'retries': 1,
-    'retry_delay': timedelta(minutes=1),
+    'retries': 0,
     'timeout': 1200,  # For running SSH Commands
     'email_on_failure': True,
     'email': 'damien.ayers@ga.gov.au',
@@ -28,6 +27,7 @@ with dag:
         task_id=f'build_dea_module',
         ssh_conn_id='lpgs_gadi',
         command="""
+        set -eux
         cd ~/dea-orchestration/
         git reset --hard
         git pull
@@ -44,7 +44,9 @@ with dag:
         task_id='test_dea_module',
         ssh_conn_id='lpgs_gadi',
         command="""
+        set -eux
         cd $TMPDIR
+        rm -rf dea-notebooks
         git clone --depth 1 https://github.com/GeoscienceAustralia/dea-notebooks
         cd dea-notebooks/Frequently_used_code/
         module load dea/$(date +%Y%m%d)  # TODO, this will fail if run over midnight...
