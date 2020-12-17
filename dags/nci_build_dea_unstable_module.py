@@ -14,8 +14,7 @@ local_tz = pendulum.timezone("Australia/Canberra")
 default_args = {
     'owner': 'Damien Ayers',
     'start_date': datetime(2020, 3, 12, tzinfo=local_tz),
-    'retries': 1,
-    'retry_delay': timedelta(minutes=10),
+    'retries': 0,
     'timeout': 1200,  # For running SSH Commands
     'email_on_failure': True,
     'email': 'damien.ayers@ga.gov.au',
@@ -34,6 +33,7 @@ with dag:
         task_id='build_dea_unstable_module',
         ssh_conn_id='lpgs_gadi',
         command="""
+        set -eux
         cd ~/dea-orchestration/
         git reset --hard
         git pull
@@ -57,12 +57,12 @@ with dag:
     #
     # )
 
-    send_email = EmailOperator(
-        task_id='send_email',
-        to=['damien.ayers@ga.gov.au'],
-        subject='New dea/unstable Module',
-        html_content='Successfully built new dea/unstable module on the NCI',
-        mime_charset='utf-8',
-    )
+#    send_email = EmailOperator(
+#        task_id='send_email',
+#        to=['damien.ayers@ga.gov.au'],
+#        subject='New dea/unstable Module',
+#        html_content='Successfully built new dea/unstable module on the NCI',
+#        mime_charset='utf-8',
+#    )
 
-    build_dea_unstable_module >> [send_email]
+#    build_dea_unstable_module >> [send_email]
