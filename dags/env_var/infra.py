@@ -22,3 +22,5 @@ DB_HOSTNAME = Variable.get("db_hostname", "db-writer")
 
 # AWS SQS
 SQS_QUEUE_NAME = Variable.get("sqs_queue_name", "dea-dev-eks-ows-dag")
+
+IMAGE_ECR = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com"
