@@ -14,7 +14,7 @@ from airflow.kubernetes.volume_mount import VolumeMount
 NOW = datetime.now()
 DOY = int(NOW.strftime("%j"))
 
-S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:0.1.1-unstable.36.g1347ee8"
+S3_TO_RDS_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/geoscienceaustralia/s3-to-rds:0.1.1-unstable.50.g9c7d952"
 
 
 def sync(*args):
