@@ -35,13 +35,13 @@ DEFAULT_ARGS = {
         Secret(
             "env",
             "DB_USERNAME",
-            "ows-db",
+            "odc-writer",
             "postgres-username",
         ),
         Secret(
             "env",
             "DB_PASSWORD",
-            "ows-db",
+            "odc-writer",
             "postgres-password",
         ),
         Secret(
