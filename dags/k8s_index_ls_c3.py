@@ -27,11 +27,16 @@ DEFAULT_ARGS = {
     "archive_sqs_queue": "{{ var.json.k8s_index_ls_c3_config.archive_sqs_queue }}",
     "products": "ga_ls5t_ard_3 ga_ls7e_ard_3 ga_ls8c_ard_3",
     "env_vars": {
-        "DB_HOSTNAME": "{{ var.json.k8s_index_ls_c3_config.db_hostname }}",
-        "DB_DATABASE": "{{ var.json.k8s_index_ls_c3_config.db_database }}",
+        "DB_HOSTNAME": "db-writer",
     },
     # Lift secrets into environment variables
     "secrets": [
+        Secret(
+            "env",
+            "DB_DATABASE",
+            "odc-writer",
+            "database-name",
+        ),
         Secret(
             "env",
             "DB_USERNAME",
