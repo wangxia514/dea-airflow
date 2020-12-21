@@ -44,6 +44,7 @@ DEFAULT_ARGS = {
     ],
 }
 TASK_ARGS = {
+    "end_vars": DEFAULT_ARGS["env_vars"],
     "secrets": DEFAULT_ARGS["secrets"],
     "start_date": DEFAULT_ARGS["start_date"],
 }
@@ -71,10 +72,10 @@ def load_subdag(parent_dag_name, child_dag_name, product, bucket_path, paths, ar
                     "--stac",
                     "--no-sign-request",
                     f"s3://dea-public-data/{bucket_path}/{product}/{path:03d}/**/*.json",
-                    " ".join(products),
+                    product,
                 ],
                 labels={"backlog": "s3-to-dc"},
-                name="datacube-index",
+                name=f"datacube-index-{product}-{path}",
                 task_id=f"{product}--Backlog-indexing-row--{path}",
                 get_logs=True,
                 is_delete_operator_pod=True,
