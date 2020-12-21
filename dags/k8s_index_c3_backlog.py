@@ -96,7 +96,7 @@ dag = DAG(
 )
 
 with dag:
-    products = ["ga_ls8c_ard_3", "ga_la7e_ard_3", "ga_ls5t_ard_3"]
+    products = ["ga_ls8c_ard_3", "ga_ls7e_ard_3", "ga_ls5t_ard_3"]
     bucket_path = "baseline"
     # Rows should be from 88 to 116, and paths from 67 to 91
     paths = range(88, 117)
