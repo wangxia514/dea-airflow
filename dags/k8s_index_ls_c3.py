@@ -72,7 +72,7 @@ DEFAULT_ARGS = {
     ],
 }
 
-INDEXER_IMAGE = "opendatacube/datacube-index:0.0.9"
+INDEXER_IMAGE = "opendatacube/datacube-index:0.0.15"
 
 dag = DAG(
     "k8s_index_ls_c3",
