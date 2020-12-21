@@ -44,7 +44,7 @@ DEFAULT_ARGS = {
     ],
 }
 TASK_ARGS = {
-    "end_vars": DEFAULT_ARGS["env_vars"],
+    "env_vars": DEFAULT_ARGS["env_vars"],
     "secrets": DEFAULT_ARGS["secrets"],
     "start_date": DEFAULT_ARGS["start_date"],
 }
