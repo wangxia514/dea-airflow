@@ -62,18 +62,20 @@ def load_subdag(parent_dag_name, child_dag_name, product, bucket_path, paths, ar
 
     with subdag:
         for path in paths:
+            arguments = [
+                "s3-to-dc",
+                "--stac",
+                "--no-sign-request",
+                f"s3://dea-public-data/{bucket_path}/**/*.json",
+                product,
+            ]
+            print(" ".join(arguments))
             # for path in paths:
             INDEXING = KubernetesPodOperator(
                 namespace="processing",
                 image=INDEXER_IMAGE,
                 image_pull_policy="Always",
-                arguments=[
-                    "s3-to-dc",
-                    "--stac",
-                    "--no-sign-request",
-                    f"s3://dea-public-data/{bucket_path}/{product}/{path:03d}/**/*.json",
-                    product,
-                ],
+                arguments=arguments,
                 labels={"backlog": "s3-to-dc"},
                 name=f"datacube-index-{product}-{path}",
                 task_id=f"{product}--Backlog-indexing-row--{path}",
@@ -109,7 +111,7 @@ with dag:
                 DAG_NAME,
                 TASK_NAME,
                 product,
-                f"{bucket_path}/{number}",
+                f"{bucket_path}/{product}/{number}",
                 paths,
                 TASK_ARGS,
             ),
