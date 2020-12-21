@@ -51,7 +51,7 @@ TASK_ARGS = {
 INDEXER_IMAGE = "opendatacube/datacube-index:0.0.15"
 
 
-def load_subdag(parent_dag_name, child_dag_name, product, bucket_path, rows, args):
+def load_subdag(parent_dag_name, child_dag_name, product, bucket_path, paths, args):
     """
     Make us a subdag to hide all the sub tasks
     """
@@ -60,7 +60,7 @@ def load_subdag(parent_dag_name, child_dag_name, product, bucket_path, rows, arg
     )
 
     with subdag:
-        for row in rows:
+        for path in paths:
             # for path in paths:
             INDEXING = KubernetesPodOperator(
                 namespace="processing",
@@ -70,12 +70,12 @@ def load_subdag(parent_dag_name, child_dag_name, product, bucket_path, rows, arg
                     "s3-to-dc",
                     "--stac",
                     "--no-sign-request",
-                    f"s3://dea-public-data/{bucket_path}/{product}/{row}/**/*.json",
+                    f"s3://dea-public-data/{bucket_path}/{product}/{path:03d}/**/*.json",
                     " ".join(products),
                 ],
                 labels={"backlog": "s3-to-dc"},
                 name="datacube-index",
-                task_id=f"{product}--Backlog-indexing-row--{row}",
+                task_id=f"{product}--Backlog-indexing-row--{path}",
                 get_logs=True,
                 is_delete_operator_pod=True,
                 dag=subdag,
@@ -97,15 +97,15 @@ with dag:
     products = ["ga_ls_fc_3", "ga_ls_wo_3"]
     bucket_path = "derivative"
     # Rows should be from 88 to 116, and paths from 67 to 91
-    # paths = range(88, 117)
-    rows = range(67, 92)
+    paths = range(88, 117)
+    # rows = range(67, 92)
 
     for product in products:
         TASK_NAME = f"{product}--backlog"
         index_backlog = SubDagOperator(
             task_id=TASK_NAME,
             subdag=load_subdag(
-                DAG_NAME, TASK_NAME, product, bucket_path, rows, TASK_ARGS
+                DAG_NAME, TASK_NAME, product, bucket_path, paths, TASK_ARGS
             ),
             default_args=TASK_ARGS,
             dag=dag,
