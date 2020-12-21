@@ -30,6 +30,14 @@ DEAD_QUEUES = [
         "Collection 3 Fractional Cover",
         "dea-sandbox-eks-alchemist-c3-processing-fc-deadletter",
     ),
+    Queue(
+        "Collection 3 Landsat Indexing",
+        "dea-sandbox-eks-landsat-3-indexing-deadletter",
+    ),
+    Queue(
+        "Collection 3 Landsat Archiving",
+        "dea-sandbox-eks-landsat-3-archiving-deadletter",
+    ),
 ]
 
 
