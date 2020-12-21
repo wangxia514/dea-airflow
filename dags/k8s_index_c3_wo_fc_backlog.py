@@ -95,18 +95,23 @@ dag = DAG(
 )
 
 with dag:
-    products = ["ga_ls_fc_3", "ga_ls_wo_3"]
+    product_details = [["ga_ls_fc_3", "2-5-0"], ["ga_ls_wo_3", "1-6-0"]]
     bucket_path = "derivative"
     # Rows should be from 88 to 116, and paths from 67 to 91
     paths = range(88, 117)
     # rows = range(67, 92)
 
-    for product in products:
+    for product, number in product_details:
         TASK_NAME = f"{product}--backlog"
         index_backlog = SubDagOperator(
             task_id=TASK_NAME,
             subdag=load_subdag(
-                DAG_NAME, TASK_NAME, product, bucket_path, paths, TASK_ARGS
+                DAG_NAME,
+                TASK_NAME,
+                product,
+                f"{bucket_path}/{number}",
+                paths,
+                TASK_ARGS,
             ),
             default_args=TASK_ARGS,
             dag=dag,
