@@ -83,7 +83,7 @@ def load_subdag(parent_dag_name, child_dag_name, product, bucket_path, rows, arg
     return subdag
 
 
-DAG_NAME = "k8s_index_wo_fc_c3_backlog"
+DAG_NAME = "k8s_index_c3_backlog"
 
 dag = DAG(
     dag_id=DAG_NAME,
