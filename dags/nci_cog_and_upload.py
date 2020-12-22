@@ -151,7 +151,7 @@ with dag:
             provide_context=True,
             retries=1,
             # If the check fails, wait this long before FAILING all the follow Tasks
-            max_retry_delay=timedelta(days=3)
+            retry_delay=timedelta(days=3),
         )
         check_for_work.doc_md = dedent("""
                 ## Instructions
