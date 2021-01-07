@@ -6,7 +6,7 @@ DAG to periodically backup ODC database data.
 This DAG uses k8s executors and in cluster with relevant tooling
 and configuration installed.
 """
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
@@ -64,6 +64,19 @@ TEST_COMMAND = [
     % (DB_DUMP_S3_BUCKET),
 ]
 
+
+DUMP_TO_S3_COMMAND = [
+    "bash",
+    "-c",
+    dedent(
+        """
+            pg_dump -h $(DB_HOSTNAME) -U $(DB_USERNAME) -d $(DB_DATABASE) > {0}
+            ls -la | grep {0}
+            aws s3 cp {0} s3://{1}
+        """
+    ).format(f"odc_{date.today().strftime('%Y_%m_%d')}.sql", DB_DUMP_S3_BUCKET),
+]
+
 # THE DAG
 dag = DAG(
     dag_id=DAG_NAME,
@@ -75,31 +88,10 @@ dag = DAG(
 )
 
 with dag:
-    # DB_DUMP = KubernetesPodOperator(
-    #     namespace="processing",
-    #     image=INDEXER_IMAGE,
-    #     cmds=["pg_dump"],
-    #     arguments=[
-    #         "-h",
-    #         "$(DB_HOSTNAME)",
-    #         "-U",
-    #         "$(DB_USERNAME)",
-    #         "-d",
-    #         "$(DB_DATABASE)",
-    #         "-d",
-    #         "$(DB_DATABASE)",
-    #     ],
-    #     labels={"step": "ds-arch"},
-    #     name="datacube-dataset-archive",
-    #     task_id="archive-nrt-datasets",
-    #     get_logs=True,
-    #     affinity=NODE_AFFINITY,
-    #     is_delete_operator_pod=True,
-    # )
-    DB_DUMP_TEST = KubernetesPodOperator(
+    DB_DUMP = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
-        arguments=TEST_COMMAND,
+        arguments=DUMP_TO_S3_COMMAND,
         annotations={"iam.amazonaws.com/role": DB_DUMP_S3_ROLE},
         labels={"step": "ds-arch"},
         name="dump-odc-db",
@@ -108,3 +100,15 @@ with dag:
         affinity=NODE_AFFINITY,
         is_delete_operator_pod=True,
     )
+    # DB_DUMP_TEST = KubernetesPodOperator(
+    #     namespace="processing",
+    #     image=INDEXER_IMAGE,
+    #     arguments=TEST_COMMAND,
+    #     annotations={"iam.amazonaws.com/role": DB_DUMP_S3_ROLE},
+    #     labels={"step": "ds-arch"},
+    #     name="dump-odc-db",
+    #     task_id="dump-odc-db",
+    #     get_logs=True,
+    #     affinity=NODE_AFFINITY,
+    #     is_delete_operator_pod=True,
+    # )
