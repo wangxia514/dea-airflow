@@ -25,7 +25,7 @@ from env_var.infra import (
 
 DAG_NAME = "odc_db_dump_to_s3"
 
-S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:latest"
+INDEXER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/datacube-index:0.0.15"
 
 
 # DAG CONFIGURATION
@@ -97,8 +97,9 @@ with dag:
     # )
     DB_DUMP_TEST = KubernetesPodOperator(
         namespace="processing",
-        image=S3_TO_RDS_IMAGE,
+        image=INDEXER_IMAGE,
         arguments=TEST_COMMAND,
+        annotations={"iam.amazonaws.com/role": DB_DUMP_S3_ROLE},
         labels={"step": "ds-arch"},
         name="dump-odc-db",
         task_id="dump-odc-db",
