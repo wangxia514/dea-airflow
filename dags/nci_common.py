@@ -6,9 +6,9 @@ local_tz = pendulum.timezone("Australia/Canberra")
 
 c2_start_date = datetime(2020, 3, 12, tzinfo=local_tz)
 
-# “At 01:00 on Tuesday and Saturday.”
-# https://crontab.guru/#0_1_*_*_2,6
-c2_schedule_interval = "0 1 * * 2,6"
+# “At 01:00 on Tuesday, Thursday and Saturday.”
+# https://crontab.guru/#0_1_*_*_2,4,6
+c2_schedule_interval = "0 1 * * 2,4,6"
 
 c2_default_args = {
     'owner': 'Damien Ayers',
