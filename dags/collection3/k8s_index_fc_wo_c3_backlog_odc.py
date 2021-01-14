@@ -1,24 +1,21 @@
 """
-# Sentinel-2 backlog indexing automation
+# Sentinel-2 backlog indexing automation for odc db
 
 DAG to index Sentinel-2 backlog data.
 
 """
 from datetime import datetime, timedelta
 
-import kubernetes.client.models as k8s
 from airflow import DAG
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from airflow.operators.subdag_operator import SubDagOperator
 from env_var.infra import (
-    C3_PROCESSING_ROLE,
-    C3_ARCHIVAL_SQS_QUEUE_NAME,
-    C3_INDEXING_SQS_QUEUE_NAME,
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
 )
+from images import INDEXER_IMAGE
 
 
 DEFAULT_ARGS = {
@@ -54,8 +51,6 @@ TASK_ARGS = {
     "start_date": DEFAULT_ARGS["start_date"],
 }
 
-INDEXER_IMAGE = "opendatacube/datacube-index:0.0.12"
-
 
 def load_subdag(parent_dag_name, child_dag_name, product, rows, args):
     """
@@ -89,7 +84,7 @@ def load_subdag(parent_dag_name, child_dag_name, product, rows, args):
     return subdag
 
 
-DAG_NAME = "k8s_index_wo_fc_c3_backlog"
+DAG_NAME = "k8s_index_wo_fc_c3_backlog_odc"
 
 dag = DAG(
     dag_id=DAG_NAME,

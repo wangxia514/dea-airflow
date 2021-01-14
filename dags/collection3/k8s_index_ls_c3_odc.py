@@ -28,6 +28,7 @@ from env_var.infra import (
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
 )
+from images import INDEXER_IMAGE
 
 DEFAULT_ARGS = {
     "owner": "Pin Jin",
@@ -80,10 +81,9 @@ DEFAULT_ARGS = {
     ],
 }
 
-INDEXER_IMAGE = "opendatacube/datacube-index:0.0.15"
 
 dag = DAG(
-    "k8s_index_ls_c3",
+    "k8s_index_ls_c3_odc",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval="0 */1 * * *",

@@ -1,5 +1,5 @@
 """
-# Landsat Collection-3 indexing automation
+# Landsat Collection-3 indexing automation for odc db
 
 DAG to periodically index/archive Landsat Collection-3 data.
 
@@ -12,7 +12,6 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
-from airflow.operators.dummy_operator import DummyOperator
 from env_var.infra import (
     C3_ALCHEMIST_ROLE,
     C3_FC_SQS_QUEUE_NAME,
@@ -21,6 +20,7 @@ from env_var.infra import (
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
 )
+from images import INDEXER_IMAGE
 
 
 DEFAULT_ARGS = {
@@ -73,10 +73,8 @@ DEFAULT_ARGS = {
     ],
 }
 
-INDEXER_IMAGE = "opendatacube/datacube-index:0.0.15"
-
 dag = DAG(
-    "k8s_index_wo_fc_c3",
+    "k8s_index_wo_fc_c3_odc",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval="0,30 * * * * *",
