@@ -20,7 +20,7 @@ from env_var.infra import (
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
 )
-from images import INDEXER_IMAGE
+from collection3.images import INDEXER_IMAGE
 
 
 DEFAULT_ARGS = {
