@@ -19,7 +19,7 @@ from env_var.infra import (
     SECRET_ODC_WRITER_NAME,
     SECRET_AWS_NAME,
     INDEXING_ROLE,
-    SQS_QUEUE_NAME,
+    NEWDEADATA_SQS_QUEUE_NAME,
 )
 from sqs_processing_workflow.env_cfg import (
     INDEXING_PRODUCTS,
@@ -59,7 +59,7 @@ record_path_string = " ".join(record_path_list_with_prefix)
 INDEXING_BASH_COMMAND = [
     "bash",
     "-c",
-    f'sqs-to-dc {SQS_QUEUE_NAME} "{index_product_string}" {record_path_string} --skip-lineage --allow-unsafe',
+    f'sqs-to-dc {NEWDEADATA_SQS_QUEUE_NAME} "{index_product_string}" {record_path_string} --skip-lineage --allow-unsafe',
 ]
 
 
