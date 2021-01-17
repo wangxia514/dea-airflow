@@ -62,7 +62,7 @@ DEFAULT_ARGS = {
 
 # Point to Geoscience Australia / OpenDataCube Dockerhub
 S3_TO_RDS_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/geoscienceaustralia/s3-to-rds:0.1.2"
-EXPLORER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/explorer:2.3.0"
+EXPLORER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/explorer:2.4.0"
 
 dag = DAG(
     "k8s_nci_db_sync",
