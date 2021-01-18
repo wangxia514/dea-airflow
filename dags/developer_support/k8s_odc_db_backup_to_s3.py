@@ -58,7 +58,7 @@ TEST_COMMAND = [
         """
             psql -h $(DB_HOSTNAME) -U $(DB_USERNAME) -d $(DB_DATABASE) -t -A -F"," -c "select count(*) from cubedash.product;" > output.csv
             cat output.csv
-            aws s3 cp output.csv s3://%s/sandbox/
+            aws s3 cp output.csv s3://%s/dea-sandbox/
         """
     )
     % (DB_DUMP_S3_BUCKET),
