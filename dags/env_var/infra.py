@@ -23,7 +23,7 @@ SECRET_EXPLORER_WRITER_NAME = Variable.get(
 )
 SECRET_OWS_WRITER_NAME = Variable.get("db_ows_writer_secret", "ows-writer")
 SECRET_ODC_WRITER_NAME = Variable.get("db_odc_writer_secret", "odc-writer")
-SECRET_DBA_ADMIN_NAME = Variable.get("db_dba_admin_secret", "dba_admin")
+SECRET_DBA_ADMIN_NAME = Variable.get("db_dba_admin_secret", "dba-admin")
 
 # S3 buckets
 DB_DUMP_S3_BUCKET = Variable.get("db_dump_s3_bucketname", "dea-dev-odc-db-dump")
