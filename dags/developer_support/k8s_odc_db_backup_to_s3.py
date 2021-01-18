@@ -100,6 +100,7 @@ with dag:
         affinity=NODE_AFFINITY,
         is_delete_operator_pod=True,
     )
+
     # DB_DUMP_TEST = KubernetesPodOperator(
     #     namespace="processing",
     #     image=INDEXER_IMAGE,
