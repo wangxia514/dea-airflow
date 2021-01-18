@@ -51,16 +51,30 @@ DEFAULT_ARGS = {
     ],
 }
 
+TEST_COMMAND = [
+    "bash",
+    "-c",
+    dedent(
+        """
+            psql -h $(DB_HOSTNAME) -U $(DB_USERNAME) -d $(DB_DATABASE) -t -A -F"," -c "select count(*) from cubedash.product;" > output.csv
+            cat output.csv
+            aws s3 cp output.csv s3://%s/dea-dev/
+        """
+    )
+    % (DB_DUMP_S3_BUCKET),
+]
+
+
 DUMP_TO_S3_COMMAND = [
     "bash",
     "-c",
     dedent(
         """
-            pg_dump -Fc -h $(DB_HOSTNAME) -U $(DB_USERNAME) -d $(DB_DATABASE) > {0}
+            pg_dump -h $(DB_HOSTNAME) -U $(DB_USERNAME) -d $(DB_DATABASE) > {0}
             ls -la | grep {0}
             aws s3 cp {0} s3://{1}
         """
-    ).format(f"odc_{date.today().strftime('%Y_%m_%d')}.pgdump", DB_DUMP_S3_BUCKET),
+    ).format(f"odc_{date.today().strftime('%Y_%m_%d')}.sql", DB_DUMP_S3_BUCKET),
 ]
 
 # THE DAG
@@ -74,10 +88,22 @@ dag = DAG(
 )
 
 with dag:
-    DB_DUMP = KubernetesPodOperator(
+    # DB_DUMP = KubernetesPodOperator(
+    #     namespace="processing",
+    #     image=INDEXER_IMAGE,
+    #     arguments=DUMP_TO_S3_COMMAND,
+    #     annotations={"iam.amazonaws.com/role": DB_DUMP_S3_ROLE},
+    #     labels={"step": "ds-arch"},
+    #     name="dump-odc-db",
+    #     task_id="dump-odc-db",
+    #     get_logs=True,
+    #     affinity=NODE_AFFINITY,
+    #     is_delete_operator_pod=True,
+    # )
+    DB_DUMP_TEST = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
-        arguments=DUMP_TO_S3_COMMAND,
+        arguments=TEST_COMMAND,
         annotations={"iam.amazonaws.com/role": DB_DUMP_S3_ROLE},
         labels={"step": "ds-arch"},
         name="dump-odc-db",
