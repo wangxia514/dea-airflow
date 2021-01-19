@@ -1,4 +1,5 @@
 # Collection 3 indexing
+This is for odc database, the dags for another database is managed seperately.
 
 ## SQS Queues
 1 x index queue for baseline products
