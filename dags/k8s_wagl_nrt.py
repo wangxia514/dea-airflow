@@ -36,7 +36,7 @@ default_args = {
 }
 
 WAGL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:patch-20201127-2"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:patch-20210121-1"
 )
 S3_TO_RDS_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/geoscienceaustralia/s3-to-rds:0.1.2"
 
@@ -204,6 +204,11 @@ def sns_broadcast(**context):
     msg = task_instance.xcom_pull(
         task_ids=f"dea-s2-wagl-nrt-{index}", key="return_value"
     )
+
+    assert "dataset" in msg
+    if msg["dataset"] == "exists":
+        # dataset already existed, did not get processed by this DAG
+        return
 
     msg_str = json.dumps(msg)
 
