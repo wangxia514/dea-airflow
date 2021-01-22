@@ -29,6 +29,10 @@ dag = DAG(
     )
 )
 
+COMMON = dedent("""
+    set -eux
+""")
+
 with dag:
 
     # Need to decide between two options:
@@ -38,7 +42,7 @@ with dag:
 
     setup = SSHOperator(
         task_id="setup",
-        command=dedent(
+        command=dedent(COMMON +
             """
             mkdir -p /g/data/v10/work/c3_download_derivs/{{ ts_nodash }}
             """
@@ -49,7 +53,7 @@ with dag:
     sync_wofs = SSHOperator(
         task_id="sync_wofs",
         remote_host="gadi-dm.nci.org.au",
-        command=dedent(
+        command=dedent(COMMON +
             """
             cd /g/data/jw04/ga/ga_ls_wo_3
             time ~/bin/s5cmd --stat cp --if-size-differ 's3://dea-public-data/derivative/ga_ls_wo_3/*' . > /g/data/v10/work/c3_download_derivs/{{ts_nodash}}/ga_ls_wo_3.download.log
@@ -61,7 +65,7 @@ with dag:
     sync_fc = SSHOperator(
         task_id="sync_fc",
         remote_host="gadi-dm.nci.org.au",
-        command=dedent(
+        command=dedent(COMMON +
             """
             cd /g/data/jw04/ga/ga_ls_fc_3
             time ~/bin/s5cmd --stat cp --if-size-differ 's3://dea-public-data/derivative/ga_ls_fc_3/*' . > /g/data/v10/work/c3_download_derivs/{{ts_nodash}}/ga_ls_fc_3.download.log
@@ -71,7 +75,7 @@ with dag:
 
     index_wofs = SSHOperator(
         task_id="index_wofs",
-        command=dedent(
+        command=dedent(COMMON +
             """
             module load dea
             cd /g/data/v10/work/c3_download_derivs/{{ts_nodash}}
@@ -84,7 +88,7 @@ with dag:
 
     index_fc = SSHOperator(
         task_id="index_fc",
-        command=dedent(
+        command=dedent(COMMON +
             """
             module load dea
             cd /g/data/v10/work/c3_download_derivs/{{ts_nodash}}
