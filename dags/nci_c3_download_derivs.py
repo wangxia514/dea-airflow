@@ -17,6 +17,9 @@ dag = DAG(
     "nci_c3_download_derivs",
     doc_md=__doc__,
     catchup=False,
+    email=['damien.ayers@ga.gov.au'],
+    email_on_failure=True,
+    owner='Damien Ayers',
     tags=["nci", "landsat_c3"],
     default_view="tree",
     start_date=datetime(2021, 1, 20, tzinfo=local_tz),
@@ -49,7 +52,7 @@ with dag:
         command=dedent(
             """
             cd /g/data/jw04/ga/ga_ls_wo_3
-            time ~/bin/s5cmd --stat cp --if-size-differ 's3://dea-public-data/derivative/ga_ls_wo_3/*' ." > /g/data/v10/work/c3_download_derivs/{{ts_nodash}}/ga_ls_wo_3.download.log
+            time ~/bin/s5cmd --stat cp --if-size-differ 's3://dea-public-data/derivative/ga_ls_wo_3/*' . > /g/data/v10/work/c3_download_derivs/{{ts_nodash}}/ga_ls_wo_3.download.log
             """
         ),
     )
@@ -61,7 +64,7 @@ with dag:
         command=dedent(
             """
             cd /g/data/jw04/ga/ga_ls_fc_3
-            time ~/bin/s5cmd --stat cp --if-size-differ 's3://dea-public-data/derivative/ga_ls_fc_3/*' ." > /g/data/v10/work/c3_download_derivs/{{ts_nodash}}/ga_ls_fc_3.download.log
+            time ~/bin/s5cmd --stat cp --if-size-differ 's3://dea-public-data/derivative/ga_ls_fc_3/*' . > /g/data/v10/work/c3_download_derivs/{{ts_nodash}}/ga_ls_fc_3.download.log
             """
         ),
     )
