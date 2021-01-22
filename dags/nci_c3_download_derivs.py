@@ -80,7 +80,7 @@ with dag:
             module load dea
             cd /g/data/v10/work/c3_download_derivs/{{ts_nodash}}
 
-            awk '/odc-metadata.yaml/ {print "/g/data/jw04/ga/ga_ls_wo_3/" $0}' ga_ls_wo_3.download.log  | \
+            awk '/odc-metadata.yaml/ {print "/g/data/jw04/ga/ga_ls_wo_3/" $3}' ga_ls_wo_3.download.log  | \
             xargs -P 4 datacube -v dataset add --no-verify-lineage --product ga_ls_wo_3
         """
         ),
@@ -93,7 +93,7 @@ with dag:
             module load dea
             cd /g/data/v10/work/c3_download_derivs/{{ts_nodash}}
 
-            awk '/odc-metadata.yaml/ {print "/g/data/jw04/ga/ga_ls_fc_3/" $0}' ga_ls_fc_3.download.log  | \
+            awk '/odc-metadata.yaml/ {print "/g/data/jw04/ga/ga_ls_fc_3/" $3}' ga_ls_fc_3.download.log  | \
             xargs -P 4 datacube -v dataset add --no-verify-lineage --product ga_ls_fc_3
             """
         ),
