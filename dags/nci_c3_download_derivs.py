@@ -17,15 +17,15 @@ dag = DAG(
     "nci_c3_download_derivs",
     doc_md=__doc__,
     catchup=False,
-    email=['damien.ayers@ga.gov.au'],
-    email_on_failure=True,
-    owner='Damien Ayers',
     tags=["nci", "landsat_c3"],
     default_view="tree",
     start_date=datetime(2021, 1, 20, tzinfo=local_tz),
     default_args=dict(
         do_xcom_push=False,
         ssh_conn_id='lpgs_gadi',
+        email=['damien.ayers@ga.gov.au'],
+        email_on_failure=True,
+        owner='Damien Ayers',
     )
 )
 
