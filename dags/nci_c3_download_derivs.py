@@ -4,11 +4,14 @@ Download derivatives from AWS to NCI and index them into the NCI database
 
 """
 
+from datetime import datetime
 from textwrap import dedent
 
+import pendulum
 from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
 
+local_tz = pendulum.timezone("Australia/Canberra")
 
 dag = DAG(
     "nci_c3_download_derivs",
@@ -16,6 +19,7 @@ dag = DAG(
     catchup=False,
     tags=["nci", "landsat_c3"],
     default_view="tree",
+    start_date=datetime(2021, 1, 20, tzinfo=local_tz),
     default_args=dict(
         do_xcom_push=False,
         ssh_conn_id='lpgs_gadi',
