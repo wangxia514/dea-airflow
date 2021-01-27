@@ -52,7 +52,13 @@ with dag:
     # Sync WOfS directory using a Gadi Data Mover node
     sync_wofs = SSHOperator(
         task_id="sync_wofs",
+        # Run on the Gadi Data Mover node, it's specifically spec'd for data transfers, and
+        # we use s5cmd to transfer using lots of threads to max out the network pipe, and quickly
+        # walk both the S3 tree and the Lustre FS tree.
         remote_host="gadi-dm.nci.org.au",
+        # There have been random READ failures when performing this download. So retry a few times.
+        # Append to the log file so that we don't lose track of any downloaded files.
+        retries=3,
         command=dedent(COMMON +
             """
             cd /g/data/jw04/ga/ga_ls_wo_3
@@ -65,6 +71,7 @@ with dag:
     sync_fc = SSHOperator(
         task_id="sync_fc",
         remote_host="gadi-dm.nci.org.au",
+        retries=3,
         command=dedent(COMMON +
             """
             cd /g/data/jw04/ga/ga_ls_fc_3
@@ -84,6 +91,10 @@ with dag:
             xargs -P 4 datacube -v dataset add --no-verify-lineage --product ga_ls_wo_3
         """
         ),
+        # Attempt to index downloaded datasets, even if there were some failures in the download
+        # We want to avoid missing indexing anything, and any gaps will get filled in next time
+        # the download runs.
+        trigger_rule="all_done",
     )
 
     index_fc = SSHOperator(
@@ -97,6 +108,7 @@ with dag:
             xargs -P 4 datacube -v dataset add --no-verify-lineage --product ga_ls_fc_3
             """
         ),
+        trigger_rule="all_done",
     )
 
     setup >> [sync_fc, sync_wofs]
