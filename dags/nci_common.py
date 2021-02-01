@@ -24,7 +24,7 @@ c2_default_args = {
         'project': 'v10',
         'queue': 'normal',
         'module': 'dea',
-        'year': '2020',
+        'year': '2021',
         'queue_size': '10000',
     }
 }
