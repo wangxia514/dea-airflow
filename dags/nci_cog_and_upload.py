@@ -127,7 +127,7 @@ with dag:
 
                 dea-cogger generate-work-list --product-name "{{params.product}}" \\
                  --output-dir "{{work_dir}}" --s3-list  "{{params.product}}_s3_inv_list.txt" \\
-                 --time-range "time in [2019-01-01, 2020-12-31]"
+                 --time-range "time in [2019-01-01, 2025-12-31]"
             """),
             # --time-range "time in [{{prev_ds}}, {{ds}}]"
             timeout=2 * HOURS,
