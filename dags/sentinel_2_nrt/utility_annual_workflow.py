@@ -1,12 +1,10 @@
 """
-## Utility Tool
+## Utility Tool (Self Serve)
 For indexing more dataset from s3 to an existing established product and ows layers.
 
 #### Utility customisation
-The DAG can be parameterized with run time configuration `products`
+The DAG can be parameterized with run time configuration `product` and `s3_path`
 
-To run with all, set `dag_run.conf.products` to `--all`
-otherwise provide products to be refreshed seperated by space, i.e. `s2a_nrt_granule s2b_nrt_granule`
 dag_run.conf format:
 
 #### example conf in json format
