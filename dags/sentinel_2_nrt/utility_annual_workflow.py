@@ -3,13 +3,14 @@
 For indexing more dataset from s3 to an existing established product and ows layers.
 
 #### Utility customisation
-The DAG can be parameterized with run time configuration `product` and `s3_path`
+The DAG can be parameterized with run time configuration `product` and `s3_glob`
 
 dag_run.conf format:
 
 #### example conf in json format
-    "product": "product_name"
-    "s3_path": "s3://bucketname/path"
+
+    "s3_glob": "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
+    "product": "cemp_insar_alos_displacement"
 """
 from datetime import datetime, timedelta
 
@@ -63,17 +64,6 @@ DEFAULT_ARGS = {
     ],
 }
 
-INDEXING_BASH_COMMAND = [
-    "bash",
-    "-c",
-    dedent(
-        """
-            s3-to-dc %s "%s" --skip-lineage;
-        """
-    )
-    % ("{{ dag_run.conf.s3_path }}", "{{ dag_run.conf.product }}"),
-]
-
 
 # THE DAG
 dag = DAG(
@@ -97,8 +87,15 @@ with dag:
         namespace="processing",
         image=INDEXER_IMAGE,
         image_pull_policy="IfNotPresent",
-        arguments=INDEXING_BASH_COMMAND,
         labels={"step": "s3-to-rds"},
+        cmds=["s3-to-dc"],
+        arguments=[
+            # "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
+            # "cemp_insar_alos_displacement",
+            # Jinja templates for arguments
+            "{{ dag_run.conf.s3_glob }}",
+            "{{ dag_run.conf.product }}",
+        ],
         name="datacube-index",
         task_id="batch-indexing-task",
         get_logs=True,
