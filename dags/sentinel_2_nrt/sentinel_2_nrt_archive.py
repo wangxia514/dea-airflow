@@ -13,18 +13,19 @@ from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from textwrap import dedent
 
-from sentinel_2_nrt.images import INDEXER_IMAGE
-from sentinel_2_nrt.subdag_ows_views import ows_update_extent_subdag
+from infra.images import INDEXER_IMAGE
+from subdags.subdag_ows_views import ows_update_extent_subdag
 
-from env_var.infra import (
+from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_AWS_NAME,
     SECRET_ODC_WRITER_NAME,
 )
+from infra.podconfig import NODE_AFFINITY
 from airflow.operators.subdag_operator import SubDagOperator
-from sentinel_2_nrt.subdag_explorer_summary import explorer_refresh_stats_subdag
-from sentinel_2_nrt.env_cfg import ARCHIVE_CONDITION, ARCHIVE_PRODUCTS, NODE_AFFINITY
+from subdags.subdag_explorer_summary import explorer_refresh_stats_subdag
+from sentinel_2_nrt.env_cfg import ARCHIVE_CONDITION, ARCHIVE_PRODUCTS
 
 DAG_NAME = "sentinel_2_nrt_archive"
 

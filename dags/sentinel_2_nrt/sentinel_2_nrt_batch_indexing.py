@@ -13,16 +13,16 @@ from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from textwrap import dedent
 
-from sentinel_2_nrt.images import INDEXER_IMAGE
-from env_var.infra import (
+from infra.images import INDEXER_IMAGE
+from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
     SECRET_AWS_NAME,
 )
+from infra.podconfig import NODE_AFFINITY
 from sentinel_2_nrt.env_cfg import (
     INDEXING_PRODUCTS,
-    NODE_AFFINITY,
 )
 
 # DAG CONFIGURATION
