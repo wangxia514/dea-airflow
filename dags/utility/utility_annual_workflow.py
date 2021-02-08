@@ -71,7 +71,7 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
-    tags=["k8s", "annual", "batch-indexing"],
+    tags=["k8s", "annual", "batch-indexing", "self-service"],
 )
 
 
