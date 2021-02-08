@@ -10,15 +10,15 @@ from textwrap import dedent
 
 import kubernetes.client.models as k8s
 
-from sentinel_2_nrt.images import OWS_CONFIG_IMAGE, OWS_IMAGE
-from sentinel_2_nrt.env_cfg import (
+from infra.images import OWS_CONFIG_IMAGE, OWS_IMAGE
+from infra.podconfig import (
     OWS_CFG_PATH,
     OWS_CFG_MOUNT_PATH,
     OWS_CFG_IMAGEPATH,
-    UPDATE_EXTENT_PRODUCTS,
     NODE_AFFINITY,
 )
-from env_var.infra import SECRET_OWS_WRITER_NAME
+from sentinel_2_nrt.env_cfg import UPDATE_EXTENT_PRODUCTS
+from infra.variables import SECRET_OWS_WRITER_NAME
 
 OWS_SECRETS = [
     Secret("env", "DB_USERNAME", SECRET_OWS_WRITER_NAME, "postgres-username"),

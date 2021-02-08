@@ -25,8 +25,8 @@ from airflow.operators.python_operator import PythonOperator
 
 from airflow.kubernetes.secret import Secret
 from airflow.operators.subdag_operator import SubDagOperator
-from sentinel_2_nrt.subdag_ows_views import ows_update_extent_subdag
-from env_var.infra import (
+from subdags.subdag_ows_views import ows_update_extent_subdag
+from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_AWS_NAME,

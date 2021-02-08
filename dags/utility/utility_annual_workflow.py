@@ -18,19 +18,18 @@ from airflow import DAG
 from airflow.operators.subdag_operator import SubDagOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.kubernetes.secret import Secret
-from sentinel_2_nrt.subdag_ows_views import ows_update_extent_subdag
-from sentinel_2_nrt.subdag_explorer_summary import explorer_refresh_stats_subdag
+from subdags.subdag_ows_views import ows_update_extent_subdag
+from subdags.subdag_explorer_summary import explorer_refresh_stats_subdag
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
-from textwrap import dedent
 
-from sentinel_2_nrt.images import INDEXER_IMAGE
-from env_var.infra import (
+from infra.images import INDEXER_IMAGE
+from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
     SECRET_AWS_NAME,
 )
-from sentinel_2_nrt.env_cfg import (
+from infra.podconfig import (
     NODE_AFFINITY,
 )
 
@@ -72,7 +71,7 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
-    tags=["k8s", "annual", "batch-indexing"],
+    tags=["k8s", "annual", "batch-indexing", "self-service"],
 )
 
 

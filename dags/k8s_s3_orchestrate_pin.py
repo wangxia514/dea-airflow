@@ -28,7 +28,7 @@ import kubernetes.client.models as k8s
 from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.kubernetes.volume import Volume
 
-from env_var.infra import DB_HOSTNAME
+from infra.variables import DB_HOSTNAME
 
 OWS_CFG_PATH = "/env/config/ows_cfg.py"
 

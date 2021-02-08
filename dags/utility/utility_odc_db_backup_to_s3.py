@@ -13,8 +13,7 @@ from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from textwrap import dedent
 
-from env_var.infra import (
-    NODE_AFFINITY,
+from infra.variables import (
     SECRET_DBA_ADMIN_NAME,
     DB_DUMP_S3_ROLE,
     SECRET_AWS_NAME,
@@ -22,6 +21,7 @@ from env_var.infra import (
     DB_DATABASE,
     DB_HOSTNAME,
 )
+from infra.podconfig import NODE_AFFINITY
 
 DAG_NAME = "odc_db_dump_to_s3"
 

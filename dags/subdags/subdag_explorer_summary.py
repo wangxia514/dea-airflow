@@ -4,13 +4,13 @@ This subdag can be called by other dags
 """
 
 from airflow import DAG
-from textwrap import dedent
 
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
-from sentinel_2_nrt.env_cfg import INDEXING_PRODUCTS, NODE_AFFINITY
-from sentinel_2_nrt.images import EXPLORER_IMAGE
-from env_var.infra import SECRET_EXPLORER_WRITER_NAME
+from sentinel_2_nrt.env_cfg import INDEXING_PRODUCTS
+from infra.podconfig import NODE_AFFINITY
+from infra.images import EXPLORER_IMAGE
+from infra.variables import SECRET_EXPLORER_WRITER_NAME
 
 EXPLORER_SECRETS = [
     Secret("env", "DB_USERNAME", SECRET_EXPLORER_WRITER_NAME, "postgres-username"),
