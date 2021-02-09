@@ -10,12 +10,12 @@ from airflow import DAG
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from airflow.operators.subdag_operator import SubDagOperator
-from env_var.infra import (
+from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
 )
-from collection3.images import INDEXER_IMAGE
+from infra.images import INDEXER_IMAGE
 
 
 DEFAULT_ARGS = {
