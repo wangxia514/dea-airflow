@@ -14,24 +14,24 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 
 from textwrap import dedent
 
-from sqs_processing_workflow.images import INDEXER_IMAGE
-from sqs_processing_workflow.subdag_ows_views import ows_update_extent_subdag
+from infra.images import INDEXER_IMAGE
+from subdags.subdag_ows_views import ows_update_extent_subdag
 
-from env_var.infra import (
+from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_AWS_NAME,
     SECRET_ODC_WRITER_NAME,
 )
 from airflow.operators.subdag_operator import SubDagOperator
-from sqs_processing_workflow.subdag_explorer_summary import (
+from subdags.subdag_explorer_summary import (
     explorer_refresh_stats_subdag,
 )
-from sqs_processing_workflow.env_cfg import (
+from sentinel_2_nrt.env_cfg import (
     ARCHIVE_CONDITION,
     ARCHIVE_PRODUCTS,
-    NODE_AFFINITY,
 )
+from infra.podconfig import NODE_AFFINITY
 
 
 DAG_NAME = "sentinel_2_nrt_archive"

@@ -1,11 +1,11 @@
 """
 ## Utility Tool
-### explore refresh stats
-This is utility is to provide administrators the easy accessiblity to run ad-hoc --refresh-stats
+### ows update ranges
+This is utility is to provide administrators the easy accessiblity to run ad-hoc --views and update-ranges
 
 #### default run
-    `cubedash-gen --no-init-database --refresh-stats --force-refresh s2a_nrt_granule`
-    `cubedash-gen --no-init-database --refresh-stats --force-refresh s2b_nrt_granule`
+    `datacube-ows-update --views`
+    `datacube-ows-update s2_nrt_granule_nbar_t`
 
 #### Utility customisation
 The DAG can be parameterized with run time configuration `products`
@@ -25,19 +25,18 @@ from airflow.operators.python_operator import PythonOperator
 
 from airflow.kubernetes.secret import Secret
 from airflow.operators.subdag_operator import SubDagOperator
-from sqs_processing_workflow.subdag_explorer_summary import (
-    explorer_refresh_stats_subdag,
-)
-from env_var.infra import (
+from subdags.subdag_ows_views import ows_update_extent_subdag
+
+from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_AWS_NAME,
 )
-from sqs_processing_workflow.env_cfg import (
-    INDEXING_PRODUCTS,
+from sentinel_2_nrt.env_cfg import (
+    UPDATE_EXTENT_PRODUCTS,
 )
 
-DAG_NAME = "utility_explorer-refresh-stats"
+DAG_NAME = "utility_ows-update-extent"
 
 # DAG CONFIGURATION
 DEFAULT_ARGS = {
@@ -68,7 +67,7 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
-    tags=["k8s", "explorer"],
+    tags=["k8s", "ows"],
 )
 
 
@@ -76,7 +75,7 @@ def parse_dagrun_conf(products, **kwargs):
     if products:
         return products
     else:
-        return " ".join(INDEXING_PRODUCTS)
+        return " ".join(UPDATE_EXTENT_PRODUCTS)
 
 
 SET_REFRESH_PRODUCT_TASK_NAME = "parse_dagrun_conf"
@@ -89,15 +88,14 @@ with dag:
         op_args=["{{ dag_run.conf.products }}"],
         # provide_context=True,
     )
-
-    EXPLORER_SUMMARY = SubDagOperator(
-        task_id="run-cubedash-gen-refresh-stat",
-        subdag=explorer_refresh_stats_subdag(
+    OWS_UPDATE_EXTENTS = SubDagOperator(
+        task_id="run-ows-update-ranges",
+        subdag=ows_update_extent_subdag(
             DAG_NAME,
-            "run-cubedash-gen-refresh-stat",
+            "run-ows-update-ranges",
             DEFAULT_ARGS,
             SET_REFRESH_PRODUCT_TASK_NAME,
         ),
     )
 
-    SET_PRODUCTS >> EXPLORER_SUMMARY
+    SET_PRODUCTS >> OWS_UPDATE_EXTENTS

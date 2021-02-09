@@ -12,8 +12,8 @@ from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 
-from sqs_processing_workflow.images import INDEXER_IMAGE
-from env_var.infra import (
+from infra.images import INDEXER_IMAGE
+from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
@@ -21,11 +21,11 @@ from env_var.infra import (
     INDEXING_ROLE,
     NEWDEADATA_SQS_QUEUE_NAME,
 )
-from sqs_processing_workflow.env_cfg import (
+from sentinel_2_nrt.env_cfg import (
     INDEXING_PRODUCTS,
     PRODUCT_RECORD_PATHS,
-    NODE_AFFINITY,
 )
+from infra.podconfig import NODE_AFFINITY
 
 # DAG CONFIGURATION
 DEFAULT_ARGS = {
