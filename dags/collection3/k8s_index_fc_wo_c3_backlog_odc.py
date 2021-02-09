@@ -1,7 +1,10 @@
 """
-# Sentinel-2 backlog indexing automation for odc db
+# Landsat Collection-3 indexing automation for odc db
 
-DAG to index Sentinel-2 backlog data.
+DAG to periodically index/archive Landsat Collection-3 data.
+
+This DAG uses k8s executors and in cluster with relevant tooling
+and configuration installed.
 
 """
 from datetime import datetime, timedelta
