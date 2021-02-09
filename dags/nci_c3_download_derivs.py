@@ -19,6 +19,7 @@ dag = DAG(
     catchup=False,
     tags=["nci", "landsat_c3"],
     default_view="tree",
+    retries=3,
     start_date=datetime(2021, 1, 20, tzinfo=local_tz),
     default_args=dict(
         do_xcom_push=False,
@@ -58,7 +59,6 @@ with dag:
         remote_host="gadi-dm.nci.org.au",
         # There have been random READ failures when performing this download. So retry a few times.
         # Append to the log file so that we don't lose track of any downloaded files.
-        retries=3,
         command=dedent(COMMON +
             """
             cd /g/data/jw04/ga/ga_ls_wo_3
@@ -71,7 +71,6 @@ with dag:
     sync_fc = SSHOperator(
         task_id="sync_fc",
         remote_host="gadi-dm.nci.org.au",
-        retries=3,
         command=dedent(COMMON +
             """
             cd /g/data/jw04/ga/ga_ls_fc_3

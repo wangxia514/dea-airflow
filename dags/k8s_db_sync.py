@@ -60,6 +60,7 @@ DEFAULT_ARGS = {
 }
 
 # Point to Geoscience Australia / OpenDataCube Dockerhub
+# Built from https://bitbucket.org/geoscienceaustralia/s3-to-rds/
 S3_TO_RDS_IMAGE = "geoscienceaustralia/s3-to-rds:latest"
 EXPLORER_IMAGE = "opendatacube/explorer:2.1.9"
 

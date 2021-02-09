@@ -26,7 +26,7 @@ local_tz = pendulum.timezone("Australia/Canberra")
 default_args = {
     "owner": "Damien Ayers",
     "depends_on_past": False,
-    "retries": 0,
+    "retries": 3,
     "retry_delay": timedelta(minutes=5),
     "start_date": datetime(2020, 11, 15, tzinfo=local_tz),
     "timeout": 2 * HOURS,  # For running SSH Commands
