@@ -4,12 +4,12 @@ This subdag can be called by other dags
 """
 
 from airflow import DAG
-from textwrap import dedent
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
-from sqs_processing_workflow.env_cfg import INDEXING_PRODUCTS, NODE_AFFINITY
-from sqs_processing_workflow.images import EXPLORER_IMAGE
-from env_var.infra import SECRET_EXPLORER_WRITER_NAME
+from sentinel_2_nrt.env_cfg import INDEXING_PRODUCTS
+from infra.images import EXPLORER_IMAGE
+from infra.variables import SECRET_EXPLORER_WRITER_NAME
+from infra.podconfig import NODE_AFFINITY
 
 
 EXPLORER_SECRETS = [

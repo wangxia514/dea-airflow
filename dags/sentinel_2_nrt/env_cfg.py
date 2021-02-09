@@ -12,11 +12,6 @@
 # - - - ows update product names
 """
 
-# OWS pod specific configuration
-OWS_CFG_PATH = "/env/config/ows_cfg.py"
-OWS_CFG_MOUNT_PATH = "/env/config"
-OWS_CFG_PATH = OWS_CFG_MOUNT_PATH + "/ows_cfg.py"
-OWS_CFG_IMAGEPATH = "/opt/dea-config/prod/services/wms/ows/ows_cfg.py"
 
 # TODO: The archive condition is for sentinel_2_nrt, set different condition for different products
 ARCHIVE_PRODUCTS = "s2a_nrt_granule s2b_nrt_granule"
@@ -53,23 +48,3 @@ UPDATE_EXTENT_PRODUCTS = (
 
 # batch indexing s3 paths
 S2_NRT_S3_PATHS = "s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/**/ARD-METADATA.yaml"
-
-NODE_AFFINITY = {
-    "nodeAffinity": {
-        "requiredDuringSchedulingIgnoredDuringExecution": {
-            "nodeSelectorTerms": [
-                {
-                    "matchExpressions": [
-                        {
-                            "key": "nodetype",
-                            "operator": "In",
-                            "values": [
-                                "ondemand",
-                            ],
-                        }
-                    ]
-                }
-            ]
-        }
-    }
-}

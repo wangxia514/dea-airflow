@@ -1,7 +1,10 @@
 """
-# Sentinel-2 backlog indexing automation for odc db
+# Landsat Collection-3 indexing automation for odc db
 
-DAG to index Sentinel-2 backlog data.
+DAG to periodically index/archive Landsat Collection-3 data.
+
+This DAG uses k8s executors and in cluster with relevant tooling
+and configuration installed.
 
 """
 from datetime import datetime, timedelta
@@ -10,12 +13,12 @@ from airflow import DAG
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from airflow.operators.subdag_operator import SubDagOperator
-from env_var.infra import (
+from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
 )
-from collection3.images import INDEXER_IMAGE
+from infra.images import INDEXER_IMAGE
 
 
 DEFAULT_ARGS = {

@@ -20,7 +20,7 @@ from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.operators.dummy_operator import DummyOperator
-from env_var.infra import (
+from infra.variables import (
     C3_PROCESSING_ROLE,
     C3_ARCHIVAL_SQS_QUEUE_NAME,
     C3_INDEXING_SQS_QUEUE_NAME,
@@ -28,7 +28,7 @@ from env_var.infra import (
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
 )
-from collection3.images import INDEXER_IMAGE
+from infra.images import INDEXER_IMAGE
 
 DEFAULT_ARGS = {
     "owner": "Pin Jin",

@@ -52,25 +52,3 @@ C3_WO_SQS_QUEUE_NAME = Variable.get(
     "landsat_c3_wo_indexing_sqs_queue_name_odc_db",
     "dea-sandbox-eks-alchemist-c3-indexing-wo-odc-db",
 )
-
-IMAGE_ECR = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com"
-
-NODE_AFFINITY = {
-    "nodeAffinity": {
-        "requiredDuringSchedulingIgnoredDuringExecution": {
-            "nodeSelectorTerms": [
-                {
-                    "matchExpressions": [
-                        {
-                            "key": "nodetype",
-                            "operator": "In",
-                            "values": [
-                                "ondemand",
-                            ],
-                        }
-                    ]
-                }
-            ]
-        }
-    }
-}
