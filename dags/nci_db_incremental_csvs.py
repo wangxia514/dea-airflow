@@ -1,13 +1,18 @@
-"""
-# Incremental CSV Database Backup from NCI to S3
+"""# Incremental CSV Database Backup from NCI to S3
 
 This DAG runs daily soon after midnight Canberra Time.
 
-It dumps any changes to the ODC Database into a CSV file per table, and uploads them to
+It dumps any changes in the NCI ODC Database into CSV files, one per table, and
+uploads them to:
 
     s3://nci-db-dump/csv-changes/<YYYY-MM-DD>/
 
 This DAG should be idempotent, ie. running repeatedly is safe.
+
+
+**Downstream dependency:**
+[K8s NCI DB Incremental Sync](/tree?dag_id=k8s_nci_db_incremental_sync)
+
 """
 from textwrap import dedent
 
@@ -41,7 +46,7 @@ with DAG(
     default_args=default_args,
     catchup=True,
     schedule_interval="@daily",
-    tags=["nci"],
+    tags=["nci", "explorer"],
 ) as dag:
 
     # Language="Shell Script"

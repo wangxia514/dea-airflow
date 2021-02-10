@@ -1,11 +1,15 @@
-# -*- coding: utf-8 -*-
+"""## DEA NCI dev database - summarize datacube
 
-"""
-### DEA NCI dev database - summarize datacube
-
-DAG to run DEA NCI datacube db update summary on weekly bases for the purpose of
-running [NCI Explorer](https://github.com/opendatacube/datacube-explorer)
+This updates the Datacube Explorer summary extents of the NCI Datacube DB.
+This is used by [NCI Explorer](https://explorer.dea.ga.gov.au/)
 and [Resto](https://github.com/jjrom/resto).
+
+**Note:** This only runs weekly since it places a disruptive load on the
+database. There is work underway to make the process incremental so that it can
+be run more regularly.
+
+**Upstream dependency**
+[K8s NCI DB Incremental Sync](/tree?dag_id=k8ds_nci_db_incremental_sync)
 
 """
 
@@ -54,7 +58,7 @@ dag = DAG(
     catchup=False,
     concurrency=1,
     max_active_runs=1,
-    tags=["k8s"],
+    tags=["k8s", "explorer"],
     schedule_interval="5 1 * * sat",    # every saturday 1:05AM
 )
 
@@ -75,8 +79,6 @@ affinity = {
 }
 
 with dag:
-    START = DummyOperator(task_id="nci-db-update-summary")
-
     # Run update summary
     UPDATE_SUMMARY = KubernetesPodOperator(
         namespace="processing",
@@ -91,10 +93,3 @@ with dag:
         affinity=affinity,
         # execution_timeout=timedelta(days=1),
     )
-
-    # Task complete
-    COMPLETE = DummyOperator(task_id="done")
-
-
-    START >> UPDATE_SUMMARY
-    UPDATE_SUMMARY >> COMPLETE

@@ -3,9 +3,15 @@
 """
 ### NCI to DEA RDS Datacube DB incremental sync
 
-Daily DAG to sync NCI datacube db CSVs' from S3 to RDS for the purpose of
-running [NCI Explorer](https://github.com/opendatacube/datacube-explorer)
+Daily DAG to sync NCI Datacube DB CSVs from S3 to RDS for the purpose of
+running [NCI Explorer](https://explorer.dea.ga.gov.au/)
 and [Resto](https://github.com/jjrom/resto).
+
+**Upstream dependency**
+[NCI DB Incremental CSVs](/tree?dag_id=nci_db_incremental_csvs)
+
+**Downstream dependency for Explorer Updates**
+[K8s NCI DB Update Summary](/tree?dag_id=k8s_nci_db_update_summary)
 
 #### Docker image notes
 s3-to-rds: https://bitbucket.org/geoscienceaustralia/s3-to-rds/src/master/
@@ -78,7 +84,7 @@ dag = DAG(
     catchup=False,
     concurrency=1,
     max_active_runs=1,
-    tags=["k8s"],
+    tags=["k8s", "explorer"],
     schedule_interval="45 0 * * *",  # every day 0:45AM
     dagrun_timeout=timedelta(minutes=60 * 3),
 )
@@ -112,7 +118,6 @@ s3_backup_volume_config = {"persistentVolumeClaim": {"claimName": "s3-backup-vol
 s3_backup_volume = Volume(name="s3-backup-volume", configs=s3_backup_volume_config)
 
 with dag:
-    START = DummyOperator(task_id="nci-db-incremental-sync")
 
     # Wait for S3 Key
     S3_BACKUP_SENSE = S3KeySensor(
@@ -140,8 +145,4 @@ with dag:
     )
 
     # Task complete
-    COMPLETE = DummyOperator(task_id="done")
-
-    START >> S3_BACKUP_SENSE
     S3_BACKUP_SENSE >> RESTORE_NCI_INCREMENTAL_SYNC
-    RESTORE_NCI_INCREMENTAL_SYNC >> COMPLETE
