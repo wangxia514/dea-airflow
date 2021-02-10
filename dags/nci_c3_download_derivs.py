@@ -19,7 +19,6 @@ dag = DAG(
     catchup=False,
     tags=["nci", "landsat_c3"],
     default_view="tree",
-    retries=3,
     start_date=datetime(2021, 1, 20, tzinfo=local_tz),
     default_args=dict(
         do_xcom_push=False,
@@ -27,6 +26,7 @@ dag = DAG(
         email=['damien.ayers@ga.gov.au'],
         email_on_failure=True,
         owner='Damien Ayers',
+        retries=3,
     )
 )
 
