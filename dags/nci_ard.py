@@ -17,7 +17,7 @@ from sensors.pbs_job_complete_sensor import PBSJobSensor
 params = {
     "project": "v10",
     "queue": "normal",
-    "module_ass": "ard-scene-select-py3-dea/20201126",
+    "module_ass": "ard-scene-select-py3-dea/20210216",
     "index_arg": "--index-datacube-env "
     "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
     "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
@@ -43,7 +43,9 @@ schedule_interval = "0 16 * * *"
 # sed '/#\/\*/,/#\*\// d' dags/nci_ard.py > ../nci_ard.py
 # params[""] =
 
-use_test_db = False
+params["wagl_env"] = "/g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/non-prod/prod-20201030.env"
+
+use_test_db = True
 if use_test_db:
     params[
         "index_arg"
@@ -52,7 +54,7 @@ if use_test_db:
     params[
         "config_arg"
     ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf"
-    params["products_arg"] = """--products '["usgs_ls8c_level1_1"]'"""
+    #params["products_arg"] = """--products '["usgs_ls8c_level1_1"]'"""
 
 # params["days_to_exclude_arg"] = ""
 #  if you use it it looks like """--days-to-exclude '["2020-06-26:2020-06-26"]'"""
@@ -71,7 +73,7 @@ if aws_develop:
         params["scene_limit"] = "--scene-limit 1"
     else:
         params["pkgdir_arg"] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test/"
-        params["run_ard_arg"] = ""
+        params["run_ard_arg"] = "--run-ard"
 
     # A fail safe
     params["scene_limit"] = "--scene-limit 1"
