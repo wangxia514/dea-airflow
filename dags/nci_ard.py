@@ -17,7 +17,7 @@ from sensors.pbs_job_complete_sensor import PBSJobSensor
 params = {
     "project": "v10",
     "queue": "normal",
-    "module_ass": "ard-scene-select-py3-dea/20201126",
+    "module_ass": "ard-scene-select-py3-dea/20210216",
     "index_arg": "--index-datacube-env "
     "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
     "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
@@ -94,7 +94,7 @@ with dag:
                   --logdir {{ params.base_dir }}{{ log_ext }} \
                   --env {{ params.wagl_env }}  \
                   --project {{ params.project }} \
-                  --walltime 02:30:00 \
+                  --walltime 10:00:00 \
                   {{ params.index_arg }} \
                   {{ params.scene_limit }} \
                   {{ params.interim_days_wait }} \
