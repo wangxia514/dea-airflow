@@ -79,7 +79,7 @@ with dag:
         qsub -N ard_scene_select \
               -q  {{ params.queue }}  \
               -W umask=33 \
-              -l wd,walltime=0:30:00,mem=15GB,ncpus=1 -m abe \
+              -l wd,walltime=1:30:00,mem=15GB,ncpus=1 -m abe \
               -l storage=gdata/v10+scratch/v10+gdata/if87+gdata/fj7+scratch/fj7 \
               -P  {{ params.project }} -o {{ params.base_dir }}{{ log_ext }} -e {{ params.base_dir }}{{ log_ext }}  \
               -- /bin/bash -l -c \
@@ -95,6 +95,7 @@ with dag:
                   --env {{ params.wagl_env }}  \
                   --project {{ params.project }} \
                   --walltime 10:00:00 \
+                  --find-blocked \
                   {{ params.index_arg }} \
                   {{ params.scene_limit }} \
                   {{ params.interim_days_wait }} \
