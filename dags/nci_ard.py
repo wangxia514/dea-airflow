@@ -43,9 +43,9 @@ schedule_interval = "0 16 * * *"
 # sed '/#\/\*/,/#\*\// d' dags/nci_ard.py > ../nci_ard.py
 # params[""] =
 
-params["wagl_env"] = "/g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/non-prod/prod-20201030.env"
+params["index_arg"] = ""  # No indexing
 
-use_test_db = True
+use_test_db = False
 if use_test_db:
     params[
         "index_arg"
@@ -58,7 +58,7 @@ if use_test_db:
 
 # params["days_to_exclude_arg"] = ""
 #  if you use it it looks like """--days-to-exclude '["2020-06-26:2020-06-26"]'"""
-# params["run_ard_arg"] = ""
+params["run_ard_arg"] = ""
 
 aws_develop = True
 if aws_develop:
@@ -67,13 +67,14 @@ if aws_develop:
     # schedule_interval = "15 08 * * *"
     schedule_interval = None
 
-    small_prod_run = False
+    small_prod_run = False  # small_prod_run or small_non_prod
     if small_prod_run:
+        params["index_arg"] = "--index-datacube-env "
         params["pkgdir_arg"] = params["base_dir"]
         params["scene_limit"] = "--scene-limit 1"
     else:
         params["pkgdir_arg"] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test/"
-        params["run_ard_arg"] = "--run-ard"
+        params["run_ard_arg"] = ""
 
     # A fail safe
     params["scene_limit"] = "--scene-limit 1"
@@ -130,7 +131,7 @@ with dag:
         qsub -N ard_scene_select \
               -q  {{ params.queue }}  \
               -W umask=33 \
-              -l wd,walltime=0:30:00,mem=15GB,ncpus=1 -m abe \
+              -l wd,walltime=1:00:00,mem=15GB,ncpus=1 -m abe \
               -l storage=gdata/v10+scratch/v10+gdata/if87+gdata/fj7+scratch/fj7 \
               -P  {{ params.project }} -o {{ params.base_dir }}{{ log_ext }} -e {{ params.base_dir }}{{ log_ext }}  \
               -- /bin/bash -l -c \
@@ -146,6 +147,7 @@ with dag:
                   --env {{ params.wagl_env }}  \
                   --project {{ params.project }} \
                   --walltime 10:00:00 \
+                  --find-blocked \
                   {{ params.index_arg }} \
                   {{ params.scene_limit }} \
                   {{ params.interim_days_wait }} \
