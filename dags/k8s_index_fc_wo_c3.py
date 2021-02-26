@@ -105,7 +105,7 @@ product_to_queue = {
 
 with dag:
     for product, queue in product_to_queue.items():
-        slug = product.replace('_', '-')
+        slug = product.replace("_", "-")
         INDEXING = KubernetesPodOperator(
             namespace="processing",
             image=INDEXER_IMAGE,
