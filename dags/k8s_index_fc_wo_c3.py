@@ -1,7 +1,7 @@
 """
-# Landsat Collection-3 indexing automation
+# Collection-3 indexing automation
 
-DAG to periodically index/archive Landsat Collection-3 data.
+DAG to periodically index/archive Collection-3 data.
 
 This DAG uses k8s executors and in cluster with relevant tooling
 and configuration installed.
@@ -76,6 +76,12 @@ DEFAULT_ARGS = {
             "alchemist-c3-user-creds",
             "WO_SQS_INDEXING_QUEUE",
         ),
+        Secret(
+            "env",
+            "S2_NRT_WO_SQS_INDEXING_QUEUE",
+            "alchemist-s2-nrt-user-creds",
+            "S2_NRT_WO_SQS_INDEXING_QUEUE",
+        ),
     ],
 }
 
@@ -91,8 +97,14 @@ dag = DAG(
     tags=["k8s", "landsat_c3"],
 )
 
+product_short_to_name = {
+    "wo": "ga_ls_wo_3",
+    "fc": "ga_ls_fc_3",
+    "s2_nrt_wo": "ga_s2_wo_3",
+}
+
 with dag:
-    for product in ["wo", "fc"]:
+    for product in ["wo", "fc", "s2_nrt_wo"]:
         INDEXING = KubernetesPodOperator(
             namespace="processing",
             image=INDEXER_IMAGE,
@@ -100,7 +112,7 @@ with dag:
             arguments=[
                 "bash",
                 "-c",
-                f"sqs-to-dc --stac ${product.upper()}_SQS_INDEXING_QUEUE ga_ls_{product}_3",
+                f"sqs-to-dc --stac ${product.upper()}_SQS_INDEXING_QUEUE {product_short_to_name[product]}",
             ],
             labels={"step": "sqs-dc-indexing"},
             name=f"datacube-index-{product}",
