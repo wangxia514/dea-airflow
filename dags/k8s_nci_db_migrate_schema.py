@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
 """
-### DEA NCI dev database - summarize datacube
+### DEA NCI dev database - migrate schema
 
-DAG to periodically/weekly to run summarize datacube
-running [Explorer](https://github.com/opendatacube/datacube-explorer)
-and [Resto](https://github.com/jjrom/resto).
+DAG to manually migrate schema for NCI DB when new version of explorer is
+deployed.
 
 """
 
