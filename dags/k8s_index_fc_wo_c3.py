@@ -103,6 +103,12 @@ product_short_to_name = {
     "s2_nrt_wo": "ga_s2_wo_3",
 }
 
+product_short_to_queue = {
+    "wo": "WO_SQS_INDEXING_QUEUE",
+    "fc": "FC_SQS_INDEXING_QUEUE",
+    "s2_nrt_wo": "WO_SQS_INDEXING_QUEUE",
+}   
+
 with dag:
     for product in ["wo", "fc", "s2_nrt_wo"]:
         INDEXING = KubernetesPodOperator(
@@ -112,7 +118,7 @@ with dag:
             arguments=[
                 "bash",
                 "-c",
-                f"sqs-to-dc --stac ${product.upper()}_SQS_INDEXING_QUEUE {product_short_to_name[product]}",
+                f"sqs-to-dc --stac ${product_short_to_queue[product]} {product_short_to_name[product]}",
             ],
             labels={"step": "sqs-dc-indexing"},
             name=f"datacube-index-{product}",
