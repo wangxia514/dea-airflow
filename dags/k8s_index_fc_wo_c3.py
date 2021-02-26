@@ -1,7 +1,7 @@
 """
-# Landsat Collection-3 indexing automation
+# Collection-3 indexing automation
 
-DAG to periodically index/archive Landsat Collection-3 data.
+DAG to periodically index/archive Collection-3 data.
 
 This DAG uses k8s executors and in cluster with relevant tooling
 and configuration installed.
