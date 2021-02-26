@@ -99,7 +99,7 @@ dag = DAG(
 
 product_to_queue = {
     "ga_ls_wo_3": "WO_SQS_INDEXING_QUEUE",
-    "ga_fc_wo_3": "FC_SQS_INDEXING_QUEUE",
+    "ga_ls_fc_3": "FC_SQS_INDEXING_QUEUE",
     "ga_s2_wo_3": "S2_NRT_WO_SQS_INDEXING_QUEUE",
 }
 
