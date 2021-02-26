@@ -113,7 +113,7 @@ with dag:
             arguments=[
                 "bash",
                 "-c",
-                f"sqs-to-dc --stac ${queue} ${product}",
+                f"sqs-to-dc --stac ${queue} {product}",
             ],
             labels={"step": "sqs-dc-indexing"},
             name=f"datacube-index-{slug}",
