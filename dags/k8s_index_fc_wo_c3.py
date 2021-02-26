@@ -97,20 +97,15 @@ dag = DAG(
     tags=["k8s", "landsat_c3"],
 )
 
-product_short_to_name = {
-    "wo": "ga_ls_wo_3",
-    "fc": "ga_ls_fc_3",
-    "s2_nrt_wo": "ga_s2_wo_3",
+product_to_queue = {
+    "ga_ls_wo_3": "WO_SQS_INDEXING_QUEUE",
+    "ga_fc_wo_3": "FC_SQS_INDEXING_QUEUE",
+    "ga_s2_wo_3": "S2_NRT_WO_SQS_INDEXING_QUEUE",
 }
 
-product_short_to_queue = {
-    "wo": "WO_SQS_INDEXING_QUEUE",
-    "fc": "FC_SQS_INDEXING_QUEUE",
-    "s2_nrt_wo": "S2_NRT_WO_SQS_INDEXING_QUEUE",
-}   
-
 with dag:
-    for product in ["wo", "fc", "s2_nrt_wo"]:
+    for product, queue in product_to_queue.items():
+        slug = product.replace('_', '-')
         INDEXING = KubernetesPodOperator(
             namespace="processing",
             image=INDEXER_IMAGE,
@@ -118,11 +113,11 @@ with dag:
             arguments=[
                 "bash",
                 "-c",
-                f"sqs-to-dc --stac ${product_short_to_queue[product]} {product_short_to_name[product]}",
+                f"sqs-to-dc --stac ${queue} ${product}",
             ],
             labels={"step": "sqs-dc-indexing"},
-            name=f"datacube-index-{product}",
-            task_id=f"indexing-task-{product}",
+            name=f"datacube-index-{slug}",
+            task_id=f"indexing-task-{slug}",
             get_logs=True,
             is_delete_operator_pod=True,
         )
