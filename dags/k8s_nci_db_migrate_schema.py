@@ -39,9 +39,9 @@ DEFAULT_ARGS = {
     # Lift secrets into environment variables for datacube database connectivity
     # Use this db-users to run cubedash update-summary
     "secrets": [
-        Secret("env", "DB_DATABASE", "explorer-nci-writer", "database-name"),
-        Secret("env", "DB_USERNAME", "explorer-nci-writer", "postgres-username"),
-        Secret("env", "DB_PASSWORD", "explorer-nci-writer", "postgres-password"),
+        Secret("env", "DB_DATABASE", "explorer-nci-admin", "database-name"),
+        Secret("env", "DB_USERNAME", "explorer-nci-admin", "postgres-username"),
+        Secret("env", "DB_PASSWORD", "explorer-nci-admin", "postgres-password"),
     ],
 }
 
