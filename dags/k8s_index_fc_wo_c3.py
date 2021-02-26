@@ -79,8 +79,8 @@ DEFAULT_ARGS = {
         Secret(
             "env",
             "S2_NRT_WO_SQS_INDEXING_QUEUE",
-            "alchemist-s2-nrt-user-creds",
-            "WO_SQS_INDEXING_QUEUE",
+            "alchemist-c3-user-creds",
+            "S2_NRT_WO_SQS_INDEXING_QUEUE",
         ),
     ],
 }
