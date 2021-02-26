@@ -78,7 +78,7 @@ DEFAULT_ARGS = {
         ),
         Secret(
             "env",
-            "WO_SQS_INDEXING_QUEUE",
+            "S2_NRT_WO_SQS_INDEXING_QUEUE",
             "alchemist-s2-nrt-user-creds",
             "WO_SQS_INDEXING_QUEUE",
         ),
@@ -106,7 +106,7 @@ product_short_to_name = {
 product_short_to_queue = {
     "wo": "WO_SQS_INDEXING_QUEUE",
     "fc": "FC_SQS_INDEXING_QUEUE",
-    "s2_nrt_wo": "WO_SQS_INDEXING_QUEUE",
+    "s2_nrt_wo": "S2_NRT_WO_SQS_INDEXING_QUEUE",
 }   
 
 with dag:
