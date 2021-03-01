@@ -32,7 +32,7 @@ from infra.variables import (
     DB_HOSTNAME,
     SECRET_AWS_NAME,
 )
-from sentinel_2_nrt.env_cfg import (
+from webapp_update.update_list import (
     UPDATE_EXTENT_PRODUCTS,
 )
 

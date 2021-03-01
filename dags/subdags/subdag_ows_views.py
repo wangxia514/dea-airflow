@@ -18,7 +18,7 @@ from infra.podconfig import (
     OWS_CFG_IMAGEPATH,
     NODE_AFFINITY,
 )
-from sentinel_2_nrt.env_cfg import UPDATE_EXTENT_PRODUCTS
+from webapp_update.update_list import UPDATE_EXTENT_PRODUCTS
 from infra.variables import SECRET_OWS_WRITER_NAME
 
 OWS_SECRETS = [

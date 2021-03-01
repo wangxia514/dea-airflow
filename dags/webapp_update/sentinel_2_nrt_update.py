@@ -20,7 +20,7 @@ from infra.variables import (
     SECRET_AWS_NAME,
 )
 
-DAG_NAME = "sentinel_2_nrt_mv_update"
+DAG_NAME = "webapp_update"
 
 # DAG CONFIGURATION
 DEFAULT_ARGS = {
