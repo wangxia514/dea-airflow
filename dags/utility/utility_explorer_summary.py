@@ -33,8 +33,8 @@ from infra.variables import (
     DB_HOSTNAME,
     SECRET_AWS_NAME,
 )
-from sentinel_2_nrt.env_cfg import (
-    INDEXING_PRODUCTS,
+from webapp_update.update_list import (
+    EXPLORER_UPDATE_LIST,
 )
 
 DAG_NAME = "utility_explorer-refresh-stats"
@@ -76,7 +76,7 @@ def parse_dagrun_conf(products, **kwargs):
     if products:
         return products
     else:
-        return " ".join(INDEXING_PRODUCTS)
+        return " ".join(EXPLORER_UPDATE_LIST)
 
 
 SET_REFRESH_PRODUCT_TASK_NAME = "parse_dagrun_conf"
