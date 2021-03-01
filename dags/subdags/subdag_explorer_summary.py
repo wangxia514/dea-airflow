@@ -7,7 +7,7 @@ from airflow import DAG
 
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
-from sentinel_2_nrt.env_cfg import INDEXING_PRODUCTS
+from webapp_update.update_list import EXPLORER_UPDATE_LIST
 from infra.podconfig import NODE_AFFINITY
 from infra.images import EXPLORER_IMAGE
 from infra.variables import SECRET_EXPLORER_WRITER_NAME
@@ -40,7 +40,7 @@ def explorer_refresh_stats_subdag(
             )
         )
     else:
-        products = " ".join(INDEXING_PRODUCTS)
+        products = " ".join(EXPLORER_UPDATE_LIST)
 
     EXPLORER_BASH_COMMAND = [
         "bash",
