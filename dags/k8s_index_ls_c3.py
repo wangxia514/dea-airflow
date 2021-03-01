@@ -70,7 +70,7 @@ DEFAULT_ARGS = {
     ],
 }
 
-INDEXER_IMAGE = "opendatacube/datacube-index:0.0.15"
+INDEXER_IMAGE = "opendatacube/datacube-index:0.0.16"
 
 
 dag = DAG(
