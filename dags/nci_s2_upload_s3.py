@@ -46,6 +46,7 @@ default_args = {
     'retries': 1,
     'retry_delay': timedelta(minutes=5),
     'email_on_failure': True,
+    'email_on_retry': False,
     'email': 'damien.ayers@ga.gov.au',
     'ssh_conn_id': 'lpgs_gadi',
     'aws_conn_id': 'dea_public_data_upload',
