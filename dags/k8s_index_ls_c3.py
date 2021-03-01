@@ -72,7 +72,7 @@ DEFAULT_ARGS = {
     ],
 }
 
-INDEXER_IMAGE = "opendatacube/datacube-index:0.0.16"
+from infra.images import INDEXER_IMAGE
 
 dag = DAG(
     "k8s_index_ls_c3",
