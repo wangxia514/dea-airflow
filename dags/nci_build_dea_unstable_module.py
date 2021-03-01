@@ -17,6 +17,7 @@ default_args = {
     'retries': 0,
     'timeout': 1200,  # For running SSH Commands
     'email_on_failure': True,
+    'email_on_retry': False,
     'email': 'damien.ayers@ga.gov.au',
 }
 

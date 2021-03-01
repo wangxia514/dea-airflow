@@ -38,6 +38,7 @@ default_args = {
     "ssh_conn_id": "lpgs_gadi",
     "remote_host": "gadi-dm.nci.org.au",
     "email_on_failure": True,
+    "email_on_retry": False,
     "email": "damien.ayers@ga.gov.au",
 }
 

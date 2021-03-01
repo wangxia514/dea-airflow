@@ -25,6 +25,7 @@ dag = DAG(
         ssh_conn_id='lpgs_gadi',
         email=['damien.ayers@ga.gov.au'],
         email_on_failure=True,
+        email_on_retry=False,
         owner='Damien Ayers',
         retries=3,
     )
