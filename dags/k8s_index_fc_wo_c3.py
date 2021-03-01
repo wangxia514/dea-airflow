@@ -112,7 +112,7 @@ with dag:
             arguments=[
                 "bash",
                 "-c",
-                f"sqs-to-dc --stac --update-if-exists --alow-unsafe ${queue} {product}",
+                f"sqs-to-dc --stac --update-if-exists --allow-unsafe ${queue} {product}",
             ],
             labels={"step": "sqs-dc-indexing"},
             name=f"datacube-index-{slug}",
