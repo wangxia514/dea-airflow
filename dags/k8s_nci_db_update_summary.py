@@ -56,7 +56,7 @@ dag = DAG(
     concurrency=1,
     max_active_runs=1,
     tags=["k8s"],
-    schedule_interval="5 1 * * sat",    # every saturday 1:05AM
+    schedule_interval="@hourly",    # Speed up schedule to daily to prove consistency
 )
 
 affinity = {
