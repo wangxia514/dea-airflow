@@ -18,6 +18,7 @@ from infra.podconfig import (
     NODE_AFFINITY,
     OWS_DATACUBE_CFG,
     OWS_PYTHON_PATH,
+    OWS_CFG_FOLDER_PATH,
 )
 from webapp_update.update_list import UPDATE_EXTENT_PRODUCTS
 from infra.variables import SECRET_OWS_WRITER_NAME
@@ -50,7 +51,7 @@ cfg_image_mount = k8s.V1VolumeMount(
 config_container = k8s.V1Container(
     image=OWS_CONFIG_IMAGE,
     command=["cp"],
-    args=["-r", OWS_CFG_IMAGEPATH, OWS_CFG_PATH],
+    args=["-r", OWS_CFG_IMAGEPATH, OWS_CFG_FOLDER_PATH],
     volume_mounts=[cfg_image_mount],
     name="mount-ows-config",
     working_dir="/opt",
