@@ -1,4 +1,5 @@
 import json
+import subprocess
 
 from datetime import datetime, timedelta
 from airflow import DAG
@@ -46,17 +47,13 @@ def receive(**context):
     sns_hook.publish_to_target(PUBLISH_S2_NRT_SNS, msg_str)
 
 
+def pip_freeze(**context):
+    subprocess.check_call(["pip3", "freeze"])
+
+
 with pipeline:
-    SEND = PythonOperator(
-        task_id="send",
-        python_callable=send,
-        provide_context=True,
-    )
+    # SEND = PythonOperator( task_id="send", python_callable=send, provide_context=True,)
+    # RECEIVE = PythonOperator( task_id="receive", python_callable=receive, provide_context=True,)
+    # SEND >> RECEIVE
 
-    RECEIVE = PythonOperator(
-        task_id="receive",
-        python_callable=receive,
-        provide_context=True,
-    )
-
-    SEND >> RECEIVE
+    PIP_FREEZE = PythonOperator(task_id="pip_freeze", python_callable=pip_freeze)

@@ -19,7 +19,7 @@ DEFAULT_ARGS = {
     "depends_on_past": False,
     "start_date": datetime(2020, 6, 1),
     "email": ["alex.leith@ga.gov.au"],
-    "email_on_failure": False,
+    "email_on_failure": True,
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
@@ -70,8 +70,7 @@ DEFAULT_ARGS = {
     ],
 }
 
-INDEXER_IMAGE = "opendatacube/datacube-index:0.0.15"
-
+from infra.images import INDEXER_IMAGE
 
 dag = DAG(
     "k8s_index_ls_c3",
