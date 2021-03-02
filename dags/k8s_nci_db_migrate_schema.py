@@ -44,7 +44,7 @@ DEFAULT_ARGS = {
     ],
 }
 
-EXPLORER_IMAGE = "whatnick/explorer:2.4.3-62-g9709d7d"
+EXPLORER_IMAGE = "opendatacube/explorer:2.4.3-65-ge372da5"
 
 dag = DAG(
     "k8s_nci_db_migrate_schema",

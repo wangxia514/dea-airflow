@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
 """
-### DEA NCI dev database - summarize datacube
+### DEA NCI dev database - migrate schema
 
-DAG to periodically/weekly to run summarize datacube
-running [Explorer](https://github.com/opendatacube/datacube-explorer)
-and [Resto](https://github.com/jjrom/resto).
+DAG to manually migrate schema for NCI DB when new version of explorer is
+deployed.
 
 """
 
@@ -22,10 +21,10 @@ local_tz = pendulum.timezone("Australia/Canberra")
 DB_HOSTNAME = "db-writer"
 
 DEFAULT_ARGS = {
-    "owner": "Nikita Gandhi",
+    "owner": "Tisham Dhar",
     "depends_on_past": False,
     "start_date": datetime(2020, 10, 3, tzinfo=local_tz),
-    "email": ["nikita.gandhi@ga.gov.au"],
+    "email": ["tisham.dhar@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
@@ -39,24 +38,23 @@ DEFAULT_ARGS = {
     # Lift secrets into environment variables for datacube database connectivity
     # Use this db-users to run cubedash update-summary
     "secrets": [
-        Secret("env", "DB_DATABASE", "explorer-nci-writer", "database-name"),
-        Secret("env", "DB_USERNAME", "explorer-nci-writer", "postgres-username"),
-        Secret("env", "DB_PASSWORD", "explorer-nci-writer", "postgres-password"),
+        Secret("env", "DB_DATABASE", "explorer-admin", "database-name"),
+        Secret("env", "DB_USERNAME", "explorer-admin", "postgres-username"),
+        Secret("env", "DB_PASSWORD", "explorer-admin", "postgres-password"),
     ],
 }
 
-# EXPLORER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/explorer:2.4.0"
 EXPLORER_IMAGE = "opendatacube/explorer:2.4.3-65-ge372da5"
 
 dag = DAG(
-    "k8s_nci_db_update_summary",
+    "k8s_aws_db_migrate_schema",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     catchup=False,
     concurrency=1,
     max_active_runs=1,
     tags=["k8s"],
-    schedule_interval="@hourly",    # Speed up schedule to daily to prove consistency
+    schedule_interval=None,    # Fully manual migrations
 )
 
 affinity = {
@@ -76,17 +74,17 @@ affinity = {
 }
 
 with dag:
-    START = DummyOperator(task_id="nci-db-update-summary")
+    START = DummyOperator(task_id="nci-db-update-schema")
 
     # Run update summary
-    UPDATE_SUMMARY = KubernetesPodOperator(
+    UPDATE_SCHEMA = KubernetesPodOperator(
         namespace="processing",
         image=EXPLORER_IMAGE,
         cmds=["cubedash-gen"],
-        arguments=["--no-init-database", "--refresh-stats"],
-        labels={"step": "summarize-datacube"},
-        name="summarize-datacube",
-        task_id="summarize-datacube",
+        arguments=["--init", "-v"],
+        labels={"step": "update-schema"},
+        name="update-schema",
+        task_id="update-schema",
         get_logs=True,
         is_delete_operator_pod=True,
         affinity=affinity,
@@ -97,5 +95,5 @@ with dag:
     COMPLETE = DummyOperator(task_id="done")
 
 
-    START >> UPDATE_SUMMARY
-    UPDATE_SUMMARY >> COMPLETE
+    START >> UPDATE_SCHEMA
+    UPDATE_SCHEMA >> COMPLETE
