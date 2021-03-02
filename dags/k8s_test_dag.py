@@ -48,7 +48,7 @@ def receive(**context):
 
 
 def pip_freeze(**context):
-    subprocess.call(["pip3", "freeze"])
+    subprocess.check_call(["pip3", "freeze"])
 
 
 with pipeline:
