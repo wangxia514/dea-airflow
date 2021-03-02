@@ -16,6 +16,8 @@ from infra.podconfig import (
     OWS_CFG_MOUNT_PATH,
     OWS_CFG_IMAGEPATH,
     NODE_AFFINITY,
+    OWS_DATACUBE_CFG,
+    OWS_PYTHON_PATH,
 )
 from webapp_update.update_list import UPDATE_EXTENT_PRODUCTS
 from infra.variables import SECRET_OWS_WRITER_NAME
@@ -82,7 +84,8 @@ def ows_update_extent_subdag(
     # append ows specific env_vars to args
     ows_env_cfg = {
         "WMS_CONFIG_PATH": OWS_CFG_PATH,
-        "DATACUBE_OWS_CFG": "config.ows_cfg.ows_cfg",
+        "DATACUBE_OWS_CFG": OWS_DATACUBE_CFG,
+        "PYTHONPATH": OWS_PYTHON_PATH,
     }
     args.setdefault("env_vars", ows_env_cfg).update(ows_env_cfg)
 
