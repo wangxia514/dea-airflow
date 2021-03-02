@@ -1,2 +1,3 @@
 boto3
 kubernetes
+airflow-kubernetes-job-operator == 1.0.18
