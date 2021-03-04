@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-### DEA NCI dev database - migrate schema
+### DEA NCI prod database - migrate schema
 
 DAG to manually migrate schema for NCI DB when new version of explorer is
 deployed.
