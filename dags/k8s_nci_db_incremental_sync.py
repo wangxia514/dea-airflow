@@ -26,6 +26,7 @@ from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
+from infra.images import S3_TO_RDS_IMAGE
 
 local_tz = pendulum.timezone("Australia/Canberra")
 
@@ -69,9 +70,6 @@ DEFAULT_ARGS = {
         Secret("env", "DB_ADMIN_PASSWORD", "explorer-nci-admin", "postgres-password"),
     ],
 }
-
-# Point to Geoscience Australia / OpenDataCube Dockerhub
-S3_TO_RDS_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/geoscienceaustralia/s3-to-rds:0.1.4"
 
 dag = DAG(
     "k8s_nci_db_incremental_sync",

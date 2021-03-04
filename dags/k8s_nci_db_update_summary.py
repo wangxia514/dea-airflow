@@ -15,6 +15,7 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
+from infra.images import EXPLORER_UNSTABLE_IMAGE, EXPLORER_IMAGE
 
 local_tz = pendulum.timezone("Australia/Canberra")
 
@@ -45,9 +46,6 @@ DEFAULT_ARGS = {
     ],
 }
 
-# EXPLORER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/explorer:2.4.0"
-EXPLORER_IMAGE = "opendatacube/explorer:2.4.3-65-ge372da5"
-
 dag = DAG(
     "k8s_nci_db_update_summary",
     doc_md=__doc__,
@@ -56,7 +54,7 @@ dag = DAG(
     concurrency=1,
     max_active_runs=1,
     tags=["k8s"],
-    schedule_interval="@hourly",    # Speed up schedule to daily to prove consistency
+    schedule_interval="@daily",    # Speed up schedule to daily to prove consistency
 )
 
 affinity = {
@@ -81,7 +79,7 @@ with dag:
     # Run update summary
     UPDATE_SUMMARY = KubernetesPodOperator(
         namespace="processing",
-        image=EXPLORER_IMAGE,
+        image=EXPLORER_UNSTABLE_IMAGE,      # TODO: use EXPLORER_IMAGE
         cmds=["cubedash-gen"],
         arguments=["--no-init-database", "--refresh-stats", "--all"],
         labels={"step": "summarize-datacube"},

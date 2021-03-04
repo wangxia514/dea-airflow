@@ -14,6 +14,7 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
+from infra.images import EXPLORER_UNSTABLE_IMAGE
 
 local_tz = pendulum.timezone("Australia/Canberra")
 
@@ -43,8 +44,6 @@ DEFAULT_ARGS = {
         Secret("env", "DB_PASSWORD", "explorer-admin", "postgres-password"),
     ],
 }
-
-EXPLORER_IMAGE = "opendatacube/explorer:2.4.3-65-ge372da5"
 
 dag = DAG(
     "k8s_aws_db_migrate_schema",
@@ -79,7 +78,7 @@ with dag:
     # Run update summary
     UPDATE_SCHEMA = KubernetesPodOperator(
         namespace="processing",
-        image=EXPLORER_IMAGE,
+        image=EXPLORER_UNSTABLE_IMAGE,
         cmds=["cubedash-gen"],
         arguments=["--init", "-v"],
         labels={"step": "update-schema"},
