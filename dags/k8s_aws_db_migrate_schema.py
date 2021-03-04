@@ -44,7 +44,7 @@ DEFAULT_ARGS = {
     ],
 }
 
-EXPLORER_IMAGE = "opendatacube/explorer:2.4.3-65-ge372da5"
+from infra.images import EXPLORER_UNSTABLE_IMAGE
 
 dag = DAG(
     "k8s_aws_db_migrate_schema",
@@ -74,12 +74,12 @@ affinity = {
 }
 
 with dag:
-    START = DummyOperator(task_id="nci-db-update-schema")
+    START = DummyOperator(task_id="aws-db-update-schema")
 
     # Run update summary
     UPDATE_SCHEMA = KubernetesPodOperator(
         namespace="processing",
-        image=EXPLORER_IMAGE,
+        image=EXPLORER_UNSTABLE_IMAGE,
         cmds=["cubedash-gen"],
         arguments=["--init", "-v"],
         labels={"step": "update-schema"},
