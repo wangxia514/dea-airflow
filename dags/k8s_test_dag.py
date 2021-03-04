@@ -5,6 +5,9 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from airflow.contrib.hooks.aws_sns_hook import AwsSnsHook
+from airflow_kubernetes_job_operator.kubernetes_job_operator import (
+    KubernetesJobOperator,
+)
 
 
 AWS_CONN_ID = "wagl_nrt_manual"
