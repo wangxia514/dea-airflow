@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 """
-### DEA AWS prod database - migrate schema
+### DEA ODC prod database - migrate schema
 
-DAG to manually migrate schema for AWS DB when new version of explorer is
+DAG to manually migrate schema for ODC DB when new version of explorer is
 deployed.
 
 """
@@ -47,7 +47,7 @@ DEFAULT_ARGS = {
 from infra.images import EXPLORER_UNSTABLE_IMAGE
 
 dag = DAG(
-    "k8s_aws_db_migrate_schema",
+    "k8s_odc_db_migrate_schema",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     catchup=False,
@@ -74,7 +74,7 @@ affinity = {
 }
 
 with dag:
-    START = DummyOperator(task_id="aws-db-update-schema")
+    START = DummyOperator(task_id="odc-db-update-schema")
 
     # Run update summary
     UPDATE_SCHEMA = KubernetesPodOperator(
