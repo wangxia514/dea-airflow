@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-### DEA NCI dev database - migrate schema
+### DEA NCI prod database - migrate schema
 
 DAG to manually migrate schema for NCI DB when new version of explorer is
 deployed.
@@ -44,7 +44,7 @@ DEFAULT_ARGS = {
     ],
 }
 
-EXPLORER_IMAGE = "opendatacube/explorer:2.4.3-65-ge372da5"
+from infra.images import EXPLORER_UNSTABLE_IMAGE
 
 dag = DAG(
     "k8s_nci_db_migrate_schema",
@@ -79,7 +79,7 @@ with dag:
     # Run update summary
     UPDATE_SCHEMA = KubernetesPodOperator(
         namespace="processing",
-        image=EXPLORER_IMAGE,
+        image=EXPLORER_UNSTABLE_IMAGE,
         cmds=["cubedash-gen"],
         arguments=["--init", "-v"],
         labels={"step": "update-schema"},

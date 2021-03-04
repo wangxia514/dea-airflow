@@ -12,3 +12,9 @@ OWS_CONFIG_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/geoscience
 EXPLORER_IMAGE = (
     "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/explorer:2.2.4"
 )
+
+# UNSTABLE IMAGES
+EXPLORER_UNSTABLE_IMAGE = "opendatacube/explorer:2.4.3-65-ge372da5"
+
+# TODO: Use Skopeo to automatically fetch tags at runtime
+# https://www.mankier.com/1/skopeo-list-tags

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 """
-### DEA NCI dev database - migrate schema
+### DEA Sandbox prod database - migrate schema
 
-DAG to manually migrate schema for NCI DB when new version of explorer is
+DAG to manually migrate schema for Sandbox DB when new version of explorer is
 deployed.
 
 """
@@ -38,13 +38,13 @@ DEFAULT_ARGS = {
     # Lift secrets into environment variables for datacube database connectivity
     # Use this db-users to run cubedash update-summary
     "secrets": [
-        Secret("env", "DB_DATABASE", "explorer-admin", "database-name"),
-        Secret("env", "DB_USERNAME", "explorer-admin", "postgres-username"),
-        Secret("env", "DB_PASSWORD", "explorer-admin", "postgres-password"),
+        Secret("env", "DB_DATABASE", "explorer-db", "database-name"),
+        Secret("env", "DB_USERNAME", "explorer-db", "postgres-username"),
+        Secret("env", "DB_PASSWORD", "explorer-db", "postgres-password"),
     ],
 }
 
-EXPLORER_IMAGE = "opendatacube/explorer:2.4.3-65-ge372da5"
+from infra.images import EXPLORER_UNSTABLE_IMAGE
 
 dag = DAG(
     "k8s_sandbox_db_migrate_schema",
@@ -74,12 +74,12 @@ affinity = {
 }
 
 with dag:
-    START = DummyOperator(task_id="nci-db-update-schema")
+    START = DummyOperator(task_id="sandbox-db-update-schema")
 
     # Run update summary
     UPDATE_SCHEMA = KubernetesPodOperator(
         namespace="processing",
-        image=EXPLORER_IMAGE,
+        image=EXPLORER_UNSTABLE_IMAGE,
         cmds=["cubedash-gen"],
         arguments=["--init", "-v"],
         labels={"step": "update-schema"},
