@@ -41,7 +41,7 @@ pipeline = DAG(
 with pipeline:
     START = DummyOperator(task_id="start")
     JOB = KubernetesPodOperator(
-        task_id="run-one",
+        task_id="run_one",
         namespace="processing",
         name="mod6-test",
         image_pull_policy="Always",
