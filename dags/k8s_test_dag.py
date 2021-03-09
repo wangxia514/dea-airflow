@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from airflow.operators.dummy_operator import DummyOperator
+from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow_kubernetes_job_operator.kubernetes_job_operator import (
     KubernetesJobOperator,
 )
@@ -34,4 +35,16 @@ pipeline = DAG(
 
 
 with pipeline:
-    DUMMY = DummyOperator(task_id="dummy")
+    JOB = KubernetesPodOperator(
+        task_id="run-one",
+        namespace="processing",
+        name="mod6-test",
+        image_pull_policy="Always",
+        image=MOD6_IMAGE,
+        startup_timeout_seconds=120,
+        labels={
+            "runner": "airflow",
+            "app": "CaRSA",
+        },
+        is_delete_operator_pod=True,
+    )
