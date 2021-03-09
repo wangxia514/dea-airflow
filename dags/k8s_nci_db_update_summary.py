@@ -82,7 +82,7 @@ with dag:
         namespace="processing",
         image=EXPLORER_UNSTABLE_IMAGE,      # TODO: use EXPLORER_IMAGE
         cmds=["cubedash-gen"],
-        arguments=["--no-init-database", "--refresh-stats", "--force", "--all"],
+        arguments=["--no-init-database", "--refresh-stats", "--force-refresh", "--all"],
         labels={"step": "summarize-datacube"},
         name="summarize-datacube",
         task_id="summarize-datacube",
