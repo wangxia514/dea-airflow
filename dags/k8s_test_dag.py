@@ -17,12 +17,11 @@ MOD6_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/mod6:test-20
 default_args = {
     "owner": "Imam Alam",
     "depends_on_past": False,
-    "start_date": datetime(2020, 9, 11),
+    "start_date": datetime(2021, 3, 3),
     "email": ["imam.alam@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 1,
-    "retry_delay": timedelta(minutes=5),
+    "retries": 0,
 }
 
 
@@ -33,6 +32,8 @@ pipeline = DAG(
     description="test dag please ignore",
     catchup=False,
     params={},
+    concurrency=1,
+    max_active_runs=1,
     schedule_interval=None,
     tags=["k8s", "dea", "psc", "dev"],
 )
