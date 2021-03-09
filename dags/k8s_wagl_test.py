@@ -45,7 +45,7 @@ with dag:
         task_id="run_one",
         namespace="processing",
         name="mod6-test",
-        image_pull_policy="Always",
+        image_pull_policy="IfNotPresent",
         image=MOD6_IMAGE,
         startup_timeout_seconds=600,
         labels={
