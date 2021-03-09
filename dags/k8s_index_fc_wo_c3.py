@@ -82,8 +82,15 @@ dag = DAG(
     tags=["k8s", "landsat_c3"],
 )
 
+product_to_queue = {
+    "ga_ls_wo_3": "WO_SQS_INDEXING_QUEUE",
+    "ga_ls_fc_3": "FC_SQS_INDEXING_QUEUE",
+    "ga_s2_wo_3": "S2_NRT_WO_SQS_INDEXING_QUEUE",
+}
+
 with dag:
-    for product in ["wo", "fc"]:
+    for product, queue in product_to_queue.items():
+        slug = product.replace("_", "-")
         INDEXING = KubernetesPodOperator(
             namespace="processing",
             image=INDEXER_IMAGE,
@@ -91,11 +98,13 @@ with dag:
             arguments=[
                 "bash",
                 "-c",
-                f"sqs-to-dc --stac ${product.upper()}_SQS_INDEXING_QUEUE ga_ls_{product}_3",
+                f"sqs-to-dc --stac --update-if-exists --allow-unsafe ${queue} {product}",
             ],
             labels={"step": "sqs-dc-indexing"},
-            name=f"datacube-index-{product}",
-            task_id=f"indexing-task-{product}",
+            name=f"datacube-index-{slug}",
+            task_id=f"indexing-task-{slug}",
             get_logs=True,
             is_delete_operator_pod=True,
         )
+
+        INDEXING
