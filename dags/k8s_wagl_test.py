@@ -47,7 +47,7 @@ with dag:
         name="mod6-test",
         image_pull_policy="Always",
         image=MOD6_IMAGE,
-        startup_timeout_seconds=120,
+        startup_timeout_seconds=600,
         labels={
             "runner": "airflow",
             "app": "CaRSA",
