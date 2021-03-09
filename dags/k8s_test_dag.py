@@ -35,6 +35,7 @@ pipeline = DAG(
 
 
 with pipeline:
+    START = DummyOperator(task_id="start")
     JOB = KubernetesPodOperator(
         task_id="run-one",
         namespace="processing",
@@ -48,3 +49,8 @@ with pipeline:
         },
         is_delete_operator_pod=True,
     )
+    END = DummyOperator(task_id="end")
+
+    START >> JOB >> END
+
+    JOB
