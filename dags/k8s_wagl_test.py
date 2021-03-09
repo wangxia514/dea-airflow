@@ -26,7 +26,7 @@ default_args = {
 
 
 dag = DAG(
-    "k8s_test_dag",
+    "k8s_wagl_test",
     doc_md=__doc__,
     default_args=default_args,
     description="test dag please ignore",
