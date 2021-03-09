@@ -35,7 +35,7 @@ pipeline = DAG(
     concurrency=1,
     max_active_runs=1,
     schedule_interval=None,
-    tags=["k8s", "dea", "psc", "dev"],
+    tags=["k8s", "dea", "psc", "dev", "wagl"],
 )
 
 
