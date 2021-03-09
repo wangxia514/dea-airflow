@@ -91,7 +91,7 @@ with dag:
             arguments=[
                 "bash",
                 "-c",
-                f"sqs-to-dc --stac ${product.upper()}_SQS_INDEXING_QUEUE ga_ls_{product}_3",
+                f"sqs-to-dc --stac --update-if-exists --allow-unsafe ${product.upper()}_SQS_INDEXING_QUEUE ga_ls_{product}_3",
             ],
             labels={"step": "sqs-dc-indexing"},
             name=f"datacube-index-{product}",
