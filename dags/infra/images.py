@@ -11,4 +11,4 @@ EXPLORER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube
 S3_TO_RDS_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/geoscienceaustralia/s3-to-rds:0.1.4"
 
 # UNSTABLE IMAGES
-EXPLORER_UNSTABLE_IMAGE = "opendatacube/explorer:2.4.3-65-ge372da5"
+EXPLORER_UNSTABLE_IMAGE = "opendatacube/explorer:2.4.3-73-g5135034"
