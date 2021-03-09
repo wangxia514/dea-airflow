@@ -25,7 +25,7 @@ default_args = {
 }
 
 
-pipeline = DAG(
+dag = DAG(
     "k8s_test_dag",
     doc_md=__doc__,
     default_args=default_args,
@@ -39,7 +39,7 @@ pipeline = DAG(
 )
 
 
-with pipeline:
+with dag:
     START = DummyOperator(task_id="start")
     JOB = KubernetesPodOperator(
         task_id="run_one",
