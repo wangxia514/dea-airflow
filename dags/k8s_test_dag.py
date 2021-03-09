@@ -1,17 +1,13 @@
-import json
-import subprocess
-
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
-from airflow.contrib.hooks.aws_sns_hook import AwsSnsHook
+from airflow.operators.dummy_operator import DummyOperator
 from airflow_kubernetes_job_operator.kubernetes_job_operator import (
     KubernetesJobOperator,
 )
 
 
-AWS_CONN_ID = "wagl_nrt_manual"
-PUBLISH_S2_NRT_SNS = "arn:aws:sns:ap-southeast-2:451924316694:dea-dev-eks-wagl-s2-nrt"
+MOD6_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/mod6:test-20210309"
 
 
 default_args = {
@@ -32,31 +28,10 @@ pipeline = DAG(
     description="test dag please ignore",
     catchup=False,
     params={},
-    schedule_interval=None,  # timedelta(minutes=30),
-    tags=["k8s", "dea", "psc", "wagl", "nrt"],
+    schedule_interval=None,
+    tags=["k8s", "dea", "psc", "dev"],
 )
 
 
-def send(**context):
-    return {"dataset": "dataset-to-index"}
-
-
-def receive(**context):
-    task_instance = context["task_instance"]
-    msg = task_instance.xcom_pull(task_ids="send", key="return_value")
-    msg_str = json.dumps(msg)
-
-    sns_hook = AwsSnsHook(aws_conn_id=AWS_CONN_ID)
-    sns_hook.publish_to_target(PUBLISH_S2_NRT_SNS, msg_str)
-
-
-def pip_freeze(**context):
-    subprocess.check_call(["pip3", "freeze"])
-
-
 with pipeline:
-    # SEND = PythonOperator( task_id="send", python_callable=send, provide_context=True,)
-    # RECEIVE = PythonOperator( task_id="receive", python_callable=receive, provide_context=True,)
-    # SEND >> RECEIVE
-
-    PIP_FREEZE = PythonOperator(task_id="pip_freeze", python_callable=pip_freeze)
+    DUMMY = DummyOperator(task_id="dummy")
