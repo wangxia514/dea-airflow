@@ -52,5 +52,3 @@ with pipeline:
     END = DummyOperator(task_id="end")
 
     START >> JOB >> END
-
-    JOB
