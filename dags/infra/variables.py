@@ -29,3 +29,10 @@ DB_HOSTNAME = Variable.get("db_hostname", "db-writer")
 
 # AWS SQS
 SQS_QUEUE_NAME = Variable.get("sqs_queue_name", "dea-dev-eks-ows-dag")
+
+# Task Pools
+WAGL_TASK_POOL = Variable.get("wagl_task_pool", "wagl_processing_pool")
+DEA_NEWDATA_PROCESSING_POOL = Variable.get(
+    "newdata_indexing_pool", "NewDeaData_indexing_pool"
+)
+C3_INDEXING_POOL = Variable.get("c3_indexing_pool", "c3_indexing_pool")
