@@ -74,6 +74,7 @@ dag = DAG(
     schedule_interval="0 */1 * * *",  # hourly
     # schedule_interval=None,  # for testing
     catchup=False,
+    max_active_runs=1,
     tags=["k8s", "sentinel-2", "streamline-indexing"],
 )
 

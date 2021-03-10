@@ -78,6 +78,7 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval="0 1 * * *",  # daily at 1am
     catchup=False,
+    max_active_runs=1,
     tags=["k8s", "sentinel-2", "archive"],
 )
 
