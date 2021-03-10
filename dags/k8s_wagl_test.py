@@ -3,6 +3,8 @@ Test DAG please ignore
 """
 from datetime import datetime, timedelta
 from airflow import DAG
+from airflow.kubernetes.volume import Volume
+from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.python_operator import PythonOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
@@ -13,6 +15,18 @@ from airflow_kubernetes_job_operator.kubernetes_job_operator import (
 
 MOD6_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/mod6:test-20210309"
 
+ancillary_volume_mount = VolumeMount(
+    name="wagl-nrt-ancillary-volume",
+    mount_path="/modtran6",
+    sub_path=None,
+    read_only=False,
+)
+
+
+ancillary_volume = Volume(
+    name="wagl-nrt-ancillary-volume",
+    configs={"persistentVolumeClaim": {"claimName": "wagl-nrt-ancillary-volume"}},
+)
 
 default_args = {
     "owner": "Imam Alam",
@@ -47,6 +61,8 @@ with dag:
         name="mod6-test",
         image_pull_policy="IfNotPresent",
         image=MOD6_IMAGE,
+        volumes=[ancillary_volume],
+        volume_mounts=[ancillary_volume_mount],
         startup_timeout_seconds=600,
         labels={
             "runner": "airflow",
