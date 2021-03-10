@@ -19,6 +19,7 @@ from infra.variables import (
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
     SECRET_AWS_NAME,
+    DEA_NEWDATA_PROCESSING_POOL,
 )
 from infra.podconfig import NODE_AFFINITY
 from sentinel_2_nrt.env_cfg import (
@@ -98,4 +99,5 @@ with dag:
         get_logs=True,
         affinity=NODE_AFFINITY,
         is_delete_operator_pod=True,
+        pool=DEA_NEWDATA_PROCESSING_POOL,
     )

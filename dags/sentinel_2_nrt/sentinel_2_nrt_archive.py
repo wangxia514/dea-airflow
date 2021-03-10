@@ -21,6 +21,7 @@ from infra.variables import (
     DB_HOSTNAME,
     SECRET_AWS_NAME,
     SECRET_ODC_WRITER_NAME,
+    DEA_NEWDATA_PROCESSING_POOL,
 )
 from infra.podconfig import NODE_AFFINITY
 from airflow.operators.subdag_operator import SubDagOperator
@@ -88,6 +89,7 @@ with dag:
         labels={"step": "ds-arch"},
         name="datacube-dataset-archive",
         task_id="archive-nrt-datasets",
+        pool=DEA_NEWDATA_PROCESSING_POOL,
         get_logs=True,
         affinity=NODE_AFFINITY,
         is_delete_operator_pod=True,

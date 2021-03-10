@@ -20,6 +20,7 @@ from infra.variables import (
     SECRET_AWS_NAME,
     INDEXING_ROLE,
     SQS_QUEUE_NAME,
+    DEA_NEWDATA_PROCESSING_POOL,
 )
 from sentinel_2_nrt.env_cfg import (
     INDEXING_PRODUCTS,
@@ -87,6 +88,7 @@ with dag:
         name="datacube-index",
         task_id="streamline-indexing-task",
         get_logs=True,
+        pool=DEA_NEWDATA_PROCESSING_POOL,
         affinity=NODE_AFFINITY,
         is_delete_operator_pod=True,
     )
