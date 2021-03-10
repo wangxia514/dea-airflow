@@ -59,7 +59,7 @@ with dag:
         task_id="run_one",
         namespace="processing",
         name="mod6-test",
-        image_pull_policy="IfNotPresent",
+        image_pull_policy="Always",
         image=MOD6_IMAGE,
         volumes=[ancillary_volume],
         volume_mounts=[ancillary_volume_mount],
