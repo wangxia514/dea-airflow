@@ -13,7 +13,7 @@ from airflow_kubernetes_job_operator.kubernetes_job_operator import (
 )
 
 
-MOD6_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/mod6:test-20210309"
+MOD6_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/mod6:test-20210311"
 
 ancillary_volume_mount = VolumeMount(
     name="wagl-nrt-ancillary-volume",
