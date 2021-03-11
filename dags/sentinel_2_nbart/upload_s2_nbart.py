@@ -152,8 +152,8 @@ def upload_metadata(granule_id):
     local_path = Path(NCI_DIR) / granule_id
 
     s3_path = f"s3://{S3_BUCKET}/{S3_PATH}/{granule_id}/"
-    s3_path_eo3 = f"s3://{S3_BUCKET}/{S3_PATH}/{granule_id}/eo3-ARD-METADATA.yaml"
-    s3_path_stac = f"s3://{S3_BUCKET}/{S3_PATH}/{granule_id}/stac-ARD-METADATA.json"
+    s3_path_eo3 = f"{s3_path}eo3-ARD-METADATA.yaml"
+    s3_path_stac = f"{s3_path}stac-ARD-METADATA.json"
 
     eo3 = create_eo3(local_path)
     stac = to_stac_item(
