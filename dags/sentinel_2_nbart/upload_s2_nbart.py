@@ -133,7 +133,7 @@ def upload_dataset_without_yaml(granule_id):
               "--only-show-errors " \
               "--delete " \
               "--exclude NBAR/* " \
-              "--exclude ARD-METADATA.yaml"
+              "--exclude *NBAR_CONTIGUITY.TIF"
 
     try:
         subprocess.run(command, shell=True, check=True, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
