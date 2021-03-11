@@ -32,6 +32,7 @@ from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
+from infra.images import S3_TO_RDS_IMAGE
 
 local_tz = pendulum.timezone("Australia/Canberra")
 
@@ -74,9 +75,6 @@ DEFAULT_ARGS = {
     ],
 }
 
-# Point to Geoscience Australia / OpenDataCube Dockerhub
-S3_TO_RDS_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/geoscienceaustralia/s3-to-rds:0.1.4"
-
 dag = DAG(
     "k8s_nci_db_incremental_sync",
     doc_md=__doc__,
@@ -84,7 +82,7 @@ dag = DAG(
     catchup=False,
     concurrency=1,
     max_active_runs=1,
-    tags=["k8s", "explorer"],
+    tags=["k8s", "nci-explorer"],
     schedule_interval="45 0 * * *",  # every day 0:45AM
     dagrun_timeout=timedelta(minutes=60 * 3),
 )
@@ -118,6 +116,7 @@ s3_backup_volume_config = {"persistentVolumeClaim": {"claimName": "s3-backup-vol
 s3_backup_volume = Volume(name="s3-backup-volume", configs=s3_backup_volume_config)
 
 with dag:
+    START = DummyOperator(task_id="nci-db-incremental-sync")
 
     # Wait for S3 Key
     S3_BACKUP_SENSE = S3KeySensor(
@@ -145,4 +144,8 @@ with dag:
     )
 
     # Task complete
+    COMPLETE = DummyOperator(task_id="done")
+
+    START >> S3_BACKUP_SENSE
     S3_BACKUP_SENSE >> RESTORE_NCI_INCREMENTAL_SYNC
+    RESTORE_NCI_INCREMENTAL_SYNC >> COMPLETE
