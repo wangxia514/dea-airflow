@@ -4,7 +4,6 @@ Script to sync Sentinel-2 data from NCI to AWS S3 bucket
 """
 
 import logging
-import re
 import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -23,7 +22,6 @@ import click
 import yaml
 from odc.aws import s3_client
 from tqdm import tqdm
-from eodatasets3 import serialise
 from eodatasets3.stac import to_stac_item
 from eodatasets3.model import (
     DatasetDoc,
@@ -36,10 +34,6 @@ import rasterio
 from eodatasets3 import serialise, validate, images, documents
 from rasterio import DatasetReader
 from shapely.geometry.polygon import Polygon
-# padding
-# skip
-# read bands: 16:42.37
-# read metadata: 0:50.63
 
 NCI_DIR = '/g/data/if87/datacube/002/S2_MSI_ARD/packaged'
 S3_PATH = 'L2/sentinel-2-nbart/S2MSIARD_NBART'
