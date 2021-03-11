@@ -38,7 +38,7 @@ from shapely.geometry.polygon import Polygon
 NCI_DIR = '/g/data/if87/datacube/002/S2_MSI_ARD/packaged'
 S3_PATH = 'L2/sentinel-2-nbart/S2MSIARD_NBART'
 S3_BUCKET = 'dea-public-data-dev'
-WORK_DIR = Path('/home/547/kr4383/work/s2_nbart_rolling_archive')
+WORK_DIR = Path('/g/data/v10/work/s2_nbart_rolling_archive')
 
 S3 = None
 

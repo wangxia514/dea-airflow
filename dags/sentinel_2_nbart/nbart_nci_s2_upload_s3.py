@@ -24,7 +24,7 @@ local_tz = pendulum.timezone("Australia/Canberra")
 
 # language="Shell Script"
 COMMON = dedent("""
-        {% set work_dir = '/home/547/kr4383/work/s2_nbart_rolling_archive/' + ds  -%}
+        {% set work_dir = '/g/data/v10/work/s2_nbart_rolling_archive/' + ds  -%}
         mkdir -p {{work_dir}}
         cd {{ work_dir }}
         # echo on and exit on fail
@@ -63,7 +63,7 @@ with dag:
     upload_uploader_script = SFTPOperator(
         task_id="upload_uploader_script",
         local_filepath=str(Path(configuration.get('core', 'dags_folder')) / "sentinel_2_nbart/upload_s2_nbart.py"),
-        remote_filepath="/home/547/kr4383/work/s2_nbart_rolling_archive/{{ds}}/upload_s2_nbart.py",
+        remote_filepath="/g/data/v10/work/s2_nbart_rolling_archive/{{ds}}/upload_s2_nbart.py",
         operation=SFTPOperation.PUT,
         create_intermediate_dirs=True
     )
