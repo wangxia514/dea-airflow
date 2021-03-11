@@ -3,6 +3,7 @@ Test DAG please ignore
 """
 from datetime import datetime, timedelta
 from airflow import DAG
+from airflow.kubernetes.secret import Secret
 from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.python_operator import PythonOperator
@@ -63,6 +64,8 @@ with dag:
         image=MOD6_IMAGE,
         volumes=[ancillary_volume],
         volume_mounts=[ancillary_volume_mount],
+        env_vars={"MODTRAN_DATA": "/modtran6/MODTRAN6.0/DATA"},
+        secrets=[Secret("env", None, "mod6-key")],
         startup_timeout_seconds=600,
         labels={
             "runner": "airflow",
