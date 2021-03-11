@@ -22,7 +22,7 @@ from airflow.kubernetes.secret import Secret
 from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.dummy_operator import DummyOperator
-# from env_var.infra import DB_HOSTNAME
+from infra.images import EXPLORER_IMAGE, S3_TO_RDS_IMAGE
 
 # Templated DAG arguments
 DATESTRING = "{{ ds_nodash }}"
@@ -59,10 +59,6 @@ DEFAULT_ARGS = {
         Secret("env", "DB_PASSWORD", "explorer-nci-admin", "postgres-password"),
     ],
 }
-
-# Point to Geoscience Australia / OpenDataCube Dockerhub
-S3_TO_RDS_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/geoscienceaustralia/s3-to-rds:0.1.2"
-EXPLORER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/explorer:2.4.0"
 
 dag = DAG(
     "k8s_nci_db_sync",
