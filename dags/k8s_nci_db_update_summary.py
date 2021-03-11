@@ -54,8 +54,8 @@ dag = DAG(
     concurrency=1,
     max_active_runs=1,
     tags=["k8s"],
-    # schedule_interval="45 1 * * sat",  # every saturday 1:45AM
-    schedule_interval="45 1 * * *",    # every day 1:45AM
+    schedule_interval="45 1 * * sat",  # every saturday 1:45AM
+    # schedule_interval="45 1 * * *",    # every day 1:45AM
 )
 
 affinity = {
@@ -82,8 +82,8 @@ with dag:
         namespace="processing",
         image=EXPLORER_UNSTABLE_IMAGE,      # TODO: use EXPLORER_IMAGE
         cmds=["cubedash-gen"],
-        # arguments=["--no-init-database", "--refresh-stats", "--force-refresh", "--all"],
-        arguments=["--no-init-database", "--refresh-stats", "--all"],
+        arguments=["--no-init-database", "--refresh-stats", "--force-refresh", "--all"],
+        # arguments=["--no-init-database", "--refresh-stats", "--all"],
         labels={"step": "summarize-datacube"},
         name="summarize-datacube",
         task_id="summarize-datacube",
