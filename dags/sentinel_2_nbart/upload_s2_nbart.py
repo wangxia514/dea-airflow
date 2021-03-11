@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 import json
 import boto3
+import botocore
 from eodatasets3 import DatasetAssembler
 from eodatasets3.scripts.tostac import json_fallback
 import datetime
@@ -95,16 +96,39 @@ def main(granule_ids, workers):
 
 
 def upload_dataset(granule_id):
+    """
+    :param granule_id: the id of the granule in format 'date/tile_id'
+    """
+    session = boto3.session.Session()
 
-    upload_dataset_without_yaml(granule_id)
-    stac = upload_metadata(granule_id)
-    send_stac_sns(stac)
+    if not check_granule_uploaded(granule_id, session):
+        upload_dataset_without_yaml(granule_id)
+        stac = upload_metadata(granule_id)
+        send_stac_sns(stac, session)
+
+
+def check_granule_uploaded(granule_id, session):
+    """
+    Checks to see whether the folder `granule_id` exists
+
+    :param granule_id: the id of the granule in format 'date/tile_id'
+    :param session: boto3 Session object
+    :return: bool - `True` indicates that ganule has been uploaded
+    """
+    s3 = session.resource('s3')
+    try:
+        _ = s3.Object(S3_BUCKET, f"{S3_PATH}/{granule_id}/stac-ARD-METADATA.json").load()
+        _LOG.info(f"{granule_id} already uploaded. Skipping.")
+        return True
+    except botocore.exceptions.ClientError:
+        return False
+
 
 
 def upload_dataset_without_yaml(granule_id):
     """
     Run AWS sync command to sync granules to S3 bucket
-    :param granule_id: name of the granule
+    :param granule_id: the id of the granule in format 'date/tile_id'
     :param _s3_bucket: name of the s3 bucket
     """
     local_path = Path(NCI_DIR) / granule_id
@@ -152,13 +176,14 @@ def upload_metadata(granule_id):
     return stac
 
 
-def send_stac_sns(stac):
+def send_stac_sns(stac, session):
     """
     Sends stac metadata as an SNS message
+
     :param stac: serialized stac metadata
+    :param session: boto3 Session object
     """
 
-    session = boto3.session.Session()
     resource = session.client('sns', region_name='ap-southeast-2')
     resource.publish(
         TopicArn="arn:aws:sns:ap-southeast-2:451924316694:U29500-Test",
