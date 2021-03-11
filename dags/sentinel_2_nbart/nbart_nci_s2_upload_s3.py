@@ -85,7 +85,7 @@ with dag:
                 INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id
                 INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref
                 WHERE dst.name='$product_name'
-                  AND ds.added BETWEEN '{{ prev_execution_date }}' AND '{{ execution_date }}';
+                  AND ds.added BETWEEN '{{ execution_date.subtract(days=1) }}' AND '{{ execution_date }}';
             EOF
             done
             echo -n Num Datasets to upload: 

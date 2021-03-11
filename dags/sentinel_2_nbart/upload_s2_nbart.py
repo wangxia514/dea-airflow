@@ -31,6 +31,15 @@ from eodatasets3.model import (
     Location,
 )
 
+import rasterio
+from eodatasets3 import serialise, validate, images, documents
+from rasterio import DatasetReader
+from shapely.geometry.polygon import Polygon
+# padding
+# skip
+# read bands: 16:42.37
+# read metadata: 0:50.63
+
 NCI_DIR = '/g/data/if87/datacube/002/S2_MSI_ARD/packaged'
 S3_PATH = 'L2/sentinel-2-nbart/S2MSIARD_NBART'
 S3_BUCKET = 'dea-public-data-dev'
@@ -183,7 +192,7 @@ code_to_band = {
 }
 
 
-def add_to_eo3(assembler, dataset_dir, folder, func):
+def add_to_eo3(assembler, dataset_dir, folder, func, expand_valid_data):
     """
     Helper function to add measurements to the DatasetAssembler
 
@@ -196,10 +205,8 @@ def add_to_eo3(assembler, dataset_dir, folder, func):
     fns = [fn for fn in fns if "QUICKLOOK" not in fn]
     for i, fn in enumerate(fns):
         name = func(fn.split('.')[-2])
-        assembler.note_measurement(
-            name,
-            fn,
-            relative_to_dataset_location=True,
+        note_measurement(
+            assembler, name, fn, relative_to_dataset_location=True, expand_valid_data=expand_valid_data
         )
 
 
@@ -221,6 +228,15 @@ def create_eo3(dataset_dir):
     :return: DatasetDoc of eo3 metadata
     """
 
+    with open(dataset_dir / "ARD-METADATA.yaml") as fin:
+        metadata = yaml.safe_load(fin)
+
+    try:
+        coords = metadata['grid_spatial']['projection']['valid_data']['coordinates']
+        expand_valid_data = False
+    except KeyError:
+        expand_valid_data = True
+
     assembler = DatasetAssembler(
             dataset_location=dataset_dir,
             metadata_path=dataset_dir / "dummy",
@@ -234,9 +250,9 @@ def create_eo3(dataset_dir):
     assembler.processed_now()
 
     add_datetime(assembler, dataset_dir)
-    add_to_eo3(assembler, dataset_dir, "NBART", lambda x: code_to_band[x.split('_')[-1]])
-    add_to_eo3(assembler, dataset_dir, "SUPPLEMENTARY", lambda x: x[3:].lower())
-    add_to_eo3(assembler, dataset_dir, "QA", lambda x: x[3:].lower().replace('combined_', ''))
+    add_to_eo3(assembler, dataset_dir, "NBART", lambda x: code_to_band[x.split('_')[-1]], expand_valid_data)
+    add_to_eo3(assembler, dataset_dir, "SUPPLEMENTARY", lambda x: x[3:].lower(), expand_valid_data)
+    add_to_eo3(assembler, dataset_dir, "QA", lambda x: x[3:].lower().replace('combined_', ''), expand_valid_data)
 
     crs, grid_docs, measurement_docs = assembler._measurements.as_geo_docs()
     valid_data = assembler._measurements.consume_and_get_valid_data()
@@ -259,7 +275,51 @@ def create_eo3(dataset_dir):
         lineage=assembler._lineage,
     )
 
+    if not expand_valid_data:
+        dataset.geometry = Polygon(coords[0])
+
     return dataset
+
+
+def note_measurement(
+    assembler,
+    name,
+    path: Location,
+    expand_valid_data=True,
+    relative_to_dataset_location=False,
+):
+    """
+    Reference a measurement from its existing file path.
+
+    (no data is copied, but Geo information is read from it.)
+
+    :param name:
+    :param path:
+    :param expand_valid_data:
+    :param relative_to_dataset_location:
+    """
+    read_location = path
+    if relative_to_dataset_location:
+        read_location = documents.resolve_absolute_offset(
+            assembler._dataset_location
+            or (assembler._metadata_path and assembler._metadata_path.parent),
+            path,
+        )
+    with rasterio.open(read_location) as ds:
+        ds: DatasetReader
+        if ds.count != 1:
+            raise NotImplementedError(
+                "TODO: Only single-band files currently supported"
+            )
+
+        assembler._measurements.record_image(
+            name,
+            images.GridSpec.from_rio(ds),
+            path,
+            ds.read(1) if expand_valid_data else None,
+            nodata=ds.nodata,
+            expand_valid_data=expand_valid_data,
+        )
 
 
 if __name__ == '__main__':
