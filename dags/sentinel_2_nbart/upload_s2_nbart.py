@@ -181,7 +181,7 @@ def send_stac_sns(stac, session):
 
     resource = session.client('sns', region_name='ap-southeast-2')
     resource.publish(
-        TopicArn="arn:aws:sns:ap-southeast-2:451924316694:U29500-Test",
+        TopicArn="arn:aws:sns:ap-southeast-2:451924316694:dea-dev-eks-l2-nbart",
         Message=json.dumps({'default': stac}),
         MessageStructure='json'
     )
