@@ -22,7 +22,7 @@ params = {
     "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
     "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
     "config_arg": "",
-    "scene_limit": "",
+    "scene_limit": "--scene-limit 400",
     "interim_days_wait": "",
     "products_arg": "",
     "pkgdir_arg": "/g/data/xu18/ga",
@@ -77,7 +77,7 @@ if aws_develop:
         params["run_ard_arg"] = ""
 
     # A fail safe
-    params["scene_limit"] = "--scene-limit 1"
+    #params["scene_limit"] = "--scene-limit 1"
     #
 else:
     # run this from local dev
@@ -147,7 +147,6 @@ with dag:
                   --env {{ params.wagl_env }}  \
                   --project {{ params.project }} \
                   --walltime 10:00:00 \
-                  --find-blocked \
                   {{ params.index_arg }} \
                   {{ params.scene_limit }} \
                   {{ params.interim_days_wait }} \
