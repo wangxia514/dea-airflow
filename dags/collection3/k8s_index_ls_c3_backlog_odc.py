@@ -65,7 +65,7 @@ def load_subdag(parent_dag_name, child_dag_name, product, rows, args):
 
     with subdag:
         for row in rows:
-            # for path in paths:
+            folder = f"0{row}" if row < 100 else str(row)
             INDEXING = KubernetesPodOperator(
                 namespace="processing",
                 image=INDEXER_IMAGE,
@@ -75,7 +75,7 @@ def load_subdag(parent_dag_name, child_dag_name, product, rows, args):
                     "--stac",
                     "--no-sign-request",
                     "--skip-lineage",
-                    f"s3://dea-public-data/baseline/{product}/0{row}/**/*.json",
+                    f"s3://dea-public-data/baseline/{product}/{folder}/**/*.json",
                     " ".join(products),
                 ],
                 labels={"backlog": "s3-to-dc"},
