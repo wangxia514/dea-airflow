@@ -24,7 +24,7 @@ params = {
     "config_arg": "",
     "scene_limit": "--scene-limit 400",
     "interim_days_wait": "",
-    "products_arg": "",
+    "products_arg": """--products '["usgs_ls7e_level1_1", "usgs_ls8c_level1_1"]'""",
     "pkgdir_arg": "/g/data/xu18/ga",
     "base_dir": "/g/data/v10/work/c3_ard/",
     "days_to_exclude_arg": "",
@@ -131,7 +131,7 @@ with dag:
         qsub -N ard_scene_select \
               -q  {{ params.queue }}  \
               -W umask=33 \
-              -l wd,walltime=3:00:00,mem=15GB,ncpus=1 -m abe \
+              -l wd,walltime=6:00:00,mem=15GB,ncpus=1 -m abe \
               -l storage=gdata/v10+scratch/v10+gdata/if87+gdata/fj7+scratch/fj7 \
               -P  {{ params.project }} -o {{ params.base_dir }}{{ log_ext }} -e {{ params.base_dir }}{{ log_ext }}  \
               -- /bin/bash -l -c \
