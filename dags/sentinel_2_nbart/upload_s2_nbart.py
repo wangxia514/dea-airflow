@@ -165,7 +165,7 @@ def upload_metadata(granule_id):
     )
     stac = json.dumps(stac, default=json_fallback, indent=4)
 
-    s3_dump(yaml.safe_dump(serialise.to_formatted_doc(eo3), default_flow_style=False), s3_path_eo3, S3)
+    s3_dump(yaml.safe_dump(serialise.to_doc(eo3), default_flow_style=False), s3_path_eo3, S3)
     s3_dump(stac, s3_path_stac, S3)
 
     return stac
