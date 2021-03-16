@@ -298,6 +298,10 @@ def create_eo3(dataset_dir):
     if not expand_valid_data:
         dataset.geometry = Polygon(coords[0])
 
+    for measurement in dataset.measurements.values():
+        if measurement.grid is None:
+            measurement.grid = 'default'
+
     return dataset
 
 
