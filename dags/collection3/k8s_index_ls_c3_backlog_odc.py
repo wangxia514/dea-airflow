@@ -49,8 +49,10 @@ DEFAULT_ARGS = {
         ),
     ],
 }
+
 TASK_ARGS = {
     "secrets": DEFAULT_ARGS["secrets"],
+    "env_vars": DEFAULT_ARGS["env_vars"],
     "start_date": DEFAULT_ARGS["start_date"],
 }
 
@@ -65,7 +67,6 @@ def load_subdag(parent_dag_name, child_dag_name, product, rows, args):
 
     with subdag:
         for row in rows:
-            folder = f"0{row}" if row < 100 else str(row)
             INDEXING = KubernetesPodOperator(
                 namespace="processing",
                 image=INDEXER_IMAGE,
@@ -75,8 +76,8 @@ def load_subdag(parent_dag_name, child_dag_name, product, rows, args):
                     "--stac",
                     "--no-sign-request",
                     "--skip-lineage",
-                    f"s3://dea-public-data/baseline/{product}/{folder}/**/*.json",
-                    " ".join(products),
+                    f"s3://dea-public-data/baseline/{product}/{row:03d}/**/*.json",
+                    product,
                 ],
                 labels={"backlog": "s3-to-dc"},
                 name="datacube-index",
@@ -100,7 +101,7 @@ dag = DAG(
 
 with dag:
     rows = range(88, 117)
-    products = ["ga_ls5t_ard_3", "ga_ls7e_ard_3","ga_ls8c_ard_3"]
+    products = ["ga_ls5t_ard_3", "ga_ls7e_ard_3", "ga_ls8c_ard_3"]
 
     for product in products:
         TASK_NAME = f"{product}--backlog"
