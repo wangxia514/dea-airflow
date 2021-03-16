@@ -16,7 +16,7 @@ from sensors.pbs_job_complete_sensor import PBSJobSensor
 
 params = {
     "project": "v10",
-    "queue": "normal",
+    "queue": "copyq",
     "module_ass": "ard-scene-select-py3-dea/20210216",
     "index_arg": "--index-datacube-env "
     "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
@@ -131,7 +131,7 @@ with dag:
         qsub -N ard_scene_select \
               -q  {{ params.queue }}  \
               -W umask=33 \
-              -l wd,walltime=6:00:00,mem=15GB,ncpus=1 -m abe \
+              -l wd,walltime=5:00:00,mem=15GB,ncpus=1 -m abe \
               -l storage=gdata/v10+scratch/v10+gdata/if87+gdata/fj7+scratch/fj7 \
               -P  {{ params.project }} -o {{ params.base_dir }}{{ log_ext }} -e {{ params.base_dir }}{{ log_ext }}  \
               -- /bin/bash -l -c \
@@ -147,6 +147,7 @@ with dag:
                   --env {{ params.wagl_env }}  \
                   --project {{ params.project }} \
                   --walltime 10:00:00 \
+                  --find-blocked \
                   {{ params.index_arg }} \
                   {{ params.scene_limit }} \
                   {{ params.interim_days_wait }} \
