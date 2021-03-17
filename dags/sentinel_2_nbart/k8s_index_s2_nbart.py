@@ -87,7 +87,7 @@ with dag:
         image=INDEXER_IMAGE,
         image_pull_policy="Always",
         arguments=[
-            "git clone https://github.com/opendatacube/odc-tools.git;",
+            "git clone --single-branch --branch optional-hdstats https://github.com/opendatacube/odc-tools.git;",
             "cd odc-tools;",
             "./scripts/dev-install.sh;",
             "sqs-to-dc",
