@@ -88,6 +88,7 @@ with dag:
         image_pull_policy="Always",
         arguments=[
             "git clone https://github.com/opendatacube/odc-tools.git;",
+            "cd odc-tools;",
             "./odc-tools/scripts/dev-install.sh;",
             "sqs-to-dc",
             "--stac",
