@@ -87,6 +87,8 @@ with dag:
         image=INDEXER_IMAGE,
         image_pull_policy="Always",
         arguments=[
+            "git clone https://github.com/opendatacube/odc-tools.git;",
+            "pip install odc-tools/apps/dc_tools;",
             "sqs-to-dc",
             "--stac",
             "--skip-lineage",
