@@ -89,7 +89,7 @@ with dag:
         arguments=[
             "git clone https://github.com/opendatacube/odc-tools.git;",
             "cd odc-tools;",
-            "./odc-tools/scripts/dev-install.sh;",
+            "./scripts/dev-install.sh;",
             "sqs-to-dc",
             "--stac",
             "--skip-lineage",
