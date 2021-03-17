@@ -102,7 +102,7 @@ with dag:
         name="datacube-index",
         task_id="indexing-task",
         get_logs=True,
-        is_delete_operator_pod=True,
+        is_delete_operator_pod=False,
     )
 
     COMPLETE = DummyOperator(task_id="tasks-complete")
