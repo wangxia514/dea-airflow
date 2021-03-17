@@ -80,13 +80,11 @@ dag = DAG(
 )
 
 with dag:
-    START = DummyOperator(task_id="start-tasks")
 
     INDEXING = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
         image_pull_policy="Always",
-        command=["/bin/sh", "-c"],
         arguments=[
             "sqs-to-dc",
             "--stac",
@@ -101,7 +99,3 @@ with dag:
         get_logs=True,
         is_delete_operator_pod=False,
     )
-
-    COMPLETE = DummyOperator(task_id="tasks-complete")
-
-    START >> INDEXING >> COMPLETE
