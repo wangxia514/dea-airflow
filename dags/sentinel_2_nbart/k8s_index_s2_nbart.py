@@ -86,6 +86,7 @@ with dag:
         namespace="processing",
         image=INDEXER_IMAGE,
         image_pull_policy="Always",
+        command=["/bin/sh", "-c"],
         arguments=[
             "git clone https://github.com/opendatacube/odc-tools.git;",
             "cd odc-tools;",
