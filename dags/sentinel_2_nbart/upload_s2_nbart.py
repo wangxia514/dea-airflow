@@ -97,13 +97,14 @@ def upload_dataset(granule_id):
 
     if not check_granule_uploaded(granule_id, session):
         upload_dataset_without_yaml(granule_id)
-        stac = upload_metadata(granule_id)
+        stac, s3_path_stac = upload_metadata(granule_id)
         send_stac_sns(stac, session)
+        s3_dump(stac, s3_path_stac, S3) # upload STAC last
 
 
 def check_granule_uploaded(granule_id, session):
     """
-    Checks to see whether the folder `granule_id` exists
+    Checks to see whether the file `granule_id/stac-ARD-METADATA.json` exists
 
     :param granule_id: the id of the granule in format 'date/tile_id'
     :param session: boto3 Session object
@@ -166,9 +167,8 @@ def upload_metadata(granule_id):
     stac = json.dumps(stac, default=json_fallback, indent=4)
 
     s3_dump(yaml.safe_dump(serialise.to_doc(eo3), default_flow_style=False), s3_path_eo3, S3)
-    s3_dump(stac, s3_path_stac, S3)
 
-    return stac
+    return stac, s3_path_stac
 
 
 def send_stac_sns(stac, session):
