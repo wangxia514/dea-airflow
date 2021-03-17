@@ -41,6 +41,7 @@ schedule_interval = "0 10 * * *"
 # #/* The sed command below will remove this block of test code
 # sed '/#\/\*/,/#\*\// d' nci_ard.py > ../../nci_ard.py
 # sed '/#\/\*/,/#\*\// d' dags/nci_ard.py > ../nci_ard.py
+# mv ../nci_ard.py dags/nci_ard.py
 # params[""] =
 
 params["index_arg"] = ""  # No indexing
@@ -131,7 +132,7 @@ with dag:
         qsub -N ard_scene_select \
               -q  {{ params.queue }}  \
               -W umask=33 \
-              -l wd,walltime=5:00:00,mem=15GB,ncpus=1 -m abe \
+              -l wd,walltime=3:00:00,mem=15GB,ncpus=1 -m abe \
               -l storage=gdata/v10+scratch/v10+gdata/if87+gdata/fj7+scratch/fj7 \
               -P  {{ params.project }} -o {{ params.base_dir }}{{ log_ext }} -e {{ params.base_dir }}{{ log_ext }}  \
               -- /bin/bash -l -c \
