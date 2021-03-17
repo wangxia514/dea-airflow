@@ -92,6 +92,7 @@ with dag:
             "sqs-to-dc",
             "--stac",
             "--skip-lineage",
+            "--absolute",
             dag.default_args["index_sqs_queue"],
             dag.default_args["products"],
         ],
