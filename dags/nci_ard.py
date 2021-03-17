@@ -16,13 +16,13 @@ from sensors.pbs_job_complete_sensor import PBSJobSensor
 
 params = {
     "project": "v10",
-    "queue": "normal",
+    "queue": "copyq",
     "module_ass": "ard-scene-select-py3-dea/20210216",
     "index_arg": "--index-datacube-env "
     "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
     "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
     "config_arg": "",
-    "scene_limit": "",
+    "scene_limit": "--scene-limit 400",
     "interim_days_wait": "",
     "products_arg": "",
     "pkgdir_arg": "/g/data/xu18/ga",
