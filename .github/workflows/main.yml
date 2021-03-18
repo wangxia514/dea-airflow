@@ -15,7 +15,7 @@ on:
       - 'scripts/**'
       - '.github/workflows/**'
       - 'requirements.txt'
-      - 'contraints.txt'
+      - 'constraints.txt'
 
 jobs:
   build:
