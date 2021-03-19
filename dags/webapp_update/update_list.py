@@ -6,9 +6,7 @@ UPDATE_EXTENT_PRODUCTS = (
     "s2_ard_granule_nbar_t",
     "ga_ls_wo_3",
     "ga_ls_fc_3",
-    "ga_ls5t_ard_3",
-    "ga_ls7e_ard_3",
-    "ga_ls8c_ard_3",
+    "dea_c3_ls_combined",
 )
 
 EXPLORER_UPDATE_LIST = (
