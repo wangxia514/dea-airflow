@@ -3,15 +3,55 @@ DEA Airflow SSH Operators
 
 """
 import os.path
+from base64 import b64encode
+
 from io import StringIO
 
-from airflow import AirflowException
+from airflow import AirflowException, conf
 from airflow.contrib.hooks.ssh_hook import SSHHook
 from airflow.contrib.operators.sftp_operator import _make_intermediate_dirs
 from airflow.models import BaseOperator, SkipMixin
 from airflow.utils.decorators import apply_defaults
 
 from dea_airflow_common.ssh import SSHRunMixin
+
+
+class SecretHandlingSSHOperator(SSHRunMixin, BaseOperator):
+    template_fields = ('command', 'secret_command')
+
+    @apply_defaults
+    def __init__(self,
+                 command: str = None,
+                 secret_command: str = None,
+                 *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.command = command
+        self.secret_command = secret_command
+
+    def execute(self, context):
+        command = self.command
+        if self.secret_command:
+            command = '. /dev/stdin; ' + self.command
+
+        exit_status, output = self.run_ssh_command_and_return_output(command, self.secret_command)
+
+        if exit_status == 0:
+            # returning output if do_xcom_push is set
+            if self.do_xcom_push:
+                enable_pickling = conf.getboolean(
+                    'core', 'enable_xcom_pickling'
+                )
+                if enable_pickling:
+                    return output
+                else:
+                    return b64encode(output).decode('utf-8')
+
+        else:
+            error_msg = output.decode('utf-8')
+            raise AirflowException("error running cmd: {0}, error: {1}"
+                                   .format(self.command, error_msg))
+
+        return True
 
 
 class ShortCircuitSSHOperator(SSHRunMixin, BaseOperator, SkipMixin):
