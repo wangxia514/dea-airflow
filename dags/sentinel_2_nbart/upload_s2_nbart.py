@@ -36,9 +36,9 @@ from rasterio import DatasetReader
 from shapely.geometry.polygon import Polygon
 
 NCI_DIR = '/g/data/if87/datacube/002/S2_MSI_ARD/packaged'
-S3_PATH = 'L2/sentinel-2-nbart/S2MSIARD_NBART'
 S3_BUCKET = 'dea-public-data-dev'
 WORK_DIR = Path('/g/data/v10/work/s2_nbart_rolling_archive')
+SNS_ARN = "arn:aws:sns:ap-southeast-2:451924316694:dea-dev-eks-l2-nbart"
 
 S3 = None
 
@@ -111,13 +111,13 @@ def check_granule_uploaded(granule_id, session):
     :return: bool - `True` indicates that ganule has been uploaded
     """
     s3 = session.resource('s3')
+    granule_s3_path = get_granule_s3_path(granule_id)
     try:
-        _ = s3.Object(S3_BUCKET, f"{S3_PATH}/{granule_id}/stac-ARD-METADATA.json").load()
+        _ = s3.Object(S3_BUCKET, f"{granule_s3_path}/stac-ARD-METADATA.json").load()
         _LOG.info(f"{granule_id} already uploaded. Skipping.")
         return True
     except botocore.exceptions.ClientError:
         return False
-
 
 
 def upload_dataset_without_yaml(granule_id):
@@ -127,7 +127,8 @@ def upload_dataset_without_yaml(granule_id):
     :param _s3_bucket: name of the s3 bucket
     """
     local_path = Path(NCI_DIR) / granule_id
-    s3_path = f"s3://{S3_BUCKET}/{S3_PATH}/{granule_id}"
+    granule_s3_path = get_granule_s3_path(granule_id)
+    s3_path = f"s3://{S3_BUCKET}/{granule_s3_path}"
 
     # Remove any data that shouldn't be there and exclude the metadata and NBAR
     command = f"aws s3 sync {local_path} {s3_path} " \
@@ -144,6 +145,18 @@ def upload_dataset_without_yaml(granule_id):
         raise e
 
 
+def get_granule_s3_path(granule_id):
+
+    if "S2A" in granule_id:
+        granule_s3_path = f"baseline/s2a_ard_granule/{granule_id}"
+    elif "S2B" in granule_id:
+        granule_s3_path = f"baseline/s2b_ard_granule/{granule_id}"
+    else:
+        raise ValueError(f"granule_id: must contain 'S2A' or S2B, found {granule_id}.")
+
+    return granule_s3_path
+
+
 def upload_metadata(granule_id):
     """
     Creates and uploads metadata in stac and eo3 formats.
@@ -152,8 +165,9 @@ def upload_metadata(granule_id):
     """
 
     local_path = Path(NCI_DIR) / granule_id
+    granule_s3_path = get_granule_s3_path(granule_id)
 
-    s3_path = f"s3://{S3_BUCKET}/{S3_PATH}/{granule_id}/"
+    s3_path = f"s3://{S3_BUCKET}/{granule_s3_path}/"
     s3_path_eo3 = f"{s3_path}eo3-ARD-METADATA.yaml"
     s3_path_stac = f"{s3_path}stac-ARD-METADATA.json"
 
@@ -181,7 +195,7 @@ def send_stac_sns(stac, session):
 
     resource = session.client('sns', region_name='ap-southeast-2')
     resource.publish(
-        TopicArn="arn:aws:sns:ap-southeast-2:451924316694:dea-dev-eks-l2-nbart",
+        TopicArn=SNS_ARN,
         Message=json.dumps({'default': stac}),
         MessageStructure='json'
     )
