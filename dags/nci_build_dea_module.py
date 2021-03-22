@@ -26,7 +26,8 @@ with dag:
     build_env_task = SSHOperator(
         task_id=f'build_dea_module',
         ssh_conn_id='lpgs_gadi',
-        command="""
+        command=f"""
+        rm -r /g/data/v10/public/modules/dea/{datetime.datetime.now().strftime("%Y%m%d")}
         set -eux
         cd ~/dea-orchestration/
         git reset --hard
