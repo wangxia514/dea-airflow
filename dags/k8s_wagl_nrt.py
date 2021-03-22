@@ -83,6 +83,10 @@ affinity = {
     }
 }
 
+tolerations = [
+    {"key": "dedicated", "operator": "Equal", "value": "wagl", "effect": "NoSchedule"}
+]
+
 
 ancillary_volume_mount = VolumeMount(
     name="wagl-nrt-ancillary-volume",
@@ -285,6 +289,7 @@ with pipeline:
             image_pull_policy="IfNotPresent",
             image=WAGL_IMAGE,
             affinity=affinity,
+            tolerations=tolerations,
             startup_timeout_seconds=600,
             # this is the wagl_nrt user in the wagl container
             security_context=dict(runAsUser=10015, runAsGroup=10015, fsGroup=10015),
