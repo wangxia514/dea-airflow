@@ -51,7 +51,7 @@ with dag:
         cd dea-notebooks/Frequently_used_code/
         module load dea/$(date +%Y%m%d)  # TODO, this will fail if run over midnight...
 
-        pytest --nbval-lax Applying_WOfS_bitmasking.ipynb Calculating_band_indices.ipynb \
+        python -m pytest --nbval-lax Applying_WOfS_bitmasking.ipynb Calculating_band_indices.ipynb \
         Contour_extraction.ipynb Exporting_GeoTIFFs.ipynb Exporting_NetCDFs.ipynb \
         Imagery_on_web_map.ipynb Integrating_external_data.ipynb Machine_learning_with_ODC.ipynb \
         Masking_data.ipynb Opening_GeoTIFFs_NetCDFs.ipynb Pan_sharpening_Brovey.ipynb \
