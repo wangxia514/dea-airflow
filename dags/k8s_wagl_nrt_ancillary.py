@@ -121,6 +121,10 @@ affinity = {
     }
 }
 
+tolerations = [
+    {"key": "dedicated", "operator": "Equal", "value": "wagl", "effect": "NoSchedule"}
+]
+
 
 default_args = {
     "owner": "Imam Alam",
@@ -175,6 +179,7 @@ with pipeline:
         get_logs=True,
         startup_timeout_seconds=300,
         affinity=affinity,
+        tolerations=tolerations,
         volumes=[ancillary_volume],
         volume_mounts=[ancillary_volume_mount],
         labels={

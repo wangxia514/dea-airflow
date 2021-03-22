@@ -83,6 +83,9 @@ affinity = {
     }
 }
 
+tolerations = [
+    {"key": "dedicated", "operator": "Equal", "value": "wagl", "effect": "NoSchedule"}
+]
 
 ancillary_volume_mount = VolumeMount(
     name="wagl-nrt-ancillary-volume",
@@ -249,6 +252,7 @@ with pipeline:
             image_pull_policy="IfNotPresent",
             image=S3_TO_RDS_IMAGE,
             affinity=affinity,
+            tolerations=tolerations,
             startup_timeout_seconds=600,
             volumes=[ancillary_volume],
             volume_mounts=[ancillary_volume_mount],
