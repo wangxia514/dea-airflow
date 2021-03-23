@@ -10,6 +10,7 @@ from airflow.kubernetes.secret import Secret
 from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
 
+from infra.variables import WAGL_TASK_POOL
 
 NOW = datetime.now()
 DOY = int(NOW.strftime("%j"))
@@ -180,6 +181,7 @@ with pipeline:
         startup_timeout_seconds=300,
         affinity=affinity,
         tolerations=tolerations,
+        pool=WAGL_TASK_POOL,
         volumes=[ancillary_volume],
         volume_mounts=[ancillary_volume_mount],
         labels={

@@ -23,6 +23,9 @@ from airflow.utils.trigger_rule import TriggerRule
 
 import kubernetes.client.models as k8s
 
+from infra.variables import WAGL_TASK_POOL
+
+
 default_args = {
     "owner": "Imam Alam",
     "depends_on_past": False,
@@ -257,6 +260,7 @@ with pipeline:
             task_id=f"dea-s2-wagl-nrt-copy-scene-{index}",
             image_pull_policy="IfNotPresent",
             image=S3_TO_RDS_IMAGE,
+            pool=WAGL_TASK_POOL,
             affinity=affinity,
             startup_timeout_seconds=600,
             volumes=[ancillary_volume],
@@ -290,6 +294,7 @@ with pipeline:
             image=WAGL_IMAGE,
             affinity=affinity,
             tolerations=tolerations,
+            pool=WAGL_TASK_POOL,
             startup_timeout_seconds=600,
             # this is the wagl_nrt user in the wagl container
             security_context=dict(runAsUser=10015, runAsGroup=10015, fsGroup=10015),
