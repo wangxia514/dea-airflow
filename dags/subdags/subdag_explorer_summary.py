@@ -10,7 +10,7 @@ from airflow.kubernetes.secret import Secret
 from webapp_update.update_list import EXPLORER_UPDATE_LIST
 from infra.podconfig import NODE_AFFINITY
 from infra.images import EXPLORER_IMAGE
-from infra.variables import SECRET_EXPLORER_WRITER_NAME
+from infra.variables import SECRET_EXPLORER_WRITER_NAME, DEA_NEWDATA_PROCESSING_POOL
 
 EXPLORER_SECRETS = [
     Secret("env", "DB_USERNAME", SECRET_EXPLORER_WRITER_NAME, "postgres-username"),
@@ -66,6 +66,7 @@ def explorer_refresh_stats_subdag(
         is_delete_operator_pod=True,
         affinity=NODE_AFFINITY,
         dag=dag_subdag,
+        pool=DEA_NEWDATA_PROCESSING_POOL,
     )
 
     return dag_subdag

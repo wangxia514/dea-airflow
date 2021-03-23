@@ -21,7 +21,8 @@ from infra.podconfig import (
     OWS_CFG_FOLDER_PATH,
 )
 from webapp_update.update_list import UPDATE_EXTENT_PRODUCTS
-from infra.variables import SECRET_OWS_WRITER_NAME
+from infra.variables import SECRET_OWS_WRITER_NAME, DEA_NEWDATA_PROCESSING_POOL
+
 
 OWS_SECRETS = [
     Secret("env", "DB_USERNAME", SECRET_OWS_WRITER_NAME, "postgres-username"),
@@ -130,6 +131,7 @@ def ows_update_extent_subdag(
         is_delete_operator_pod=True,
         affinity=NODE_AFFINITY,
         dag=dag_subdag,
+        pool=DEA_NEWDATA_PROCESSING_POOL,
     )
 
     return dag_subdag
