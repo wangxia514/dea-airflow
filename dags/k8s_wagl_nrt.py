@@ -262,6 +262,7 @@ with pipeline:
             image=S3_TO_RDS_IMAGE,
             pool=WAGL_TASK_POOL,
             affinity=affinity,
+            tolerations=tolerations,
             startup_timeout_seconds=600,
             volumes=[ancillary_volume],
             volume_mounts=[ancillary_volume_mount],
