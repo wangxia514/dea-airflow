@@ -12,7 +12,7 @@ from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from textwrap import dedent
-
+from infra.images import INDEXER_IMAGE
 from infra.variables import (
     SECRET_DBA_ADMIN_NAME,
     DB_DUMP_S3_ROLE,
@@ -23,9 +23,7 @@ from infra.variables import (
 )
 from infra.podconfig import NODE_AFFINITY
 
-DAG_NAME = "odc_db_dump_to_s3"
-
-INDEXER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/datacube-index:0.0.15"
+DAG_NAME = "utility_odc_db_dump_to_s3"
 
 
 # DAG CONFIGURATION
@@ -72,6 +70,7 @@ DUMP_TO_S3_COMMAND = [
         """
             pg_dump -Fc -h $(DB_HOSTNAME) -U $(DB_USERNAME) -d $(DB_DATABASE) > {0}
             ls -la | grep {0}
+            aws s3 ls
             aws s3 cp --acl bucket-owner-full-control {0} s3://{1}/dea-dev/{0}
         """
     ).format(f"odc_{date.today().strftime('%Y_%m_%d')}.pgdump", DB_DUMP_S3_BUCKET),
@@ -98,7 +97,7 @@ with dag:
         task_id="dump-odc-db",
         get_logs=True,
         affinity=NODE_AFFINITY,
-        is_delete_operator_pod=True,
+        is_delete_operator_pod=False,
     )
 
     # DB_DUMP_TEST = KubernetesPodOperator(
