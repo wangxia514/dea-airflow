@@ -63,7 +63,7 @@ with DAG(
         file_prefix="${host}-${datestring}"
 
 
-        output_dir=$TMPDIR/pg_change_csvs_${datestring}
+        output_dir=/scratch/v10/lpgs/pg_change_csvs_${datestring}
         mkdir -p ${output_dir}
         cd ${output_dir}
     """
