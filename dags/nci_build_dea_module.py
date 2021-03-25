@@ -5,6 +5,7 @@
 from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from datetime import datetime, timedelta
+import pytz
 
 default_args = {
     'owner': 'Damien Ayers',
@@ -22,12 +23,14 @@ dag = DAG(
     tags=['nci'],
 )
 
+timezone = pytz.timezone("Australia/Canberra")
+
 with dag:
     build_env_task = SSHOperator(
         task_id=f'build_dea_module',
         ssh_conn_id='lpgs_gadi',
         command=f"""
-        rm -r /g/data/v10/public/modules/dea/{datetime.datetime.now().strftime("%Y%m%d")}
+        rm -r /g/data/v10/public/modules/dea/{datetime.datetime.now(datetime.datetime.now(timezone)).strftime("%Y%m%d")}
         set -eux
         cd ~/dea-orchestration/
         git reset --hard
