@@ -80,7 +80,7 @@ with dag:
     UPDATE_SUMMARY = KubernetesPodOperator(
         namespace="processing",
         image=EXPLORER_UNSTABLE_IMAGE,      # TODO: use EXPLORER_IMAGE
-        # # Run `cubedash-gen --help` for explanations of each option+usage
+        # Run `cubedash-gen --help` for explanations of each option+usage
         cmds=["cubedash-gen"],
         arguments=["--no-init-database", "--refresh-stats", "--reset-incremental-position", "--all"],
         labels={"step": "summarize-datacube"},

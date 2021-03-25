@@ -36,3 +36,6 @@ DEA_NEWDATA_PROCESSING_POOL = Variable.get(
     "newdata_indexing_pool", "NewDeaData_indexing_pool"
 )
 C3_INDEXING_POOL = Variable.get("c3_indexing_pool", "c3_indexing_pool")
+
+# NCI db sync
+NCI_DBSYNC_ROLE = Variable.get("nci_dbsync_role", "svc-dea-dev-eks-nci-dbsync")
