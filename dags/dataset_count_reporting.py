@@ -28,6 +28,7 @@ from airflow import DAG
 from airflow.contrib.hooks.aws_athena_hook import AWSAthenaHook
 from airflow.contrib.hooks.ssh_hook import SSHHook
 from airflow.hooks.postgres_hook import PostgresHook
+from airflow.operators.postgres_operator import PostgresOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.utils.dates import days_ago
 
@@ -95,6 +96,11 @@ with dag:
         'ga_ls_fc_3': '/g/data/jw04/ga/ga_ls_fc_3/',
         'ga_ls_wo_3': '/g/data/jw04/ga/ga_ls_wo_3/',
     }
+    ensure_table = PostgresOperator(
+        task_id='ensure_db_table',
+        postgres_conn_id=DEST_POSTGRES_CONN_ID,
+        sql='sql/create_db_counts_table.sql',
+    )
     # Count number of dataset files on NCI
     for prod, location in PRODUCTS.items():
         t1 = PythonOperator(
