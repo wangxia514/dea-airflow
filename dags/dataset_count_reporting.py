@@ -21,16 +21,17 @@ Decisions:
 - From there, insert into Dashboard Postgres
 """
 import logging
-import psycopg2
+from datetime import timedelta
+
 import requests
 from airflow import DAG
 from airflow.contrib.hooks.aws_athena_hook import AWSAthenaHook
 from airflow.contrib.hooks.ssh_hook import SSHHook
-from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.hooks.postgres_hook import PostgresHook
 from airflow.operators.python_operator import PythonOperator
 from airflow.utils.dates import days_ago
-from datetime import timedelta
+
+from dea_airflow_common.postgres_ssh_hook import PostgresSSHHook
 
 default_args = {
     'owner': 'Damien Ayers',
@@ -40,59 +41,13 @@ default_args = {
 
 LOG = logging.getLogger(__name__)
 
-
-class PostgresSSHHook(PostgresHook):
-    """
-
-    """
-
-    def __init__(self, ssh_hook, *args, **kwargs):
-        super(PostgresSSHHook, self).__init__(*args, **kwargs)
-        self.ssh_hook = ssh_hook
-        self.tunnel = None
-
-    def get_conn(self):
-        conn_id = getattr(self, self.conn_name_attr)
-        conn = self.get_connection(conn_id)
-
-        if self.tunnel is None:
-            self.tunnel = self.ssh_hook.get_tunnel(remote_port=conn.port, remote_host=conn.host)
-
-            self.tunnel.start()
-
-        LOG.info(f"Connected SSH Tunnel: {self.tunnel}")
-        # Airflow conflates dbname and schema, even though they are very different in PG
-
-        conn_args = dict(
-            host='localhost',
-            user=conn.login,
-            password=conn.password,
-            dbname=self.schema or conn.schema,
-            port=self.tunnel.local_bind_port)
-        raw_cursor = conn.extra_dejson.get('cursor', False)
-        if raw_cursor:
-            conn_args['cursor_factory'] = self._get_cursor(raw_cursor)
-        # check for ssl parameters in conn.extra
-        for arg_name, arg_val in conn.extra_dejson.items():
-            if arg_name in ['sslmode', 'sslcert', 'sslkey',
-                            'sslrootcert', 'sslcrl', 'application_name',
-                            'keepalives_idle']:
-                conn_args[arg_name] = arg_val
-
-        # It's important to wrap this connection in a try/finally block, otherwise
-        # we can cause a deadlock with the SSHTunnel
-        conn = psycopg2.connect(**conn_args)
-        return conn
-
-    def close(self):
-        self.tunnel.stop()
-        self.tunnel = None
-
+DEST_POSTGRES_CONN_ID = 'aws-db'
 
 dag = DAG(
     'collection_3_dataset_count_reporting',
     default_args=default_args,
-    schedule_interval=timedelta(days=1)
+    schedule_interval=timedelta(days=1),
+    catchup=False,
 )
 
 
@@ -108,38 +63,54 @@ def retrieve_explorer_counts(explorer_storage_csv_url='https://explorer.dea.ga.g
     return product_counts
 
 
-s
-
-
-class SQLTemplatedPythonOperator(PythonOperator):
-    template_ext = ('.sql',)
-
-
-def record_pg_datasets_count(ssh_conn_id, postgres_conn_id, templates_dict, *args, **kwargs):
+def record_pg_datasets_count(ssh_conn_id,
+                             postgres_conn_id,
+                             templates_dict,
+                             *args, **kwargs):
     ssh_hook = SSHHook(ssh_conn_id=ssh_conn_id)
     src_db_hook = PostgresSSHHook(ssh_hook=ssh_hook,
                                   postgres_conn_id=postgres_conn_id)
 
     records = src_db_hook.get_records(templates_dict['query'])
 
-    dest_db_hook = PostgresHook(postgres_conn_id='aws-db')
+    dest_db_hook = PostgresHook(postgres_conn_id=DEST_POSTGRES_CONN_ID)
     dest_db_hook.insert_rows(table='dataset_counts', rows=records)
 
 
-def record_lustre_datasets_count(ssh_conn_id, postgres_conn_id):
+def record_lustre_datasets_count(ssh_conn_id,
+                                 postgres_conn_id,
+                                 product_name,
+                                 location):
     ssh_hook = SSHHook(ssh_conn_id)
     conn = ssh_hook.get_conn()
-    stdin, stdout, stderr = conn.exec_command('fd -e odc-metadata.yaml /g/data/xu18/ga/ga_ls8c_ard_3 | wc -l')
+    stdin, stdout, stderr = conn.exec_command(f'fd -e odc-metadata.yaml {location} | wc -l')
+
 
 with dag:
+    DEST_POSTGRES = 'aws-db'
+    PRODUCTS = {
+        'ga_ls8c_ard_3': '/g/data/xu18/ga/ga_ls8c_ard_3',
+        'ga_ls7e_ard_3': '/g/data/xu18/ga/ga_ls7e_ard_3',
+        'ga_ls5t_ard_3': '/g/data/xu18/ga/ga_ls5t_ard_3',
+        'ga_ls_fc_3': '/g/data/jw04/ga/ga_ls_fc_3/',
+        'ga_ls_wo_3': '/g/data/jw04/ga/ga_ls_wo_3/',
+    }
     # Count number of dataset files on NCI
-    t1 = SSHOperator(
-        task_id="task1",
-        command='fd -e odc-metadata.yaml /g/data/xu18/ga/ga_ls8c_ard_3 | wc -l',
-        ssh_conn_id='lpgs_gadi')
+    for prod, location in PRODUCTS.items():
+        t1 = PythonOperator(
+            task_id=f"record_nci_fs_count_{prod}",
+            python_callable=record_lustre_datasets_count,
+            params=dict(
+                ssh_conn_id='lpgs_gadi',
+                product_name=prod,
+                location=location
+            )
+        )
 
-    SQLTemplatedPythonOperator(
+    record_nci_db_counts = PythonOperator(
+        task_id='record_nci_db_counts',
         templates_dict={'query': 'sql/datasets_report.sql'},
+        templates_exts=['.sql'],
         params={
             'ssh_conn_id': 'lpgs_gadi',
             'pg_hook_id': 'nci_dea_prod'
@@ -147,13 +118,24 @@ with dag:
         python_callable=record_pg_datasets_count,
         provide_context=True,
     )
-    put_into_postgres = PythonOperator(
-        task_id="save_qstat_to_postgres",
-        python_callable=my_python_callable
-    )
 
-    AWSAthenaHook(
-        task_id='count_s3_datasets',
+    EXPLORER_INSTANCES = {
+        'prod': 'https://explorer-nci.dea.ga.gov.au/audit/storage.csv',
+        'dev': 'https://explorer-nci.dev.dea.ga.gov.au/audit/storage.csv'
+    }
+    for instance, storage_csv_url in EXPLORER_INSTANCES.items():
+        PythonOperator(
+            task_id=f'record_explorer_{instance}',
+            python_callable=retrieve_explorer_counts,
+            params=dict(
+                instance_name=instance,
+                explorer_storage_csv_url=storage_csv_url
+            )
+        )
+
+
+def record_athena_stats():
+    athena_hook = AWSAthenaHook(
         aws_conn_id='aws_default',
 
     )
