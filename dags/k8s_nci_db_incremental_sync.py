@@ -30,6 +30,7 @@ from infra.images import S3_TO_RDS_IMAGE
 from infra.variables import NCI_DBSYNC_ROLE
 
 local_tz = pendulum.timezone("Australia/Canberra")
+local_tz.convert(execution_date)
 
 # Templated DAG arguments
 DB_HOSTNAME = "db-writer"
