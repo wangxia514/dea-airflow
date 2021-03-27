@@ -83,7 +83,7 @@ with dag:
     # Run update summary
     UPDATE_SUMMARY = KubernetesPodOperator(
         namespace="processing",
-        image=EXPLORER_UNSTABLE_IMAGE,      # TODO: use EXPLORER_IMAGE
+        image=EXPLORER_IMAGE,      # TODO: use EXPLORER_IMAGE
         cmds=["cubedash-gen"],
         arguments=["--no-init-database", "--refresh-stats", "--force-refresh", "--all"],
         labels={"step": "summarize-datacube"},
