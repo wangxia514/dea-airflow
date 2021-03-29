@@ -23,6 +23,9 @@ from airflow.utils.trigger_rule import TriggerRule
 
 import kubernetes.client.models as k8s
 
+from infra.variables import WAGL_TASK_POOL
+
+
 default_args = {
     "owner": "Imam Alam",
     "depends_on_past": False,
@@ -36,7 +39,7 @@ default_args = {
 }
 
 WAGL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:patch-20201127-2"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:patch-20210322-1"
 )
 S3_TO_RDS_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/geoscienceaustralia/s3-to-rds:0.1.2"
 
@@ -82,6 +85,10 @@ affinity = {
         }
     }
 }
+
+tolerations = [
+    {"key": "dedicated", "operator": "Equal", "value": "wagl", "effect": "NoSchedule"}
+]
 
 
 ancillary_volume_mount = VolumeMount(
@@ -205,6 +212,11 @@ def sns_broadcast(**context):
         task_ids=f"dea-s2-wagl-nrt-{index}", key="return_value"
     )
 
+    assert "dataset" in msg
+    if msg["dataset"] == "exists":
+        # dataset already existed, did not get processed by this DAG
+        return
+
     msg_str = json.dumps(msg)
 
     sns_hook = AwsSnsHook(aws_conn_id=AWS_CONN_ID)
@@ -248,7 +260,9 @@ with pipeline:
             task_id=f"dea-s2-wagl-nrt-copy-scene-{index}",
             image_pull_policy="IfNotPresent",
             image=S3_TO_RDS_IMAGE,
+            pool=WAGL_TASK_POOL,
             affinity=affinity,
+            tolerations=tolerations,
             startup_timeout_seconds=600,
             volumes=[ancillary_volume],
             volume_mounts=[ancillary_volume_mount],
@@ -280,6 +294,8 @@ with pipeline:
             image_pull_policy="IfNotPresent",
             image=WAGL_IMAGE,
             affinity=affinity,
+            tolerations=tolerations,
+            pool=WAGL_TASK_POOL,
             startup_timeout_seconds=600,
             # this is the wagl_nrt user in the wagl container
             security_context=dict(runAsUser=10015, runAsGroup=10015, fsGroup=10015),

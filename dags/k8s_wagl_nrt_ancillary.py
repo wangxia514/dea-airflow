@@ -10,6 +10,7 @@ from airflow.kubernetes.secret import Secret
 from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
 
+from infra.variables import WAGL_TASK_POOL
 
 NOW = datetime.now()
 DOY = int(NOW.strftime("%j"))
@@ -18,7 +19,7 @@ S3_TO_RDS_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/geosciencea
 
 
 def sync(*args):
-    return "aws s3 sync --only-show-errors " + " ".join(args)
+    return "aws s3 sync --only-show-errors --no-follow-symlinks " + " ".join(args)
 
 
 def brdf_doys(doy):
@@ -122,6 +123,10 @@ affinity = {
 }
 
 
+tolerations = [
+    {"key": "dedicated", "operator": "Equal", "value": "wagl", "effect": "NoSchedule"}
+]
+
 default_args = {
     "owner": "Imam Alam",
     "depends_on_past": False,
@@ -175,6 +180,8 @@ with pipeline:
         get_logs=True,
         startup_timeout_seconds=300,
         affinity=affinity,
+        tolerations=tolerations,
+        pool=WAGL_TASK_POOL,
         volumes=[ancillary_volume],
         volume_mounts=[ancillary_volume_mount],
         labels={
