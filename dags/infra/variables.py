@@ -32,6 +32,10 @@ DB_DUMP_S3_BUCKET = Variable.get("db_dump_s3_bucketname", "dea-dev-odc-db-dump")
 DB_DATABASE = Variable.get("db_database", "odc")
 DB_HOSTNAME = Variable.get("db_hostname", "db-writer")
 
+# Task Pools
+WAGL_TASK_POOL = Variable.get("wagl_task_pool", "wagl_processing_pool")
+
+
 # AWS SQS
 NEWDEADATA_SQS_QUEUE_NAME = Variable.get(
     "newdeadata_sqs_queue_name_odc_db", "dea-sandbox-eks-ows-dag"
