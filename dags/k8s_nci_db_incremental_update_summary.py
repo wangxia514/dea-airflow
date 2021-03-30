@@ -29,7 +29,7 @@ DB_HOSTNAME = "db-writer"
 DEFAULT_ARGS = {
     "owner": "Nikita Gandhi",
     "depends_on_past": False,
-    "start_date": datetime(2020, 10, 8, tzinfo=local_tz),
+    "start_date": datetime(2021, 03, 30, tzinfo=local_tz),
     "email": ["nikita.gandhi@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
