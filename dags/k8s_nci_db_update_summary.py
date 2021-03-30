@@ -4,7 +4,7 @@ This updates the Datacube Explorer summary extents of the NCI Datacube DB.
 This is used by [Dev NCI Explorer](https://explorer-nci.dev.dea.ga.gov.au/)
 and [Resto](https://github.com/jjrom/resto).
 
-**Note:** Only runs if require `--force-refresh --all` since it places a disruptive load on the
+**Note:** Only runs if require since it places a disruptive load on the
 database. Check `k8s_nci_db_incremental_update_summary` DAG instead.
 
 **Upstream dependency**
@@ -28,7 +28,7 @@ DB_HOSTNAME = "db-writer"
 DEFAULT_ARGS = {
     "owner": "Nikita Gandhi",
     "depends_on_past": False,
-    "start_date": datetime(2020, 10, 8, tzinfo=local_tz),
+    "start_date": datetime(2021, 3, 30, tzinfo=local_tz),
     "email": ["nikita.gandhi@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
@@ -57,7 +57,7 @@ dag = DAG(
     concurrency=1,
     max_active_runs=1,
     tags=["k8s", "nci-explorer"],
-    schedule_interval=None,    # Fully manual migrations
+    schedule_interval=None,    # Fully manual run
 )
 
 affinity = {
