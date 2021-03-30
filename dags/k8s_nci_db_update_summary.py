@@ -1,11 +1,15 @@
-"""## DEA NCI prod database - Daily DAG to summarize datacube using incremental update-summary
+"""## DEA NCI dev database - summarize datacube using `--force-refresh -all`
 
 This updates the Datacube Explorer summary extents of the NCI Datacube DB.
 This is used by [Dev NCI Explorer](https://explorer-nci.dev.dea.ga.gov.au/)
 and [Resto](https://github.com/jjrom/resto).
 
+**Note:** Only runs if require `--force-refresh --all` since it places a disruptive load on the
+database. Check `k8s_nci_db_incremental_update_summary` DAG instead.
+
 **Upstream dependency**
 [K8s NCI DB Incremental Sync](/tree?dag_id=k8ds_nci_db_incremental_sync)
+
 """
 
 import pendulum
@@ -24,9 +28,9 @@ DB_HOSTNAME = "db-writer"
 DEFAULT_ARGS = {
     "owner": "Nikita Gandhi",
     "depends_on_past": False,
-    "start_date": datetime(2020, 10, 3, tzinfo=local_tz),
+    "start_date": datetime(2020, 10, 8, tzinfo=local_tz),
     "email": ["nikita.gandhi@ga.gov.au"],
-    "email_on_failure": True,
+    "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
@@ -46,14 +50,14 @@ DEFAULT_ARGS = {
 }
 
 dag = DAG(
-    "k8s_nci_db_incremental_update_summary",
+    "k8s_nci_db_update_summary",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     catchup=False,
     concurrency=1,
     max_active_runs=1,
-    tags=["k8s"],
-    schedule_interval="45 1 * * *",    # every day 1:45AM
+    tags=["k8s", "nci-explorer"],
+    schedule_interval=None,    # Fully manual migrations
 )
 
 affinity = {
@@ -73,15 +77,14 @@ affinity = {
 }
 
 with dag:
-    START = DummyOperator(task_id="nci-db-incremental-update-summary")
+    START = DummyOperator(task_id="nci-db-update-summary")
 
     # Run update summary
     UPDATE_SUMMARY = KubernetesPodOperator(
         namespace="processing",
         image=EXPLORER_IMAGE,
-        # Run `cubedash-gen --help` for explanations of each option+usage
         cmds=["cubedash-gen"],
-        arguments=["--no-init-database", "--refresh-stats", "--minimum-scan-window", "4d", "--all"],
+        arguments=["--no-init-database", "--refresh-stats", "--force-refresh", "--all"],
         labels={"step": "summarize-datacube"},
         name="summarize-datacube",
         task_id="summarize-datacube",
