@@ -4,10 +4,6 @@ This updates the Datacube Explorer summary extents of the NCI Datacube DB.
 This is used by [NCI Explorer](https://explorer.dea.ga.gov.au/)
 and [Resto](https://github.com/jjrom/resto).
 
-**Note:** This only runs weekly since it places a disruptive load on the
-database. There is work underway to make the process incremental so that it can
-be run more regularly.
-
 **Upstream dependency**
 [K8s NCI DB Incremental Sync](/tree?dag_id=k8ds_nci_db_incremental_sync)
 
@@ -31,7 +27,7 @@ DEFAULT_ARGS = {
     "depends_on_past": False,
     "start_date": datetime(2021, 3, 30, tzinfo=local_tz),
     "email": ["nikita.gandhi@ga.gov.au"],
-    "email_on_failure": False,
+    "email_on_failure": True,
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
@@ -58,7 +54,7 @@ dag = DAG(
     concurrency=1,
     max_active_runs=1,
     tags=["k8s", "nci-explorer"],
-    schedule_interval="5 1 * * *",    # every day 1:05AM
+    schedule_interval="45 1 * * *",    # every day 1:45AM
 )
 
 affinity = {
