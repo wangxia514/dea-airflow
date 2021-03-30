@@ -1,12 +1,11 @@
-"""## DEA NCI dev database - summarize datacube
+"""## DEA NCI dev database - summarize datacube using `--force-refresh --all`
 
 This updates the Datacube Explorer summary extents of the NCI Datacube DB.
 This is used by [NCI Explorer](https://explorer.dea.ga.gov.au/)
 and [Resto](https://github.com/jjrom/resto).
 
-**Note:** This only runs weekly since it places a disruptive load on the
-database. There is work underway to make the process incremental so that it can
-be run more regularly.
+**Note:** Only runs if require since it places a disruptive load on the
+database. Check `k8s_nci_db_incremental_update_summary` DAG instead.
 
 **Upstream dependency**
 [K8s NCI DB Incremental Sync](/tree?dag_id=k8ds_nci_db_incremental_sync)
@@ -58,7 +57,7 @@ dag = DAG(
     concurrency=1,
     max_active_runs=1,
     tags=["k8s", "nci-explorer"],
-    schedule_interval="5 1 * * sat",    # every saturday 1:05AM
+    schedule_interval=None,    # Fully manual run
 )
 
 affinity = {
