@@ -124,7 +124,7 @@ def copy_cmd_tile(tile_info):
         aws s3 sync --only-show-errors \\
                 /transfer/{granule_id}/{datastrip} s3://{TRANSFER_BUCKET}/{datastrip}
         touch /transfer/{granule_id}/{datastrip}/.done
-        aws s3 sync --only-show-errors \\
+        aws s3 cp \\
                 /transfer/{granule_id}/{datastrip}/.done s3://{TRANSFER_BUCKET}/{datastrip}/.done
     else
         echo s3://{TRANSFER_BUCKET}/{datastrip} already exists
@@ -139,7 +139,7 @@ def copy_cmd_tile(tile_info):
         aws s3 sync --only-show-errors \\
                 /transfer/{granule_id}/{path} s3://{TRANSFER_BUCKET}/{path}
         touch /transfer/{granule_id}/{path}/.done
-        aws s3 sync --only-show-errors \\
+        aws s3 cp \\
                 /transfer/{granule_id}/{path}/.done s3://{TRANSFER_BUCKET}/{path}/.done
     else
         echo s3://{TRANSFER_BUCKET}/{path} already exists
