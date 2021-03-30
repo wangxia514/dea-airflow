@@ -33,6 +33,7 @@ from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
 from infra.images import S3_TO_RDS_IMAGE
+from infra.variables import NCI_DBSYNC_ROLE
 
 local_tz = pendulum.timezone("Australia/Canberra")
 
@@ -130,7 +131,7 @@ with dag:
     RESTORE_NCI_INCREMENTAL_SYNC = KubernetesPodOperator(
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
-        annotations={"iam.amazonaws.com/role": "svc-dea-sandbox-eks-processing-dbsync"},
+        annotations={"iam.amazonaws.com/role": NCI_DBSYNC_ROLE},
         cmds=["./import_from_s3.sh"],
         image_pull_policy="Always",
         labels={"step": "s3-to-rds"},
