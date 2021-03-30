@@ -109,38 +109,47 @@ def decode(message):
     return json.loads(message["Body"])
 
 
-def sync(*args):
-    return "aws s3 sync --only-show-errors " + " ".join(args)
-
-
 def copy_cmd_tile(tile_info):
     datastrip = tile_info["datastrip"]
     path = tile_info["path"]
     granule_id = tile_info["granule_id"]
 
-    return [
-        "echo sinergise -> disk [datastrip]",
-        "mkdir -p /transfer",
-        sync(
-            "--request-payer requester",
-            f"s3://{SOURCE_BUCKET}/{datastrip}",
-            f"/transfer/{granule_id}/{datastrip}",
-        ),
-        "echo disk -> cache [datastrip]",
-        sync(
-            f"/transfer/{granule_id}/{datastrip}",
-            f"s3://{TRANSFER_BUCKET}/{datastrip}",
-        ),
-        "echo sinergise -> disk [tile]",
-        sync(
-            "--request-payer requester",
-            f"s3://{SOURCE_BUCKET}/{path}",
-            f"/transfer/{granule_id}/{path}",
-        ),
-        "echo disk -> cache [tile]",
-        sync(f"/transfer/{granule_id}/{path}", f"s3://{TRANSFER_BUCKET}/{path}"),
-        f"rm -rf /transfer/{granule_id}",
-    ]
+    cmd = f"""
+    set -e
+
+    if ! aws s3api head-object --bucket {TRANSFER_BUCKET} --key {datastrip}/.done; then
+        mkdir -p /transfer/{granule_id}
+        echo sinergise -> disk [datastrip]
+        aws s3 sync --only-show-errors --request-payer requester \
+                s3://{SOURCE_BUCKET}/{datastrip} /transfer/{granule_id}/{datastrip}
+        echo disk -> cache [datastrip]
+        aws s3 sync --only-show-errors \
+                /transfer/{granule_id}/{datastrip} s3://{TRANSFER_BUCKET}/{datastrip}
+        touch /transfer/{granule_id}/{datastrip}/.done
+        aws s3 cp /transfer/{granule_id}/{datastrip}/.done s3://{TRANSFER_BUCKET}/{datastrip}/.done
+    else
+        echo s3://{TRANSFER_BUCKET}/{datastrip} already exists
+    fi
+
+    if ! aws s3api head-object --bucket {TRANSFER_BUCKET} --key {path}/.done; then
+        mkdir -p /transfer/{granule_id}
+        echo sinergise -> disk [path]
+        aws s3 sync --only-show-errors --request-payer requester \
+                s3://{SOURCE_BUCKET}/{path} /transfer/{granule_id}/{path}
+        echo disk -> cache [path]
+        aws s3 sync --only-show-errors \
+                /transfer/{granule_id}/{path} s3://{TRANSFER_BUCKET}/{path}
+        touch /transfer/{granule_id}/{path}/.done
+        aws s3 cp /transfer/{granule_id}/{path}/.done s3://{TRANSFER_BUCKET}/{path}/.done
+    else
+        echo s3://{TRANSFER_BUCKET}/{path} already exists
+    fi
+
+    rm -rf /transfer/{granule_id}
+    """
+
+    print(cmd)
+    return cmd
 
 
 def get_tile_info(msg_dict):
@@ -188,7 +197,7 @@ def copy_cmd(**context):
 
     # forward it to the copy and processing tasks
     task_instance = context["task_instance"]
-    task_instance.xcom_push(key="cmd", value=" &&\n".join(copy_cmd_tile(tile_info)))
+    task_instance.xcom_push(key="cmd", value=copy_cmd_tile(tile_info))
     task_instance.xcom_push(key="args", value=tile_args(tile_info))
 
 
