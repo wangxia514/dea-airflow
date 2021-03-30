@@ -117,30 +117,32 @@ def copy_cmd_tile(tile_info):
     cmd = f"""
     set -e
 
-    if ! aws s3api head-object --bucket {TRANSFER_BUCKET} --key {datastrip}/.done; then
+    if ! aws s3api head-object --bucket {TRANSFER_BUCKET} --key {datastrip}/.done 2> /dev/null; then
         mkdir -p /transfer/{granule_id}
         echo sinergise -> disk [datastrip]
-        aws s3 sync --only-show-errors --request-payer requester \
+        aws s3 sync --only-show-errors --request-payer requester \\
                 s3://{SOURCE_BUCKET}/{datastrip} /transfer/{granule_id}/{datastrip}
         echo disk -> cache [datastrip]
-        aws s3 sync --only-show-errors \
+        aws s3 sync --only-show-errors \\
                 /transfer/{granule_id}/{datastrip} s3://{TRANSFER_BUCKET}/{datastrip}
         touch /transfer/{granule_id}/{datastrip}/.done
-        aws s3 cp /transfer/{granule_id}/{datastrip}/.done s3://{TRANSFER_BUCKET}/{datastrip}/.done
+        aws s3 sync --only-show-errors \\
+                /transfer/{granule_id}/{datastrip}/.done s3://{TRANSFER_BUCKET}/{datastrip}/.done
     else
         echo s3://{TRANSFER_BUCKET}/{datastrip} already exists
     fi
 
-    if ! aws s3api head-object --bucket {TRANSFER_BUCKET} --key {path}/.done; then
+    if ! aws s3api head-object --bucket {TRANSFER_BUCKET} --key {path}/.done 2> /dev/null; then
         mkdir -p /transfer/{granule_id}
         echo sinergise -> disk [path]
-        aws s3 sync --only-show-errors --request-payer requester \
+        aws s3 sync --only-show-errors --request-payer requester \\
                 s3://{SOURCE_BUCKET}/{path} /transfer/{granule_id}/{path}
         echo disk -> cache [path]
-        aws s3 sync --only-show-errors \
+        aws s3 sync --only-show-errors \\
                 /transfer/{granule_id}/{path} s3://{TRANSFER_BUCKET}/{path}
         touch /transfer/{granule_id}/{path}/.done
-        aws s3 cp /transfer/{granule_id}/{path}/.done s3://{TRANSFER_BUCKET}/{path}/.done
+        aws s3 sync --only-show-errors \\
+                /transfer/{granule_id}/{path}/.done s3://{TRANSFER_BUCKET}/{path}/.done
     else
         echo s3://{TRANSFER_BUCKET}/{path} already exists
     fi
@@ -148,7 +150,6 @@ def copy_cmd_tile(tile_info):
     rm -rf /transfer/{granule_id}
     """
 
-    print(cmd)
     return cmd
 
 
