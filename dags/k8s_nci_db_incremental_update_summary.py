@@ -1,4 +1,4 @@
-"""## DEA NCI dev database - summarize datacube
+"""## DEA NCI prod database - Daily DAG to summarize datacube using incremental update-summary
 
 This updates the Datacube Explorer summary extents of the NCI Datacube DB.
 This is used by [NCI Explorer](https://explorer.dea.ga.gov.au/)
@@ -29,7 +29,7 @@ DB_HOSTNAME = "db-writer"
 DEFAULT_ARGS = {
     "owner": "Nikita Gandhi",
     "depends_on_past": False,
-    "start_date": datetime(2020, 10, 8, tzinfo=local_tz),
+    "start_date": datetime(2021, 3, 30, tzinfo=local_tz),
     "email": ["nikita.gandhi@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
@@ -51,14 +51,14 @@ DEFAULT_ARGS = {
 }
 
 dag = DAG(
-    "k8s_nci_db_update_summary",
+    "k8s_nci_db_incremental_update_summary",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     catchup=False,
     concurrency=1,
     max_active_runs=1,
     tags=["k8s", "nci-explorer"],
-    schedule_interval="5 1 * * sat",    # every saturday 1:05AM
+    schedule_interval="5 1 * * *",    # every day 1:05AM
 )
 
 affinity = {
@@ -78,14 +78,15 @@ affinity = {
 }
 
 with dag:
-    START = DummyOperator(task_id="nci-db-update-summary")
+    START = DummyOperator(task_id="nci-db-incremental-update-summary")
 
     # Run update summary
     UPDATE_SUMMARY = KubernetesPodOperator(
         namespace="processing",
         image=EXPLORER_IMAGE,
+        # Run `cubedash-gen --help` for explanations of each option+usage
         cmds=["cubedash-gen"],
-        arguments=["--no-init-database", "--refresh-stats", "--force-refresh", "--all"],
+        arguments=["--no-init-database", "--refresh-stats", "--minimum-scan-window", "4d", "--all"],
         labels={"step": "summarize-datacube"},
         name="summarize-datacube",
         task_id="summarize-datacube",

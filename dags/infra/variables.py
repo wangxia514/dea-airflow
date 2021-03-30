@@ -56,3 +56,6 @@ C3_WO_SQS_QUEUE_NAME = Variable.get(
     "landsat_c3_wo_indexing_sqs_queue_name_odc_db",
     "dea-sandbox-eks-alchemist-c3-indexing-wo-odc-db",
 )
+
+# NCI db sync
+NCI_DBSYNC_ROLE = Variable.get("nci_dbsync_role", "svc-dea-sandbox-eks-nci-dbsync")
