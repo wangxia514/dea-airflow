@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-### DEA NCI dev database - summarize datacube
+### DEA NCI dev database - Daily DAG to summarize datacube using incremental update-summary
 
 DAG to periodically/weekly to run summarize datacube
 running [Explorer](https://github.com/opendatacube/datacube-explorer)
@@ -47,7 +47,7 @@ DEFAULT_ARGS = {
 }
 
 dag = DAG(
-    "k8s_nci_db_update_summary",
+    "k8s_nci_db_incremental_update_summary",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     catchup=False,
@@ -74,7 +74,7 @@ affinity = {
 }
 
 with dag:
-    START = DummyOperator(task_id="nci-db-update-summary")
+    START = DummyOperator(task_id="nci-db-incremental-update-summary")
 
     # Run update summary
     UPDATE_SUMMARY = KubernetesPodOperator(
@@ -82,7 +82,7 @@ with dag:
         image=EXPLORER_IMAGE,
         # Run `cubedash-gen --help` for explanations of each option+usage
         cmds=["cubedash-gen"],
-        arguments=["--no-init-database", "--refresh-stats", "--reset-incremental-position", "--all"],
+        arguments=["--no-init-database", "--refresh-stats", "--minimum-scan-window 4d", "--all"],
         labels={"step": "summarize-datacube"},
         name="summarize-datacube",
         task_id="summarize-datacube",
