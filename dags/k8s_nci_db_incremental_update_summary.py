@@ -82,7 +82,7 @@ with dag:
         image=EXPLORER_IMAGE,
         # Run `cubedash-gen --help` for explanations of each option+usage
         cmds=["cubedash-gen"],
-        arguments=["--no-init-database", "--refresh-stats", "--minimum-scan-window 4d", "--all"],
+        arguments=["--no-init-database", "--refresh-stats", "--minimum-scan-window", "4d", "--all"],
         labels={"step": "summarize-datacube"},
         name="summarize-datacube",
         task_id="summarize-datacube",
