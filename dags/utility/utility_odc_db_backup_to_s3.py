@@ -23,7 +23,7 @@ from infra.variables import (
 )
 from infra.podconfig import NODE_AFFINITY
 
-DAG_NAME = "odc_db_dump_to_s3"
+DAG_NAME = "utility_odc_db_dump_to_s3"
 
 INDEXER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/datacube-index:0.0.15"
 
