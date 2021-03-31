@@ -79,6 +79,7 @@ with DAG('nci_dataset_sync',
             params={'product': product,
                     'sync_prefix_path': SYNC_PREFIX_PATH[product],
                     'sync_suffix_path': SYNC_SUFFIX_PATH[product],
+                    'queue': 'copyq',
                     },
             do_xcom_push=True,
             timeout=5 * MINUTES,  # For running SSH Commands
