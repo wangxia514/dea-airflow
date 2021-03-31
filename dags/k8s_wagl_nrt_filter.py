@@ -15,6 +15,8 @@ from airflow.operators.subdag_operator import SubDagOperator
 from airflow.contrib.sensors.aws_sqs_sensor import SQSSensor
 from airflow.contrib.hooks.aws_sqs_hook import SQSHook
 
+from infra.variables import WAGL_TASK_POOL
+
 
 AWS_CONN_ID = "wagl_nrt_manual"
 
@@ -38,6 +40,7 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
+    "pool": WAGL_TASK_POOL,
     "retry_delay": timedelta(minutes=5),
 }
 

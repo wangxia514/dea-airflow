@@ -136,6 +136,7 @@ default_args = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=30),
+    "pool": WAGL_TASK_POOL,
     "secrets": [Secret("env", None, "wagl-nrt-aws-creds")],
 }
 
@@ -181,7 +182,6 @@ with pipeline:
         startup_timeout_seconds=300,
         affinity=affinity,
         tolerations=tolerations,
-        pool=WAGL_TASK_POOL,
         volumes=[ancillary_volume],
         volume_mounts=[ancillary_volume_mount],
         labels={
