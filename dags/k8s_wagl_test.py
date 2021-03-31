@@ -3,31 +3,13 @@ Test DAG please ignore
 """
 from datetime import datetime, timedelta
 from airflow import DAG
-from airflow.kubernetes.secret import Secret
-from airflow.kubernetes.volume import Volume
-from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.python_operator import PythonOperator
-from airflow.operators.dummy_operator import DummyOperator
-from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
-from airflow_kubernetes_job_operator.kubernetes_job_operator import (
-    KubernetesJobOperator,
-)
+from airflow.contrib.hooks.aws_hook import AwsHook
 
+PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-process-scene"
+DEADLETTER_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-process-scene-deadletter"
 
-MOD6_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/mod6:test-20210311"
-
-ancillary_volume_mount = VolumeMount(
-    name="wagl-nrt-ancillary-volume",
-    mount_path="/modtran6",
-    sub_path=None,
-    read_only=False,
-)
-
-
-ancillary_volume = Volume(
-    name="wagl-nrt-ancillary-volume",
-    configs={"persistentVolumeClaim": {"claimName": "wagl-nrt-ancillary-volume"}},
-)
+AWS_CONN_ID = "wagl_nrt_manual"
 
 default_args = {
     "owner": "Imam Alam",
@@ -54,25 +36,15 @@ dag = DAG(
 )
 
 
-with dag:
-    START = DummyOperator(task_id="start")
-    JOB = KubernetesPodOperator(
-        task_id="run_one",
-        namespace="processing",
-        name="mod6-test",
-        image_pull_policy="Always",
-        image=MOD6_IMAGE,
-        volumes=[ancillary_volume],
-        volume_mounts=[ancillary_volume_mount],
-        env_vars={"MODTRAN_DATA": "/modtran6/MODTRAN6.0/DATA"},
-        secrets=[Secret("env", None, "mod6-key")],
-        startup_timeout_seconds=600,
-        labels={
-            "runner": "airflow",
-            "app": "CaRSA",
-        },
-        is_delete_operator_pod=True,
-    )
-    END = DummyOperator(task_id="end")
+def my_callable(**context):
+    task_instance = context["task_instance"]
+    aws_hook = AwsHook(aws_conn_id=AWS_CONN_ID)
+    cred = aws_hook.get_session().get_credentials()
+    print("type", type(cred))
+    print("dir", dir(cred))
 
-    START >> JOB >> END
+
+with dag:
+    TASK = PythonOperator(
+        task_id="the_task", python_callable=my_callable, provide_context=True
+    )
