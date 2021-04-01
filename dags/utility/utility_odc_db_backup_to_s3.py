@@ -21,12 +21,10 @@ from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
 )
+from infra.images import INDEXER_IMAGE
 from infra.podconfig import NODE_AFFINITY
 
 DAG_NAME = "utility_odc_db_dump_to_s3"
-
-INDEXER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/datacube-index:0.0.15"
-
 
 # DAG CONFIGURATION
 DEFAULT_ARGS = {
