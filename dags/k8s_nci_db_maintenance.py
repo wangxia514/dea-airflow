@@ -9,7 +9,7 @@ from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
 from textwrap import dedent
-from infra.images import S3_TO_RDS_IMAGE
+from infra.images import INDEXER_IMAGE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
 # Templated DAG arguments
@@ -73,7 +73,7 @@ with dag:
     # Download NCI db incremental backup from S3 and restore to RDS Aurora
     NCI_DB_MAINTENANCE = KubernetesPodOperator(
         namespace="processing",
-        image=S3_TO_RDS_IMAGE,
+        image=INDEXER_IMAGE,
         arguments=MAINTENANCE_SCRIPT,
         image_pull_policy="Always",
         labels={"step": "nci-db-maintenance"},
