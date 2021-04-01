@@ -97,8 +97,6 @@ with dag:
 
     DONT_IT = DummyOperator(task_id="dont_it")
 
-    DO_IT = PythonOperator(
-        task_id="do_it", python_callable="do_it", provide_context=True
-    )
+    DO_IT = PythonOperator(task_id="do_it", python_callable=do_it, provide_context=True)
 
     BRANCH >> DO_IT
