@@ -68,7 +68,7 @@ MAINTENANCE_SCRIPT = [
 
 
 with dag:
-    START = DummyOperator(task_id="nci-db-maintenance")
+    START = DummyOperator(task_id="start")
 
     # Download NCI db incremental backup from S3 and restore to RDS Aurora
     NCI_DB_MAINTENANCE = KubernetesPodOperator(
