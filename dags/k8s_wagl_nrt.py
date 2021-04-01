@@ -108,10 +108,12 @@ ancillary_volume = Volume(
 
 
 def decode(message):
+    """ Decode stringified message. """
     return json.loads(message["Body"])
 
 
 def copy_cmd_tile(tile_info):
+    """ The bash scipt to run to copy the tile over to the cache bucket. """
     datastrip = tile_info["datastrip"]
     path = tile_info["path"]
     granule_id = tile_info["granule_id"]
@@ -156,6 +158,7 @@ def copy_cmd_tile(tile_info):
 
 
 def get_tile_info(msg_dict):
+    """ Minimal info to be able to run wagl. """
     assert len(msg_dict["tiles"]) == 1, "was not expecting multi-tile granule"
     tile = msg_dict["tiles"][0]
 
@@ -167,6 +170,7 @@ def get_tile_info(msg_dict):
 
 
 def tile_args(tile_info):
+    """ Arguments to the wagl container. """
     path = tile_info["path"]
     datastrip = tile_info["datastrip"]
 
@@ -178,10 +182,12 @@ def tile_args(tile_info):
 
 
 def get_sqs():
+    """ SQS client. """
     return AwsHook(aws_conn_id=AWS_CONN_ID).get_session().client("sqs")
 
 
 def get_message(sqs, url):
+    """ Receive one message with an estimated completion time set. """
     response = sqs.receive_message(
         QueueUrl=url, VisibilityTimeout=ESTIMATED_COMPLETION_TIME, MaxNumberOfMessages=1
     )
@@ -195,6 +201,7 @@ def get_message(sqs, url):
 
 
 def receive_task(**context):
+    """ Receive a task from the task queue. """
     task_instance = context["task_instance"]
     index = context["index"]
 
@@ -209,33 +216,22 @@ def receive_task(**context):
         print(message)
 
         task_instance.xcom_push(key="message", value=message)
-        return f"copy_cmd_{index}"
 
+        msg_dict = decode(message)
+        tile_info = get_tile_info(msg_dict)
 
-def the_message(context):
-    task_instance = context["task_instance"]
-    index = context["index"]
+        task_instance.xcom_push(key="cmd", value=copy_cmd_tile(tile_info))
+        task_instance.xcom_push(key="args", value=tile_args(tile_info))
 
-    return task_instance.xcom_pull(task_ids=f"receive_task_{index}", key="message")
-
-
-def copy_cmd(**context):
-    message = the_message(context)
-
-    msg_dict = decode(message)
-    tile_info = get_tile_info(msg_dict)
-
-    # forward it to the copy and processing tasks
-    task_instance = context["task_instance"]
-    task_instance.xcom_push(key="cmd", value=copy_cmd_tile(tile_info))
-    task_instance.xcom_push(key="args", value=tile_args(tile_info))
+        return f"dea-s2-wagl-nrt-copy-scene-{index}"
 
 
 def finish_up(**context):
+    """ Delete the SQS message to mark completion, broadcast to SNS. """
     task_instance = context["task_instance"]
     index = context["index"]
 
-    message = the_message(context)
+    message = task_instance.xcom_pull(task_ids=f"receive_task_{index}", key="message")
     sqs = get_sqs()
 
     print("deleting", message["ReceiptHandle"])
@@ -281,13 +277,6 @@ with pipeline:
             provide_context=True,
         )
 
-        CMD = PythonOperator(
-            task_id=f"copy_cmd_{index}",
-            python_callable=copy_cmd,
-            op_kwargs={"index": index},
-            provide_context=True,
-        )
-
         COPY = KubernetesPodOperator(
             namespace="processing",
             name="dea-s2-wagl-nrt-copy-scene",
@@ -302,7 +291,7 @@ with pipeline:
             cmds=[
                 "bash",
                 "-c",
-                "{{ task_instance.xcom_pull(task_ids='copy_cmd_"
+                "{{ task_instance.xcom_pull(task_ids='receive_task_"
                 + str(index)
                 + "', key='cmd') }}",
             ],
@@ -333,13 +322,13 @@ with pipeline:
             security_context=dict(runAsUser=10015, runAsGroup=10015, fsGroup=10015),
             cmds=["/scripts/process-scene.sh"],
             arguments=[
-                "{{ task_instance.xcom_pull(task_ids='copy_cmd_"
+                "{{ task_instance.xcom_pull(task_ids='receive_task_"
                 + str(index)
                 + "', key='args')['granule_url'] }}",
-                "{{ task_instance.xcom_pull(task_ids='copy_cmd_"
+                "{{ task_instance.xcom_pull(task_ids='receive_task_"
                 + str(index)
                 + "', key='args')['datastrip_url'] }}",
-                "{{ task_instance.xcom_pull(task_ids='copy_cmd_"
+                "{{ task_instance.xcom_pull(task_ids='receive_task_"
                 + str(index)
                 + "', key='args')['granule_id'] }}",
                 BUCKET_REGION,
@@ -353,13 +342,13 @@ with pipeline:
             },
             env_vars=dict(
                 bucket_region=BUCKET_REGION,
-                datastrip_url="{{ task_instance.xcom_pull(task_ids='copy_cmd_"
+                datastrip_url="{{ task_instance.xcom_pull(task_ids='receive_task_"
                 + str(index)
                 + "', key='args')['datastrip_url'] }}",
-                granule_url="{{ task_instance.xcom_pull(task_ids='copy_cmd_"
+                granule_url="{{ task_instance.xcom_pull(task_ids='receive_task_"
                 + str(index)
                 + "', key='args')['granule_url'] }}",
-                granule_id="{{ task_instance.xcom_pull(task_ids='copy_cmd_"
+                granule_id="{{ task_instance.xcom_pull(task_ids='receive_task_"
                 + str(index)
                 + "', key='args')['granule_id'] }}",
                 s3_prefix=S3_PREFIX,
@@ -376,8 +365,6 @@ with pipeline:
             is_delete_operator_pod=True,
         )
 
-        NOTHING = DummyOperator(task_id=f"nothing_to_do_{index}")
-
         FINISH = PythonOperator(
             task_id=f"finish_{index}",
             python_callable=finish_up,
@@ -385,5 +372,7 @@ with pipeline:
             provide_context=True,
         )
 
-        SENSOR >> CMD >> COPY >> RUN >> FINISH
+        NOTHING = DummyOperator(task_id=f"nothing_to_do_{index}")
+
+        SENSOR >> COPY >> RUN >> FINISH
         SENSOR >> NOTHING
