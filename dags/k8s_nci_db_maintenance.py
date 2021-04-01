@@ -8,6 +8,7 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
+from textwrap import dedent
 from infra.images import S3_TO_RDS_IMAGE
 
 # Templated DAG arguments
