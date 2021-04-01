@@ -11,14 +11,15 @@ from airflow import DAG
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.contrib.operators.kubernetes_pod_operator import Resources
 from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators.python_operator import PythonOperator
-from airflow.contrib.sensors.aws_sqs_sensor import SQSSensor
+from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 from airflow.contrib.hooks.aws_sns_hook import AwsSnsHook
+from airflow.contrib.hooks.aws_sqs_hook import SQSHook
+from airflow.contrib.hooks.aws_hook import AwsHook
+from airflow.contrib.sensors.aws_sqs_sensor import SQSSensor
 from airflow.kubernetes.secret import Secret
 from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.hooks.S3_hook import S3Hook
-from airflow.contrib.hooks.aws_sqs_hook import SQSHook
 from airflow.utils.trigger_rule import TriggerRule
 
 import kubernetes.client.models as k8s
@@ -33,7 +34,7 @@ default_args = {
     "email": ["imam.alam@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 1,
+    "retries": 0,
     "retry_delay": timedelta(minutes=5),
     "pool": WAGL_TASK_POOL,
     "secrets": [Secret("env", None, "wagl-nrt-aws-creds")],
@@ -47,6 +48,8 @@ S3_TO_RDS_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/geosciencea
 PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-process-scene"
 DEADLETTER_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-process-scene-deadletter"
 PUBLISH_S2_NRT_SNS = "arn:aws:sns:ap-southeast-2:451924316694:dea-dev-eks-wagl-s2-nrt"
+
+ESTIMATED_COMPLETION_TIME = 3 * 60 * 60
 
 SOURCE_BUCKET = "sentinel-s2-l1c"
 TRANSFER_BUCKET = "dea-dev-eks-nrt-scene-cache"
@@ -174,6 +177,51 @@ def tile_args(tile_info):
     )
 
 
+def get_sqs():
+    return AwsHook(aws_conn_id=AWS_CONN_ID).get_session().client("sqs")
+
+
+def get_message(sqs, url):
+    response = sqs.receive_message(
+        QueueUrl=url, VisibilityTimeout=ESTIMATED_COMPLETION_TIME, MaxNumberOfMessages=1
+    )
+
+    messages = response["Messages"]
+
+    if len(messages) == 0:
+        return None
+    else:
+        return messages[0]
+
+
+def receive_task(**context):
+    sqs = get_sqs()
+    message = get_message(sqs, PROCESS_SCENE_QUEUE)
+
+    if message is None:
+        print("no messages")
+        return "nothing_to_do"
+    else:
+        print("received message")
+        print(message)
+
+        task_instance = context["task_instance"]
+        index = context["index"]
+        task_instance.xcom_push(key="receipt_handle", value=message["ReceiptHandle"])
+        return "do_it"
+
+
+def do_it(**context):
+    task_instance = context["task_instance"]
+    receipt_handle = task_instance.xcom_pull(
+        task_ids="receive_task", key="receipt_handle"
+    )
+    print("deleting", receipt_handle)
+
+    sqs = get_sqs()
+    sqs.delete_message(QueueUrl=PROCESS_SCENE_QUEUE, ReceiptHandle=receipt_handle)
+
+
 def fetch_sqs_message(context):
     task_instance = context["task_instance"]
     index = context["index"]
@@ -247,13 +295,11 @@ pipeline = DAG(
 
 with pipeline:
     for index in range(NUM_PARALLEL_PIPELINE):
-        SENSOR = SQSSensor(
-            task_id=f"process_scene_queue_sensor_{index}",
-            sqs_queue=PROCESS_SCENE_QUEUE,
-            aws_conn_id=AWS_CONN_ID,
-            max_messages=NUM_MESSAGES_TO_POLL,
-            retries=0,
-            execution_timeout=timedelta(minutes=1),
+        SENSOR = BranchPythonOperator(
+            task_id=f"receive_task_{index}",
+            python_callable=receive_task,
+            op_kwargs={"index": index},
+            provide_context=True,
         )
 
         CMD = PythonOperator(
@@ -346,7 +392,6 @@ with pipeline:
             },
             volumes=[ancillary_volume],
             volume_mounts=[ancillary_volume_mount],
-            retries=2,
             execution_timeout=timedelta(minutes=180),
             do_xcom_push=True,
             is_delete_operator_pod=True,
@@ -356,7 +401,6 @@ with pipeline:
         END = PythonOperator(
             task_id=f"dag_result_{index}",
             python_callable=dag_result,
-            retries=0,
             op_kwargs={"index": index},
             provide_context=True,
             trigger_rule=TriggerRule.ALL_FAILED,

@@ -51,7 +51,6 @@ def get_message(sqs, url):
     )
 
     messages = response["Messages"]
-    print(messages)
 
     if len(messages) == 0:
         return None
