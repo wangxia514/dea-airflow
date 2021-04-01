@@ -3,7 +3,9 @@ Test DAG please ignore
 """
 from datetime import datetime, timedelta
 from airflow import DAG
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
+
 from airflow.contrib.hooks.aws_hook import AwsHook
 
 PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-process-scene"
@@ -57,15 +59,46 @@ def get_message(sqs, url):
         return messages[0]
 
 
-def my_callable(**context):
+def receive_task(**context):
     sqs = get_sqs()
-    print(type(sqs))
-    print(sqs)
     message = get_message(sqs, PROCESS_SCENE_QUEUE)
-    print(message)
+
+    if message is None:
+        print("no messages")
+        return "dont_it"
+    else:
+        print("received message")
+        print(message)
+
+        task_instance = context["task_instance"]
+        task_instance.xcom_push(
+            key="message_desc",
+            value={
+                "Id": message["MessageId"],
+                "ReceiptHandle": message["ReceiptHandle"],
+            },
+        )
+        return "do_it"
+
+
+def do_it(**context):
+    task_instance = context["task_instance"]
+    message_desc = task_instance.xcom_pull(task_ids="receive_task", key="message_desc")
+    print("deleting", message_desc)
+
+    sqs = get_sqs()
+    sqs.delete_messages(Entries=[message_desc])
 
 
 with dag:
-    TASK = PythonOperator(
-        task_id="the_task", python_callable=my_callable, provide_context=True
+    BRANCH = BranchPythonOperator(
+        task_id="branch", python_callable=receive_task, provide_context=True
     )
+
+    DONT_IT = DummyOperator(task_id="dont_it")
+
+    DO_IT = PythonOperator(
+        task_id="do_it", python_callable="do_it", provide_context=True
+    )
+
+    BRANCH >> DO_IT
