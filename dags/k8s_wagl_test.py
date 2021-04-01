@@ -87,6 +87,7 @@ def do_it(**context):
     print("deleting", message_desc)
 
     sqs = get_sqs()
+    print(dir(sqs))
     sqs.delete_messages(Entries=[message_desc])
 
 
