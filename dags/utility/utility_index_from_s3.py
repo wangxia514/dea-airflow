@@ -12,10 +12,10 @@ The DAG can be parameterized with run time configuration.
     {
         "products": "ga_ls_wo_3",
         "path_template": "s3://dea-public-data/derived/ga_ls_wo_3/{path:03d}/**/*.json",
-        "stac": True,
-        "skip_lineage": True,
+        "stac": true,
+        "skip_lineage": true,
         "key_name": "path",
-        "key_range": (88, 117)
+        "key_range": [88, 117]
     }
 """
 
@@ -180,7 +180,7 @@ with dag:
     GET_CONFIG = PythonOperator(
         task_id=PARSE_TASK_NAME,
         python_callable=parse_dagrun_conf,
-        op_args=["{{ dag_run.conf.products }}"],
+        op_args=["{{ dag_run.conf.product }}", "{{ dag_run.conf.key_range }}"],
     )
 
     INDEX = SubDagOperator(
