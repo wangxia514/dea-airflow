@@ -195,50 +195,32 @@ def get_message(sqs, url):
 
 
 def receive_task(**context):
+    task_instance = context["task_instance"]
+    index = context["index"]
+
     sqs = get_sqs()
     message = get_message(sqs, PROCESS_SCENE_QUEUE)
 
     if message is None:
         print("no messages")
-        return "nothing_to_do"
+        return f"nothing_to_do_{index}"
     else:
         print("received message")
         print(message)
 
-        task_instance = context["task_instance"]
-        index = context["index"]
-        task_instance.xcom_push(key="receipt_handle", value=message["ReceiptHandle"])
-        return "do_it"
+        task_instance.xcom_push(key="message", value=message)
+        return f"copy_cmd_{index}"
 
 
-def do_it(**context):
-    task_instance = context["task_instance"]
-    receipt_handle = task_instance.xcom_pull(
-        task_ids="receive_task", key="receipt_handle"
-    )
-    print("deleting", receipt_handle)
-
-    sqs = get_sqs()
-    sqs.delete_message(QueueUrl=PROCESS_SCENE_QUEUE, ReceiptHandle=receipt_handle)
-
-
-def fetch_sqs_message(context):
+def the_message(context):
     task_instance = context["task_instance"]
     index = context["index"]
-    all_messages = task_instance.xcom_pull(
-        task_ids=f"process_scene_queue_sensor_{index}", key="messages"
-    )
 
-    if all_messages is None:
-        raise KeyError("no messages")
-
-    messages = all_messages["Messages"]
-    # assert len(messages) == 1
-    return messages[0]
+    return task_instance.xcom_pull(task_ids=f"receive_task_{index}", key="message")
 
 
 def copy_cmd(**context):
-    message = fetch_sqs_message(context)
+    message = the_message(context)
 
     msg_dict = decode(message)
     tile_info = get_tile_info(msg_dict)
@@ -249,33 +231,30 @@ def copy_cmd(**context):
     task_instance.xcom_push(key="args", value=tile_args(tile_info))
 
 
-def dag_result(**context):
-    try:
-        message = fetch_sqs_message(context)
-    except KeyError:
-        # no messages, success
-        return
-
-    sqs_hook = SQSHook(aws_conn_id=AWS_CONN_ID)
-    message_body = json.dumps(decode(message))
-    sqs_hook.send_message(DEADLETTER_SCENE_QUEUE, message_body)
-    raise ValueError(f"processing failed for {message_body}")
-
-
-def sns_broadcast(**context):
+def finish_up(**context):
     task_instance = context["task_instance"]
     index = context["index"]
+
+    message = the_message(context)
+    sqs = get_sqs()
+
+    print("deleting", message["ReceiptHandle"])
+    sqs.delete_message(
+        QueueUrl=PROCESS_SCENE_QUEUE, ReceiptHandle=message["ReceiptHandle"]
+    )
+
     msg = task_instance.xcom_pull(
         task_ids=f"dea-s2-wagl-nrt-{index}", key="return_value"
     )
 
     assert "dataset" in msg
     if msg["dataset"] == "exists":
-        # dataset already existed, did not get processed by this DAG
+        print("dataset already existed, did not get processed by this DAG")
         return
 
     msg_str = json.dumps(msg)
 
+    print(f"publishing to SNS: {msg_str}")
     sns_hook = AwsSnsHook(aws_conn_id=AWS_CONN_ID)
     sns_hook.publish_to_target(PUBLISH_S2_NRT_SNS, msg_str)
 
@@ -397,20 +376,14 @@ with pipeline:
             is_delete_operator_pod=True,
         )
 
-        # this is meant to mark the success failure of the whole DAG
-        END = PythonOperator(
-            task_id=f"dag_result_{index}",
-            python_callable=dag_result,
-            op_kwargs={"index": index},
-            provide_context=True,
-            trigger_rule=TriggerRule.ALL_FAILED,
-        )
+        NOTHING = DummyOperator(task_id=f"nothing_to_do_{index}")
 
-        SNS = PythonOperator(
-            task_id=f"sns_broadcast_{index}",
-            python_callable=sns_broadcast,
+        FINISH = PythonOperator(
+            task_id=f"finish_{index}",
+            python_callable=finish_up,
             op_kwargs={"index": index},
             provide_context=True,
         )
 
-        SENSOR >> CMD >> COPY >> RUN >> SNS >> END
+        SENSOR >> CMD >> COPY >> RUN >> FINISH
+        SENSOR >> NOTHING
