@@ -44,9 +44,12 @@ def get_sqs():
 
 
 def get_message(sqs, url):
-    messages = sqs.receive_message(
+    response = sqs.receive_message(
         QueueUrl=url, VisibilityTimeout=ESTIMATED_COMPLETION_TIME, MaxNumberOfMessages=1
     )
+
+    messages = response["Messages"]
+    print(messages)
 
     if len(messages) == 0:
         return None
