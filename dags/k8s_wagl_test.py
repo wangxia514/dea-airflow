@@ -71,24 +71,20 @@ def receive_task(**context):
         print(message)
 
         task_instance = context["task_instance"]
-        task_instance.xcom_push(
-            key="message_desc",
-            value={
-                "Id": message["MessageId"],
-                "ReceiptHandle": message["ReceiptHandle"],
-            },
-        )
+        task_instance.xcom_push(key="receipt_handle", value=message["ReceiptHandle"])
         return "do_it"
 
 
 def do_it(**context):
     task_instance = context["task_instance"]
-    message_desc = task_instance.xcom_pull(task_ids="receive_task", key="message_desc")
-    print("deleting", message_desc)
+    receipt_handle = task_instance.xcom_pull(
+        task_ids="receive_task", key="receipt_handle"
+    )
+    print("deleting", receipt_handle)
 
     sqs = get_sqs()
     print(dir(sqs))
-    sqs.delete_messages(Entries=[message_desc])
+    sqs.delete_message(QueueUrl=PROCESS_SCENE_QUEUE, ReceiptHandle=receipt_handle)
 
 
 with dag:
