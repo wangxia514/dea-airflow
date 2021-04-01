@@ -9,6 +9,8 @@ from airflow import DAG
 from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.contrib.operators.ssh_operator import SSHOperator
 
+from operators.ssh_operators import SecretHandlingSSHOperator
+
 AWS_CONN_ID = "aws_nci_db_backup"
 
 default_args = {
@@ -71,20 +73,18 @@ with DAG(
     )
 
     aws_conn = AwsHook(aws_conn_id=AWS_CONN_ID)
-    upload_to_s3 = SSHOperator(
+    upload_to_s3 = SecretHandlingSSHOperator(
         task_id="upload_to_s3",
         params=dict(aws_conn=aws_conn),
-        command=COMMON
-        + dedent(
-            """
+        secret_command="""
             {% set aws_creds = params.aws_conn.get_credentials() -%}
 
             export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
             export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
-
-            s3_dump_file=s3://nci-db-dump/prod/"${file_prefix}-datacube.pgdump"
-            aws s3 cp "${file_prefix}-datacube.pgdump" "${s3_dump_file}" --no-progress
-
+        """,
+        command=COMMON
+        + dedent("""
+            aws s3 sync report/ s3://nci-db-dump/pgbadger/nci/dea-db/ --no-progress
         """
         ),
     )
