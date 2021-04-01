@@ -10,6 +10,7 @@ from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
 from textwrap import dedent
 from infra.images import S3_TO_RDS_IMAGE
+from infra.podconfig import NODE_AFFINITY
 
 # Templated DAG arguments
 DB_HOSTNAME = "db-writer"
@@ -47,25 +48,7 @@ dag = DAG(
     dagrun_timeout=timedelta(minutes=60 * 4),
 )
 
-affinity = {
-    "nodeAffinity": {
-        "requiredDuringSchedulingIgnoredDuringExecution": {
-            "nodeSelectorTerms": [
-                {
-                    "matchExpressions": [
-                        {
-                            "key": "nodetype",
-                            "operator": "In",
-                            "values": [
-                                "ondemand",
-                            ],
-                        }
-                    ]
-                }
-            ]
-        }
-    }
-}
+affinity = NODE_AFFINITY
 
 MAINTENANCE_SCRIPT = [
     "bash",
@@ -78,7 +61,7 @@ MAINTENANCE_SCRIPT = [
             
             # cubedash tables
             psql -h $(DB_HOSTNAME) -U $(DB_ADMIN_USER) -d $(DB_DATABASE) -c \ 
-            "cubedash.dataset_spatial, cubedash.product, cubedash.region, cubedash.time_overview;"
+            "vacuum verbose analyze cubedash.dataset_spatial, cubedash.product, cubedash.region, cubedash.time_overview;"
         """
     ),
 ]
