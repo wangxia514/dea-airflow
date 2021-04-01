@@ -1,6 +1,13 @@
 """
 # Archive NCI Database Logs and Upload PGBadger Report to S3
 
+The DEA database servers at the NCI only keep the last 7 days of log files.
+
+It would be useful to keep them for longer, or at the least, a historic summary.
+
+This DAG uses a script on the NCI to transfer them to `/g/data/v10`
+
+
 """
 from datetime import datetime, timedelta
 from textwrap import dedent
@@ -54,22 +61,12 @@ with DAG(
     # Requires GRANT EXECUTE ON FUNCTION pg_read_file(text,bigint,bigint) TO <service-user>;
     dump_daily_log = SSHOperator(
         task_id="dump_daily_log",
-        command=COMMON
-        + dedent(
-            """
-            ./pgcopy.sh
-        """
-        ),
+        command=COMMON + './pgcopy.sh {{ execution_date.format("%a") }}', # %a is Short Day of Week
     )
 
     update_pg_badger_report = SSHOperator(
         task_id="update_pg_badger_report",
-        command=COMMON
-        + dedent(
-            """
-            pgbadger -I -O ${PWD}/reports/ logs/*
-        """
-        ),
+        command=COMMON + "pgbadger -I -O ${PWD}/reports/ logs/*",
     )
 
     aws_conn = AwsHook(aws_conn_id=AWS_CONN_ID)
@@ -82,11 +79,7 @@ with DAG(
             export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
             export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
         """,
-        command=COMMON
-        + dedent("""
-            aws s3 sync report/ s3://nci-db-dump/pgbadger/nci/dea-db/ --no-progress
-        """
-        ),
+        command=COMMON + "aws s3 sync report/ s3://nci-db-dump/pgbadger/nci/dea-db/ --no-progress",
     )
 
     dump_daily_log >> update_pg_badger_report >> upload_to_s3
