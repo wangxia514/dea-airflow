@@ -88,3 +88,5 @@ with DAG(
         """
         ),
     )
+
+    dump_daily_log >> update_pg_badger_report >> upload_to_s3
