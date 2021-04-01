@@ -45,7 +45,7 @@ dag = DAG(
     max_active_runs=1,
     tags=["k8s"],
     schedule_interval="10 2 * * 2,4,6",  # every second day 2:10AM
-    dagrun_timeout=timedelta(minutes=60 * 4),
+    dagrun_timeout=timedelta(minutes=60 * 6),
 )
 
 affinity = ONDEMAND_NODE_AFFINITY
@@ -55,13 +55,9 @@ MAINTENANCE_SCRIPT = [
     "-c",
     dedent(
         """
-            # agdc tables
+            # vaccum analyze agdc + cubedash tables
             psql -h $(DB_HOSTNAME) -U $(DB_ADMIN_USER) -d $(DB_DATABASE) -c \
-            "vacuum verbose analyze agdc.dataset, agdc.dataset_type, agdc.dataset_source, agdc.metadata_type, agdc.dataset_location;"
-            
-            # cubedash tables
-            psql -h $(DB_HOSTNAME) -U $(DB_ADMIN_USER) -d $(DB_DATABASE) -c \ 
-            "vacuum verbose analyze cubedash.dataset_spatial, cubedash.product, cubedash.region, cubedash.time_overview;"
+            "vacuum verbose analyze agdc.dataset, agdc.dataset_type, agdc.dataset_source, agdc.metadata_type, agdc.dataset_location, cubedash.dataset_spatial, cubedash.product, cubedash.region, cubedash.time_overview;"
         """
     ),
 ]
