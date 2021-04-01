@@ -9,7 +9,7 @@ from airflow.kubernetes.secret import Secret
 from webapp_update.update_list import EXPLORER_UPDATE_LIST
 from infra.images import EXPLORER_IMAGE
 from infra.variables import SECRET_EXPLORER_WRITER_NAME
-from infra.podconfig import NODE_AFFINITY
+from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
 
 EXPLORER_SECRETS = [
@@ -63,7 +63,7 @@ def explorer_refresh_stats_subdag(
         name="explorer-summary",
         task_id="explorer-summary-task",
         get_logs=True,
-        affinity=NODE_AFFINITY,
+        affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
         dag=dag_subdag,
     )

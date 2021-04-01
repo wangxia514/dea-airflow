@@ -23,6 +23,7 @@ from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.dummy_operator import DummyOperator
 from infra.images import EXPLORER_IMAGE, S3_TO_RDS_IMAGE
+from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
 # Templated DAG arguments
 DATESTRING = "{{ ds_nodash }}"
@@ -71,21 +72,7 @@ dag = DAG(
     schedule_interval=timedelta(days=7),
 )
 
-affinity = {
-    "nodeAffinity": {
-        "requiredDuringSchedulingIgnoredDuringExecution": {
-            "nodeSelectorTerms": [{
-                "matchExpressions": [{
-                    "key": "nodetype",
-                    "operator": "In",
-                    "values": [
-                        "ondemand",
-                    ]
-                }]
-            }]
-        }
-    }
-}
+affinity = ONDEMAND_NODE_AFFINITY
 
 s3_backup_volume_mount = VolumeMount(name="s3-backup-volume",
                                      mount_path=BACKUP_PATH,
