@@ -21,7 +21,7 @@ from infra.variables import (
     SECRET_AWS_NAME,
     DEA_NEWDATA_PROCESSING_POOL,
 )
-from infra.podconfig import NODE_AFFINITY
+from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from sentinel_2_nrt.env_cfg import (
     INDEXING_PRODUCTS,
 )
@@ -98,7 +98,7 @@ with dag:
         name="datacube-index",
         task_id="batch-indexing-task",
         get_logs=True,
-        affinity=NODE_AFFINITY,
+        affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
         pool=DEA_NEWDATA_PROCESSING_POOL,
     )

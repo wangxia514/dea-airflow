@@ -26,7 +26,7 @@ from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
-from infra.podconfig import NODE_AFFINITY
+from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.images import S3_TO_RDS_IMAGE
 from infra.variables import NCI_DBSYNC_ROLE
 
@@ -86,7 +86,7 @@ dag = DAG(
     dagrun_timeout=timedelta(minutes=60 * 3),
 )
 
-affinity = NODE_AFFINITY
+affinity = ONDEMAND_NODE_AFFINITY
 
 s3_backup_volume_mount = VolumeMount(
     name="s3-backup-volume", mount_path=BACKUP_PATH, sub_path=None, read_only=False

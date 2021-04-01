@@ -14,7 +14,7 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
-from infra.podconfig import NODE_AFFINITY
+from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.images import EXPLORER_UNSTABLE_IMAGE, EXPLORER_IMAGE
 
 local_tz = pendulum.timezone("Australia/Canberra")
@@ -57,7 +57,7 @@ dag = DAG(
     schedule_interval="45 1 * * *",    # every day 1:45AM
 )
 
-affinity = NODE_AFFINITY
+affinity = ONDEMAND_NODE_AFFINITY
 
 with dag:
     START = DummyOperator(task_id="nci-db-incremental-update-summary")
