@@ -100,3 +100,4 @@ with dag:
     DO_IT = PythonOperator(task_id="do_it", python_callable=do_it, provide_context=True)
 
     BRANCH >> DO_IT
+    BRANCH >> DONT_IT
