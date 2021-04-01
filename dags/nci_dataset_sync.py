@@ -10,6 +10,7 @@ from textwrap import dedent
 
 from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
+from airflow.operators.dummy_operator import DummyOperator
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 from nci_common import c2_default_args, c2_schedule_interval, MINUTES
 
@@ -72,6 +73,7 @@ with DAG('nci_dataset_sync',
          tags=['nci', 'landsat_c2'],
          default_view="tree",
          ) as dag:
+    START = DummyOperator(task_id='start')
     for product in SYNCED_PRODUCTS:
         submit_sync = SSHOperator(
             task_id=f'submit_sync_{product}',
@@ -90,4 +92,4 @@ with DAG('nci_dataset_sync',
             pbs_job_id="{{ ti.xcom_pull(task_ids='submit_sync_%s') }}" % product,
         )
 
-        submit_sync >> wait_for_completion
+        START >> submit_sync >> wait_for_completion
