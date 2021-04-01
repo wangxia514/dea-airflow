@@ -39,8 +39,8 @@ dag = DAG(
 )
 
 
-def get_sqs_client():
-    return AwsHook(aws_conn_id=AWS_CONN_ID).get_session().client("sqs")
+def get_sqs():
+    return AwsHook(aws_conn_id=AWS_CONN_ID).get_session().resource("sqs")
 
 
 def get_message(queue):
@@ -55,7 +55,7 @@ def get_message(queue):
 
 
 def my_callable(**context):
-    sqs = get_sqs_client()
+    sqs = get_sqs()
     queue = sqs.get_queue_by_name(QueueName=PROCESS_SCENE_QUEUE)
     message = get_message(queue)
     print(message)
