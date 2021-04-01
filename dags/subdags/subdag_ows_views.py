@@ -16,7 +16,7 @@ from infra.podconfig import (
     OWS_CFG_PATH,
     OWS_CFG_MOUNT_PATH,
     OWS_CFG_IMAGEPATH,
-    NODE_AFFINITY,
+    ONDEMAND_NODE_AFFINITY,
 )
 from webapp_update.update_list import UPDATE_EXTENT_PRODUCTS
 from infra.variables import SECRET_OWS_WRITER_NAME
@@ -124,7 +124,7 @@ def ows_update_extent_subdag(
         volume_mounts=[ows_cfg_mount],
         init_containers=[config_container],
         is_delete_operator_pod=True,
-        affinity=NODE_AFFINITY,
+        affinity=ONDEMAND_NODE_AFFINITY,
         dag=dag_subdag,
     )
 

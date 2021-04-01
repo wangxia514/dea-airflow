@@ -19,6 +19,7 @@ from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
 from infra.images import EXPLORER_UNSTABLE_IMAGE, EXPLORER_IMAGE
+from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
 local_tz = pendulum.timezone("Australia/Canberra")
 
@@ -60,21 +61,7 @@ dag = DAG(
     schedule_interval=None,    # Fully manual run
 )
 
-affinity = {
-    "nodeAffinity": {
-        "requiredDuringSchedulingIgnoredDuringExecution": {
-            "nodeSelectorTerms": [{
-                "matchExpressions": [{
-                    "key": "nodetype",
-                    "operator": "In",
-                    "values": [
-                        "ondemand",
-                    ]
-                }]
-            }]
-        }
-    }
-}
+affinity = ONDEMAND_NODE_AFFINITY
 
 with dag:
     START = DummyOperator(task_id="nci-db-update-summary")

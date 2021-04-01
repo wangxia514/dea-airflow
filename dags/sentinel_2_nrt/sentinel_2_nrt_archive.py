@@ -31,7 +31,7 @@ from sentinel_2_nrt.env_cfg import (
     ARCHIVE_CONDITION,
     ARCHIVE_PRODUCTS,
 )
-from infra.podconfig import NODE_AFFINITY
+from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
 
 DAG_NAME = "sentinel_2_nrt_archive"
@@ -96,7 +96,7 @@ with dag:
         labels={"step": "ds-arch"},
         name="datacube-dataset-archive",
         task_id="archive-nrt-datasets",
-        affinity=NODE_AFFINITY,
+        affinity=ONDEMAND_NODE_AFFINITY,
         get_logs=True,
         is_delete_operator_pod=True,
     )

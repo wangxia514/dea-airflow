@@ -24,7 +24,7 @@ from infra.variables import (
 from sentinel_2_nrt.env_cfg import (
     INDEXING_PRODUCTS,
 )
-from infra.podconfig import NODE_AFFINITY
+from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
 # DAG CONFIGURATION
 DEFAULT_ARGS = {
@@ -95,6 +95,6 @@ with dag:
         name="datacube-index",
         task_id="batch-indexing-task",
         get_logs=True,
-        affinity=NODE_AFFINITY,
+        affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
     )
