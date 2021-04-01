@@ -39,11 +39,10 @@ dag = DAG(
 def my_callable(**context):
     task_instance = context["task_instance"]
     aws_hook = AwsHook(aws_conn_id=AWS_CONN_ID)
-    print("type", type(aws_hook))
-    print("dir", dir(aws_hook))
-    cred = aws_hook.get_session().get_credentials()
-    print("type", type(cred))
-    print("dir", dir(cred))
+    session = aws_hook.get_session()
+    sqs = session.client("sqs")
+    print("type", type(sqs))
+    print("dir", dir(sqs))
 
 
 with dag:
