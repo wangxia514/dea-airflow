@@ -89,7 +89,7 @@ def do_it(**context):
 
 with dag:
     BRANCH = BranchPythonOperator(
-        task_id="branch", python_callable=receive_task, provide_context=True
+        task_id="receive_task", python_callable=receive_task, provide_context=True
     )
 
     DONT_IT = DummyOperator(task_id="dont_it")
