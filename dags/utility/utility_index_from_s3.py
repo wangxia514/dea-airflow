@@ -101,7 +101,7 @@ def load_subdag(parent_dag_name, child_dag_name, args, config_task_name):
         for key in keys:
             s3_path = path_template
             if key_name:
-                s3_path = path_template.format(key_name, key)
+                s3_path = path_template.format(**{key_name: key})
 
             INDEXING = KubernetesPodOperator(
                 namespace="processing",
