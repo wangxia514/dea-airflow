@@ -21,7 +21,7 @@ from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
 )
-from infra.podconfig import NODE_AFFINITY
+from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
 DAG_NAME = "utility_odc_db_dump_to_s3"
 
@@ -95,7 +95,7 @@ with dag:
         name="dump-odc-db",
         task_id="dump-odc-db",
         get_logs=True,
-        affinity=NODE_AFFINITY,
+        affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=False,
     )
 
@@ -108,6 +108,6 @@ with dag:
     #     name="dump-odc-db",
     #     task_id="dump-odc-db",
     #     get_logs=True,
-    #     affinity=NODE_AFFINITY,
+    #     affinity=ONDEMAND_NODE_AFFINITY,
     #     is_delete_operator_pod=True,
     # )

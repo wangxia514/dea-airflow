@@ -8,7 +8,7 @@ from airflow import DAG
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from webapp_update.update_list import EXPLORER_UPDATE_LIST
-from infra.podconfig import NODE_AFFINITY
+from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.images import EXPLORER_IMAGE
 from infra.variables import SECRET_EXPLORER_WRITER_NAME, DEA_NEWDATA_PROCESSING_POOL
 
@@ -64,7 +64,7 @@ def explorer_refresh_stats_subdag(
         task_id="explorer-summary-task",
         get_logs=True,
         is_delete_operator_pod=True,
-        affinity=NODE_AFFINITY,
+        affinity=ONDEMAND_NODE_AFFINITY,
         dag=dag_subdag,
         pool=DEA_NEWDATA_PROCESSING_POOL,
     )

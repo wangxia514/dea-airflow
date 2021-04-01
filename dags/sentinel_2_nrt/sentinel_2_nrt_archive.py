@@ -23,7 +23,7 @@ from infra.variables import (
     SECRET_ODC_WRITER_NAME,
     DEA_NEWDATA_PROCESSING_POOL,
 )
-from infra.podconfig import NODE_AFFINITY
+from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from airflow.operators.subdag_operator import SubDagOperator
 from subdags.subdag_explorer_summary import explorer_refresh_stats_subdag
 from sentinel_2_nrt.env_cfg import ARCHIVE_CONDITION, ARCHIVE_PRODUCTS
@@ -92,7 +92,7 @@ with dag:
         task_id="archive-nrt-datasets",
         pool=DEA_NEWDATA_PROCESSING_POOL,
         get_logs=True,
-        affinity=NODE_AFFINITY,
+        affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
     )
 
