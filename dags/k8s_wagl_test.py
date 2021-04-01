@@ -11,6 +11,9 @@ DEADLETTER_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/
 
 AWS_CONN_ID = "wagl_nrt_manual"
 
+ESTIMATED_COMPLETION_TIME = 60
+
+
 default_args = {
     "owner": "Imam Alam",
     "depends_on_past": False,
@@ -36,13 +39,26 @@ dag = DAG(
 )
 
 
+def get_sqs_client():
+    return AwsHook(aws_conn_id=AWS_CONN_ID).get_session().client("sqs")
+
+
+def get_message(queue):
+    messages = queue.receive_messages(
+        VisibilityTimeout=ESTIMATED_COMPLETION_TIME, MaxNumberOfMessages=1
+    )
+
+    if len(messages) == 0:
+        return None
+    else:
+        return messages[0]
+
+
 def my_callable(**context):
-    task_instance = context["task_instance"]
-    aws_hook = AwsHook(aws_conn_id=AWS_CONN_ID)
-    session = aws_hook.get_session()
-    sqs = session.client("sqs")
-    print("type", type(sqs))
-    print("dir", dir(sqs))
+    sqs = get_sqs_client()
+    queue = sqs.get_queue_by_name(QueueName=PROCESS_SCENE_QUEUE)
+    message = get_message(queue)
+    print(message)
 
 
 with dag:
