@@ -40,12 +40,12 @@ dag = DAG(
 
 
 def get_sqs():
-    return AwsHook(aws_conn_id=AWS_CONN_ID).get_session().resource("sqs")
+    return AwsHook(aws_conn_id=AWS_CONN_ID).get_session().client("sqs")
 
 
-def get_message(queue):
-    messages = queue.receive_messages(
-        VisibilityTimeout=ESTIMATED_COMPLETION_TIME, MaxNumberOfMessages=1
+def get_message(sqs, url):
+    messages = sqs.receive_message(
+        QueueUrl=url, VisibilityTimeout=ESTIMATED_COMPLETION_TIME, MaxNumberOfMessages=1
     )
 
     if len(messages) == 0:
@@ -58,8 +58,7 @@ def my_callable(**context):
     sqs = get_sqs()
     print(type(sqs))
     print(sqs)
-    queue = sqs.get_queue_by_name(QueueName=PROCESS_SCENE_QUEUE)
-    message = get_message(queue)
+    message = get_message(sqs, PROCESS_SCENE_QUEUE)
     print(message)
 
 
