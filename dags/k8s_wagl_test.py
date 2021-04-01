@@ -56,6 +56,8 @@ def get_message(queue):
 
 def my_callable(**context):
     sqs = get_sqs()
+    print(type(sqs))
+    print(sqs)
     queue = sqs.get_queue_by_name(QueueName=PROCESS_SCENE_QUEUE)
     message = get_message(queue)
     print(message)
