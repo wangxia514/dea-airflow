@@ -74,7 +74,7 @@ with dag:
     NCI_DB_MAINTENANCE = KubernetesPodOperator(
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
-        cmds=[MAINTENANCE_SCRIPT],
+        arguments=MAINTENANCE_SCRIPT,
         image_pull_policy="Always",
         labels={"step": "nci-db-maintenance"},
         name="nci-db-maintenance",
