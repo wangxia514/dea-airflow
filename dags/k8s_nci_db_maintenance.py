@@ -37,7 +37,7 @@ DEFAULT_ARGS = {
 }
 
 dag = DAG(
-    "k8s_nci_db_incremental_sync",
+    "k8s_nci_db_maintenance",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     catchup=False,
