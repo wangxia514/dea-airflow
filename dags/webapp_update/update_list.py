@@ -5,6 +5,7 @@ UPDATE_EXTENT_PRODUCTS = (
     "fc_albers_combined",
     "s2_ard_granule_nbar_t",
     "ga_ls_wo_3",
+    "ga_s2_wo_3",
     "ga_ls_fc_3",
     "dea_c3_ls_combined",
 )
@@ -19,6 +20,7 @@ EXPLORER_UPDATE_LIST = (
     "ls7_fc_albers",
     "ls8_fc_albers",
     "ga_ls_wo_3",
+    "ga_s2_wo_3",
     "ga_ls_fc_3",
     "ga_ls5t_ard_3",
     "ga_ls7e_ard_3",
