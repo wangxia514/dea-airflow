@@ -15,12 +15,12 @@ from textwrap import dedent
 from infra.images import INDEXER_IMAGE
 from infra.variables import (
     SECRET_DBA_ADMIN_NAME,
-    DB_DUMP_S3_ROLE,
     SECRET_AWS_NAME,
-    DB_DUMP_S3_BUCKET,
     DB_DATABASE,
     DB_HOSTNAME,
 )
+from infra.s3_buckets import DB_DUMP_S3_BUCKET
+from infra.iam_roles import DB_DUMP_S3_ROLE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
 DAG_NAME = "utility_odc_db_dump_to_s3"

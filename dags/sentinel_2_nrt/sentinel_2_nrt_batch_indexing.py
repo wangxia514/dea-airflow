@@ -19,8 +19,8 @@ from infra.variables import (
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
     SECRET_AWS_NAME,
-    DEA_NEWDATA_PROCESSING_POOL,
 )
+from infra.pools import DEA_NEWDATA_PROCESSING_POOL
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from sentinel_2_nrt.env_cfg import (
     INDEXING_PRODUCTS,

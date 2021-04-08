@@ -1,3 +1,6 @@
+"""
+Images used for kubenetespodsoperators
+"""
 IMAGE_ECR = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com"
 
 ONDEMAND_NODE_AFFINITY = {

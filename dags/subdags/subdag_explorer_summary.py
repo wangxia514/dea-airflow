@@ -10,7 +10,8 @@ from airflow.kubernetes.secret import Secret
 from webapp_update.update_list import EXPLORER_UPDATE_LIST
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.images import EXPLORER_IMAGE
-from infra.variables import SECRET_EXPLORER_WRITER_NAME, DEA_NEWDATA_PROCESSING_POOL
+from infra.variables import SECRET_EXPLORER_WRITER_NAME
+from infra.pools import DEA_NEWDATA_PROCESSING_POOL
 
 EXPLORER_SECRETS = [
     Secret("env", "DB_USERNAME", SECRET_EXPLORER_WRITER_NAME, "postgres-username"),

@@ -18,10 +18,10 @@ from infra.variables import (
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
     SECRET_AWS_NAME,
-    INDEXING_ROLE,
-    SQS_QUEUE_NAME,
-    DEA_NEWDATA_PROCESSING_POOL,
 )
+from infra.sqs_queue import SQS_QUEUE_NAME
+from infra.iam_roles import INDEXING_ROLE
+from infra.pools import DEA_NEWDATA_PROCESSING_POOL
 from sentinel_2_nrt.env_cfg import (
     INDEXING_PRODUCTS,
     PRODUCT_RECORD_PATHS,
