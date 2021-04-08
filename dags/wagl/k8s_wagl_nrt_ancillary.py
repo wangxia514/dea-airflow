@@ -19,10 +19,13 @@ S3_TO_RDS_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/geosciencea
 
 
 def sync(*args):
+    """ Sync from s3. """
     return "aws s3 sync --only-show-errors --no-follow-symlinks " + " ".join(args)
 
 
 def brdf_doys(doy):
+    """ Day-of-year set for BRDF. """
+
     def clip(doy):
         if doy < 1:
             return 1
