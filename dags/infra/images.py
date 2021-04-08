@@ -1,5 +1,6 @@
+"""
 # IMAGES USED FOR DAGs
-
+"""
 ## STABLE IMAGES
 INDEXER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/datacube-index:0.0.18"
 

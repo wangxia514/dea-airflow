@@ -21,8 +21,8 @@ from infra.variables import (
     DB_HOSTNAME,
     SECRET_AWS_NAME,
     SECRET_ODC_WRITER_NAME,
-    DEA_NEWDATA_PROCESSING_POOL,
 )
+from infra.pools import DEA_NEWDATA_PROCESSING_POOL
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from airflow.operators.subdag_operator import SubDagOperator
 from subdags.subdag_explorer_summary import explorer_refresh_stats_subdag
