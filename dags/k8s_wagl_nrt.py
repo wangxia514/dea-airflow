@@ -11,9 +11,10 @@ from airflow import DAG
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.contrib.operators.kubernetes_pod_operator import Resources
 from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 from airflow.contrib.sensors.aws_sqs_sensor import SQSSensor
 from airflow.contrib.hooks.aws_sns_hook import AwsSnsHook
+from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.kubernetes.secret import Secret
 from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
@@ -33,7 +34,7 @@ default_args = {
     "email": ["imam.alam@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 1,
+    "retries": 0,
     "retry_delay": timedelta(minutes=5),
     "pool": WAGL_TASK_POOL,
     "secrets": [Secret("env", None, "wagl-nrt-aws-creds")],
@@ -49,6 +50,8 @@ DEADLETTER_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/060378307146/
 PUBLISH_S2_NRT_SNS = (
     "arn:aws:sns:ap-southeast-2:060378307146:dea-sandbox-eks-wagl-s2-nrt"
 )
+
+ESTIMATED_COMPLETION_TIME = 3 * 60 * 60
 
 SOURCE_BUCKET = "sentinel-s2-l1c"
 TRANSFER_BUCKET = "dea-sandbox-eks-nrt-scene-cache"
@@ -107,44 +110,57 @@ ancillary_volume = Volume(
 
 
 def decode(message):
+    """ Decode stringified message. """
     return json.loads(message["Body"])
 
 
-def sync(*args):
-    return "aws s3 sync --only-show-errors " + " ".join(args)
-
-
 def copy_cmd_tile(tile_info):
+    """ The bash scipt to run to copy the tile over to the cache bucket. """
     datastrip = tile_info["datastrip"]
     path = tile_info["path"]
     granule_id = tile_info["granule_id"]
 
-    return [
-        "echo sinergise -> disk [datastrip]",
-        "mkdir -p /transfer",
-        sync(
-            "--request-payer requester",
-            f"s3://{SOURCE_BUCKET}/{datastrip}",
-            f"/transfer/{granule_id}/{datastrip}",
-        ),
-        "echo disk -> cache [datastrip]",
-        sync(
-            f"/transfer/{granule_id}/{datastrip}",
-            f"s3://{TRANSFER_BUCKET}/{datastrip}",
-        ),
-        "echo sinergise -> disk [tile]",
-        sync(
-            "--request-payer requester",
-            f"s3://{SOURCE_BUCKET}/{path}",
-            f"/transfer/{granule_id}/{path}",
-        ),
-        "echo disk -> cache [tile]",
-        sync(f"/transfer/{granule_id}/{path}", f"s3://{TRANSFER_BUCKET}/{path}"),
-        f"rm -rf /transfer/{granule_id}",
-    ]
+    cmd = f"""
+    set -e
+
+    if ! aws s3api head-object --bucket {TRANSFER_BUCKET} --key {datastrip}/.done 2> /dev/null; then
+        mkdir -p /transfer/{granule_id}
+        echo sinergise -> disk [datastrip]
+        aws s3 sync --only-show-errors --request-payer requester \\
+                s3://{SOURCE_BUCKET}/{datastrip} /transfer/{granule_id}/{datastrip}
+        echo disk -> cache [datastrip]
+        aws s3 sync --only-show-errors \\
+                /transfer/{granule_id}/{datastrip} s3://{TRANSFER_BUCKET}/{datastrip}
+        touch /transfer/{granule_id}/{datastrip}/.done
+        aws s3 cp \\
+                /transfer/{granule_id}/{datastrip}/.done s3://{TRANSFER_BUCKET}/{datastrip}/.done
+    else
+        echo s3://{TRANSFER_BUCKET}/{datastrip} already exists
+    fi
+
+    if ! aws s3api head-object --bucket {TRANSFER_BUCKET} --key {path}/.done 2> /dev/null; then
+        mkdir -p /transfer/{granule_id}
+        echo sinergise -> disk [path]
+        aws s3 sync --only-show-errors --request-payer requester \\
+                s3://{SOURCE_BUCKET}/{path} /transfer/{granule_id}/{path}
+        echo disk -> cache [path]
+        aws s3 sync --only-show-errors \\
+                /transfer/{granule_id}/{path} s3://{TRANSFER_BUCKET}/{path}
+        touch /transfer/{granule_id}/{path}/.done
+        aws s3 cp \\
+                /transfer/{granule_id}/{path}/.done s3://{TRANSFER_BUCKET}/{path}/.done
+    else
+        echo s3://{TRANSFER_BUCKET}/{path} already exists
+    fi
+
+    rm -rf /transfer/{granule_id}
+    """
+
+    return cmd
 
 
 def get_tile_info(msg_dict):
+    """ Minimal info to be able to run wagl. """
     assert len(msg_dict["tiles"]) == 1, "was not expecting multi-tile granule"
     tile = msg_dict["tiles"][0]
 
@@ -156,6 +172,7 @@ def get_tile_info(msg_dict):
 
 
 def tile_args(tile_info):
+    """ Arguments to the wagl container. """
     path = tile_info["path"]
     datastrip = tile_info["datastrip"]
 
@@ -166,60 +183,82 @@ def tile_args(tile_info):
     )
 
 
-def fetch_sqs_message(context):
-    task_instance = context["task_instance"]
-    index = context["index"]
-    all_messages = task_instance.xcom_pull(
-        task_ids=f"process_scene_queue_sensor_{index}", key="messages"
+def get_sqs():
+    """ SQS client. """
+    return AwsHook(aws_conn_id=AWS_CONN_ID).get_session().client("sqs")
+
+
+def get_message(sqs, url):
+    """ Receive one message with an estimated completion time set. """
+    response = sqs.receive_message(
+        QueueUrl=url, VisibilityTimeout=ESTIMATED_COMPLETION_TIME, MaxNumberOfMessages=1
     )
 
-    if all_messages is None:
-        raise KeyError("no messages")
+    print("response")
+    print(response)
 
-    messages = all_messages["Messages"]
-    # assert len(messages) == 1
-    return messages[0]
+    if "Messages" not in response:
+        return None
 
+    messages = response["Messages"]
 
-def copy_cmd(**context):
-    message = fetch_sqs_message(context)
-
-    msg_dict = decode(message)
-    tile_info = get_tile_info(msg_dict)
-
-    # forward it to the copy and processing tasks
-    task_instance = context["task_instance"]
-    task_instance.xcom_push(key="cmd", value=" &&\n".join(copy_cmd_tile(tile_info)))
-    task_instance.xcom_push(key="args", value=tile_args(tile_info))
+    if len(messages) == 0:
+        return None
+    else:
+        return messages[0]
 
 
-def dag_result(**context):
-    try:
-        message = fetch_sqs_message(context)
-    except KeyError:
-        # no messages, success
-        return
-
-    sqs_hook = SQSHook(aws_conn_id=AWS_CONN_ID)
-    message_body = json.dumps(decode(message))
-    sqs_hook.send_message(DEADLETTER_SCENE_QUEUE, message_body)
-    raise ValueError(f"processing failed for {message_body}")
-
-
-def sns_broadcast(**context):
+def receive_task(**context):
+    """ Receive a task from the task queue. """
     task_instance = context["task_instance"]
     index = context["index"]
+
+    sqs = get_sqs()
+    message = get_message(sqs, PROCESS_SCENE_QUEUE)
+
+    if message is None:
+        print("no messages")
+        return f"nothing_to_do_{index}"
+    else:
+        print("received message")
+        print(message)
+
+        task_instance.xcom_push(key="message", value=message)
+
+        msg_dict = decode(message)
+        tile_info = get_tile_info(msg_dict)
+
+        task_instance.xcom_push(key="cmd", value=copy_cmd_tile(tile_info))
+        task_instance.xcom_push(key="args", value=tile_args(tile_info))
+
+        return f"dea-s2-wagl-nrt-copy-scene-{index}"
+
+
+def finish_up(**context):
+    """ Delete the SQS message to mark completion, broadcast to SNS. """
+    task_instance = context["task_instance"]
+    index = context["index"]
+
+    message = task_instance.xcom_pull(task_ids=f"receive_task_{index}", key="message")
+    sqs = get_sqs()
+
+    print("deleting", message["ReceiptHandle"])
+    sqs.delete_message(
+        QueueUrl=PROCESS_SCENE_QUEUE, ReceiptHandle=message["ReceiptHandle"]
+    )
+
     msg = task_instance.xcom_pull(
         task_ids=f"dea-s2-wagl-nrt-{index}", key="return_value"
     )
 
     assert "dataset" in msg
     if msg["dataset"] == "exists":
-        # dataset already existed, did not get processed by this DAG
+        print("dataset already existed, did not get processed by this DAG")
         return
 
     msg_str = json.dumps(msg)
 
+    print(f"publishing to SNS: {msg_str}")
     sns_hook = AwsSnsHook(aws_conn_id=AWS_CONN_ID)
     sns_hook.publish_to_target(PUBLISH_S2_NRT_SNS, msg_str)
 
@@ -239,18 +278,9 @@ pipeline = DAG(
 
 with pipeline:
     for index in range(NUM_PARALLEL_PIPELINE):
-        SENSOR = SQSSensor(
-            task_id=f"process_scene_queue_sensor_{index}",
-            sqs_queue=PROCESS_SCENE_QUEUE,
-            aws_conn_id=AWS_CONN_ID,
-            max_messages=NUM_MESSAGES_TO_POLL,
-            retries=0,
-            execution_timeout=timedelta(minutes=1),
-        )
-
-        CMD = PythonOperator(
-            task_id=f"copy_cmd_{index}",
-            python_callable=copy_cmd,
+        SENSOR = BranchPythonOperator(
+            task_id=f"receive_task_{index}",
+            python_callable=receive_task,
             op_kwargs={"index": index},
             provide_context=True,
         )
@@ -269,7 +299,7 @@ with pipeline:
             cmds=[
                 "bash",
                 "-c",
-                "{{ task_instance.xcom_pull(task_ids='copy_cmd_"
+                "{{ task_instance.xcom_pull(task_ids='receive_task_"
                 + str(index)
                 + "', key='cmd') }}",
             ],
@@ -300,13 +330,13 @@ with pipeline:
             security_context=dict(runAsUser=10015, runAsGroup=10015, fsGroup=10015),
             cmds=["/scripts/process-scene.sh"],
             arguments=[
-                "{{ task_instance.xcom_pull(task_ids='copy_cmd_"
+                "{{ task_instance.xcom_pull(task_ids='receive_task_"
                 + str(index)
                 + "', key='args')['granule_url'] }}",
-                "{{ task_instance.xcom_pull(task_ids='copy_cmd_"
+                "{{ task_instance.xcom_pull(task_ids='receive_task_"
                 + str(index)
                 + "', key='args')['datastrip_url'] }}",
-                "{{ task_instance.xcom_pull(task_ids='copy_cmd_"
+                "{{ task_instance.xcom_pull(task_ids='receive_task_"
                 + str(index)
                 + "', key='args')['granule_id'] }}",
                 BUCKET_REGION,
@@ -320,13 +350,13 @@ with pipeline:
             },
             env_vars=dict(
                 bucket_region=BUCKET_REGION,
-                datastrip_url="{{ task_instance.xcom_pull(task_ids='copy_cmd_"
+                datastrip_url="{{ task_instance.xcom_pull(task_ids='receive_task_"
                 + str(index)
                 + "', key='args')['datastrip_url'] }}",
-                granule_url="{{ task_instance.xcom_pull(task_ids='copy_cmd_"
+                granule_url="{{ task_instance.xcom_pull(task_ids='receive_task_"
                 + str(index)
                 + "', key='args')['granule_url'] }}",
-                granule_id="{{ task_instance.xcom_pull(task_ids='copy_cmd_"
+                granule_id="{{ task_instance.xcom_pull(task_ids='receive_task_"
                 + str(index)
                 + "', key='args')['granule_id'] }}",
                 s3_prefix=S3_PREFIX,
@@ -338,27 +368,19 @@ with pipeline:
             },
             volumes=[ancillary_volume],
             volume_mounts=[ancillary_volume_mount],
-            retries=2,
             execution_timeout=timedelta(minutes=180),
             do_xcom_push=True,
             is_delete_operator_pod=True,
         )
 
-        # this is meant to mark the success failure of the whole DAG
-        END = PythonOperator(
-            task_id=f"dag_result_{index}",
-            python_callable=dag_result,
-            retries=0,
-            op_kwargs={"index": index},
-            provide_context=True,
-            trigger_rule=TriggerRule.ALL_FAILED,
-        )
-
-        SNS = PythonOperator(
-            task_id=f"sns_broadcast_{index}",
-            python_callable=sns_broadcast,
+        FINISH = PythonOperator(
+            task_id=f"finish_{index}",
+            python_callable=finish_up,
             op_kwargs={"index": index},
             provide_context=True,
         )
 
-        SENSOR >> CMD >> COPY >> RUN >> SNS >> END
+        NOTHING = DummyOperator(task_id=f"nothing_to_do_{index}")
+
+        SENSOR >> COPY >> RUN >> FINISH
+        SENSOR >> NOTHING
