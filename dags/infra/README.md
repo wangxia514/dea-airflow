@@ -18,3 +18,6 @@ splitting s3 sqs queue from variables for centralised management.
 
 ## Tasks Pool
 Pools can be created via UI or Backend, store pool in a seperate file for centralised management.
+
+## Iam Roles
+iam roles created for kubenetepodoperator, kubenetepodoperator can use iam roles as a more secure setup compared to connections
