@@ -21,7 +21,8 @@ from infra.podconfig import (
     OWS_CFG_FOLDER_PATH,
 )
 from webapp_update.update_list import UPDATE_EXTENT_PRODUCTS
-from infra.variables import SECRET_OWS_WRITER_NAME, DEA_NEWDATA_PROCESSING_POOL
+from infra.variables import SECRET_OWS_WRITER_NAME
+from infra.pools import DEA_NEWDATA_PROCESSING_POOL
 
 
 OWS_SECRETS = [
