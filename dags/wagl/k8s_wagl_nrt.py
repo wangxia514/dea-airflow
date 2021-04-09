@@ -62,7 +62,7 @@ S3_PREFIX = "s3://dea-public-data-dev/L2/sentinel-2-nrt/S2MSIARD/"
 AWS_CONN_ID = "wagl_nrt_manual"
 
 NUM_PARALLEL_PIPELINE = 5
-MAX_ACTIVE_RUNS = 15
+MAX_ACTIVE_RUNS = 12
 
 # this should be 10 in dev for 10% capacity
 # then it would just discard the other 9 messages polled
