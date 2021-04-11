@@ -10,7 +10,7 @@ from airflow.kubernetes.secret import Secret
 from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
 
-from infra.variables import WAGL_TASK_POOL
+from infra.pools import WAGL_TASK_POOL
 
 NOW = datetime.now()
 DOY = int(NOW.strftime("%j"))
