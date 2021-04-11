@@ -13,12 +13,14 @@ from airflow import DAG
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from infra.variables import (
-    C3_ALCHEMIST_ROLE,
-    C3_FC_SQS_QUEUE_NAME,
-    C3_WO_SQS_QUEUE_NAME,
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
+)
+from infra.iam_roles import C3_ALCHEMIST_ROLE
+from infra.sqs_queues import (
+    C3_FC_SQS_QUEUE_NAME,
+    C3_WO_SQS_QUEUE_NAME,
 )
 from infra.images import INDEXER_IMAGE
 
