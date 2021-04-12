@@ -18,9 +18,9 @@ from infra.variables import (
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
     SECRET_AWS_NAME,
-    INDEXING_ROLE,
-    NEWDEADATA_SQS_QUEUE_NAME,
 )
+from infra.iam_roles import INDEXING_ROLE
+from infra.sqs_queues import NEWDEADATA_SQS_QUEUE_NAME
 from sentinel_2_nrt.env_cfg import (
     INDEXING_PRODUCTS,
     PRODUCT_RECORD_PATHS,

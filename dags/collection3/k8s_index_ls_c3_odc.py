@@ -21,13 +21,15 @@ from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.operators.dummy_operator import DummyOperator
 from infra.variables import (
-    C3_PROCESSING_ROLE,
-    C3_ARCHIVAL_SQS_QUEUE_NAME,
-    C3_INDEXING_SQS_QUEUE_NAME,
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
 )
+from infra.sqs_queues import (
+    C3_ARCHIVAL_SQS_QUEUE_NAME,
+    C3_INDEXING_SQS_QUEUE_NAME,
+)
+from infra.iam_roles import C3_PROCESSING_ROLE
 from infra.images import INDEXER_IMAGE
 
 DEFAULT_ARGS = {

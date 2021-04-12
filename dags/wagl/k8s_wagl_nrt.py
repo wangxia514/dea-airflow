@@ -24,7 +24,7 @@ from airflow.utils.trigger_rule import TriggerRule
 
 import kubernetes.client.models as k8s
 
-from infra.variables import WAGL_TASK_POOL
+from infra.pools import WAGL_TASK_POOL
 
 
 default_args = {
