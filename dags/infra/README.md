@@ -1,5 +1,5 @@
 ## images
-images used for kubenetepodoperator
+images used for `KubernetesPodOperator`
 
 ## connections
 AWS side provisioned airflow connections strings from terraform
@@ -8,7 +8,7 @@ AWS side provisioned airflow connections strings from terraform
 Variables supplied by terraform, can also provide default value if terraform is not supplying that value
 
 ## podconfig
-kubeneteoperatorpod configurations
+`KubernetesPodOperator` configurations
 
 ## S3 bucket
 As s3 bucket is global, any s3 bucket name in here can be shared by dev and prod deployments
@@ -20,4 +20,4 @@ splitting s3 sqs queue from variables for centralised management.
 Pools can be created via UI or Backend, store pool in a seperate file for centralised management.
 
 ## Iam Roles
-iam roles created for kubenetepodoperator, kubenetepodoperator can use iam roles as a more secure setup compared to connections
+iam roles created for `KubernetesPodOperator`, `KubernetesPodOperator` can use iam roles as a more secure setup compared to connections
