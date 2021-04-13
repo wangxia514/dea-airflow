@@ -44,10 +44,10 @@ from airflow.operators.sensors import HttpSensor
 # These args will get passed on to each operator
 # You can override them on a per-task basis during operator initialization
 default_args = {
-    "owner": "Robert Gurtler",
+    "owner": "Ramkumar Ramagopalan",
     "depends_on_past": False,
     "start_date": datetime(2020, 6, 16),
-    "email": ["robert.gurtler@ga.gov.au"],
+    "email": ["ramkumar.ramagopalan@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
