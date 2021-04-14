@@ -76,6 +76,7 @@ dag = DAG(
     catchup=False,
     max_active_runs=1,
     tags=["k8s", "sentinel-2", "streamline-indexing"],
+    params={"labels": {"env": "dev"}},
 )
 
 with dag:
