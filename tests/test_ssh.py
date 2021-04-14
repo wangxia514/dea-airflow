@@ -1,8 +1,6 @@
 import mockssh
 from airflow.contrib.hooks.ssh_hook import SSHHook
 
-from pathlib import Path
-from unittest.mock import MagicMock
 import pytest
 import paramiko
 
