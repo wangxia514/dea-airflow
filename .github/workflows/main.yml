@@ -2,22 +2,20 @@ name: Airflow Lint DAGs
 
 on:
   push:
-    paths:
+    paths: *ci-paths
       - 'dags/**'
       - 'scripts/**'
       - 'tests/**'
       - 'plugins/**'
       - '.github/workflows/**'
+      - 'requirements-dev.txt'
+      - 'requirements.txt'
+      - 'constraints.txt'
   pull_request:
     branches:
       - master
       - develop
-    paths:
-      - 'dags/**'
-      - 'scripts/**'
-      - '.github/workflows/**'
-      - 'requirements.txt'
-      - 'constraints.txt'
+    paths: &ci-paths
 
 jobs:
   build:
