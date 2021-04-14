@@ -69,7 +69,6 @@ def load_subdag(parent_dag_name, child_dag_name, product, bucket_path, paths, ar
                 f"s3://dea-public-data/{bucket_path}/**/*.json",
                 product,
             ]
-            print(" ".join(arguments))
             # for path in paths:
             INDEXING = KubernetesPodOperator(
                 namespace="processing",
