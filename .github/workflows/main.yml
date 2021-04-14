@@ -71,7 +71,8 @@ jobs:
               exit 1
           fi
 
-      - name: run tests
+      - name: run tests on plugins
         run: |
+          export PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}${PWD}/plugins"
           pip install -r requirements-dev.txt
           pytest tests
