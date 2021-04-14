@@ -1,8 +1,9 @@
+---
 name: Airflow Lint DAGs
 
 on:
   push:
-    paths: *ci-paths
+    paths: &ci-paths
       - 'dags/**'
       - 'scripts/**'
       - 'tests/**'
@@ -15,7 +16,7 @@ on:
     branches:
       - master
       - develop
-    paths: &ci-paths
+    paths: *ci-paths
 
 jobs:
   build:
