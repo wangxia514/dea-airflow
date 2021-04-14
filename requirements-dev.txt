@@ -1,4 +1,5 @@
 apache-airflow[aws,kubernetes,postgres,redis,ssh,celery]==1.10.14
+pytest==6.2.2
 pylint==2.7.2
 pylint-airflow
 mock-ssh-server==0.9.0
