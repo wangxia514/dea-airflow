@@ -37,15 +37,19 @@ def find_granules(file_path):
         return [row for row in csv.reader(f)]
 
 
-def check_granule_exists(_s3_bucket, s3_metadata_path):
+def check_granule_exists(_s3_bucket, s3_metadata_path, session=None):
     """
     Check if granaule already exists in S3 bucket
 
     :param _s3_bucket: Name of s3 bucket to store granules
     :param s3_metadata_path: Path of metadata file
+    :param session: boto3 Session object
     :return: True if success else False
     """
-    s3_resource = boto3.resource("s3")
+    if session is None:
+        s3_resource = boto3.resource("s3")
+    else:
+        s3_resource = session.resource('s3')
 
     try:
         # This does a head request, so is fast
@@ -57,16 +61,20 @@ def check_granule_exists(_s3_bucket, s3_metadata_path):
         return True
 
 
-def upload_s3_resource(s3_bucket, s3_file, obj):
+def upload_s3_resource(s3_bucket, s3_file, obj, session=None):
     """
     Upload s3 resource object in provided s3 path
 
     :param s3_bucket: Name of s3 bucket to store granules
     :param s3_file: Path of metadata file
     :param obj: Resource object to upload
+    :param session: boto3 Session object
     """
     try:
-        s3_resource = boto3.resource("s3").Bucket(s3_bucket)
+        if session is None:
+            s3_resource = boto3.resource("s3").Bucket(s3_bucket)
+        else:
+            s3_resource = session.resource("s3").Bucket(s3_bucket)
         s3_resource.Object(key=s3_file).put(Body=obj)
     except ValueError as exception:
         raise S3SyncException(str(exception))
@@ -92,16 +100,20 @@ def load_s3_resource(s3_bucket, s3_file):
         raise S3SyncException(str(exception))
 
 
-def publish_sns(sns_topic, message, message_attributes):
+def publish_sns(sns_topic, message, message_attributes, session=None):
     """
     Publish message containing STAC metadata to SNS Topic
 
     :param sns_topic: ARN of the SNS Topic
     :param message: SNS message
     :param message_attributes: SNS message attributes
+    :param session: boto3 Session object
     """
     try:
-        sns_client = boto3.client("sns")
+        if session is None:
+            sns_client = boto3.client("sns")
+        else:
+            sns_client = session.client("sns")
         sns_client.publish(
             TopicArn=sns_topic, Message=message, MessageAttributes=message_attributes
         )
@@ -110,7 +122,13 @@ def publish_sns(sns_topic, message, message_attributes):
 
 
 def upload_checksum(
-        nci_metadata_file_path, checksum_file_path, new_checksum_list, s3_bucket, s3_path
+        nci_metadata_file_path,
+        checksum_file_path,
+        new_checksum_list,
+        s3_bucket,
+        s3_path,
+        session=None,
+        excluded_pattern=["ga_*_nbar_*.*"]
 ):
     """
     Updates and uploads checksum file
@@ -120,16 +138,17 @@ def upload_checksum(
     :param new_checksum_list: List of filename and updated checksum
     :param s3_bucket: Name of the S3 bucket
     :param s3_path: Path of the S3 bucket
+    :param session: boto3 Session object
+    :param excluded_pattern: a list of file patterns to exclude from the checksum
     """
 
     # Identify list of files to be included in checksum file
     excluded_files = []
-    excluded_pattern = [
-        "ga_*_nbar_*.*",
-        "ga_*_nbar-*.*",
+    excluded_pattern.extend([
         nci_metadata_file_path.name,
         checksum_file_path.name,
-    ]
+    ])
+
     for ex_pat in excluded_pattern:
         for path in checksum_file_path.parent.glob(ex_pat):
             excluded_files.append(path.name)
@@ -149,7 +168,7 @@ def upload_checksum(
 
         # Write checksum sha1 object into S3
         s3_checksum_file = f"{s3_path}/{checksum_file_path.name}"
-        upload_s3_resource(s3_bucket, s3_checksum_file, temp_checksum.getvalue())
+        upload_s3_resource(s3_bucket, s3_checksum_file, temp_checksum.getvalue(), session=session)
 
 
 def get_common_message_attributes(stac_doc: Dict) -> Dict:
@@ -375,7 +394,13 @@ def archive_granule(granule, s3_root_path, s3_bucket):
         raise S3SyncException(f"Failed running S3 rm command")
 
 
-def sync_granule(granule, nci_dir, s3_root_path, s3_bucket):
+def sync_granule(
+        granule,
+        nci_dir,
+        s3_root_path,
+        s3_bucket,
+        exclude=["ga_*_nbar_*.*", "ga_*_nbar-*.*", "*.sha1"],
+):
     """
     Run AWS sync command to sync granules to S3 bucket
 
@@ -383,6 +408,7 @@ def sync_granule(granule, nci_dir, s3_root_path, s3_bucket):
     :param nci_dir: Source directory for the files in NCI
     :param s3_root_path: Root folder of the S3 bucket
     :param s3_bucket: Name of the S3 bucket
+    :param exclude: list of file patterns to exclude
     :return: Returns code zero, if success.
     """
     local_path = Path(nci_dir).joinpath(granule)
@@ -393,11 +419,9 @@ def sync_granule(granule, nci_dir, s3_root_path, s3_bucket):
         f"aws s3 sync {local_path} {s3_path} "
         "--only-show-errors "
         "--delete "
-        "--exclude ga_*_nbar_*.* "
-        "--exclude ga_*_nbar-*.* "
-        "--exclude *.sha1 "
-        "--exclude ga_*.odc-metadata.yaml"
+        "--exclude "
     )
+    command = command + " --exclude ".join(exclude)
 
     return_code = subprocess.call(command, shell=True)
 
