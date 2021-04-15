@@ -71,12 +71,8 @@ jobs:
               exit 1
           fi
 
-      # Damien needs to merge some slight changes to mockssh or
-      # install a forked version that handles data passed over the stdin
-      # ssh channel before this test can pass.
-      # 
-      # name: run tests on plugins
-      #   run: |
-      #     export PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}${PWD}/plugins"
-      #     pip install -r requirements-dev.txt
-      #     pytest tests
+    name: run tests on plugins
+      run: |
+        export PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}${PWD}/plugins"
+        pip install -r requirements-dev.txt
+        pytest tests
