@@ -1,0 +1,823 @@
+{
+    "stac_version": "1.0.0-beta.2",
+    "stac_extensions": [
+        "eo",
+        "projection",
+        "view"
+    ],
+    "type": "Feature",
+    "id": "e091e58a-fcf8-470d-9a7f-c7d5a8793bb7",
+    "bbox": [
+        144.3170729050415,
+        -22.723209831649314,
+        146.5335338693016,
+        -20.622547791286884
+    ],
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    144.31757270172352,
+                    -22.347806406157186
+                ],
+                [
+                    144.31713963818814,
+                    -22.347714407315554
+                ],
+                [
+                    144.3170729050415,
+                    -22.347158264304557
+                ],
+                [
+                    144.3618465781349,
+                    -22.164141126255306
+                ],
+                [
+                    144.53825787385944,
+                    -21.439639758826925
+                ],
+                [
+                    144.70359898262643,
+                    -20.755384551783855
+                ],
+                [
+                    144.72893050337345,
+                    -20.650062945571943
+                ],
+                [
+                    144.7355205536537,
+                    -20.62292198630265
+                ],
+                [
+                    144.73581066684773,
+                    -20.622547791286884
+                ],
+                [
+                    144.7365413396726,
+                    -20.622702541944207
+                ],
+                [
+                    144.73660088337675,
+                    -20.622625879879962
+                ],
+                [
+                    146.53247960627712,
+                    -20.992767008448077
+                ],
+                [
+                    146.5324626867787,
+                    -20.992905102910694
+                ],
+                [
+                    146.5335338693016,
+                    -20.993119807532626
+                ],
+                [
+                    146.13734796222283,
+                    -22.722697190732365
+                ],
+                [
+                    146.13705572732977,
+                    -22.723209831649314
+                ],
+                [
+                    146.1360107107291,
+                    -22.72300063981006
+                ],
+                [
+                    146.1342954473207,
+                    -22.722985969973468
+                ],
+                [
+                    146.01878217617937,
+                    -22.69982693206577
+                ],
+                [
+                    144.32967897193922,
+                    -22.350706087417407
+                ],
+                [
+                    144.31866086399967,
+                    -22.348357428803936
+                ],
+                [
+                    144.31757270172352,
+                    -22.347806406157186
+                ]
+            ]
+        ]
+    },
+    "properties": {
+        "datetime": "2019-07-28T00:17:37.882619Z",
+        "dea:dataset_maturity": "final",
+        "end_datetime": "2019-07-28T00:17:52.928584Z",
+        "start_datetime": "2019-07-28T00:17:22.762834Z",
+        "eo:cloud_cover": 0.030287461339278232,
+        "gsd": 15.0,
+        "instruments": [
+            "OLI_TIRS"
+        ],
+        "platform": "landsat-8",
+        "view:sun_azimuth": 39.65840574,
+        "view:sun_elevation": 38.72739829,
+        "fmask:clear": 99.85614130335611,
+        "fmask:cloud": 0.030287461339278232,
+        "fmask:cloud_shadow": 0.023756121996295166,
+        "fmask:snow": 0.0,
+        "fmask:water": 0.08981511330831395,
+        "gqa:abs_iterative_mean_x": 0.14,
+        "gqa:abs_iterative_mean_xy": 0.19,
+        "gqa:abs_iterative_mean_y": 0.14,
+        "gqa:abs_x": 0.19,
+        "gqa:abs_xy": 0.35,
+        "gqa:abs_y": 0.29,
+        "gqa:cep90": 0.4,
+        "gqa:iterative_mean_x": -0.12,
+        "gqa:iterative_mean_xy": 0.15,
+        "gqa:iterative_mean_y": 0.1,
+        "gqa:iterative_stddev_x": 0.14,
+        "gqa:iterative_stddev_xy": 0.21,
+        "gqa:iterative_stddev_y": 0.15,
+        "gqa:mean_x": -0.12,
+        "gqa:mean_xy": 0.13,
+        "gqa:mean_y": -0.04,
+        "gqa:stddev_x": 0.62,
+        "gqa:stddev_xy": 2.17,
+        "gqa:stddev_y": 2.08,
+        "landsat:collection_category": "T1",
+        "landsat:collection_number": 1,
+        "landsat:landsat_product_id": "LC08_L1TP_095075_20190728_20190801_01_T1",
+        "landsat:landsat_scene_id": "LC80950752019209LGN00",
+        "landsat:wrs_path": 95,
+        "landsat:wrs_row": 75,
+        "odc:dataset_version": "3.1.0",
+        "odc:file_format": "GeoTIFF",
+        "odc:processing_datetime": "2020-06-12T03:20:40.324844Z",
+        "odc:producer": "ga.gov.au",
+        "odc:product_family": "ard",
+        "odc:region_code": "095075",
+        "odc:product": "ga_ls8c_ard_3",
+        "odc:lineage": {
+            "level1": [
+                "cf986ced-4d11-5b9a-8967-528a9e87cf8e"
+            ]
+        },
+        "proj:epsg": 32655,
+        "proj:shape": [
+            7721,
+            7611
+        ],
+        "proj:transform": [
+            30.0,
+            0.0,
+            223485.0,
+            0.0,
+            -30.0,
+            -2281785.0,
+            0.0,
+            0.0,
+            1.0
+        ]
+    },
+    "assets": {
+        "nbart_blue": {
+            "eo:bands": [
+                {
+                    "name": "nbart_blue"
+                }
+            ],
+            "type": "image/tiff; application=geotiff",
+            "roles": [
+                "data"
+            ],
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_nbart_3-1-0_095075_2019-07-28_final_band02.tif",
+            "proj:shape": [
+                7721,
+                7611
+            ],
+            "proj:transform": [
+                30.0,
+                0.0,
+                223485.0,
+                0.0,
+                -30.0,
+                -2281785.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "nbart_coastal_aerosol": {
+            "eo:bands": [
+                {
+                    "name": "nbart_coastal_aerosol"
+                }
+            ],
+            "type": "image/tiff; application=geotiff",
+            "roles": [
+                "data"
+            ],
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_nbart_3-1-0_095075_2019-07-28_final_band01.tif",
+            "proj:shape": [
+                7721,
+                7611
+            ],
+            "proj:transform": [
+                30.0,
+                0.0,
+                223485.0,
+                0.0,
+                -30.0,
+                -2281785.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "nbart_green": {
+            "eo:bands": [
+                {
+                    "name": "nbart_green"
+                }
+            ],
+            "type": "image/tiff; application=geotiff",
+            "roles": [
+                "data"
+            ],
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_nbart_3-1-0_095075_2019-07-28_final_band03.tif",
+            "proj:shape": [
+                7721,
+                7611
+            ],
+            "proj:transform": [
+                30.0,
+                0.0,
+                223485.0,
+                0.0,
+                -30.0,
+                -2281785.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "nbart_nir": {
+            "eo:bands": [
+                {
+                    "name": "nbart_nir"
+                }
+            ],
+            "type": "image/tiff; application=geotiff",
+            "roles": [
+                "data"
+            ],
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_nbart_3-1-0_095075_2019-07-28_final_band05.tif",
+            "proj:shape": [
+                7721,
+                7611
+            ],
+            "proj:transform": [
+                30.0,
+                0.0,
+                223485.0,
+                0.0,
+                -30.0,
+                -2281785.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "nbart_panchromatic": {
+            "eo:bands": [
+                {
+                    "name": "nbart_panchromatic"
+                }
+            ],
+            "type": "image/tiff; application=geotiff",
+            "roles": [
+                "data"
+            ],
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_nbart_3-1-0_095075_2019-07-28_final_band08.tif",
+            "proj:shape": [
+                15441,
+                15221
+            ],
+            "proj:transform": [
+                15.0,
+                0.0,
+                223492.5,
+                0.0,
+                -15.0,
+                -2281792.5,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "nbart_red": {
+            "eo:bands": [
+                {
+                    "name": "nbart_red"
+                }
+            ],
+            "type": "image/tiff; application=geotiff",
+            "roles": [
+                "data"
+            ],
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_nbart_3-1-0_095075_2019-07-28_final_band04.tif",
+            "proj:shape": [
+                7721,
+                7611
+            ],
+            "proj:transform": [
+                30.0,
+                0.0,
+                223485.0,
+                0.0,
+                -30.0,
+                -2281785.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "nbart_swir_1": {
+            "eo:bands": [
+                {
+                    "name": "nbart_swir_1"
+                }
+            ],
+            "type": "image/tiff; application=geotiff",
+            "roles": [
+                "data"
+            ],
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_nbart_3-1-0_095075_2019-07-28_final_band06.tif",
+            "proj:shape": [
+                7721,
+                7611
+            ],
+            "proj:transform": [
+                30.0,
+                0.0,
+                223485.0,
+                0.0,
+                -30.0,
+                -2281785.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "nbart_swir_2": {
+            "eo:bands": [
+                {
+                    "name": "nbart_swir_2"
+                }
+            ],
+            "type": "image/tiff; application=geotiff",
+            "roles": [
+                "data"
+            ],
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_nbart_3-1-0_095075_2019-07-28_final_band07.tif",
+            "proj:shape": [
+                7721,
+                7611
+            ],
+            "proj:transform": [
+                30.0,
+                0.0,
+                223485.0,
+                0.0,
+                -30.0,
+                -2281785.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "oa_azimuthal_exiting": {
+            "eo:bands": [
+                {
+                    "name": "oa_azimuthal_exiting"
+                }
+            ],
+            "type": "image/tiff; application=geotiff",
+            "roles": [
+                "data"
+            ],
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_oa_3-1-0_095075_2019-07-28_final_azimuthal-exiting.tif",
+            "proj:shape": [
+                7721,
+                7611
+            ],
+            "proj:transform": [
+                30.0,
+                0.0,
+                223485.0,
+                0.0,
+                -30.0,
+                -2281785.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "oa_azimuthal_incident": {
+            "eo:bands": [
+                {
+                    "name": "oa_azimuthal_incident"
+                }
+            ],
+            "type": "image/tiff; application=geotiff",
+            "roles": [
+                "data"
+            ],
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_oa_3-1-0_095075_2019-07-28_final_azimuthal-incident.tif",
+            "proj:shape": [
+                7721,
+                7611
+            ],
+            "proj:transform": [
+                30.0,
+                0.0,
+                223485.0,
+                0.0,
+                -30.0,
+                -2281785.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "oa_combined_terrain_shadow": {
+            "eo:bands": [
+                {
+                    "name": "oa_combined_terrain_shadow"
+                }
+            ],
+            "type": "image/tiff; application=geotiff",
+            "roles": [
+                "data"
+            ],
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_oa_3-1-0_095075_2019-07-28_final_combined-terrain-shadow.tif",
+            "proj:shape": [
+                7721,
+                7611
+            ],
+            "proj:transform": [
+                30.0,
+                0.0,
+                223485.0,
+                0.0,
+                -30.0,
+                -2281785.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "oa_exiting_angle": {
+            "eo:bands": [
+                {
+                    "name": "oa_exiting_angle"
+                }
+            ],
+            "type": "image/tiff; application=geotiff",
+            "roles": [
+                "data"
+            ],
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_oa_3-1-0_095075_2019-07-28_final_exiting-angle.tif",
+            "proj:shape": [
+                7721,
+                7611
+            ],
+            "proj:transform": [
+                30.0,
+                0.0,
+                223485.0,
+                0.0,
+                -30.0,
+                -2281785.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "oa_fmask": {
+            "eo:bands": [
+                {
+                    "name": "oa_fmask"
+                }
+            ],
+            "type": "image/tiff; application=geotiff",
+            "roles": [
+                "data"
+            ],
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_oa_3-1-0_095075_2019-07-28_final_fmask.tif",
+            "proj:shape": [
+                7721,
+                7611
+            ],
+            "proj:transform": [
+                30.0,
+                0.0,
+                223485.0,
+                0.0,
+                -30.0,
+                -2281785.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "oa_incident_angle": {
+            "eo:bands": [
+                {
+                    "name": "oa_incident_angle"
+                }
+            ],
+            "type": "image/tiff; application=geotiff",
+            "roles": [
+                "data"
+            ],
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_oa_3-1-0_095075_2019-07-28_final_incident-angle.tif",
+            "proj:shape": [
+                7721,
+                7611
+            ],
+            "proj:transform": [
+                30.0,
+                0.0,
+                223485.0,
+                0.0,
+                -30.0,
+                -2281785.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "oa_nbart_contiguity": {
+            "eo:bands": [
+                {
+                    "name": "oa_nbart_contiguity"
+                }
+            ],
+            "type": "image/tiff; application=geotiff",
+            "roles": [
+                "data"
+            ],
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_oa_3-1-0_095075_2019-07-28_final_nbart-contiguity.tif",
+            "proj:shape": [
+                7721,
+                7611
+            ],
+            "proj:transform": [
+                30.0,
+                0.0,
+                223485.0,
+                0.0,
+                -30.0,
+                -2281785.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "oa_relative_azimuth": {
+            "eo:bands": [
+                {
+                    "name": "oa_relative_azimuth"
+                }
+            ],
+            "type": "image/tiff; application=geotiff",
+            "roles": [
+                "data"
+            ],
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_oa_3-1-0_095075_2019-07-28_final_relative-azimuth.tif",
+            "proj:shape": [
+                7721,
+                7611
+            ],
+            "proj:transform": [
+                30.0,
+                0.0,
+                223485.0,
+                0.0,
+                -30.0,
+                -2281785.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "oa_relative_slope": {
+            "eo:bands": [
+                {
+                    "name": "oa_relative_slope"
+                }
+            ],
+            "type": "image/tiff; application=geotiff",
+            "roles": [
+                "data"
+            ],
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_oa_3-1-0_095075_2019-07-28_final_relative-slope.tif",
+            "proj:shape": [
+                7721,
+                7611
+            ],
+            "proj:transform": [
+                30.0,
+                0.0,
+                223485.0,
+                0.0,
+                -30.0,
+                -2281785.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "oa_satellite_azimuth": {
+            "eo:bands": [
+                {
+                    "name": "oa_satellite_azimuth"
+                }
+            ],
+            "type": "image/tiff; application=geotiff",
+            "roles": [
+                "data"
+            ],
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_oa_3-1-0_095075_2019-07-28_final_satellite-azimuth.tif",
+            "proj:shape": [
+                7721,
+                7611
+            ],
+            "proj:transform": [
+                30.0,
+                0.0,
+                223485.0,
+                0.0,
+                -30.0,
+                -2281785.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "oa_satellite_view": {
+            "eo:bands": [
+                {
+                    "name": "oa_satellite_view"
+                }
+            ],
+            "type": "image/tiff; application=geotiff",
+            "roles": [
+                "data"
+            ],
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_oa_3-1-0_095075_2019-07-28_final_satellite-view.tif",
+            "proj:shape": [
+                7721,
+                7611
+            ],
+            "proj:transform": [
+                30.0,
+                0.0,
+                223485.0,
+                0.0,
+                -30.0,
+                -2281785.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "oa_solar_azimuth": {
+            "eo:bands": [
+                {
+                    "name": "oa_solar_azimuth"
+                }
+            ],
+            "type": "image/tiff; application=geotiff",
+            "roles": [
+                "data"
+            ],
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_oa_3-1-0_095075_2019-07-28_final_solar-azimuth.tif",
+            "proj:shape": [
+                7721,
+                7611
+            ],
+            "proj:transform": [
+                30.0,
+                0.0,
+                223485.0,
+                0.0,
+                -30.0,
+                -2281785.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "oa_solar_zenith": {
+            "eo:bands": [
+                {
+                    "name": "oa_solar_zenith"
+                }
+            ],
+            "type": "image/tiff; application=geotiff",
+            "roles": [
+                "data"
+            ],
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_oa_3-1-0_095075_2019-07-28_final_solar-zenith.tif",
+            "proj:shape": [
+                7721,
+                7611
+            ],
+            "proj:transform": [
+                30.0,
+                0.0,
+                223485.0,
+                0.0,
+                -30.0,
+                -2281785.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "oa_time_delta": {
+            "eo:bands": [
+                {
+                    "name": "oa_time_delta"
+                }
+            ],
+            "type": "image/tiff; application=geotiff",
+            "roles": [
+                "data"
+            ],
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_oa_3-1-0_095075_2019-07-28_final_time-delta.tif",
+            "proj:shape": [
+                7721,
+                7611
+            ],
+            "proj:transform": [
+                30.0,
+                0.0,
+                223485.0,
+                0.0,
+                -30.0,
+                -2281785.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "thumbnail:nbart": {
+            "title": "Thumbnail image",
+            "type": "image/jpeg",
+            "roles": [
+                "thumbnail"
+            ],
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_nbart_3-1-0_095075_2019-07-28_final_thumbnail.jpg"
+        },
+        "checksum:sha1": {
+            "type": "text/plain",
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_ard_3-1-0_095075_2019-07-28_final.sha1"
+        },
+        "metadata:processor": {
+            "type": "text/yaml",
+            "roles": [
+                "metadata"
+            ],
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_ard_3-1-0_095075_2019-07-28_final.proc-info.yaml"
+        }
+    },
+    "links": [
+        {
+            "rel": "self",
+            "type": "application/json",
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_ard_3-1-0_095075_2019-07-28_final.stac-item.json"
+        },
+        {
+            "title": "Source Dataset YAML",
+            "rel": "odc_yaml",
+            "type": "text/yaml",
+            "href": "s3://dea-public-data/baseline/ga_ls8c_ard_3/095/075/2019/07/28/ga_ls8c_ard_3-1-0_095075_2019-07-28_final.odc-metadata.yaml"
+        },
+        {
+            "title": "Open Data Cube Product Overview",
+            "rel": "product_overview",
+            "type": "text/html",
+            "href": "https://explorer.dea.ga.gov.au/product/ga_ls8c_ard_3"
+        },
+        {
+            "title": "Open Data Cube Explorer",
+            "rel": "alternative",
+            "type": "text/html",
+            "href": "https://explorer.dea.ga.gov.au/dataset/e091e58a-fcf8-470d-9a7f-c7d5a8793bb7"
+        }
+    ]
+}

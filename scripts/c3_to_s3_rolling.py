@@ -49,7 +49,7 @@ def check_granule_exists(_s3_bucket, s3_metadata_path, session=None):
     if session is None:
         s3_resource = boto3.resource("s3")
     else:
-        s3_resource = session.resource('s3')
+        s3_resource = session.resource("s3")
 
     try:
         # This does a head request, so is fast
@@ -61,7 +61,9 @@ def check_granule_exists(_s3_bucket, s3_metadata_path, session=None):
         return True
 
 
-def upload_s3_resource(s3_bucket, s3_file, obj, session=None):
+def upload_s3_resource(
+    s3_bucket, s3_file, obj, session=None, content_type="binary/octet-stream"
+):
     """
     Upload s3 resource object in provided s3 path
 
@@ -75,7 +77,7 @@ def upload_s3_resource(s3_bucket, s3_file, obj, session=None):
             s3_resource = boto3.resource("s3").Bucket(s3_bucket)
         else:
             s3_resource = session.resource("s3").Bucket(s3_bucket)
-        s3_resource.Object(key=s3_file).put(Body=obj)
+        s3_resource.Object(key=s3_file).put(Body=obj, ContentType=content_type)
     except ValueError as exception:
         raise S3SyncException(str(exception))
     except ClientError as exception:
@@ -122,13 +124,13 @@ def publish_sns(sns_topic, message, message_attributes, session=None):
 
 
 def upload_checksum(
-        nci_metadata_file_path,
-        checksum_file_path,
-        new_checksum_list,
-        s3_bucket,
-        s3_path,
-        session=None,
-        excluded_pattern=["ga_*_nbar_*.*"]
+    nci_metadata_file_path,
+    checksum_file_path,
+    new_checksum_list,
+    s3_bucket,
+    s3_path,
+    session=None,
+    excluded_pattern=["ga_*_nbar_*.*"],
 ):
     """
     Updates and uploads checksum file
@@ -144,10 +146,12 @@ def upload_checksum(
 
     # Identify list of files to be included in checksum file
     excluded_files = []
-    excluded_pattern.extend([
-        nci_metadata_file_path.name,
-        checksum_file_path.name,
-    ])
+    excluded_pattern.extend(
+        [
+            nci_metadata_file_path.name,
+            checksum_file_path.name,
+        ]
+    )
 
     for ex_pat in excluded_pattern:
         for path in checksum_file_path.parent.glob(ex_pat):
@@ -168,7 +172,13 @@ def upload_checksum(
 
         # Write checksum sha1 object into S3
         s3_checksum_file = f"{s3_path}/{checksum_file_path.name}"
-        upload_s3_resource(s3_bucket, s3_checksum_file, temp_checksum.getvalue(), session=session)
+        upload_s3_resource(
+            s3_bucket,
+            s3_checksum_file,
+            temp_checksum.getvalue(),
+            session=session,
+            content_type="text/plain",
+        )
 
 
 def get_common_message_attributes(stac_doc: Dict) -> Dict:
@@ -226,11 +236,20 @@ def get_common_message_attributes(stac_doc: Dict) -> Dict:
             "StringValue": str(bbox[3]),
         }
 
+    gqa_iterative_mean_xy = dicttoolz.get_in(
+        ["properties", "gqa:iterative_mean_xy"], stac_doc
+    )
+    if gqa_iterative_mean_xy:
+        msg_attributes["gqa_iterative_mean_xy"] = {
+            "DataType": "String",
+            "StringValue": gqa_iterative_mean_xy,
+        }
+
     return msg_attributes
 
 
 def update_metadata(
-        nci_metadata_file, s3_bucket, s3_base_url, explorer_base_url, sns_topic, s3_path
+    nci_metadata_file, s3_bucket, s3_base_url, explorer_base_url, sns_topic, s3_path
 ):
     """
     Uploads updated metadata with nbar element removed, updated checksum file, STAC doc created
@@ -292,7 +311,12 @@ def update_metadata(
         # Write odc metadata yaml object into S3
         s3_metadata_file = f"{s3_path}/{nci_metadata_file_path.name}"
         try:
-            upload_s3_resource(s3_bucket, s3_metadata_file, temp_yaml.getvalue())
+            upload_s3_resource(
+                s3_bucket,
+                s3_metadata_file,
+                temp_yaml.getvalue(),
+                content_type="text/vnd.yaml",
+            )
             LOG.info(f"Finished uploading metadata to {s3_metadata_file}")
         except S3SyncException as exp:
             LOG.error(f"Failed uploading metadata to {s3_metadata_file} - {exp}")
@@ -325,7 +349,12 @@ def update_metadata(
         # Write stac metadata json object into S3
         s3_stac_file = f"{s3_path}/{stac_output_file_path.name}"
         try:
-            upload_s3_resource(s3_bucket, s3_stac_file, temp_stac.getvalue())
+            upload_s3_resource(
+                s3_bucket,
+                s3_stac_file,
+                temp_stac.getvalue(),
+                content_type="application/json",
+            )
             LOG.info(f"Finished uploading STAC metadata to {s3_stac_file}")
         except S3SyncException as exp:
             LOG.error(f"Failed uploading STAC metadata to {s3_stac_file} - {exp}")
@@ -386,7 +415,7 @@ def archive_granule(granule, s3_root_path, s3_bucket):
     s3_path = f"s3://{s3_bucket}/{s3_root_path}/{granule}"
 
     # Remove any data that shouldn't be there and exclude the metadata
-    command = f"aws s3 rm {s3_path} " "--only-show-error " "--recursive "
+    command = f"aws s3 rm {s3_path} --only-show-error --recursive "
 
     return_code = subprocess.call(command, shell=True)
 
@@ -395,11 +424,11 @@ def archive_granule(granule, s3_root_path, s3_bucket):
 
 
 def sync_granule(
-        granule,
-        nci_dir,
-        s3_root_path,
-        s3_bucket,
-        exclude=["ga_*_nbar_*.*", "ga_*_nbar-*.*", "*.sha1"],
+    granule,
+    nci_dir,
+    s3_root_path,
+    s3_bucket,
+    exclude=["ga_*_nbar_*.*", "ga_*_nbar-*.*", "*.sha1"],
 ):
     """
     Run AWS sync command to sync granules to S3 bucket
@@ -415,13 +444,11 @@ def sync_granule(
     s3_path = f"s3://{s3_bucket}/{s3_root_path}/{granule}"
 
     # Remove any data that shouldn't be there and exclude the metadata
-    command = (
-        f"aws s3 sync {local_path} {s3_path} "
-        "--only-show-errors "
-        "--delete "
-        "--exclude "
-    )
-    command = command + " --exclude ".join(exclude)
+    exclude_string = ""
+    if exclude:
+        exclude_string = " ".join(f"--exclude {pattern}" for pattern in exclude)
+
+    command = f"aws s3 sync {local_path} {s3_path} --only-show-errors --delete {exclude_string}"
 
     return_code = subprocess.call(command, shell=True)
 
@@ -430,14 +457,14 @@ def sync_granule(
 
 
 def sync_granules(
-        file_path,
-        nci_dir,
-        s3_root_path,
-        s3_bucket,
-        s3_base_url,
-        explorer_base_url,
-        sns_topic,
-        update=False,
+    file_path,
+    nci_dir,
+    s3_root_path,
+    s3_bucket,
+    s3_base_url,
+    explorer_base_url,
+    sns_topic,
+    update=False,
 ):
     """
     Sync granules to S3 bucket for specified dates
@@ -603,14 +630,14 @@ class S3SyncException(Exception):
 @click.option("--snstopic", "-t", type=str, required=True)
 @click.option("--force-update", is_flag=True)
 def main(
-        filepath,
-        ncidir,
-        s3path,
-        s3bucket,
-        s3baseurl,
-        explorerbaseurl,
-        snstopic,
-        force_update,
+    filepath,
+    ncidir,
+    s3path,
+    s3bucket,
+    s3baseurl,
+    explorerbaseurl,
+    snstopic,
+    force_update,
 ):
     """
     Script to sync Collection 3 data from NCI to AWS S3 bucket
