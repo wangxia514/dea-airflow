@@ -55,6 +55,7 @@ from airflow.kubernetes.secret import Secret
 # Operators; we need this to operate!
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.operators.dummy_operator import DummyOperator
+from infra.variables import DEA_ACCESS_RESTO_API_ADMIN_SECRET
 
 # [END import_module]
 
@@ -62,10 +63,10 @@ from airflow.operators.dummy_operator import DummyOperator
 # These args will get passed on to each operator
 # You can override them on a per-task basis during operator initialization
 default_args = {
-    "owner": "Robert Gurtler",
+    "owner": "Ramkumar Ramagopalan",
     "depends_on_past": False,
     "start_date": datetime(2020, 7, 6),
-    "email": ["robert.gurtler@ga.gov.au"],
+    "email": ["ramkumar.ramagopalan@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
@@ -83,7 +84,7 @@ SECRET_ENV = Secret(
     # The name of the environment variable
     deploy_target="RESTO_AUTH",
     # Name of the Kubernetes Secret
-    secret="dea-access-resto",
+    secret=DEA_ACCESS_RESTO_API_ADMIN_SECRET,
     # Key of a secret stored in this Secret object
     key="RESTO_AUTH",
 )
