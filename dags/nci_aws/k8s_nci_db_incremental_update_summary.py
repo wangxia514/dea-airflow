@@ -6,7 +6,6 @@ and [Resto](https://github.com/jjrom/resto).
 
 **Upstream dependency**
 [K8s NCI DB Incremental Sync](/tree?dag_id=k8ds_nci_db_incremental_sync)
-
 """
 
 import pendulum
@@ -15,13 +14,12 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
-from infra.images import EXPLORER_UNSTABLE_IMAGE, EXPLORER_IMAGE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
+from infra.images import EXPLORER_UNSTABLE_IMAGE, EXPLORER_IMAGE
+from infra.variables import DB_HOSTNAME, DB_PORT, SECRET_EXPLORER_NCI_WRITER_NAME
+from infra.variables import AWS_DEFAULT_REGION
 
 local_tz = pendulum.timezone("Australia/Canberra")
-
-# Templated DAG arguments
-DB_HOSTNAME = "db-writer"
 
 DEFAULT_ARGS = {
     "owner": "Nikita Gandhi",
@@ -33,17 +31,17 @@ DEFAULT_ARGS = {
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "env_vars": {
-        "AWS_DEFAULT_REGION": "ap-southeast-2",
+        "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
         "DB_HOSTNAME": DB_HOSTNAME,
-        "DB_PORT": "5432",
+        "DB_PORT": DB_PORT,
     },
     # Use K8S secrets to send DB Creds
     # Lift secrets into environment variables for datacube database connectivity
     # Use this db-users to run cubedash update-summary
     "secrets": [
-        Secret("env", "DB_DATABASE", "explorer-nci-writer", "database-name"),
-        Secret("env", "DB_USERNAME", "explorer-nci-writer", "postgres-username"),
-        Secret("env", "DB_PASSWORD", "explorer-nci-writer", "postgres-password"),
+        Secret("env", "DB_DATABASE", SECRET_EXPLORER_NCI_WRITER_NAME, "database-name"),
+        Secret("env", "DB_USERNAME", SECRET_EXPLORER_NCI_WRITER_NAME, "postgres-username"),
+        Secret("env", "DB_PASSWORD", SECRET_EXPLORER_NCI_WRITER_NAME, "postgres-password"),
     ],
 }
 
@@ -61,7 +59,7 @@ dag = DAG(
 affinity = ONDEMAND_NODE_AFFINITY
 
 with dag:
-    START = DummyOperator(task_id="nci-db-incremental-update-summary")
+    START = DummyOperator(task_id="start")
 
     # Run update summary
     UPDATE_SUMMARY = KubernetesPodOperator(
@@ -70,9 +68,9 @@ with dag:
         # Run `cubedash-gen --help` for explanations of each option+usage
         cmds=["cubedash-gen"],
         arguments=["-v", "--no-init-database", "--refresh-stats", "--minimum-scan-window", "4d", "--all"],
-        labels={"step": "summarize-datacube"},
-        name="summarize-datacube",
-        task_id="summarize-datacube",
+        labels={"step": "nci-db-incremental-update-summary"},
+        name="nci-db-incremental-update-summary",
+        task_id="nci-db-incremental-update-summary",
         get_logs=True,
         is_delete_operator_pod=True,
         affinity=affinity,

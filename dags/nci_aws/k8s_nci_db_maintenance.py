@@ -11,9 +11,10 @@ from datetime import datetime, timedelta
 from textwrap import dedent
 from infra.images import INDEXER_IMAGE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
+from infra.variables import DB_HOSTNAME, DB_PORT, SECRET_EXPLORER_NCI_ADMIN_NAME
+from infra.variables import AWS_DEFAULT_REGION
 
 # Templated DAG arguments
-DB_HOSTNAME = "db-writer"
 DEFAULT_ARGS = {
     "owner": "Nikita Gandhi",
     "depends_on_past": False,
@@ -25,14 +26,14 @@ DEFAULT_ARGS = {
     "retry_delay": timedelta(minutes=5),
     "env_vars": {
         "DB_HOSTNAME": DB_HOSTNAME,
-        "DB_PORT": "5432",
+        "DB_PORT": DB_PORT,
     },
     # Use K8S secrets to send DB Creds
     # Lift secrets into environment variables for datacube database connectivity
     "secrets": [
-        Secret("env", "DB_DATABASE", "explorer-nci-admin", "database-name"),
-        Secret("env", "DB_ADMIN_USER", "explorer-nci-admin", "postgres-username"),
-        Secret("env", "PGPASSWORD", "explorer-nci-admin", "postgres-password"),
+        Secret("env", "DB_DATABASE", SECRET_EXPLORER_NCI_ADMIN_NAME, "database-name"),
+        Secret("env", "DB_ADMIN_USER", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-username"),
+        Secret("env", "PGPASSWORD", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-password"),
     ],
 }
 
@@ -43,7 +44,7 @@ dag = DAG(
     catchup=False,
     concurrency=1,
     max_active_runs=1,
-    tags=["k8s"],
+    tags=["k8s", "nci-explorer"],
     schedule_interval="10 2 * * 2,4,6",  # every second day 2:10AM
     dagrun_timeout=timedelta(minutes=60 * 6),
 )
@@ -66,7 +67,6 @@ MAINTENANCE_SCRIPT = [
 with dag:
     START = DummyOperator(task_id="start")
 
-    # Download NCI db incremental backup from S3 and restore to RDS Aurora
     NCI_DB_MAINTENANCE = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
