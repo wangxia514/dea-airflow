@@ -35,11 +35,12 @@ from datetime import datetime, timedelta
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.images import S3_TO_RDS_IMAGE, INDEXER_IMAGE
 from infra.iam_roles import NCI_DBSYNC_ROLE
+from infra.variables import DB_HOSTNAME, DB_PORT, SECRET_EXPLORER_NCI_ADMIN_NAME
+from infra.variables import AWS_DEFAULT_REGION
 
 local_tz = pendulum.timezone("Australia/Canberra")
 
 # Templated DAG arguments
-DB_HOSTNAME = "db-writer"
 DATESTRING = (
     "{% if dag_run.conf %}{{ dag_run.conf.DATESTRING }}{% else %}{{ ds }}{% endif %}"
 )
@@ -58,9 +59,9 @@ DEFAULT_ARGS = {
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "env_vars": {
-        "AWS_DEFAULT_REGION": "ap-southeast-2",
+        "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
         "DB_HOSTNAME": DB_HOSTNAME,
-        "DB_PORT": "5432",
+        "DB_PORT": DB_PORT,
         "BACKUP_PATH": BACKUP_PATH,
         "DATESTRING": DATESTRING,
         "S3_BUCKET": S3_BUCKET,
@@ -71,15 +72,15 @@ DEFAULT_ARGS = {
 
 # Lift secrets into environment variables for datacube database connectivity
 SECRET_RESTORE_INCREMENTAL_SYNC = [
-    Secret("env", "DB_DATABASE", "explorer-nci-admin", "database-name"),
-    Secret("env", "DB_ADMIN_USER", "explorer-nci-admin", "postgres-username"),
-    Secret("env", "DB_ADMIN_PASSWORD", "explorer-nci-admin", "postgres-password"),
+    Secret("env", "DB_DATABASE", SECRET_EXPLORER_NCI_ADMIN_NAME, "database-name"),
+    Secret("env", "DB_ADMIN_USER", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-username"),
+    Secret("env", "DB_ADMIN_PASSWORD", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-password"),
 ]
 
 SECRET_INDEXER = [
-    Secret("env", "DB_DATABASE", "explorer-nci-admin", "database-name"),
-    Secret("env", "DB_USERNAME", "explorer-nci-admin", "postgres-username"),
-    Secret("env", "DB_PASSWORD", "explorer-nci-admin", "postgres-password"),
+    Secret("env", "DB_DATABASE", SECRET_EXPLORER_NCI_ADMIN_NAME , "database-name"),
+    Secret("env", "DB_USERNAME", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-username"),
+    Secret("env", "DB_PASSWORD", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-password"),
 ]
 
 dag = DAG(
