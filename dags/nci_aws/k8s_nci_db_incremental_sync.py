@@ -3,9 +3,15 @@
 """
 ### NCI to DEA RDS Datacube DB incremental sync
 
-Daily DAG to sync NCI datacube db CSVs' from S3 to RDS for the purpose of
-running [Explorer](https://github.com/opendatacube/datacube-explorer)
+Daily DAG to sync NCI Datacube DB CSVs from S3 to RDS for the purpose of
+running [NCI Explorer](https://explorer.dea.ga.gov.au/)
 and [Resto](https://github.com/jjrom/resto).
+
+**Upstream dependency**
+[NCI DB Incremental CSVs](/tree?dag_id=nci_db_incremental_csvs)
+
+**Downstream dependency for Explorer Updates**
+[K8s NCI DB Update Summary](/tree?dag_id=k8s_nci_db_incremental_update_summary)
 
 #### Docker image notes
 s3-to-rds: https://bitbucket.org/geoscienceaustralia/s3-to-rds/src/master/
@@ -29,17 +35,15 @@ from datetime import datetime, timedelta
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.images import S3_TO_RDS_IMAGE, INDEXER_IMAGE
 from infra.iam_roles import NCI_DBSYNC_ROLE
+from infra.variables import DB_HOSTNAME, DB_PORT, SECRET_EXPLORER_NCI_ADMIN_NAME
+from infra.variables import AWS_DEFAULT_REGION
 
 local_tz = pendulum.timezone("Australia/Canberra")
-#local_tz.convert(execution_date)
 
 # Templated DAG arguments
-DB_HOSTNAME = "db-writer"
 DATESTRING = (
     "{% if dag_run.conf %}{{ dag_run.conf.DATESTRING }}{% else %}{{ ds }}{% endif %}"
 )
-# DATESTRING = "{{ macros.ds_add(ds, -1) }}"  # get s3 key for previous day
-# TODO: implement a logic to run DAG manually to import for specific date -  {"s3importdate": "<import-date>"}
 S3_BUCKET = "nci-db-dump"
 S3_PREFIX = f"csv-changes/{DATESTRING}"
 S3_KEY = f"s3://{S3_BUCKET}/{S3_PREFIX}/md5sums"
@@ -55,9 +59,9 @@ DEFAULT_ARGS = {
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "env_vars": {
-        "AWS_DEFAULT_REGION": "ap-southeast-2",
+        "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
         "DB_HOSTNAME": DB_HOSTNAME,
-        "DB_PORT": "5432",
+        "DB_PORT": DB_PORT,
         "BACKUP_PATH": BACKUP_PATH,
         "DATESTRING": DATESTRING,
         "S3_BUCKET": S3_BUCKET,
@@ -68,15 +72,15 @@ DEFAULT_ARGS = {
 
 # Lift secrets into environment variables for datacube database connectivity
 SECRET_RESTORE_INCREMENTAL_SYNC = [
-   Secret("env", "DB_DATABASE", "explorer-nci-admin", "database-name"),
-   Secret("env", "DB_ADMIN_USER", "explorer-nci-admin", "postgres-username"),
-   Secret("env", "DB_ADMIN_PASSWORD", "explorer-nci-admin", "postgres-password"),
+   Secret("env", "DB_DATABASE", SECRET_EXPLORER_NCI_ADMIN_NAME, "database-name"),
+   Secret("env", "DB_ADMIN_USER", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-username"),
+   Secret("env", "DB_ADMIN_PASSWORD", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-password"),
 ]
 
 SECRET_INDEXER = [
-    Secret("env", "DB_DATABASE", "explorer-nci-admin", "database-name"),
-    Secret("env", "DB_USERNAME", "explorer-nci-admin", "postgres-username"),
-    Secret("env", "DB_PASSWORD", "explorer-nci-admin", "postgres-password"),
+    Secret("env", "DB_DATABASE", SECRET_EXPLORER_NCI_ADMIN_NAME, "database-name"),
+    Secret("env", "DB_USERNAME", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-username"),
+    Secret("env", "DB_PASSWORD", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-password"),
 ]
 
 dag = DAG(
