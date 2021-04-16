@@ -6,7 +6,6 @@ and [Resto](https://github.com/jjrom/resto).
 
 **Upstream dependency**
 [K8s NCI DB Incremental Sync](/tree?dag_id=k8ds_nci_db_incremental_sync)
-
 """
 
 import pendulum
@@ -15,8 +14,8 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
-from infra.images import EXPLORER_UNSTABLE_IMAGE, EXPLORER_IMAGE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
+from infra.images import EXPLORER_UNSTABLE_IMAGE, EXPLORER_IMAGE
 
 local_tz = pendulum.timezone("Australia/Canberra")
 
@@ -61,7 +60,7 @@ dag = DAG(
 affinity = ONDEMAND_NODE_AFFINITY
 
 with dag:
-    START = DummyOperator(task_id="nci-db-incremental-update-summary")
+    START = DummyOperator(task_id="start")
 
     # Run update summary
     UPDATE_SUMMARY = KubernetesPodOperator(
@@ -69,10 +68,10 @@ with dag:
         image=EXPLORER_IMAGE,
         # Run `cubedash-gen --help` for explanations of each option+usage
         cmds=["cubedash-gen"],
-        arguments=["-v", "--no-init-database", "--refresh-stats", "--minimum-scan-window", "4d", "--all"],
-        labels={"step": "summarize-datacube"},
-        name="summarize-datacube",
-        task_id="summarize-datacube",
+        arguments=["--no-init-database", "--refresh-stats", "--minimum-scan-window", "4d", "--all"],
+        labels={"step": "nci-db-incremental-update-summary"},
+        name="nci-db-incremental-update-summary",
+        task_id="nci-db-incremental-update-summary",
         get_logs=True,
         is_delete_operator_pod=True,
         affinity=affinity,

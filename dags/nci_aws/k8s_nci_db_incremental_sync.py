@@ -11,7 +11,7 @@ and [Resto](https://github.com/jjrom/resto).
 [NCI DB Incremental CSVs](/tree?dag_id=nci_db_incremental_csvs)
 
 **Downstream dependency for Explorer Updates**
-[K8s NCI DB Update Summary](/tree?dag_id=k8s_nci_db_update_summary)
+[K8s NCI DB Update Summary](/tree?dag_id=k8s_nci_db_incremental_update_summary)
 
 #### Docker image notes
 s3-to-rds: https://bitbucket.org/geoscienceaustralia/s3-to-rds/src/master/
@@ -32,9 +32,9 @@ from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
-from infra.images import S3_TO_RDS_IMAGE
-from infra.iam_roles import NCI_DBSYNC_ROLE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
+from infra.images import S3_TO_RDS_IMAGE, INDEXER_IMAGE
+from infra.variables import NCI_DBSYNC_ROLE
 
 local_tz = pendulum.timezone("Australia/Canberra")
 
@@ -67,15 +67,20 @@ DEFAULT_ARGS = {
         "S3_PREFIX": S3_PREFIX,
         "S3_KEY": S3_KEY,
     },
-    # Use K8S secrets to send DB Creds
-    # Lift secrets into environment variables for datacube database connectivity
-    # Use this db-users to import dataset csvs from s3
-    "secrets": [
-        Secret("env", "DB_DATABASE", "explorer-nci-admin", "database-name"),
-        Secret("env", "DB_ADMIN_USER", "explorer-nci-admin", "postgres-username"),
-        Secret("env", "DB_ADMIN_PASSWORD", "explorer-nci-admin", "postgres-password"),
-    ],
 }
+
+# Lift secrets into environment variables for datacube database connectivity
+SECRET_RESTORE_INCREMENTAL_SYNC = [
+    Secret("env", "DB_DATABASE", "explorer-nci-admin", "database-name"),
+    Secret("env", "DB_ADMIN_USER", "explorer-nci-admin", "postgres-username"),
+    Secret("env", "DB_ADMIN_PASSWORD", "explorer-nci-admin", "postgres-password"),
+]
+
+SECRET_INDEXER = [
+    Secret("env", "DB_DATABASE", "explorer-nci-admin", "database-name"),
+    Secret("env", "DB_USERNAME", "explorer-nci-admin", "postgres-username"),
+    Secret("env", "DB_PASSWORD", "explorer-nci-admin", "postgres-password"),
+]
 
 dag = DAG(
     "k8s_nci_db_incremental_sync",
@@ -100,7 +105,7 @@ s3_backup_volume_config = {"persistentVolumeClaim": {"claimName": "s3-backup-vol
 s3_backup_volume = Volume(name="s3-backup-volume", configs=s3_backup_volume_config)
 
 with dag:
-    START = DummyOperator(task_id="nci-db-incremental-sync")
+    START = DummyOperator(task_id="start")
 
     # Wait for S3 Key
     S3_BACKUP_SENSE = S3KeySensor(
@@ -114,12 +119,13 @@ with dag:
     RESTORE_NCI_INCREMENTAL_SYNC = KubernetesPodOperator(
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
+        image_pull_policy="Always",
         annotations={"iam.amazonaws.com/role": NCI_DBSYNC_ROLE},
         cmds=["./import_from_s3.sh"],
-        image_pull_policy="Always",
-        labels={"step": "s3-to-rds"},
-        name="s3-to-rds",
-        task_id="s3-to-rds",
+        secrets=SECRET_RESTORE_INCREMENTAL_SYNC,
+        labels={"step": "nci-db-restore-incremental-sync"},
+        name="nci-db-restore-incremental-sync",
+        task_id="nci-db-restore-incremental-sync",
         get_logs=True,
         is_delete_operator_pod=True,
         affinity=affinity,
@@ -127,9 +133,24 @@ with dag:
         volume_mounts=[s3_backup_volume_mount],
     )
 
+    NCI_DB_INDEXER = KubernetesPodOperator(
+        namespace="processing",
+        image=INDEXER_IMAGE,
+        image_pull_policy="Always",
+        cmds=["datacube", "-v", "system", "init"],
+        secrets=SECRET_INDEXER,
+        labels={"step": "nci-db-indexer"},
+        name="nci-db-indexer",
+        task_id="nci-db-indexer",
+        get_logs=True,
+        is_delete_operator_pod=True,
+        affinity=affinity,
+    )
+
     # Task complete
     COMPLETE = DummyOperator(task_id="done")
 
     START >> S3_BACKUP_SENSE
     S3_BACKUP_SENSE >> RESTORE_NCI_INCREMENTAL_SYNC
-    RESTORE_NCI_INCREMENTAL_SYNC >> COMPLETE
+    RESTORE_NCI_INCREMENTAL_SYNC >> NCI_DB_INDEXER
+    NCI_DB_INDEXER >> COMPLETE

@@ -43,7 +43,7 @@ dag = DAG(
     catchup=False,
     concurrency=1,
     max_active_runs=1,
-    tags=["k8s"],
+    tags=["k8s", "nci-explorer"],
     schedule_interval="10 2 * * 2,4,6",  # every second day 2:10AM
     dagrun_timeout=timedelta(minutes=60 * 6),
 )
@@ -66,7 +66,6 @@ MAINTENANCE_SCRIPT = [
 with dag:
     START = DummyOperator(task_id="start")
 
-    # Download NCI db incremental backup from S3 and restore to RDS Aurora
     NCI_DB_MAINTENANCE = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
