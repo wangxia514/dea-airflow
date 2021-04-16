@@ -64,15 +64,20 @@ DEFAULT_ARGS = {
         "S3_PREFIX": S3_PREFIX,
         "S3_KEY": S3_KEY,
     },
-    # Use K8S secrets to send DB Creds
-    # Lift secrets into environment variables for datacube database connectivity
-    # Use this db-users to import dataset csvs from s3
-    "secrets": [
-        Secret("env", "DB_DATABASE", "explorer-nci-admin", "database-name"),
-        Secret("env", "DB_ADMIN_USER", "explorer-nci-admin", "postgres-username"),
-        Secret("env", "DB_ADMIN_PASSWORD", "explorer-nci-admin", "postgres-password"),
-    ],
 }
+
+# Lift secrets into environment variables for datacube database connectivity
+SECRET_RESTORE_INCREMENTAL_SYNC = [
+   Secret("env", "DB_DATABASE", "explorer-nci-admin", "database-name"),
+   Secret("env", "DB_ADMIN_USER", "explorer-nci-admin", "postgres-username"),
+   Secret("env", "DB_ADMIN_PASSWORD", "explorer-nci-admin", "postgres-password"),
+]
+
+SECRET_INDEXER = [
+    Secret("env", "DB_DATABASE", "explorer-nci-admin", "database-name"),
+    Secret("env", "DB_USERNAME", "explorer-nci-admin", "postgres-username"),
+    Secret("env", "DB_PASSWORD", "explorer-nci-admin", "postgres-password"),
+]
 
 dag = DAG(
     "k8s_nci_db_incremental_sync",
@@ -111,9 +116,10 @@ with dag:
     RESTORE_NCI_INCREMENTAL_SYNC = KubernetesPodOperator(
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
+        image_pull_policy="Always",
         annotations={"iam.amazonaws.com/role": NCI_DBSYNC_ROLE},
         cmds=["./import_from_s3.sh"],
-        image_pull_policy="Always",
+        secrets=SECRET_RESTORE_INCREMENTAL_SYNC,
         labels={"step": "nci-db-restore-incremental-sync"},
         name="nci-db-restore-incremental-sync",
         task_id="nci-db-restore-incremental-sync",
@@ -127,8 +133,9 @@ with dag:
     NCI_DB_INDEXER = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
-        cmds=["datacube", "-v", "system", "init"],
         image_pull_policy="Always",
+        cmds=["datacube", "-v", "system", "init"],
+        secrets=SECRET_INDEXER,
         labels={"step": "nci-db-indexer"},
         name="nci-db-indexer",
         task_id="nci-db-indexer",
