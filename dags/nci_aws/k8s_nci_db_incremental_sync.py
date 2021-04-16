@@ -86,7 +86,7 @@ dag = DAG(
     catchup=False,
     concurrency=1,
     max_active_runs=1,
-    tags=["k8s"],
+    tags=["k8s", "nci-explorer"],
     schedule_interval="45 0 * * *",  # every day 0:45AM
     dagrun_timeout=timedelta(minutes=60 * 3),
 )
