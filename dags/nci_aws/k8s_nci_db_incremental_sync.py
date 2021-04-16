@@ -27,7 +27,7 @@ from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
-from infra.images import S3_TO_RDS_IMAGE
+from infra.images import S3_TO_RDS_IMAGE, INDEXER_IMAGE
 from infra.variables import NCI_DBSYNC_ROLE
 
 local_tz = pendulum.timezone("Australia/Canberra")
@@ -97,7 +97,7 @@ s3_backup_volume_config = {"persistentVolumeClaim": {"claimName": "s3-backup-vol
 s3_backup_volume = Volume(name="s3-backup-volume", configs=s3_backup_volume_config)
 
 with dag:
-    START = DummyOperator(task_id="nci-db-incremental-sync")
+    START = DummyOperator(task_id="start")
 
     # Wait for S3 Key
     S3_BACKUP_SENSE = S3KeySensor(
@@ -114,9 +114,9 @@ with dag:
         annotations={"iam.amazonaws.com/role": NCI_DBSYNC_ROLE},
         cmds=["./import_from_s3.sh"],
         image_pull_policy="Always",
-        labels={"step": "s3-to-rds"},
-        name="s3-to-rds",
-        task_id="s3-to-rds",
+        labels={"step": "nci-db-restore-incremental-sync"},
+        name="nci-db-restore-incremental-sync",
+        task_id="nci-db-restore-incremental-sync",
         get_logs=True,
         is_delete_operator_pod=True,
         affinity=affinity,
@@ -124,9 +124,23 @@ with dag:
         volume_mounts=[s3_backup_volume_mount],
     )
 
+    NCI_DB_INDEXER = KubernetesPodOperator(
+        namespace="processing",
+        image=INDEXER_IMAGE,
+        cmds=["datacube", "-v", "system", "init"],
+        image_pull_policy="Always",
+        labels={"step": "nci-db-indexer"},
+        name="nci-db-indexer",
+        task_id="nci-db-indexer",
+        get_logs=True,
+        is_delete_operator_pod=True,
+        affinity=affinity,
+    )
+
     # Task complete
     COMPLETE = DummyOperator(task_id="done")
 
     START >> S3_BACKUP_SENSE
     S3_BACKUP_SENSE >> RESTORE_NCI_INCREMENTAL_SYNC
-    RESTORE_NCI_INCREMENTAL_SYNC >> COMPLETE
+    RESTORE_NCI_INCREMENTAL_SYNC >> NCI_DB_INDEXER
+    NCI_DB_INDEXER >> COMPLETE

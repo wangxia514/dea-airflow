@@ -60,7 +60,7 @@ dag = DAG(
 affinity = ONDEMAND_NODE_AFFINITY
 
 with dag:
-    START = DummyOperator(task_id="nci-db-incremental-update-summary")
+    START = DummyOperator(task_id="start")
 
     # Run update summary
     UPDATE_SUMMARY = KubernetesPodOperator(
@@ -69,9 +69,9 @@ with dag:
         # Run `cubedash-gen --help` for explanations of each option+usage
         cmds=["cubedash-gen"],
         arguments=["--no-init-database", "--refresh-stats", "--minimum-scan-window", "4d", "--all"],
-        labels={"step": "summarize-datacube"},
-        name="summarize-datacube",
-        task_id="summarize-datacube",
+        labels={"step": "nci-db-incremental-update-summary"},
+        name="nci-db-incremental-update-summary",
+        task_id="nci-db-incremental-update-summary",
         get_logs=True,
         is_delete_operator_pod=True,
         affinity=affinity,
