@@ -68,7 +68,7 @@ with dag:
         image=EXPLORER_IMAGE,
         # Run `cubedash-gen --help` for explanations of each option+usage
         cmds=["cubedash-gen"],
-        arguments=["--no-init-database", "--refresh-stats", "--minimum-scan-window", "4d", "--all"],
+        arguments=["-v", "--no-init-database", "--refresh-stats", "--minimum-scan-window", "4d", "--all"],
         labels={"step": "nci-db-incremental-update-summary"},
         name="nci-db-incremental-update-summary",
         task_id="nci-db-incremental-update-summary",
