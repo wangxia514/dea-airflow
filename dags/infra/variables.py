@@ -20,8 +20,5 @@ SECRET_DBA_ADMIN_NAME = Variable.get("db_dba_admin_secret", "dba_admin")
 DB_DATABASE = Variable.get("db_database", "ows")
 DB_HOSTNAME = Variable.get("db_hostname", "db-writer")
 
-# NCI db sync
-NCI_DBSYNC_ROLE = Variable.get("nci_dbsync_role", "svc-dea-dev-eks-nci-dbsync")
-
 # dea-access
 DEA_ACCESS_RESTO_API_ADMIN_SECRET = Variable.get("dea_access_resto_api_admin_secret", "dea-access-resto-api-admin")

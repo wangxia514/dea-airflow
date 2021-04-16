@@ -28,7 +28,7 @@ from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.images import S3_TO_RDS_IMAGE, INDEXER_IMAGE
-from infra.variables import NCI_DBSYNC_ROLE
+from infra.iam_roles import NCI_DBSYNC_ROLE
 
 local_tz = pendulum.timezone("Australia/Canberra")
 #local_tz.convert(execution_date)
