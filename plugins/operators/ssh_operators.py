@@ -49,7 +49,7 @@ class SecretHandlingSSHOperator(SSHRunMixin, BaseOperator):
                     return b64encode(output).decode('utf-8')
 
         else:
-            error_msg = output.decode('utf-8')
+            error_msg = output
             raise AirflowException("error running cmd: {0}, error: {1}"
                                    .format(self.command, error_msg))
 
