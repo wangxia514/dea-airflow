@@ -1,3 +1,7 @@
+"""
+# list of product names for webapplication to update
+"""
+
 # ows layer product to be updated
 UPDATE_EXTENT_PRODUCTS = (
     "s2_nrt_granule_nbar_t",
@@ -7,7 +11,7 @@ UPDATE_EXTENT_PRODUCTS = (
     "ga_ls_wo_3",
     "ga_s2_wo_3",
     "ga_ls_fc_3",
-    "dea_c3_ls_combined",
+    "ga_ls_ard_3",
 )
 
 EXPLORER_UPDATE_LIST = (
