@@ -241,8 +241,8 @@ def get_common_message_attributes(stac_doc: Dict) -> Dict:
     )
     if gqa_iterative_mean_xy:
         msg_attributes["gqa_iterative_mean_xy"] = {
-            "DataType": "String",
-            "StringValue": gqa_iterative_mean_xy,
+            "DataType": "Number",
+            "StringValue": str(gqa_iterative_mean_xy),
         }
 
     return msg_attributes
