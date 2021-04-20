@@ -21,19 +21,6 @@ DEFAULT_ARGS = {
     "retry_delay": timedelta(minutes=5),
 }
 
-VARIABLE_QA_COMMAND = [
-    "bash",
-    "-c",
-    dedent(
-        """
-            echo 'total number of variables:'
-            env | grep -o 'AIRFLOW_VAR_[^.]*=' | wc -l
-            env | grep -o 'AIRFLOW_VAR_[^.]*=' | awk -F= '{print $1}' | cut -d'_' -f3- | tr '[:upper:]' '[:lower:]'
-
-        """
-    ),
-]
-
 dag = DAG(
     dag_id=DAG_NAME,
     doc_md=__doc__,
@@ -45,11 +32,10 @@ dag = DAG(
 
 with dag:
 
-    # [START howto_operator_bash]
     run_this = BashOperator(
         task_id="variable-env",
-        bash_command=VARIABLE_QA_COMMAND,
+        bash_command="echo 'total number of variables:';"
+        "env | grep -o 'AIRFLOW_VAR_[^.]*=' | wc -l;"
+        "env | grep -o 'AIRFLOW_VAR_[^.]*=' | awk -F= '{print $1}' | cut -d'_' -f3- | tr '[:upper:]' '[:lower:]';",
     )
-    # [END howto_operator_bash]
-
     run_this
