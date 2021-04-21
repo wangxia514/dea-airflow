@@ -183,11 +183,11 @@ with dag:
         op_args=["{{ dag_run.conf.product }}", "{{ dag_run.conf.key_range }}"],
     )
 
-    INDEX = SubDagOperator(
-        task_id=TASK_NAME,
-        subdag=load_subdag(DAG_NAME, TASK_NAME, DEFAULT_ARGS, PARSE_TASK_NAME),
-        default_args=DEFAULT_ARGS,
-        dag=dag,
-    )
+    # INDEX = SubDagOperator(
+    #     task_id=TASK_NAME,
+    #     subdag=load_subdag(DAG_NAME, TASK_NAME, DEFAULT_ARGS, PARSE_TASK_NAME),
+    #     default_args=DEFAULT_ARGS,
+    #     dag=dag,
+    # )
 
     GET_CONFIG > INDEX
