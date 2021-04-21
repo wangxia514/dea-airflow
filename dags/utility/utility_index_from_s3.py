@@ -10,7 +10,7 @@ The DAG can be parameterized with run time configuration.
 
 #### example conf in json format
     {
-        "products": "ga_ls_wo_3",
+        "product": "ga_ls_wo_3",
         "path_template": "s3://dea-public-data/derived/ga_ls_wo_3/{path:03d}/**/*.json",
         "stac": true,
         "skip_lineage": true,
@@ -133,18 +133,25 @@ def parse_dagrun_conf(product, path_template, stac, skip_lineage, key_name, key_
     if not path_template:
         raise Exception("Need to specify a path template")
 
-    raise ValueError(f"{type(stac)}, {type(skip_lineage)}, {type(key_range)}")
-
-    if not stac:
+    if stac.lower() == "false":
         stac = False
-    else:
+    elif stac.lower() == "true":
         stac = True
+    else:
+        raise ValueError(f"stac: expected one of 'true', 'false, found {stac}.")
+    
+    if skip_lineage.lower() == "false":
+        skip_lineage = False
+    elif skip_lineage.lower() == "true":
+        skip_lineage = True
+    else:
+        raise ValueError(f"stac: expected one of 'true', 'false, found {stac}.")
 
     if key_name and not key_range:
         raise Exception("If you specify a key_name you must specify a key_range")
 
     if key_range:
-        key_range_list = list(key_range)
+        key_range_list = key_range[1:-1].replace(" ", "").split(",")
         keys = range(int(key_range_list[0]), int(key_range_list[1]))
     else:
         keys = ["one"]
