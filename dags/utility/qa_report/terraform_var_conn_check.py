@@ -32,10 +32,19 @@ dag = DAG(
 
 with dag:
 
-    run_this = BashOperator(
-        task_id="variable-env",
-        bash_command="echo 'total number of variables:';"
+    ENV_SET_VARIABLES_CHECK = BashOperator(
+        task_id="env-set-variables-check",
+        bash_command="echo 'total number of env set variables:';"
         "env | grep -o 'AIRFLOW_VAR_[^.]*=' | wc -l;"
         "env | grep -o 'AIRFLOW_VAR_[^.]*=' | awk -F= '{print $1}' | cut -d'_' -f3- | tr '[:upper:]' '[:lower:]';",
     )
-    run_this
+
+    ENV_SET_CONNECTIONS_CHECK = BashOperator(
+        task_id="env-set-connections-check",
+        bash_command="echo 'total number of env set connections:';"
+        "env | grep -o 'AIRFLOW_CONN_[^.]*=' | wc -l;"
+        "env | grep -o 'AIRFLOW_CONN_[^.]*=' | awk -F= '{print $1}' | cut -d'_' -f3- | tr '[:upper:]' '[:lower:]';",
+    )
+
+    ENV_SET_VARIABLES_CHECK
+    ENV_SET_CONNECTIONS_CHECK
