@@ -25,6 +25,7 @@ from airflow.utils.trigger_rule import TriggerRule
 import kubernetes.client.models as k8s
 
 from infra.pools import WAGL_TASK_POOL
+from infra.images import WAGL_IMAGE, S3_TO_RDS_IMAGE
 
 
 default_args = {
@@ -40,10 +41,6 @@ default_args = {
     "secrets": [Secret("env", None, "wagl-nrt-aws-creds")],
 }
 
-WAGL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:patch-20210330-1"
-)
-S3_TO_RDS_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/geoscienceaustralia/s3-to-rds:0.1.2"
 
 PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-process-scene"
 DEADLETTER_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-process-scene-deadletter"
