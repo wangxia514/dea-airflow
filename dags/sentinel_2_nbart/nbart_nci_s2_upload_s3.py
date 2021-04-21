@@ -39,7 +39,7 @@ COMMON = dedent("""
 
 default_args = {
     'owner': 'Kieran Ricardo',
-    'start_date': datetime(2020, 6, 27, tzinfo=local_tz),
+    'start_date': datetime(2020, 6, 27, tzinfo=local_tz), # earliest date in nci DB is 2016-06-29
     'retries': 1,
     'retry_delay': timedelta(minutes=5),
     'email_on_failure': False,
