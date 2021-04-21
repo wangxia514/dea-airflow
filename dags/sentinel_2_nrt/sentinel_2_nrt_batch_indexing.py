@@ -15,13 +15,12 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from textwrap import dedent
 
 from infra.images import INDEXER_IMAGE
-from infra.iam_roles import INDEXING_ROLE
 
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
-    REGION,
+    AWS_DEFAULT_REGION,
     DB_PORT,
 )
 from sentinel_2_nrt.env_cfg import (
@@ -44,7 +43,7 @@ DEFAULT_ARGS = {
         "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
         "DB_PORT": DB_PORT,
-        "AWS_DEFAULT_REGION": REGION,
+        "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
     },
     # Lift secrets into environment variables
     "secrets": [
@@ -67,7 +66,7 @@ INDEXING_BASH_COMMAND = [
     dedent(
         """
             for uri in %s; do
-               s3-to-dc $uri "%s" --skip-lineage;
+               s3-to-dc $uri "%s" --skip-lineage --no-sign-request;
             done
         """
     )
@@ -95,6 +94,5 @@ with dag:
         task_id="batch-indexing-task",
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,
-        annotations={"iam.amazonaws.com/role": INDEXING_ROLE},
         is_delete_operator_pod=True,
     )

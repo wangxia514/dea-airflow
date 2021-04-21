@@ -15,7 +15,7 @@ from textwrap import dedent
 
 from infra.variables import (
     SECRET_DBA_ADMIN_NAME,
-    REGION,
+    AWS_DEFAULT_REGION,
     DB_DATABASE,
     DB_HOSTNAME,
 )
@@ -40,7 +40,7 @@ DEFAULT_ARGS = {
         # TODO: Pass these via templated params in DAG Run
         "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
-        "REGION": REGION,
+        "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
     },
     # Lift secrets into environment variables
     "secrets": [
