@@ -2,4 +2,4 @@
 # connection ids created by terraform
 """
 
-from airflow.models import Variable
+DB_ODC_READER_CONN = "db_odc_reader"
