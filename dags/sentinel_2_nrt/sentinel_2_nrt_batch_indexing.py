@@ -40,7 +40,7 @@ DEFAULT_ARGS = {
         # TODO: Pass these via templated params in DAG Run
         "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
-        "DB_PORT": "5432",
+        "DB_PORT": DB_PORT,
     },
     # Lift secrets into environment variables
     "secrets": [
