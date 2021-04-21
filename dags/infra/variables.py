@@ -28,7 +28,7 @@ DB_DATABASE = Variable.get("db_database", "odc") #qa
 DB_HOSTNAME = Variable.get("db_hostname", "db-writer") #qa
 DB_READER_HOSTNAME = Variable.get("db_reader_hostname", "db-reader") #qa
 DB_PORT = Variable.get("db_port", "5432") #qa
-REGION = Variable.get("region", "ap-southeast-2")
+REGION = Variable.get("region", "ap-southeast-2") #qa
 
 AWS_DEFAULT_REGION = Variable.get("region", "ap-southeast-2") #qa
 
