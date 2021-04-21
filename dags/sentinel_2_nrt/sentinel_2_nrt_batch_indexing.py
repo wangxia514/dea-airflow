@@ -18,8 +18,8 @@ from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
-    SECRET_AWS_NAME,
 )
+from infra.iam_roles import INDEXING_ROLE
 from infra.pools import DEA_NEWDATA_PROCESSING_POOL
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from sentinel_2_nrt.env_cfg import (
@@ -41,16 +41,12 @@ DEFAULT_ARGS = {
         "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
         "DB_PORT": "5432",
+        "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
     },
     # Lift secrets into environment variables
     "secrets": [
         Secret("env", "DB_USERNAME", SECRET_ODC_WRITER_NAME, "postgres-username"),
         Secret("env", "DB_PASSWORD", SECRET_ODC_WRITER_NAME, "postgres-password"),
-        Secret("env", "AWS_DEFAULT_REGION", SECRET_AWS_NAME, "AWS_DEFAULT_REGION"),
-        Secret("env", "AWS_ACCESS_KEY_ID", SECRET_AWS_NAME, "AWS_ACCESS_KEY_ID"),
-        Secret(
-            "env", "AWS_SECRET_ACCESS_KEY", SECRET_AWS_NAME, "AWS_SECRET_ACCESS_KEY"
-        ),
     ],
 }
 
@@ -97,6 +93,7 @@ with dag:
         labels={"step": "s3-to-rds"},
         name="datacube-index",
         task_id="batch-indexing-task",
+        annotations={"iam.amazonaws.com/role": INDEXING_ROLE},
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,

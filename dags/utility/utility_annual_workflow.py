@@ -23,6 +23,7 @@ from subdags.subdag_explorer_summary import explorer_refresh_stats_subdag
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 
 from infra.images import INDEXER_IMAGE
+from infra.iam_roles import INDEXING_ROLE
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
@@ -49,17 +50,13 @@ DEFAULT_ARGS = {
         # TODO: Pass these via templated params in DAG Run
         "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
-        "DB_PORT": "5432",
+        "DB_PORT": DB_PORT,
+        "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
     },
     # Lift secrets into environment variables
     "secrets": [
         Secret("env", "DB_USERNAME", SECRET_ODC_WRITER_NAME, "postgres-username"),
         Secret("env", "DB_PASSWORD", SECRET_ODC_WRITER_NAME, "postgres-password"),
-        Secret("env", "AWS_DEFAULT_REGION", SECRET_AWS_NAME, "AWS_DEFAULT_REGION"),
-        Secret("env", "AWS_ACCESS_KEY_ID", SECRET_AWS_NAME, "AWS_ACCESS_KEY_ID"),
-        Secret(
-            "env", "AWS_SECRET_ACCESS_KEY", SECRET_AWS_NAME, "AWS_SECRET_ACCESS_KEY"
-        ),
     ],
 }
 
@@ -99,6 +96,7 @@ with dag:
         task_id="batch-indexing-task",
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,
+        annotations={"iam.amazonaws.com/role": INDEXING_ROLE},
         is_delete_operator_pod=True,
     )
 

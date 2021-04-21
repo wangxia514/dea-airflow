@@ -15,7 +15,7 @@ from textwrap import dedent
 from infra.images import INDEXER_IMAGE
 from infra.variables import (
     SECRET_DBA_ADMIN_NAME,
-    SECRET_AWS_NAME,
+    AWS_DEFAULT_REGION,
     DB_DATABASE,
     DB_HOSTNAME,
 )
@@ -40,12 +40,12 @@ DEFAULT_ARGS = {
         # TODO: Pass these via templated params in DAG Run
         "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
+        "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
     },
     # Lift secrets into environment variables
     "secrets": [
         Secret("env", "DB_USERNAME", SECRET_DBA_ADMIN_NAME, "postgres-username"),
         Secret("env", "PGPASSWORD", SECRET_DBA_ADMIN_NAME, "postgres-password"),
-        Secret("env", "AWS_DEFAULT_REGION", SECRET_AWS_NAME, "AWS_DEFAULT_REGION"),
     ],
 }
 
