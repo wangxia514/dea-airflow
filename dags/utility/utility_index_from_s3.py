@@ -125,13 +125,7 @@ def load_subdag(parent_dag_name, child_dag_name, args, config_task_name):
     return subdag
 
 
-def parse_dagrun_conf(config, **kwargs):
-    product = "{{ dag_run.conf.product }}"
-    path_template = "{{ dag_run.conf.path_template }}"
-    stac = "{{ dag_run.conf.stac }}"
-    skip_lineage = "{{ dag_run.conf.skip_lineage }}"
-    key_name = "{{ dag_run.conf.key_name }}"
-    key_range = "{{ dag_run.conf.key_range }}"
+def parse_dagrun_conf(product, path_template, stac, skip_lineage, key_name, key_range):
 
     if not product:
         raise Exception("Need to specify a product")
@@ -177,10 +171,15 @@ with dag:
     TASK_NAME = f"index-from-s3"
     PARSE_TASK_NAME = f"{TASK_NAME}_PARSE_CONFIG"
 
+    op_args = [
+        "{{ dag_run.conf.product }}", "{{ dag_run.conf.path_template }}", "{{ dag_run.conf.stac }}", 
+        "{{ dag_run.conf.skip_lineage }}", "{{ dag_run.conf.key_name }}", "{{ dag_run.conf.key_range }}",
+    ]
+
     GET_CONFIG = PythonOperator(
         task_id=PARSE_TASK_NAME,
         python_callable=parse_dagrun_conf,
-        op_args=["{{ dag_run.conf.product }}", "{{ dag_run.conf.key_range }}"],
+        op_args=op_args
     )
 
     # INDEX = SubDagOperator(
@@ -190,4 +189,4 @@ with dag:
     #     dag=dag,
     # )
 
-   # GET_CONFIG > INDEX
+    # GET_CONFIG > INDEX
