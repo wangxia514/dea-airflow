@@ -12,19 +12,20 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.contrib.operators.kubernetes_pod_operator import Resources
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
-from airflow.contrib.sensors.aws_sqs_sensor import SQSSensor
 from airflow.contrib.hooks.aws_sns_hook import AwsSnsHook
+from airflow.contrib.hooks.aws_sqs_hook import SQSHook
 from airflow.contrib.hooks.aws_hook import AwsHook
+from airflow.contrib.sensors.aws_sqs_sensor import SQSSensor
 from airflow.kubernetes.secret import Secret
 from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.hooks.S3_hook import S3Hook
-from airflow.contrib.hooks.aws_sqs_hook import SQSHook
 from airflow.utils.trigger_rule import TriggerRule
 
 import kubernetes.client.models as k8s
 
 from infra.pools import WAGL_TASK_POOL
+from infra.images import WAGL_IMAGE, S3_TO_RDS_IMAGE
 
 
 default_args = {
@@ -39,11 +40,6 @@ default_args = {
     "pool": WAGL_TASK_POOL,
     "secrets": [Secret("env", None, "wagl-nrt-aws-creds")],
 }
-
-WAGL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:patch-20210330-1"
-)
-S3_TO_RDS_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/geoscienceaustralia/s3-to-rds:0.1.2"
 
 PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/060378307146/dea-sandbox-eks-wagl-s2-nrt-process-scene"
 DEADLETTER_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/060378307146/dea-sandbox-eks-wagl-s2-nrt-process-scene-deadletter"
