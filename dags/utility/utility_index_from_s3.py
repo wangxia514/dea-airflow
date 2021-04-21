@@ -29,7 +29,12 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.operators.subdag_operator import SubDagOperator
 from infra.images import INDEXER_IMAGE
-from infra.variables import DB_DATABASE, DB_HOSTNAME, SECRET_AWS_NAME
+from infra.variables import (
+    DB_DATABASE,
+    DB_HOSTNAME,
+    SECRET_ODC_WRITER_NAME,
+    AWS_DEFAULT_REGION,
+)
 
 DEFAULT_ARGS = {
     "owner": "Alex Leith",
@@ -40,29 +45,17 @@ DEFAULT_ARGS = {
     "email_on_retry": False,
     "retries": 0,
     "env_vars": {
+        # TODO: Pass these via templated params in DAG Run
         "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
+        "DB_PORT": "5432",
+        "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
     },
     # Lift secrets into environment variables
+    # Lift secrets into environment variables
     "secrets": [
-        Secret(
-            "env",
-            "DB_DATABASE",
-            SECRET_AWS_NAME,
-            "database-name",
-        ),
-        Secret(
-            "env",
-            "DB_USERNAME",
-            SECRET_AWS_NAME,
-            "postgres-username",
-        ),
-        Secret(
-            "env",
-            "DB_PASSWORD",
-            SECRET_AWS_NAME,
-            "postgres-password",
-        ),
+        Secret("env", "DB_USERNAME", SECRET_ODC_WRITER_NAME, "postgres-username"),
+        Secret("env", "DB_PASSWORD", SECRET_ODC_WRITER_NAME, "postgres-password"),
     ],
 }
 
@@ -127,7 +120,9 @@ def load_subdag(parent_dag_name, child_dag_name, args, config_task_name):
 
 
 def parse_dagrun_conf(product, path_template, stac, skip_lineage, key_name, key_range):
-
+    """
+    config parser
+    """
     if not product:
         raise Exception("Need to specify a product")
 
@@ -140,7 +135,7 @@ def parse_dagrun_conf(product, path_template, stac, skip_lineage, key_name, key_
         stac = True
     else:
         raise ValueError(f"stac: expected one of 'true', 'false, found {stac}.")
-    
+
     if skip_lineage.lower() == "false":
         skip_lineage = False
     elif skip_lineage.lower() == "true":
@@ -182,14 +177,16 @@ with dag:
     PARSE_TASK_NAME = f"{TASK_NAME}_PARSE_CONFIG"
 
     op_args = [
-        "{{ dag_run.conf.product }}", "{{ dag_run.conf.path_template }}", "{{ dag_run.conf.stac }}", 
-        "{{ dag_run.conf.skip_lineage }}", "{{ dag_run.conf.key_name }}", "{{ dag_run.conf.key_range }}",
+        "{{ dag_run.conf.product }}",
+        "{{ dag_run.conf.path_template }}",
+        "{{ dag_run.conf.stac }}",
+        "{{ dag_run.conf.skip_lineage }}",
+        "{{ dag_run.conf.key_name }}",
+        "{{ dag_run.conf.key_range }}",
     ]
 
     GET_CONFIG = PythonOperator(
-        task_id=PARSE_TASK_NAME,
-        python_callable=parse_dagrun_conf,
-        op_args=op_args
+        task_id=PARSE_TASK_NAME, python_callable=parse_dagrun_conf, op_args=op_args
     )
 
     INDEX = SubDagOperator(

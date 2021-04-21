@@ -15,7 +15,7 @@ from subdags.subdag_explorer_summary import explorer_refresh_stats_subdag
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
-    SECRET_AWS_NAME,
+    AWS_DEFAULT_REGION,
 )
 
 DAG_NAME = "webapp_update"
@@ -34,11 +34,8 @@ DEFAULT_ARGS = {
         # TODO: Pass these via templated params in DAG Run
         "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
+        "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
     },
-    # Lift secrets into environment variables
-    "secrets": [
-        Secret("env", "AWS_DEFAULT_REGION", SECRET_AWS_NAME, "AWS_DEFAULT_REGION"),
-    ],
 }
 
 

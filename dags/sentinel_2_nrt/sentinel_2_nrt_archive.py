@@ -19,7 +19,7 @@ from subdags.subdag_ows_views import ows_update_extent_subdag
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
-    SECRET_AWS_NAME,
+    AWS_DEFAULT_REGION,
     SECRET_ODC_WRITER_NAME,
 )
 from infra.pools import DEA_NEWDATA_PROCESSING_POOL
@@ -62,12 +62,12 @@ DEFAULT_ARGS = {
         # TODO: Pass these via templated params in DAG Run
         "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
+        "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
     },
     # Lift secrets into environment variables
     "secrets": [
         Secret("env", "DB_USERNAME", SECRET_ODC_WRITER_NAME, "postgres-username"),
         Secret("env", "DB_PASSWORD", SECRET_ODC_WRITER_NAME, "postgres-password"),
-        Secret("env", "AWS_DEFAULT_REGION", SECRET_AWS_NAME, "AWS_DEFAULT_REGION"),
     ],
 }
 
