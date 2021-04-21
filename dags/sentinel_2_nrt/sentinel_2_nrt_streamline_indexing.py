@@ -17,7 +17,7 @@ from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
-    SECRET_AWS_NAME,
+    AWS_DEFAULT_REGION,
 )
 from infra.sqs_queue import SQS_QUEUE_NAME
 from infra.iam_roles import INDEXING_ROLE
@@ -43,12 +43,12 @@ DEFAULT_ARGS = {
         "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
         "DB_PORT": "5432",
+        "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
     },
     # Lift secrets into environment variables
     "secrets": [
         Secret("env", "DB_USERNAME", SECRET_ODC_WRITER_NAME, "postgres-username"),
         Secret("env", "DB_PASSWORD", SECRET_ODC_WRITER_NAME, "postgres-password"),
-        Secret("env", "AWS_DEFAULT_REGION", SECRET_AWS_NAME, "AWS_DEFAULT_REGION"),
     ],
 }
 
