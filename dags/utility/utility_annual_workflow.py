@@ -28,7 +28,8 @@ from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
-    SECRET_AWS_NAME,
+    DB_PORT,
+    REGION,
 )
 from infra.podconfig import (
     ONDEMAND_NODE_AFFINITY,
