@@ -44,7 +44,7 @@ DEFAULT_ARGS = {
         "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
         "DB_PORT": DB_PORT,
-        "REGION": REGION,
+        "AWS_DEFAULT_REGION": REGION,
     },
     # Lift secrets into environment variables
     "secrets": [
