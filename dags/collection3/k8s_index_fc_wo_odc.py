@@ -17,7 +17,7 @@ from infra.variables import (
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
 )
-from infra.iam_roles import C3_ALCHEMIST_ROLE
+from infra.variables import C3_INDEXING_USER_SECRET
 from infra.sqs_queues import (
     C3_FC_SQS_QUEUE_NAME,
     C3_WO_SQS_QUEUE_NAME,
@@ -57,19 +57,19 @@ DEFAULT_ARGS = {
         Secret(
             "env",
             "AWS_DEFAULT_REGION",
-            C3_ALCHEMIST_ROLE,
+            C3_INDEXING_USER_SECRET,
             "AWS_DEFAULT_REGION",
         ),
         Secret(
             "env",
             "AWS_ACCESS_KEY_ID",
-            C3_ALCHEMIST_ROLE,
+            C3_INDEXING_USER_SECRET,
             "AWS_ACCESS_KEY_ID",
         ),
         Secret(
             "env",
             "AWS_SECRET_ACCESS_KEY",
-            C3_ALCHEMIST_ROLE,
+            C3_INDEXING_USER_SECRET,
             "AWS_SECRET_ACCESS_KEY",
         ),
     ],
