@@ -39,7 +39,7 @@ COMMON = dedent("""
 
 default_args = {
     'owner': 'Kieran Ricardo',
-    'start_date': datetime(2021, 3, 1, tzinfo=local_tz),
+    'start_date': datetime(2020, 6, 27, tzinfo=local_tz),
     'retries': 1,
     'retry_delay': timedelta(minutes=5),
     'email_on_failure': False,
