@@ -17,7 +17,7 @@ from infra.variables import (
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
 )
-from infra.variables import C3_ALCHEMIST_ROLE
+from infra.variables import C3_INDEXING_USER_SECRET
 from infra.sqs_queues import (
     C3_FC_SQS_QUEUE_NAME,
     C3_WO_SQS_QUEUE_NAME,

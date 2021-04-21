@@ -22,6 +22,7 @@ from infra.variables import (
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
     REGION,
+    DB_PORT,
 )
 from sentinel_2_nrt.env_cfg import (
     INDEXING_PRODUCTS,
