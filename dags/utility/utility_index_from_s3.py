@@ -35,8 +35,8 @@ DEFAULT_ARGS = {
     "owner": "Alex Leith",
     "depends_on_past": False,
     "start_date": datetime(2020, 10, 1),
-    "email": ["alex.leith@ga.gov.au"],
-    "email_on_failure": True,
+    "email": ["kieran.ricardo@ga.gov.au"],
+    "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
     "env_vars": {
@@ -132,6 +132,8 @@ def parse_dagrun_conf(product, path_template, stac, skip_lineage, key_name, key_
 
     if not path_template:
         raise Exception("Need to specify a path template")
+
+    raise ValueError(f"{type(stac)}, {type(skip_lineage)}, {type(key_range)}")
 
     if not stac:
         stac = False
