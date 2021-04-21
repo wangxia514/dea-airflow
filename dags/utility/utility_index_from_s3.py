@@ -15,7 +15,7 @@ The DAG can be parameterized with run time configuration.
         "stac": true,
         "skip_lineage": true,
         "key_name": "path",
-        "key_range": [88, 117]
+        "key_range": [88, 89]
     }
 """
 
@@ -108,6 +108,7 @@ def load_subdag(parent_dag_name, child_dag_name, args, config_task_name):
                 image=INDEXER_IMAGE,
                 image_pull_policy="Always",
                 arguments=[
+                    "export DB_DATABASE='odc_20042021'",
                     "s3-to-dc",
                     "--no-sign-request",
                     "--stac" if stac else "",
@@ -191,11 +192,11 @@ with dag:
         op_args=op_args
     )
 
-    # INDEX = SubDagOperator(
-    #     task_id=TASK_NAME,
-    #     subdag=load_subdag(DAG_NAME, TASK_NAME, DEFAULT_ARGS, PARSE_TASK_NAME),
-    #     default_args=DEFAULT_ARGS,
-    #     dag=dag,
-    # )
+    INDEX = SubDagOperator(
+        task_id=TASK_NAME,
+        subdag=load_subdag(DAG_NAME, TASK_NAME, DEFAULT_ARGS, PARSE_TASK_NAME),
+        default_args=DEFAULT_ARGS,
+        dag=dag,
+    )
 
-    # GET_CONFIG > INDEX
+    GET_CONFIG > INDEX
