@@ -23,12 +23,12 @@ from subdags.subdag_explorer_summary import explorer_refresh_stats_subdag
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 
 from infra.images import INDEXER_IMAGE
-from infra.iam_roles import INDEXING_ROLE
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
-    SECRET_AWS_NAME,
+    AWS_DEFAULT_REGION,
+    DB_PORT,
 )
 from infra.podconfig import (
     ONDEMAND_NODE_AFFINITY,
@@ -73,6 +73,9 @@ dag = DAG(
 
 
 def parse_dagrun_conf(product, **kwargs):
+    """
+    parse input
+    """
     return product
 
 
@@ -91,12 +94,12 @@ with dag:
             # Jinja templates for arguments
             "{{ dag_run.conf.s3_glob }}",
             "{{ dag_run.conf.product }}",
+            "--no-sign-request",
         ],
         name="datacube-index",
         task_id="batch-indexing-task",
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,
-        annotations={"iam.amazonaws.com/role": INDEXING_ROLE},
         is_delete_operator_pod=True,
     )
 

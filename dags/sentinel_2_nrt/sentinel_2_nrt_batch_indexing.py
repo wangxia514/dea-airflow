@@ -18,8 +18,8 @@ from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
+    AWS_DEFAULT_REGION,
 )
-from infra.iam_roles import INDEXING_ROLE
 from infra.pools import DEA_NEWDATA_PROCESSING_POOL
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from sentinel_2_nrt.env_cfg import (
@@ -65,7 +65,7 @@ INDEXING_BASH_COMMAND = [
     dedent(
         """
             for uri in %s; do
-               s3-to-dc $uri "%s" --skip-lineage;
+               s3-to-dc $uri "%s" --skip-lineage --no-sign-request;
             done
         """
     )
@@ -93,7 +93,6 @@ with dag:
         labels={"step": "s3-to-rds"},
         name="datacube-index",
         task_id="batch-indexing-task",
-        annotations={"iam.amazonaws.com/role": INDEXING_ROLE},
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
