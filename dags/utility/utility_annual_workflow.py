@@ -29,7 +29,7 @@ from infra.variables import (
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
     DB_PORT,
-    REGION,
+    AWS_DEFAULT_REGION,
 )
 from infra.podconfig import (
     ONDEMAND_NODE_AFFINITY,
@@ -52,7 +52,7 @@ DEFAULT_ARGS = {
         "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
         "DB_PORT": DB_PORT,
-        "REGION": REGION,
+        "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
     },
     # Lift secrets into environment variables
     "secrets": [
@@ -74,6 +74,9 @@ dag = DAG(
 
 
 def parse_dagrun_conf(product, **kwargs):
+    """
+    parse config
+    """
     return product
 
 
@@ -92,6 +95,7 @@ with dag:
             # Jinja templates for arguments
             "{{ dag_run.conf.s3_glob }}",
             "{{ dag_run.conf.product }}",
+            "--no-sign-request",
         ],
         name="datacube-index",
         task_id="batch-indexing-task",

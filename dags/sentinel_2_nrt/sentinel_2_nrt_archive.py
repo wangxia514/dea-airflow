@@ -20,7 +20,7 @@ from subdags.subdag_ows_views import ows_update_extent_subdag
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
-    REGION,
+    AWS_DEFAULT_REGION,
     SECRET_ODC_WRITER_NAME,
 )
 from airflow.operators.subdag_operator import SubDagOperator
@@ -68,7 +68,7 @@ DEFAULT_ARGS = {
         # TODO: Pass these via templated params in DAG Run
         "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
-        "AWS_DEFAULT_REGION": REGION,
+        "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
     },
     # Lift secrets into environment variables
     "secrets": [

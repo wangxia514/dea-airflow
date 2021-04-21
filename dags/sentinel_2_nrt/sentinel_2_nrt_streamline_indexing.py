@@ -17,7 +17,7 @@ from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
-    REGION,
+    AWS_DEFAULT_REGION,
 )
 from infra.iam_roles import INDEXING_ROLE
 from infra.sqs_queues import NEWDEADATA_SQS_QUEUE_NAME
@@ -41,7 +41,7 @@ DEFAULT_ARGS = {
         # TODO: Pass these via templated params in DAG Run
         "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
-        "AWS_DEFAULT_REGION": REGION,
+        "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
     },
     # Lift secrets into environment variables
     "secrets": [
