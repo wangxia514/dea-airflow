@@ -15,7 +15,7 @@ from textwrap import dedent
 
 from infra.variables import (
     SECRET_DBA_ADMIN_NAME,
-    SECRET_AWS_NAME,
+    REGION,
     DB_DATABASE,
     DB_HOSTNAME,
 )

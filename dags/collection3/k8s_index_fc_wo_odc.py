@@ -57,19 +57,19 @@ DEFAULT_ARGS = {
         Secret(
             "env",
             "AWS_DEFAULT_REGION",
-            C3_ALCHEMIST_ROLE,
+            C3_INDEXING_USER_SECRET,
             "AWS_DEFAULT_REGION",
         ),
         Secret(
             "env",
             "AWS_ACCESS_KEY_ID",
-            C3_ALCHEMIST_ROLE,
+            C3_INDEXING_USER_SECRET,
             "AWS_ACCESS_KEY_ID",
         ),
         Secret(
             "env",
             "AWS_SECRET_ACCESS_KEY",
-            C3_ALCHEMIST_ROLE,
+            C3_INDEXING_USER_SECRET,
             "AWS_SECRET_ACCESS_KEY",
         ),
     ],
