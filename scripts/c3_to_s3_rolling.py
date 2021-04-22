@@ -429,6 +429,7 @@ def sync_granule(
     s3_root_path,
     s3_bucket,
     exclude=["ga_*_nbar_*.*", "ga_*_nbar-*.*", "*.sha1"],
+    cross_account=False,
 ):
     """
     Run AWS sync command to sync granules to S3 bucket
@@ -449,6 +450,8 @@ def sync_granule(
         exclude_string = " ".join(f"--exclude {pattern}" for pattern in exclude)
 
     command = f"aws s3 sync {local_path} {s3_path} --only-show-errors --delete {exclude_string}"
+    if cross_account:
+        command += " --acl bucket-owner-full-control"
 
     return_code = subprocess.call(command, shell=True)
 

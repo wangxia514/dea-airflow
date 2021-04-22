@@ -98,7 +98,8 @@ def upload_granule(granule_id):
             NCI_DIR,
             Path(get_granule_s3_path(granule_id)).parent.parent,
             S3_BUCKET,
-            exclude=["NBAR/*", "ARD-METADATA.yaml", "*NBAR_CONTIGUITY.TIF"]
+            exclude=["NBAR/*", "ARD-METADATA.yaml", "*NBAR_CONTIGUITY.TIF"],
+            cross_account=True,
         )
 
         stac_dump, s3_stac_path = upload_metadata(granule_id)
@@ -110,7 +111,7 @@ def upload_granule(granule_id):
 
         publish_sns(SNS_ARN, stac_dump, message_attributes, session=session)
 
-        s3_dump(stac_dump, s3_stac_path)  # upload STAC last
+        s3_dump(stac_dump, s3_stac_path, ACL="bucket-owner-full-control", ContentType="application/json")  # upload STAC last
     else:
         _LOG.info(f"Granule {granule_id} already uploaded, skipping.")
 
@@ -150,7 +151,12 @@ def upload_metadata(granule_id):
     )
     stac_dump = json.dumps(stac, default=json_fallback, indent=4)
 
-    s3_dump(yaml.safe_dump(serialise.to_doc(eo3), default_flow_style=False), s3_eo3_path)
+    s3_dump(
+        yaml.safe_dump(serialise.to_doc(eo3), default_flow_style=False), 
+        s3_eo3_path, 
+        ACL="bucket-owner-full-control",
+        ContentType="text/vnd.yaml"
+    )
 
     return stac_dump, s3_stac_path
 

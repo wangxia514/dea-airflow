@@ -45,7 +45,7 @@ default_args = {
     'email_on_failure': False,
     'email': 'kieran.ricardo@ga.gov.au',
     'ssh_conn_id': 'lpgs_gadi',
-    'aws_conn_id': 'dea_public_data_sentinel2_ard',
+    'aws_conn_id': 'sentinel_2_ard_sync_user',
 }
 
 dag = DAG(
