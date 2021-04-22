@@ -109,8 +109,13 @@ def upload_granule(granule_id):
             {"action": {"DataType": "String", "StringValue": "ADDED"}}
         )
 
-        publish_sns(SNS_ARN, stac_dump, message_attributes, session=session)
+        _LOG.info(f"Sending SNS. Granule id: {granule_id}")
+        try:
+            publish_sns(SNS_ARN, stac_dump, message_attributes, session=session)
+        except Exception as e:
+            _LOG.info(f"SNS send failed: {e}. Granule id: {granule_id}")
 
+        _LOG.info(f"Uploading STAC: {granule_id}")
         s3_dump(stac_dump, s3_stac_path, ACL="bucket-owner-full-control", ContentType="application/json")  # upload STAC last
     else:
         _LOG.info(f"Granule {granule_id} already uploaded, skipping.")
