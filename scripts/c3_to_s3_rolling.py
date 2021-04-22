@@ -449,7 +449,7 @@ def sync_granule(
     if exclude:
         exclude_string = " ".join(f"--exclude {pattern}" for pattern in exclude)
 
-    command = f"aws s3 sync {local_path} {s3_path} --only-show-errors --delete {exclude_string}"
+    command = f"aws s3 sync {local_path} {s3_path} --only-show-errors {exclude_string}"
     if cross_account:
         command += " --acl bucket-owner-full-control"
 
