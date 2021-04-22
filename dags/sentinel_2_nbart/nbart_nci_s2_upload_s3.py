@@ -11,7 +11,8 @@ from pathlib import Path
 from textwrap import dedent
 
 import pendulum
-from airflow import DAG, configuration
+from airflow import DAG
+from airflow.configuration import conf
 from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
 from airflow.contrib.operators.ssh_operator import SSHOperator
@@ -62,7 +63,7 @@ with dag:
     # Uploading s2_to_s3_rolling.py script to NCI
     upload_uploader_script = SFTPOperator(
         task_id="upload_uploader_script",
-        local_filepath=str(Path(configuration.get('core', 'dags_folder')) / "sentinel_2_nbart/upload_s2_nbart.py"),
+        local_filepath=str(Path(conf.get('core', 'dags_folder')).parent / "scripts/upload_s2_nbart.py"),
         remote_filepath="/g/data/v10/work/s2_nbart_rolling_archive/{{ds}}/upload_s2_nbart.py",
         operation=SFTPOperation.PUT,
         create_intermediate_dirs=True

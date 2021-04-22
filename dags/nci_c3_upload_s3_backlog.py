@@ -24,7 +24,8 @@ from datetime import datetime, timedelta
 from textwrap import dedent
 from pathlib import Path
 
-from airflow import DAG, configuration
+from airflow import DAG
+from airflow.configuration import conf
 from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
@@ -144,9 +145,7 @@ def create_dag(dag_id, product, start_date, end_date):
         # Uploading c3_to_s3_rolling.py script to NCI
         sftp_c3_to_s3_script = SFTPOperator(
             task_id=f"sftp_c3_to_s3_script_{product}",
-            local_filepath=Path(Path(configuration.get("core", "dags_folder")).parent)
-            .joinpath("scripts/c3_to_s3_rolling.py")
-            .as_posix(),
+            local_filepath=str(Path(conf.get("core", "dags_folder")).parent / "scripts/c3_to_s3_rolling.py"),
             remote_filepath="{}/c3_to_s3_rolling.py".format(WORK_DIR),
             operation=SFTPOperation.PUT,
             create_intermediate_dirs=True,
