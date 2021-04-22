@@ -9,6 +9,7 @@ UPDATE_EXTENT_PRODUCTS = (
     "ga_ls5t_ard_3",
     "ga_ls7e_ard_3",
     "ga_ls8c_ard_3",
+    "ga_ls_ard_3",
 )
 
 EXPLORER_UPDATE_LIST = (
