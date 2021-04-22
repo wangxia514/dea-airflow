@@ -246,8 +246,7 @@ def finish_up(**context):
         task_ids=f"dea-s2-wagl-nrt-{index}", key="return_value"
     )
 
-    assert "dataset" in msg
-    if msg["dataset"] == "exists":
+    if msg == {}:
         print("dataset already existed, did not get processed by this DAG")
         return
 
