@@ -90,6 +90,9 @@ def load_subdag(parent_dag_name, child_dag_name, args, config_task_name):
     skip_lineage = config.get("skip_lineage")
     path_template = config.get("path_template")
 
+    func = lambda x: f"{type(x)}: {x}"
+    raise RuntimeError(f"{func(product)}, {func(keys)}, {func(key_name)}, {func(stac)}, {func(skip_lineage)}, {func(path_template)}")
+
     with subdag:
         for key in keys:
             s3_path = path_template
