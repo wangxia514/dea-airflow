@@ -4,7 +4,7 @@
 """
 from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
-from datetime import datetime, timedelta
+from datetime import datetime
 
 default_args = {
     'owner': 'Damien Ayers',
@@ -19,7 +19,7 @@ dag = DAG(
     'nci_build_dea_module',
     default_args=default_args,
     schedule_interval=None,
-    tags=['nci'],
+    tags=['nci', 'utility'],
 )
 
 with dag:
@@ -29,10 +29,15 @@ with dag:
         command=f"""
         rm -r /g/data/v10/public/modules/dea/$(date +%Y%m%d)
         set -eux
-        cd ~/dea-orchestration/
+
+        cd $TMPDIR
+        rm -rf digitalearthau
+        git clone --depth 1 https://github.com/GeoscienceAustralia/digitalearthau
+        cd digitalearthau
         git reset --hard
         git pull
-        cd ~/dea-orchestration/nci_environment
+        cd nci_environment
+
         git status
         module load python3/3.7.4
         pip3 install --user pyyaml jinja2
