@@ -33,10 +33,7 @@ with dag:
         cd $TMPDIR
         rm -rf digitalearthau
         git clone --depth 1 https://github.com/GeoscienceAustralia/digitalearthau
-        cd digitalearthau
-        git reset --hard
-        git pull
-        cd nci_environment
+        cd digitalearthau/nci_environment
 
         git status
         module load python3/3.7.4
