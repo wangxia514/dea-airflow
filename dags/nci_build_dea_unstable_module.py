@@ -2,7 +2,7 @@
 # Rebuild `dea/unstable` module on the NCI
 
 """
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import pendulum
 from airflow import DAG
@@ -26,7 +26,7 @@ dag = DAG(
     default_args=default_args,
     schedule_interval='@daily',
     catchup=False,
-    tags=['nci'],
+    tags=['nci', 'utility'],
 )
 
 with dag:
@@ -35,11 +35,12 @@ with dag:
         ssh_conn_id='lpgs_gadi',
         command="""
         set -eux
-        cd ~/dea-orchestration/
-        git reset --hard
-        git pull
-        cd ~/dea-orchestration/nci_environment
-        git status
+
+        cd $TMPDIR
+        rm -rf digitalearthau
+        git clone --depth 1 https://github.com/GeoscienceAustralia/digitalearthau
+        cd digitalearthau/nci_environment/
+
         module load python3/3.7.4
         pip3 install --user pyyaml jinja2
         
