@@ -4,7 +4,7 @@
 """
 from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
-from datetime import datetime, timedelta
+from datetime import datetime
 
 default_args = {
     'owner': 'Damien Ayers',
@@ -20,7 +20,7 @@ dag = DAG(
     'nci_build_env_module',
     default_args=default_args,
     schedule_interval=None,
-    tags=['nci'],
+    tags=['nci', 'utility'],
 )
 
 with dag:
