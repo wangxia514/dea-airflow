@@ -46,6 +46,7 @@ default_args = {
 
 
 def australian_region_codes():
+    """ Set of region codes (MGRS tile IDs) we want to process. """
     root = Path(configuration.get("core", "dags_folder")).parent
 
     with open(root / TILE_LIST) as fl:
@@ -54,12 +55,14 @@ def australian_region_codes():
 
 
 def decode(message):
+    """ De-stringify message JSON. """
     body_dict = json.loads(message["Body"])
     msg_dict = json.loads(body_dict["Message"])
     return msg_dict
 
 
 def region_code(message):
+    """ Extract region code out of metadata. """
     msg_dict = decode(message)
     tiles = msg_dict["tiles"]
 
@@ -73,6 +76,7 @@ def region_code(message):
 
 
 def filter_scenes(**context):
+    """ Only select scenes that cover Australia. """
     task_instance = context["task_instance"]
     index = context["index"]
     all_messages = task_instance.xcom_pull(
@@ -93,6 +97,7 @@ def filter_scenes(**context):
 
 
 def filter_subdag():
+    """ Subdag to contain parallel pipeline of filtering. """
     result = DAG(
         dag_id="k8s_wagl_nrt_filter.filter_subdag",
         default_args=default_args,
