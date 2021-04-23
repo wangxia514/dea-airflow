@@ -13,6 +13,9 @@ from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.operators.dummy_operator import DummyOperator
+from infra.variables import DB_HOSTNAME, SECRET_ODC_WRITER_NAME
+from infra.podconfig import ONDEMAND_NODE_AFFINITY
+from infra.images import INDEXER_IMAGE
 
 DEFAULT_ARGS = {
     "owner": "Kieran Ricardo",
@@ -26,26 +29,26 @@ DEFAULT_ARGS = {
     "index_sqs_queue": "{{ var.json.k8s_index_s2_nbart_config.index_sqs_queue }}",
     "products": "s2a_ard_granule s2b_ard_granule",
     "env_vars": {
-        "DB_HOSTNAME": "db-writer",
+        "DB_HOSTNAME": DB_HOSTNAME,
     },
     # Lift secrets into environment variables
     "secrets": [
         Secret(
             "env",
             "DB_DATABASE",
-            "odc-writer",
+            SECRET_ODC_WRITER_NAME,
             "database-name",
         ),
         Secret(
             "env",
             "DB_USERNAME",
-            "odc-writer",
+            SECRET_ODC_WRITER_NAME,
             "postgres-username",
         ),
         Secret(
             "env",
             "DB_PASSWORD",
-            "odc-writer",
+            SECRET_ODC_WRITER_NAME,
             "postgres-password",
         ),
         Secret(
@@ -69,7 +72,6 @@ DEFAULT_ARGS = {
     ],
 }
 
-from infra.images import INDEXER_IMAGE
 
 dag = DAG(
     "k8s_index_s2_nbart",

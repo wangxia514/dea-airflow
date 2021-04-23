@@ -9,6 +9,9 @@ from airflow import DAG
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from airflow.operators.subdag_operator import SubDagOperator
+from infra.images import INDEXER_IMAGE
+from infra.podconfig import ONDEMAND_NODE_AFFINITY
+from infra.variables import SECRET_ODC_WRITER_NAME, DB_HOSTNAME
 
 DEFAULT_ARGS = {
     "owner": "Alex Leith",
@@ -20,25 +23,25 @@ DEFAULT_ARGS = {
     "retries": 0,
     "retry_delay": timedelta(minutes=5),
     "env_vars": {
-        "DB_HOSTNAME": "db-writer",
+        "DB_HOSTNAME": DB_HOSTNAME,
     },
     "secrets": [
         Secret(
             "env",
             "DB_DATABASE",
-            "odc-writer",
+            SECRET_ODC_WRITER_NAME,
             "database-name",
         ),
         Secret(
             "env",
             "DB_USERNAME",
-            "odc-writer",
+            SECRET_ODC_WRITER_NAME,
             "postgres-username",
         ),
         Secret(
             "env",
             "DB_PASSWORD",
-            "odc-writer",
+            SECRET_ODC_WRITER_NAME,
             "postgres-password",
         ),
     ],
@@ -48,8 +51,6 @@ TASK_ARGS = {
     "secrets": DEFAULT_ARGS["secrets"],
     "start_date": DEFAULT_ARGS["start_date"],
 }
-
-INDEXER_IMAGE = "opendatacube/datacube-index:0.0.15"
 
 
 def load_subdag(parent_dag_name, child_dag_name, product, bucket_path, paths, args):
@@ -80,6 +81,7 @@ def load_subdag(parent_dag_name, child_dag_name, product, bucket_path, paths, ar
                 task_id=f"{product}--Backlog-indexing-row--{path}",
                 get_logs=True,
                 is_delete_operator_pod=True,
+                affinity=ONDEMAND_NODE_AFFINITY,
                 dag=subdag,
             )
     return subdag

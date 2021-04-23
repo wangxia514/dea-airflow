@@ -13,6 +13,12 @@ from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.operators.dummy_operator import DummyOperator
+from infra.variables import (
+    DB_HOSTNAME,
+    SECRET_ODC_WRITER_NAME,
+    LANDSAT_C3_AWS_USER_SECRET,
+)
+from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
 DEFAULT_ARGS = {
     "owner": "Alex Leith",
@@ -27,44 +33,44 @@ DEFAULT_ARGS = {
     "archive_sqs_queue": "{{ var.json.k8s_index_ls_c3_config.archive_sqs_queue }}",
     "products": "ga_ls5t_ard_3 ga_ls7e_ard_3 ga_ls8c_ard_3",
     "env_vars": {
-        "DB_HOSTNAME": "db-writer",
+        "DB_HOSTNAME": DB_HOSTNAME,
     },
     # Lift secrets into environment variables
     "secrets": [
         Secret(
             "env",
             "DB_DATABASE",
-            "odc-writer",
+            SECRET_ODC_WRITER_NAME,
             "database-name",
         ),
         Secret(
             "env",
             "DB_USERNAME",
-            "odc-writer",
+            SECRET_ODC_WRITER_NAME,
             "postgres-username",
         ),
         Secret(
             "env",
             "DB_PASSWORD",
-            "odc-writer",
+            SECRET_ODC_WRITER_NAME,
             "postgres-password",
         ),
         Secret(
             "env",
             "AWS_DEFAULT_REGION",
-            "processing-landsat-3-aws-creds",
+            LANDSAT_C3_AWS_USER_SECRET,
             "AWS_DEFAULT_REGION",
         ),
         Secret(
             "env",
             "AWS_ACCESS_KEY_ID",
-            "processing-landsat-3-aws-creds",
+            LANDSAT_C3_AWS_USER_SECRET,
             "AWS_ACCESS_KEY_ID",
         ),
         Secret(
             "env",
             "AWS_SECRET_ACCESS_KEY",
-            "processing-landsat-3-aws-creds",
+            LANDSAT_C3_AWS_USER_SECRET,
             "AWS_SECRET_ACCESS_KEY",
         ),
     ],
@@ -99,6 +105,7 @@ with dag:
         name="datacube-index",
         task_id="indexing-task",
         get_logs=True,
+        affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
     )
 
@@ -116,6 +123,7 @@ with dag:
         name="datacube-archive",
         task_id="archiving-task",
         get_logs=True,
+        affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
     )
 
