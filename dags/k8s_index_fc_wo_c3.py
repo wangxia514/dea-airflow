@@ -13,6 +13,13 @@ from airflow import DAG
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
+from infra.variables import (
+    DB_HOSTNAME,
+    ALCHEMIST_C3_USER_SECRET,
+    SECRET_ODC_WRITER_NAME,
+)
+from infra.podconfig import ONDEMAND_NODE_AFFINITY
+from infra.images import INDEXER_IMAGE
 
 DEFAULT_ARGS = {
     "owner": "Alex Leith",
@@ -24,68 +31,67 @@ DEFAULT_ARGS = {
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "env_vars": {
-        "DB_HOSTNAME": "db-writer",
+        "DB_HOSTNAME": DB_HOSTNAME,
     },
     # Lift secrets into environment variables
     "secrets": [
         Secret(
             "env",
             "DB_DATABASE",
-            "odc-writer",
+            SECRET_ODC_WRITER_NAME,
             "database-name",
         ),
         Secret(
             "env",
             "DB_USERNAME",
-            "odc-writer",
+            SECRET_ODC_WRITER_NAME,
             "postgres-username",
         ),
         Secret(
             "env",
             "DB_PASSWORD",
-            "odc-writer",
+            SECRET_ODC_WRITER_NAME,
             "postgres-password",
         ),
         Secret(
             "env",
             "AWS_DEFAULT_REGION",
-            "alchemist-c3-user-creds",
+            ALCHEMIST_C3_USER_SECRET,
             "AWS_DEFAULT_REGION",
         ),
         Secret(
             "env",
             "AWS_ACCESS_KEY_ID",
-            "alchemist-c3-user-creds",
+            ALCHEMIST_C3_USER_SECRET,
             "AWS_ACCESS_KEY_ID",
         ),
         Secret(
             "env",
             "AWS_SECRET_ACCESS_KEY",
-            "alchemist-c3-user-creds",
+            ALCHEMIST_C3_USER_SECRET,
             "AWS_SECRET_ACCESS_KEY",
         ),
         Secret(
             "env",
             "FC_SQS_INDEXING_QUEUE",
-            "alchemist-c3-user-creds",
+            ALCHEMIST_C3_USER_SECRET,
             "FC_SQS_INDEXING_QUEUE",
         ),
         Secret(
             "env",
             "WO_SQS_INDEXING_QUEUE",
-            "alchemist-c3-user-creds",
+            ALCHEMIST_C3_USER_SECRET,
             "WO_SQS_INDEXING_QUEUE",
         ),
         Secret(
             "env",
             "S2_NRT_WO_SQS_INDEXING_QUEUE",
-            "alchemist-c3-user-creds",
+            ALCHEMIST_C3_USER_SECRET,
             "S2_NRT_WO_SQS_INDEXING_QUEUE",
         ),
     ],
 }
 
-from infra.images import INDEXER_IMAGE
 
 dag = DAG(
     "k8s_index_wo_fc_c3",
@@ -118,6 +124,7 @@ with dag:
             name=f"datacube-index-{slug}",
             task_id=f"indexing-task-{slug}",
             get_logs=True,
+            affinity=ONDEMAND_NODE_AFFINITY,
             is_delete_operator_pod=True,
         )
 

@@ -39,3 +39,12 @@ AWS_DEFAULT_REGION = Variable.get("region", "ap-southeast-2")  # qa
 DEA_ACCESS_RESTO_API_ADMIN_SECRET = Variable.get(
     "dea_access_resto_api_admin_secret", "dea-access-resto-api-admin"
 )  # qa
+
+# c3 alchemist deriveritves
+ALCHEMIST_C3_USER_SECRET = Variable.get(
+    "alchemist_c3_user_secret", "alchemist-c3-user-creds"
+)
+
+LANDSAT_C3_AWS_USER_SECRET = Variable.get(
+    "landsat_c3_aws_user_secret", "processing-landsat-3-aws-creds"
+)

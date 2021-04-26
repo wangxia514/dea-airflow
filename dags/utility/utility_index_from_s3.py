@@ -35,6 +35,8 @@ from infra.variables import (
     SECRET_ODC_WRITER_NAME,
     AWS_DEFAULT_REGION,
 )
+from infra.podconfig import ONDEMAND_NODE_AFFINITY
+
 
 DEFAULT_ARGS = {
     "owner": "Alex Leith",
@@ -114,6 +116,7 @@ def load_subdag(parent_dag_name, child_dag_name, args, config_task_name):
                 task_id=f"{product}--Backlog-indexing-row--{key}",
                 get_logs=True,
                 is_delete_operator_pod=True,
+                affinity=ONDEMAND_NODE_AFFINITY,
                 dag=subdag,
             )
     return subdag
