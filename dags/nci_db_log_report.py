@@ -17,8 +17,9 @@ from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.contrib.operators.ssh_operator import SSHOperator
 
 from operators.ssh_operators import SecretHandlingSSHOperator
+from infra.connections import AWS_NCI_DB_BACKUP_CONN
 
-AWS_CONN_ID = "aws_nci_db_backup"
+AWS_CONN_ID = AWS_NCI_DB_BACKUP_CONN
 
 default_args = {
     "owner": "Damien Ayers",
@@ -61,7 +62,8 @@ with DAG(
     # Requires GRANT EXECUTE ON FUNCTION pg_read_file(text,bigint,bigint) TO <service-user>;
     dump_daily_log = SSHOperator(
         task_id="dump_daily_log",
-        command=COMMON + './pgcopy.sh {{ execution_date.format("%a") }}', # %a is Short Day of Week
+        command=COMMON
+        + './pgcopy.sh {{ execution_date.format("%a") }}',  # %a is Short Day of Week
     )
 
     update_pg_badger_report = SSHOperator(
@@ -79,7 +81,8 @@ with DAG(
             export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
             export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
         """,
-        command=COMMON + "aws s3 sync report/ s3://nci-db-dump/pgbadger/nci/dea-db/ --no-progress",
+        command=COMMON
+        + "aws s3 sync report/ s3://nci-db-dump/pgbadger/nci/dea-db/ --no-progress",
     )
 
     dump_daily_log >> update_pg_badger_report >> upload_to_s3

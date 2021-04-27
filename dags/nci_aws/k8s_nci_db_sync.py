@@ -23,6 +23,8 @@ from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.dummy_operator import DummyOperator
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.images import EXPLORER_IMAGE, S3_TO_RDS_IMAGE
+from infra.connections import AWS_NCI_DB_BACKUP_CONN
+from infra.iam_roles import NCI_DBSYNC_ROLE
 
 # Templated DAG arguments
 DATESTRING = "{{ ds_nodash }}"
@@ -49,7 +51,7 @@ DEFAULT_ARGS = {
         "DB_DATABASE": DB_DATABASE,
         "DB_PORT": "5432",
         "BACKUP_PATH": BACKUP_PATH,
-        "DATESTRING": DATESTRING
+        "DATESTRING": DATESTRING,
     },
     # Use K8S secrets to send DB Creds
     # Lift secrets into environment variables for datacube database connectivity
@@ -73,17 +75,11 @@ dag = DAG(
 
 affinity = ONDEMAND_NODE_AFFINITY
 
-s3_backup_volume_mount = VolumeMount(name="s3-backup-volume",
-                                     mount_path=BACKUP_PATH,
-                                     sub_path=None,
-                                     read_only=False)
+s3_backup_volume_mount = VolumeMount(
+    name="s3-backup-volume", mount_path=BACKUP_PATH, sub_path=None, read_only=False
+)
 
-s3_backup_volume_config = {
-    "persistentVolumeClaim":
-        {
-            "claimName": "s3-backup-volume"
-        }
-}
+s3_backup_volume_config = {"persistentVolumeClaim": {"claimName": "s3-backup-volume"}}
 
 s3_backup_volume = Volume(name="s3-backup-volume", configs=s3_backup_volume_config)
 
@@ -95,14 +91,14 @@ with dag:
         task_id="s3-backup-sense",
         poke_interval=60 * 30,
         bucket_key=S3_KEY,
-        aws_conn_id="aws_nci_db_backup",
+        aws_conn_id=AWS_NCI_DB_BACKUP_CONN,
     )
 
     # Download PostgreSQL full backup from S3 and restore to RDS Aurora
     RESTORE_RDS_S3 = KubernetesPodOperator(
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
-        annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-processing-dbsync"},  # TODO: Pass this via DAG parameters
+        annotations={"iam.amazonaws.com/role": NCI_DBSYNC_ROLE},
         cmds=["./s3_to_rds.sh"],
         image_pull_policy="Always",
         labels={"step": "s3-to-rds"},
