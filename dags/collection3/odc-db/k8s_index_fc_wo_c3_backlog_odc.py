@@ -1,42 +1,51 @@
 """
-# Sentinel-2 backlog indexing automation
+# Landsat Collection-3 indexing automation for odc db
 
-DAG to index Sentinel-2 backlog data.
+DAG to periodically index/archive Landsat Collection-3 data.
+
+This DAG uses k8s executors and in cluster with relevant tooling
+and configuration installed.
 
 """
 from datetime import datetime, timedelta
 
-import kubernetes.client.models as k8s
 from airflow import DAG
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from airflow.operators.subdag_operator import SubDagOperator
+from infra.variables import (
+    DB_DATABASE,
+    DB_HOSTNAME,
+    SECRET_ODC_WRITER_NAME,
+)
+from infra.images import INDEXER_IMAGE
+from infra.podconfig import ONDEMAND_NODE_AFFINITY
+
 
 DEFAULT_ARGS = {
-    "owner": "Alex Leith",
+    "owner": "Pin Jin",
     "depends_on_past": False,
     "start_date": datetime(2020, 6, 14),
-    "email": ["alex.leith@ga.gov.au"],
+    "email": ["pin.jin@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "env_vars": {
-        "DB_HOSTNAME": "db-writer",
-        "WMS_CONFIG_PATH": "/env/config/ows_cfg.py",
-        "DATACUBE_OWS_CFG": "config.ows_cfg.ows_cfg",
+        "DB_HOSTNAME": DB_HOSTNAME,
+        "DB_DATABASE": DB_DATABASE,
     },
     "secrets": [
         Secret(
             "env",
             "DB_USERNAME",
-            "ows-db",
+            SECRET_ODC_WRITER_NAME,
             "postgres-username",
         ),
         Secret(
             "env",
             "DB_PASSWORD",
-            "ows-db",
+            SECRET_ODC_WRITER_NAME,
             "postgres-password",
         ),
     ],
@@ -45,8 +54,6 @@ TASK_ARGS = {
     "secrets": DEFAULT_ARGS["secrets"],
     "start_date": DEFAULT_ARGS["start_date"],
 }
-
-INDEXER_IMAGE = "opendatacube/datacube-index:0.0.12"
 
 
 def load_subdag(parent_dag_name, child_dag_name, product, rows, args):
@@ -76,12 +83,13 @@ def load_subdag(parent_dag_name, child_dag_name, product, rows, args):
                 task_id=f"{product}--Backlog-indexing-row--{row}",
                 get_logs=True,
                 is_delete_operator_pod=True,
+                affinity=ONDEMAND_NODE_AFFINITY,
                 dag=subdag,
             )
     return subdag
 
 
-DAG_NAME = "k8s_index_wo_fc_c3_backlog"
+DAG_NAME = "k8s_index_wo_fc_c3_backlog_odc"
 
 dag = DAG(
     dag_id=DAG_NAME,

@@ -20,6 +20,17 @@ from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.operators.dummy_operator import DummyOperator
+from infra.variables import (
+    C3_INDEXING_USER_SECRET,
+    DB_SANDBOX_DATABASE,
+    DB_SANDBOX_USER_SECRET,
+    DB_HOSTNAME,
+    C3_ALCHEMIST_SECRET,
+)
+from infra.podconfig import ONDEMAND_NODE_AFFINITY
+
+from infra.images import INDEXER_IMAGE
+
 
 DEFAULT_ARGS = {
     "owner": "Damien Ayers",
@@ -34,45 +45,44 @@ DEFAULT_ARGS = {
     "archive_sqs_queue": "{{ var.json.k8s_index_ls_c3_config.archive_sqs_queue }}",
     "products": "ga_ls5t_ard_3 ga_ls7e_ard_3 ga_ls8c_ard_3",
     "env_vars": {
-        "DB_HOSTNAME": "{{ var.json.k8s_index_ls_c3_config.db_hostname }}",
-        "DB_DATABASE": "{{ var.json.k8s_index_ls_c3_config.db_database }}",
+        "DB_HOSTNAME": DB_HOSTNAME,
+        "DB_DATABASE": DB_SANDBOX_DATABASE,
     },
     # Lift secrets into environment variables
     "secrets": [
         Secret(
             "env",
             "DB_USERNAME",
-            "ows-db",
+            DB_SANDBOX_USER_SECRET,
             "postgres-username",
         ),
         Secret(
             "env",
             "DB_PASSWORD",
-            "ows-db",
+            DB_SANDBOX_USER_SECRET,
             "postgres-password",
         ),
         Secret(
             "env",
             "AWS_DEFAULT_REGION",
-            "processing-aws-creds-sandbox",
+            C3_INDEXING_USER_SECRET,
             "AWS_DEFAULT_REGION",
         ),
         Secret(
             "env",
             "AWS_ACCESS_KEY_ID",
-            "processing-aws-creds-sandbox",
+            C3_INDEXING_USER_SECRET,
             "AWS_ACCESS_KEY_ID",
         ),
         Secret(
             "env",
             "AWS_SECRET_ACCESS_KEY",
-            "processing-aws-creds-sandbox",
+            C3_INDEXING_USER_SECRET,
             "AWS_SECRET_ACCESS_KEY",
         ),
     ],
 }
 
-from infra.images import INDEXER_IMAGE
 
 dag = DAG(
     "k8s_index_ls_c3",
@@ -101,6 +111,7 @@ with dag:
         name="datacube-index",
         task_id="indexing-task",
         get_logs=True,
+        affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
     )
 
@@ -118,6 +129,7 @@ with dag:
         name="datacube-archive",
         task_id="archiving-task",
         get_logs=True,
+        affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
     )
 

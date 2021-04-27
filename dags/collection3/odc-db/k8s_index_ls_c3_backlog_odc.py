@@ -19,6 +19,7 @@ from infra.variables import (
     SECRET_ODC_WRITER_NAME,
 )
 from infra.images import INDEXER_IMAGE
+from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
 
 DEFAULT_ARGS = {
@@ -84,6 +85,7 @@ def load_subdag(parent_dag_name, child_dag_name, product, rows, args):
                 task_id=f"{product}--Backlog-indexing-row--{row}",
                 get_logs=True,
                 is_delete_operator_pod=True,
+                affinity=ONDEMAND_NODE_AFFINITY,
                 dag=subdag,
             )
     return subdag

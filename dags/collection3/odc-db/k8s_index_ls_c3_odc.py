@@ -30,6 +30,7 @@ from infra.sqs_queues import (
     C3_INDEXING_SQS_QUEUE_NAME,
 )
 from infra.variables import C3_INDEXING_USER_SECRET
+from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.images import INDEXER_IMAGE
 
 DEFAULT_ARGS = {
@@ -111,6 +112,7 @@ with dag:
         name="datacube-index",
         task_id="indexing-task",
         get_logs=True,
+        affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
     )
 
@@ -128,6 +130,7 @@ with dag:
         name="datacube-archive",
         task_id="archiving-task",
         get_logs=True,
+        affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
     )
 
