@@ -13,6 +13,7 @@ from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.operators.dummy_operator import DummyOperator
+from infra.sqs_queues import SENTINEL_2_ARD_INDEXING_SQS_QUEUE_NAME_SANDBOX_DB
 
 DEFAULT_ARGS = {
     "owner": "Kieran Ricardo",
@@ -23,7 +24,7 @@ DEFAULT_ARGS = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
-    "index_sqs_queue": "sentinel-2-ard-indexing-sandbox-db",
+    "index_sqs_queue": SENTINEL_2_ARD_INDEXING_SQS_QUEUE_NAME_SANDBOX_DB,
     "products": "s2a_ard_granule s2b_ard_granule",
     "env_vars": {
         "DB_HOSTNAME": "db-writer",
