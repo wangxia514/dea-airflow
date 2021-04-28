@@ -38,8 +38,6 @@ from c3_to_s3_rolling import (
 NCI_DIR = '/g/data/if87/datacube/002/S2_MSI_ARD/packaged'
 S3_BUCKET = "dea-public-data"
 WORK_DIR = Path("/g/data/v10/work/s2_nbart_rolling_archive")
-SNS_ARN = "arn:aws:sns:ap-southeast-2:060378307146:dea-public-data-sentinel-2-ard"
-
 _LOG = logging.getLogger()
 
 
@@ -67,25 +65,27 @@ def setup_logging():
 
 @click.command()
 @click.argument('granule_ids', type=click.File('r'))
+@click.argument('sns_topic_arn', type=str)
 @click.option('--workers', type=int, default=10)
-def main(granule_ids, workers):
+def main(granule_ids, sns_topic_arn, workers):
     """
     Script to sync Sentinel-2 data from NCI to AWS S3 bucket
     Pass in a file containing destination S3 urls that need to be uploaded.
     """
+
     setup_logging()
 
     granule_ids = [granule_id.strip() for granule_id in granule_ids.readlines()]
 
     _LOG.info(f"{len(granule_ids)} granules to upload.")
     with ThreadPoolExecutor(max_workers=workers) as executor:
-        futures = [executor.submit(upload_granule, granule_id) for granule_id in granule_ids]
+        futures = [executor.submit(upload_granule, granule_id, sns_topic_arn) for granule_id in granule_ids]
 
         for future in tqdm(as_completed(futures), total=len(granule_ids), unit='granules', disable=None):
             _LOG.info(f"Completed uploaded: {future.result()}")
 
 
-def upload_granule(granule_id):
+def upload_granule(granule_id, sns_topic_arn):
     """
     :param granule_id: the id of the granule in format 'date/tile_id'
     """
@@ -111,7 +111,7 @@ def upload_granule(granule_id):
 
         _LOG.info(f"Sending SNS. Granule id: {granule_id}")
         try:
-            publish_sns(SNS_ARN, stac_dump, message_attributes, session=session)
+            publish_sns(sns_topic_arn, stac_dump, message_attributes, session=session)
         except Exception as e:
             _LOG.info(f"SNS send failed: {e}. Granule id: {granule_id}")
 

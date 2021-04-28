@@ -16,6 +16,8 @@ from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
 from airflow.contrib.operators.ssh_operator import SSHOperator
 
+from infra.sns_topics import SENTINEL_2_ARD_TOPIC_ARN
+
 HOURS = 60 * 60
 MINUTES = 60
 DAYS = HOURS * 24
@@ -109,7 +111,7 @@ with dag:
 
     # Execute script to upload sentinel-2 data to s3 bucket
     aws_hook = AwsHook(aws_conn_id=dag.default_args['aws_conn_id'])
-
+    
     execute_upload = SSHOperator(
         task_id='execute_upload',
         # language="Shell Script"
@@ -118,8 +120,7 @@ with dag:
             # Export AWS Access key/secret from Airflow connection module
             export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
             export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
-            python3 '{{ work_dir }}/upload_s2_nbart.py' granule_ids.txt
-        """),
+            python3 '{{ work_dir }}/upload_s2_nbart.py' granule_ids.txt """ + f"{SENTINEL_2_ARD_TOPIC_ARN} \n"),
         remote_host='gadi-dm.nci.org.au',
         params={'aws_hook': aws_hook},
         timeout=10 * HOURS,
