@@ -14,6 +14,7 @@ from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.operators.dummy_operator import DummyOperator
 from infra.sqs_queues import SENTINEL_2_ARD_INDEXING_SQS_QUEUE_NAME_SANDBOX_DB
+from infra.variables import SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET
 
 DEFAULT_ARGS = {
     "owner": "Kieran Ricardo",
@@ -47,19 +48,19 @@ DEFAULT_ARGS = {
         Secret(
             "env",
             "AWS_DEFAULT_REGION",
-            "sentinel-2-ard-indexing-creds",
+            SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET,
             "AWS_DEFAULT_REGION",
         ),
         Secret(
             "env",
             "AWS_ACCESS_KEY_ID",
-            "sentinel-2-ard-indexing-creds",
+            SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET,
             "AWS_ACCESS_KEY_ID",
         ),
         Secret(
             "env",
             "AWS_SECRET_ACCESS_KEY",
-            "sentinel-2-ard-indexing-creds",
+            SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET,
             "AWS_SECRET_ACCESS_KEY",
         ),
     ],

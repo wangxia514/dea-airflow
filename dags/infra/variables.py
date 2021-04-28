@@ -40,3 +40,8 @@ AWS_DEFAULT_REGION = Variable.get("region", "ap-southeast-2")  # qa
 # sandbox db info
 DB_SANDBOX_DATABASE = Variable.get("db_sandbox", "sandbox")  # qa
 DB_SANDBOX_USER_SECRET = Variable.get("db_sandbox_user_secret", "ows-db")  # qa
+
+SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET = Variable.get(
+     "sentinel_2_ard_indexing_aws_user_secret", 
+     "sentinel-2-ard-indexing-creds"
+ )
