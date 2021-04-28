@@ -280,13 +280,11 @@ def finish_up(**context):
 
     s3 = get_s3()
     response = s3.get_object(Bucket=parsed.netloc, Key=parsed.path.lstrip("/"))
-    body = response["Body"].read().decode("utf-8")
-    _LOG.info("Body: %s", body)
-    msg_str = json.dumps(msg)
+    body = json.dumps(yaml.safe_load(response["Body"]), indent=2)
 
-    _LOG.info("publishing to SNS: %s", msg_str)
+    _LOG.info("publishing to SNS: %s", body)
     sns_hook = AwsSnsHook(aws_conn_id=AWS_CONN_ID)
-    sns_hook.publish_to_target(PUBLISH_S2_NRT_SNS, msg_str)
+    sns_hook.publish_to_target(PUBLISH_S2_NRT_SNS, body)
 
 
 pipeline = DAG(
