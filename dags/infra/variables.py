@@ -48,3 +48,8 @@ ALCHEMIST_C3_USER_SECRET = Variable.get(
 LANDSAT_C3_AWS_USER_SECRET = Variable.get(
     "landsat_c3_aws_user_secret", "processing-landsat-3-aws-creds"
 )
+
+SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET = Variable.get(
+    "sentinel_2_ard_indexing_aws_user_secret", 
+    "sentinel-2-ard-indexing-creds"
+)

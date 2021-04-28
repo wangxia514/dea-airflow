@@ -16,6 +16,8 @@ from airflow.operators.dummy_operator import DummyOperator
 from infra.variables import DB_HOSTNAME, SECRET_ODC_WRITER_NAME
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.images import INDEXER_IMAGE
+from infra.sqs_queues import SENTINEL_2_ARD_INDEXING_SQS_QUEUE_NAME_ODC_DB
+from infra.variables import SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET
 
 DEFAULT_ARGS = {
     "owner": "Kieran Ricardo",
@@ -26,7 +28,7 @@ DEFAULT_ARGS = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
-    "index_sqs_queue": "{{ var.json.k8s_index_s2_nbart_config.index_sqs_queue }}",
+    "index_sqs_queue": SENTINEL_2_ARD_INDEXING_SQS_QUEUE_NAME_ODC_DB,
     "products": "s2a_ard_granule s2b_ard_granule",
     "env_vars": {
         "DB_HOSTNAME": DB_HOSTNAME,
@@ -54,19 +56,19 @@ DEFAULT_ARGS = {
         Secret(
             "env",
             "AWS_DEFAULT_REGION",
-            "processing-aws-creds-dev",
+            SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET,
             "AWS_DEFAULT_REGION",
         ),
         Secret(
             "env",
             "AWS_ACCESS_KEY_ID",
-            "processing-aws-creds-dev",
+            SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET,
             "AWS_ACCESS_KEY_ID",
         ),
         Secret(
             "env",
             "AWS_SECRET_ACCESS_KEY",
-            "processing-aws-creds-dev",
+            SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET,
             "AWS_SECRET_ACCESS_KEY",
         ),
     ],

@@ -19,7 +19,7 @@ from infra.variables import (
     SECRET_ODC_WRITER_NAME,
     AWS_DEFAULT_REGION,
 )
-from infra.sqs_queue import SQS_QUEUE_NAME
+from infra.sqs_queues import SQS_QUEUE_NAME
 from infra.iam_roles import INDEXING_ROLE
 from infra.pools import DEA_NEWDATA_PROCESSING_POOL
 from sentinel_2_nrt.env_cfg import (
