@@ -16,9 +16,9 @@ from airflow.contrib.sensors.aws_sqs_sensor import SQSSensor
 from airflow.contrib.hooks.aws_sqs_hook import SQSHook
 
 from infra.pools import WAGL_TASK_POOL
+from infra.connections import AWS_WAGL_NRT_CONN
 
-
-AWS_CONN_ID = "wagl_nrt_manual"
+AWS_CONN_ID = AWS_WAGL_NRT_CONN
 
 FILTER_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-filter-scene"
 PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-process-scene"

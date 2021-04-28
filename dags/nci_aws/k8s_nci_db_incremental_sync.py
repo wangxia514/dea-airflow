@@ -37,6 +37,7 @@ from infra.images import S3_TO_RDS_IMAGE, INDEXER_IMAGE
 from infra.iam_roles import NCI_DBSYNC_ROLE
 from infra.variables import DB_HOSTNAME, DB_PORT, SECRET_EXPLORER_NCI_ADMIN_NAME
 from infra.variables import AWS_DEFAULT_REGION
+from infra.connections import AWS_NCI_DB_BACKUP_CONN
 
 local_tz = pendulum.timezone("Australia/Canberra")
 
@@ -72,9 +73,11 @@ DEFAULT_ARGS = {
 
 # Lift secrets into environment variables for datacube database connectivity
 SECRET_RESTORE_INCREMENTAL_SYNC = [
-   Secret("env", "DB_DATABASE", SECRET_EXPLORER_NCI_ADMIN_NAME, "database-name"),
-   Secret("env", "DB_ADMIN_USER", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-username"),
-   Secret("env", "DB_ADMIN_PASSWORD", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-password"),
+    Secret("env", "DB_DATABASE", SECRET_EXPLORER_NCI_ADMIN_NAME, "database-name"),
+    Secret("env", "DB_ADMIN_USER", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-username"),
+    Secret(
+        "env", "DB_ADMIN_PASSWORD", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-password"
+    ),
 ]
 
 SECRET_INDEXER = [
@@ -113,7 +116,7 @@ with dag:
         task_id="s3-backup-sense",
         poke_interval=60 * 30,
         bucket_key=S3_KEY,
-        aws_conn_id="aws_nci_db_backup",
+        aws_conn_id=AWS_NCI_DB_BACKUP_CONN,
     )
 
     # Download NCI db incremental backup from S3 and restore to RDS Aurora

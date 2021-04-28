@@ -37,6 +37,7 @@ from airflow import DAG, configuration
 from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
+from infra.connections import AWS_DEA_PUBLIC_DATA_LANDSAT_3_SYNC_CONN
 
 collection3_products = ["ga_ls5t_ard_3", "ga_ls7e_ard_3", "ga_ls8c_ard_3"]
 
@@ -122,7 +123,7 @@ default_args = {
     "email_on_failure": True,
     "email": "alex.leith@ga.gov.au",
     "ssh_conn_id": "lpgs_gadi",
-    "aws_conn_id": "dea_public_data_landsat_3_sync",
+    "aws_conn_id": AWS_DEA_PUBLIC_DATA_LANDSAT_3_SYNC_CONN,
 }
 
 
