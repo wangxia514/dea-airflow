@@ -4,7 +4,7 @@ Run wagl NRT pipeline in Airflow.
 import logging
 from datetime import datetime, timedelta
 import random
-from urllib.parse import urlencode, quote_plus
+from urllib.parse import urlencode, quote_plus, urlparse
 import json
 
 from airflow import DAG
@@ -273,10 +273,13 @@ def finish_up(**context):
         return
 
     dataset_location = msg["dataset"]
+    parsed = urlparse(dataset_location)
     _LOG.info("dataset location: %s", dataset_location)
+
     s3 = get_s3()
 
-    dataset_doc = s3.get_object(dataset_location)
+    dataset_doc = s3.get_object(Bucket=parsed.netloc, Key=parsed.path.lstrip("/"))
+    _LOG.info("Body: %r", dataset_doc["Body"])
     msg_str = json.dumps(msg)
 
     _LOG.info("publishing to SNS: %s", msg_str)
