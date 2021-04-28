@@ -7,6 +7,8 @@ import random
 from urllib.parse import urlencode, quote_plus, urlparse
 import json
 
+import yaml
+
 from airflow import DAG
 
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
@@ -278,8 +280,9 @@ def finish_up(**context):
 
     s3 = get_s3()
 
-    dataset_doc = s3.get_object(Bucket=parsed.netloc, Key=parsed.path.lstrip("/"))
-    _LOG.info("Body: %r", dataset_doc["Body"])
+    response = s3.get_object(Bucket=parsed.netloc, Key=parsed.path.lstrip("/"))
+    body = response["Body"].read().decode("utf-8")
+    _LOG.info("Body: %s", body)
     msg_str = json.dumps(msg)
 
     _LOG.info("publishing to SNS: %s", msg_str)
