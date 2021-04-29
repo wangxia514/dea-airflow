@@ -32,7 +32,7 @@ from infra.images import WAGL_IMAGE, S3_TO_RDS_IMAGE
 from infra.connections import AWS_WAGL_NRT_CONN
 from infra.sqs_queues import S2_NRT_PROCESS_SCENE_QUEUE
 from infra.sns_notifications import PUBLISH_S2_NRT_SNS
-from infra.variable import S2_NRT_AWS_CREDS
+from infra.variables import S2_NRT_AWS_CREDS
 from infra.s3_buckets import S2_NRT_SOURCE_BUCKET, S2_NRT_TRANSFER_BUCKET
 
 _LOG = logging.getLogger()
