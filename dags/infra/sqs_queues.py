@@ -6,8 +6,11 @@ Audit check:
 from airflow.models import Variable
 
 # AWS SQS
-SQS_QUEUE_NAME = Variable.get("sqs_queue_name", "dea-dev-eks-ows-dag") #qa
+SQS_QUEUE_NAME = Variable.get("sqs_queue_name", "dea-dev-eks-ows-dag")  # qa
 SENTINEL_2_ARD_INDEXING_SQS_QUEUE_NAME_ODC_DB = Variable.get(
     "sentinel_2_ard_indexing_sqs_queue_name_odc_db",
     "dea-dev-eks-sentinel-2-ard-indexing-odc-db",
-) #qa
+)  # qa
+
+
+S2_NRT_PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-process-scene"

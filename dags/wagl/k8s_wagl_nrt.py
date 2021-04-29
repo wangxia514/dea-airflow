@@ -30,6 +30,10 @@ import kubernetes.client.models as k8s
 from infra.pools import WAGL_TASK_POOL
 from infra.images import WAGL_IMAGE, S3_TO_RDS_IMAGE
 from infra.connections import AWS_WAGL_NRT_CONN
+from infra.sqs_queues import S2_NRT_PROCESS_SCENE_QUEUE
+from infra.sns_notifications import PUBLISH_S2_NRT_SNS
+from infra.variable import S2_NRT_AWS_CREDS
+from infra.s3_buckets import S2_NRT_SOURCE_BUCKET, S2_NRT_TRANSFER_BUCKET
 
 _LOG = logging.getLogger()
 
@@ -43,23 +47,15 @@ default_args = {
     "retries": 0,
     "retry_delay": timedelta(minutes=5),
     "pool": WAGL_TASK_POOL,
-    "secrets": [Secret("env", None, "wagl-nrt-aws-creds")],
+    "secrets": [Secret("env", None, S2_NRT_AWS_CREDS)],
 }
 
 
-PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-process-scene"
-DEADLETTER_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-process-scene-deadletter"
-PUBLISH_S2_NRT_SNS = "arn:aws:sns:ap-southeast-2:451924316694:dea-dev-eks-wagl-s2-nrt"
-
 ESTIMATED_COMPLETION_TIME = 3 * 60 * 60
 
-SOURCE_BUCKET = "sentinel-s2-l1c"
-TRANSFER_BUCKET = "dea-dev-eks-nrt-scene-cache"
 
 BUCKET_REGION = "ap-southeast-2"
 S3_PREFIX = "s3://dea-public-data-dev/L2/sentinel-2-nrt/S2MSIARD/"
-
-AWS_CONN_ID = AWS_WAGL_NRT_CONN
 
 NUM_PARALLEL_PIPELINE = 5
 MAX_ACTIVE_RUNS = 12
@@ -67,8 +63,6 @@ MAX_ACTIVE_RUNS = 12
 # this should be 10 in dev for 10% capacity
 # then it would just discard the other 9 messages polled
 NUM_MESSAGES_TO_POLL = 1
-
-AWS_CONN_ID = AWS_WAGL_NRT_CONN
 
 affinity = {
     "nodeAffinity": {
@@ -140,34 +134,34 @@ def copy_cmd_tile(tile_info):
     cmd = f"""
     set -e
 
-    if ! aws s3api head-object --bucket {TRANSFER_BUCKET} --key {datastrip}/.done 2> /dev/null; then
+    if ! aws s3api head-object --bucket {S2_NRT_TRANSFER_BUCKET} --key {datastrip}/.done 2> /dev/null; then
         mkdir -p /transfer/{granule_id}
         echo sinergise -> disk [datastrip]
         aws s3 sync --only-show-errors --request-payer requester \\
-                s3://{SOURCE_BUCKET}/{datastrip} /transfer/{granule_id}/{datastrip}
+                s3://{S2_NRT_SOURCE_BUCKET}/{datastrip} /transfer/{granule_id}/{datastrip}
         echo disk -> cache [datastrip]
         aws s3 sync --only-show-errors \\
-                /transfer/{granule_id}/{datastrip} s3://{TRANSFER_BUCKET}/{datastrip}
+                /transfer/{granule_id}/{datastrip} s3://{S2_NRT_TRANSFER_BUCKET}/{datastrip}
         touch /transfer/{granule_id}/{datastrip}/.done
         aws s3 cp \\
-                /transfer/{granule_id}/{datastrip}/.done s3://{TRANSFER_BUCKET}/{datastrip}/.done
+                /transfer/{granule_id}/{datastrip}/.done s3://{S2_NRT_TRANSFER_BUCKET}/{datastrip}/.done
     else
-        echo s3://{TRANSFER_BUCKET}/{datastrip} already exists
+        echo s3://{S2_NRT_TRANSFER_BUCKET}/{datastrip} already exists
     fi
 
-    if ! aws s3api head-object --bucket {TRANSFER_BUCKET} --key {path}/.done 2> /dev/null; then
+    if ! aws s3api head-object --bucket {S2_NRT_TRANSFER_BUCKET} --key {path}/.done 2> /dev/null; then
         mkdir -p /transfer/{granule_id}
         echo sinergise -> disk [path]
         aws s3 sync --only-show-errors --request-payer requester \\
-                s3://{SOURCE_BUCKET}/{path} /transfer/{granule_id}/{path}
+                s3://{S2_NRT_SOURCE_BUCKET}/{path} /transfer/{granule_id}/{path}
         echo disk -> cache [path]
         aws s3 sync --only-show-errors \\
-                /transfer/{granule_id}/{path} s3://{TRANSFER_BUCKET}/{path}
+                /transfer/{granule_id}/{path} s3://{S2_NRT_TRANSFER_BUCKET}/{path}
         touch /transfer/{granule_id}/{path}/.done
         aws s3 cp \\
-                /transfer/{granule_id}/{path}/.done s3://{TRANSFER_BUCKET}/{path}/.done
+                /transfer/{granule_id}/{path}/.done s3://{S2_NRT_TRANSFER_BUCKET}/{path}/.done
     else
-        echo s3://{TRANSFER_BUCKET}/{path} already exists
+        echo s3://{S2_NRT_TRANSFER_BUCKET}/{path} already exists
     fi
 
     rm -rf /transfer/{granule_id}
@@ -195,19 +189,19 @@ def tile_args(tile_info):
 
     return dict(
         granule_id=tile_info["granule_id"],
-        granule_url=f"s3://{TRANSFER_BUCKET}/{path}",
-        datastrip_url=f"s3://{TRANSFER_BUCKET}/{datastrip}",
+        granule_url=f"s3://{S2_NRT_TRANSFER_BUCKET}/{path}",
+        datastrip_url=f"s3://{S2_NRT_TRANSFER_BUCKET}/{datastrip}",
     )
 
 
 def get_sqs():
     """ SQS client. """
-    return AwsHook(aws_conn_id=AWS_CONN_ID).get_session().client("sqs")
+    return AwsHook(aws_conn_id=AWS_WAGL_NRT_CONN).get_session().client("sqs")
 
 
 def get_s3():
     """ S3 client. """
-    return AwsHook(aws_conn_id=AWS_CONN_ID).get_session().client("s3")
+    return AwsHook(aws_conn_id=AWS_WAGL_NRT_CONN).get_session().client("s3")
 
 
 def get_message(sqs, url):
@@ -233,7 +227,7 @@ def receive_task(**context):
     index = context["index"]
 
     sqs = get_sqs()
-    message = get_message(sqs, PROCESS_SCENE_QUEUE)
+    message = get_message(sqs, S2_NRT_PROCESS_SCENE_QUEUE)
 
     if message is None:
         _LOG.info("no messages")
@@ -263,7 +257,7 @@ def finish_up(**context):
 
     _LOG.info("deleting %s", message["ReceiptHandle"])
     sqs.delete_message(
-        QueueUrl=PROCESS_SCENE_QUEUE, ReceiptHandle=message["ReceiptHandle"]
+        QueueUrl=S2_NRT_PROCESS_SCENE_QUEUE, ReceiptHandle=message["ReceiptHandle"]
     )
 
     msg = task_instance.xcom_pull(
@@ -283,7 +277,7 @@ def finish_up(**context):
     body = json.dumps(yaml.safe_load(response["Body"]), indent=2)
 
     _LOG.info("publishing to SNS: %s", body)
-    sns_hook = AwsSnsHook(aws_conn_id=AWS_CONN_ID)
+    sns_hook = AwsSnsHook(aws_conn_id=AWS_WAGL_NRT_CONN)
     sns_hook.publish_to_target(PUBLISH_S2_NRT_SNS, body)
 
 
