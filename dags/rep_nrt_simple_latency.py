@@ -63,9 +63,7 @@ SELECT_BY_PRODUCT_AND_TIME_RANGE = """
 
 with dag:
 
-    # product list to extract the metric for, could potentially be part of dag configuration and managed in airflow UI
-    products_list = ["s2a_nrt_granule", "s2b_nrt_granule"]
-
+    # Task callable
     def nrt_simple_latency(execution_date, product_name, **kwargs):
         """
         Task to query AWS ODC with supplied `product_name` and insert a summary of latest timestamps into reporting DB
@@ -76,25 +74,62 @@ with dag:
         )
 
         # open the connection to the AWS ODC and get a cursor
-        cursor = odc_pg_hook.get_conn().cursor()
+        odc_cursor = odc_pg_hook.get_conn().cursor()
 
-        # caluclate a start and end time for the AWS ODC query
-        end_time = execution_date
-        start_time = end_time - timedelta(days=3)
+        # List of days in the past to check latency on
+        timedelta_list = [5, 15, 30, 90]
 
-        # extact a processing and acquisition timestamps from AWS for product and timerange, print logs of query and row count
-        cursor.execute(
-            SELECT_BY_PRODUCT_AND_TIME_RANGE, (product_name, start_time, end_time)
-        )
-        log.info("ODC Executed SQL: {}".format(cursor.query.decode()))
-        log.info("ODC query returned: {} rows".format(cursor.rowcount))
+        ZERO_TS = dt(1970, 1, 1, tzinfo=timezone.utc)
 
-        # TODO: Logic to iterate through rows and find the latest processing and satellite aquisition times
-        # for row in cursor:
-        #     id, indexed_time, satellite_acquisition_time, processing_time = row
-        #     print(id, indexed_time.isoformat(), indexed_time.astimezone(timezone.utc).isoformat())
+        latest_sat_acq_ts = ZERO_TS
+        latest_processing_ts = ZERO_TS
 
-        # TODO: after finding latest processing and satellite aquisition times they will be inserted into reporting database here
+        # Loop through the time_delta list until we get some data back. Prevents returning a huge amount of data unecessarily from ODC.
+        for days_previous in timedelta_list:
+
+            # caluclate a start and end time for the AWS ODC query
+            end_time = execution_date
+            start_time = end_time - timedelta(days=days_previous)
+
+            # extact a processing and acquisition timestamps from AWS for product and timerange, print logs of query and row count
+            odc_cursor.execute(
+                SELECT_BY_PRODUCT_AND_TIME_RANGE, (product_name, start_time, end_time)
+            )
+            log.info("ODC Query for: {} days".format(days_previous))
+            log.info("ODC Executed SQL: {}".format(odc_cursor.query.decode()))
+            log.info("ODC query returned: {} rows".format(odc_cursor.rowcount))
+
+            # if nothing is returned in the given timeframe, loop again and go back further in time
+            if odc_cursor.rowcount == 0:
+                continue
+
+            # Find the latest values for sat_acq and processing in the returned rows by updating latest_sat_acq_ts and latest_processing_ts
+            for row in odc_cursor:
+                id, indexed_time, sat_acq_ts, processing_ts = row
+                if sat_acq_ts > latest_sat_acq_ts:
+                    latest_sat_acq_ts = sat_acq_ts
+                if processing_ts > latest_processing_ts:
+                    latest_processing_ts = processing_ts
+
+            # Stop looping once latest has been found
+            break
+
+        # This is the case that no data was found for any of the time periods specified
+        if latest_processing_ts == ZERO_TS or latest_processing_ts == ZERO_TS:
+            raise Exception(
+                "Unable to find data in ODC for last {} days".format(
+                    max(timedelta_list)
+                )
+            )
+
+        # Log success
+        log.info("Latest Satellite Acquisition Time: {}".format(latest_sat_acq_ts))
+        log.info("Latest Processing Time Stamp: {}".format(latest_processing_ts))
+
+        return "Completed latency for {}".format(product_name)
+
+    # Product list to extract the metric for, could potentially be part of dag configuration and managed in airflow UI?
+    products_list = ["s2a_nrt_granule", "s2b_nrt_granule"]
 
     def create_task(product_name):
         """
