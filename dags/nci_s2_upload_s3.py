@@ -42,7 +42,7 @@ COMMON = dedent("""
 
 default_args = {
     'owner': 'Damien Ayers',
-    'start_date': datetime(2018, 9, 12, tzinfo=local_tz),
+    'start_date': datetime(2020, 11, 1, tzinfo=local_tz),
     'retries': 1,
     'retry_delay': timedelta(minutes=5),
     'email_on_failure': True,
