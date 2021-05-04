@@ -53,7 +53,9 @@ def _check_queues(aws_conn):
             sqs_queue = sqs.get_queue_by_name(QueueName=queue.name)
             queue_size = int(sqs_queue.attributes.get("ApproximateNumberOfMessages"))
         except Exception as e:
-            raise RuntimeError(f"{queue} failed with error: {e}")
+            logging.error(f"{queue} failed with error: {e}")
+            bad_queues.append(queue)
+            continue
 
         if queue_size > 0:
             print(f"{queue.title} queue '{queue.name}' has {queue_size} items on it.")
