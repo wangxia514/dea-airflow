@@ -225,7 +225,10 @@ with pipeline:
                         "RESTO_URL": "{{ params.RESTO_URL }}",
                         "COLLECTION_LIST": collection,
                     },
-                    secrets=[SECRET_ENV],
+                    "secrets": [
+                        Secret("env", "API_ADMIN_USERID", DEA_ACCESS_RESTO_API_ADMIN_SECRET, "API_ADMIN_USERID"),
+                        Secret("env", "JWT_PASSPHRASE", DEA_ACCESS_RESTO_API_ADMIN_SECRET, "JWT_PASSHPRASE"),
+                    ],
                     reattach_on_restart=True,
                     resources={
                         "request_cpu": "250m",
