@@ -29,6 +29,7 @@ import kubernetes.client.models as k8s
 
 from infra.pools import WAGL_TASK_POOL
 from infra.images import WAGL_IMAGE, S3_TO_RDS_IMAGE
+from infra.connections import AWS_WAGL_NRT_CONN
 
 _LOG = logging.getLogger()
 
@@ -59,7 +60,7 @@ TRANSFER_BUCKET = "dea-sandbox-eks-nrt-scene-cache"
 BUCKET_REGION = "ap-southeast-2"
 S3_PREFIX = "s3://dea-public-data-dev/L2/sentinel-2-nrt/S2MSIARD/"
 
-AWS_CONN_ID = "wagl_nrt_manual"
+AWS_CONN_ID = AWS_WAGL_NRT_CONN
 
 NUM_PARALLEL_PIPELINE = 5
 MAX_ACTIVE_RUNS = 12
@@ -68,7 +69,7 @@ MAX_ACTIVE_RUNS = 12
 # then it would just discard the other 9 messages polled
 NUM_MESSAGES_TO_POLL = 1
 
-AWS_CONN_ID = "wagl_nrt_manual"
+AWS_CONN_ID = AWS_WAGL_NRT_CONN
 
 affinity = {
     "nodeAffinity": {

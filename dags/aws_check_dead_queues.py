@@ -11,6 +11,7 @@ from textwrap import dedent
 from airflow import DAG, AirflowException
 from airflow.contrib.sensors.aws_sqs_sensor import SQSHook
 from airflow.operators.python_operator import PythonOperator
+from infra.connections import AWS_DEAD_LETTER_QUEUE_CHECKER_CONN
 
 default_args = {
     "owner": "Alex Leith",
@@ -88,5 +89,5 @@ with dag:
     CHECK_QUEUES = PythonOperator(
         task_id="check_queues",
         python_callable=_check_queues,
-        op_kwargs=dict(aws_conn="aws-dead-queue-checker"),
+        op_kwargs=dict(aws_conn=AWS_DEAD_LETTER_QUEUE_CHECKER_CONN),
     )
