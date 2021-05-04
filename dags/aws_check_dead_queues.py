@@ -53,7 +53,7 @@ def _check_queues(aws_conn):
             sqs_queue = sqs.get_queue_by_name(QueueName=queue.name)
             queue_size = int(sqs_queue.attributes.get("ApproximateNumberOfMessages"))
         except Exception as e:
-            logging.error(f"{queue} failed with error: {e}")
+            logging.info(f"{queue} failed with error: {e}")
             bad_queues.append(queue)
             continue
 
