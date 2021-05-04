@@ -71,6 +71,10 @@ default_args = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
+    "secrets": [
+        Secret("env", "DB_USERNAME", "ows-db", "postgres-username"),
+        Secret("env", "DB_PASSWORD", "ows-db", "postgres-password"),
+    ],
 }
 # [END default_args]
 
@@ -225,10 +229,7 @@ with pipeline:
                         "RESTO_URL": "{{ params.RESTO_URL }}",
                         "COLLECTION_LIST": collection,
                     },
-                    "secrets": [
-                        Secret("env", "API_ADMIN_USERID", DEA_ACCESS_RESTO_API_ADMIN_SECRET, "API_ADMIN_USERID"),
-                        Secret("env", "JWT_PASSPHRASE", DEA_ACCESS_RESTO_API_ADMIN_SECRET, "JWT_PASSHPRASE"),
-                    ],
+                    secrets=[SECRET_ENV],
                     reattach_on_restart=True,
                     resources={
                         "request_cpu": "250m",
