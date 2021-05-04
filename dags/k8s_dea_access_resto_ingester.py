@@ -72,9 +72,9 @@ default_args = {
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "secrets": [
-        Secret("env", "DB_USERNAME", "ows-db", "postgres-username"),
-        Secret("env", "DB_PASSWORD", "ows-db", "postgres-password"),
-    ],
+         Secret("env", "API_ADMIN_USERID", DEA_ACCESS_RESTO_API_ADMIN_SECRET, "API_ADMIN_USERID"),
+         Secret("env", "JWT_PASSPHRASE", DEA_ACCESS_RESTO_API_ADMIN_SECRET, "JWT_PASSHPRASE"),
+     ],
 }
 # [END default_args]
 
