@@ -15,7 +15,7 @@ from airflow.operators.python_operator import PythonOperator
 default_args = {
     "owner": "Alex Leith",
     "start_date": datetime(2020, 6, 15),
-    "email": ["alex.leith@ga.gov.au"],
+    "email": ["kieran.ricardo@ga.gov.au"],
     "email_on_failure": True,
 }
 
@@ -49,8 +49,13 @@ def _check_queues(aws_conn):
     bad_queues = []
 
     for queue in DEAD_QUEUES:
-        sqs_queue = sqs.get_queue_by_name(QueueName=queue.name)
-        queue_size = int(sqs_queue.attributes.get("ApproximateNumberOfMessages"))
+        try:
+            sqs_queue = sqs.get_queue_by_name(QueueName=queue.name)
+            queue_size = int(sqs_queue.attributes.get("ApproximateNumberOfMessages"))
+        except Exception as e:
+            logging.info(f"{queue} failed with error: {e}")
+            bad_queues.append(queue)
+            continue
 
         if queue_size > 0:
             print(f"{queue.title} queue '{queue.name}' has {queue_size} items on it.")

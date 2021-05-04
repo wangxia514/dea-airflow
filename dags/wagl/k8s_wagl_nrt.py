@@ -1,10 +1,13 @@
 """
 Run wagl NRT pipeline in Airflow.
 """
+import logging
 from datetime import datetime, timedelta
 import random
-from urllib.parse import urlencode, quote_plus
+from urllib.parse import urlencode, quote_plus, urlparse
 import json
+
+import yaml
 
 from airflow import DAG
 
@@ -27,6 +30,7 @@ import kubernetes.client.models as k8s
 from infra.pools import WAGL_TASK_POOL
 from infra.images import WAGL_IMAGE, S3_TO_RDS_IMAGE
 
+_LOG = logging.getLogger()
 
 default_args = {
     "owner": "Imam Alam",
@@ -103,6 +107,23 @@ ancillary_volume = Volume(
     name="wagl-nrt-ancillary-volume",
     configs={"persistentVolumeClaim": {"claimName": "wagl-nrt-ancillary-volume"}},
 )
+
+
+def setup_logging():
+    """ """
+    _LOG.setLevel(logging.INFO)
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.INFO)
+
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    handler.setFormatter(formatter)
+
+    _LOG.addHandler(handler)
+
+
+setup_logging()
 
 
 def decode(message):
@@ -184,14 +205,16 @@ def get_sqs():
     return AwsHook(aws_conn_id=AWS_CONN_ID).get_session().client("sqs")
 
 
+def get_s3():
+    """ S3 client. """
+    return AwsHook(aws_conn_id=AWS_CONN_ID).get_session().client("s3")
+
+
 def get_message(sqs, url):
     """ Receive one message with an estimated completion time set. """
     response = sqs.receive_message(
         QueueUrl=url, VisibilityTimeout=ESTIMATED_COMPLETION_TIME, MaxNumberOfMessages=1
     )
-
-    print("response")
-    print(response)
 
     if "Messages" not in response:
         return None
@@ -213,11 +236,11 @@ def receive_task(**context):
     message = get_message(sqs, PROCESS_SCENE_QUEUE)
 
     if message is None:
-        print("no messages")
+        _LOG.info("no messages")
         return f"nothing_to_do_{index}"
     else:
-        print("received message")
-        print(message)
+        _LOG.info("received message")
+        _LOG.info("%r", message)
 
         task_instance.xcom_push(key="message", value=message)
 
@@ -238,7 +261,7 @@ def finish_up(**context):
     message = task_instance.xcom_pull(task_ids=f"receive_task_{index}", key="message")
     sqs = get_sqs()
 
-    print("deleting", message["ReceiptHandle"])
+    _LOG.info("deleting %s", message["ReceiptHandle"])
     sqs.delete_message(
         QueueUrl=PROCESS_SCENE_QUEUE, ReceiptHandle=message["ReceiptHandle"]
     )
@@ -248,14 +271,20 @@ def finish_up(**context):
     )
 
     if msg == {}:
-        print("dataset already existed, did not get processed by this DAG")
+        _LOG.info("dataset already existed, did not get processed by this DAG")
         return
 
-    msg_str = json.dumps(msg)
+    dataset_location = msg["dataset"]
+    parsed = urlparse(dataset_location)
+    _LOG.info("dataset location: %s", dataset_location)
 
-    print(f"publishing to SNS: {msg_str}")
+    s3 = get_s3()
+    response = s3.get_object(Bucket=parsed.netloc, Key=parsed.path.lstrip("/"))
+    body = json.dumps(yaml.safe_load(response["Body"]), indent=2)
+
+    _LOG.info("publishing to SNS: %s", body)
     sns_hook = AwsSnsHook(aws_conn_id=AWS_CONN_ID)
-    sns_hook.publish_to_target(PUBLISH_S2_NRT_SNS, msg_str)
+    sns_hook.publish_to_target(PUBLISH_S2_NRT_SNS, body)
 
 
 pipeline = DAG(

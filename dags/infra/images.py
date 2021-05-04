@@ -15,7 +15,7 @@ EXPLORER_IMAGE = (
 S3_TO_RDS_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/geoscienceaustralia/s3-to-rds:0.1.4"
 
 WAGL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:patch-20210427-1"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:patch-20210428-1"
 )
 
 # UNSTABLE IMAGES
