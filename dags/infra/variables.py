@@ -40,6 +40,11 @@ DEA_ACCESS_RESTO_API_ADMIN_SECRET = Variable.get(
     "dea_access_resto_api_admin_secret", "dea-access-resto-api-admin"
 )  # qa
 
+# dea-access-resto secret
+DEA_ACCESS_RESTO_SECRET = Variable.get(
+    "dea_access_resto_secret", "dea-access-resto"
+)  # qa
+
 # c3 alchemist deriveritves
 ALCHEMIST_C3_USER_SECRET = Variable.get(
     "alchemist_c3_user_secret", "alchemist-c3-user-creds"
