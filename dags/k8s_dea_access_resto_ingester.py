@@ -56,7 +56,6 @@ from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.operators.dummy_operator import DummyOperator
 from infra.variables import DEA_ACCESS_RESTO_API_ADMIN_SECRET
-from infra.variables import DEA_ACCESS_RESTO_SECRET
 # [END import_module]
 
 # [START default_args]
@@ -72,8 +71,8 @@ default_args = {
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "secrets": [
-         Secret("env", "API_ADMIN_USERID", DEA_ACCESS_RESTO_SECRET, "API_ADMIN_USERID"),
-         Secret("env", "JWT_PASSPHRASE", DEA_ACCESS_RESTO_SECRET, "JWT_PASSHPRASE"),
+         Secret("env", "API_ADMIN_USERID", DEA_ACCESS_RESTO_API_ADMIN_SECRET, "API_ADMIN_USERID"),
+         Secret("env", "JWT_PASSPHRASE", DEA_ACCESS_RESTO_API_ADMIN_SECRET, "JWT_PASSHPRASE"),
      ],
 }
 # [END default_args]
