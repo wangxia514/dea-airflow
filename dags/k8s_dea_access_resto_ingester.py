@@ -95,11 +95,11 @@ SECRET_ENV = Secret(
 SECRET_ENV_API_USERID = Secret(
     deploy_type="env",
     # The name of the environment variable
-    deploy_target="ADMIN_API_USERID",
+    deploy_target="API_ADMIN_USERID",
     # Name of the Kubernetes Secret
     secret=DEA_ACCESS_RESTO_API_ADMIN_SECRET,
     # Key of a secret stored in this Secret object
-    key="ADMIN_API_USERID",
+    key="API_ADMIN_USERID",
 )
 
 SECRET_ENV_JWT_PASSPHRASE = Secret(
