@@ -92,6 +92,25 @@ SECRET_ENV = Secret(
     key="RESTO_AUTH",
 )
 
+SECRET_ENV_API_USERID = Secret(
+    deploy_type="env",
+    # The name of the environment variable
+    deploy_target="ADMIN_API_USERID",
+    # Name of the Kubernetes Secret
+    secret=DEA_ACCESS_RESTO_API_ADMIN_SECRET,
+    # Key of a secret stored in this Secret object
+    key="ADMIN_API_USERID",
+)
+
+SECRET_ENV_JWT_PASSPHRASE = Secret(
+    deploy_type="env",
+    # The name of the environment variable
+    deploy_target="JWT_PASSPHRASE", # Name of the Kubernetes Secret
+    secret=DEA_ACCESS_RESTO_API_ADMIN_SECRET,
+    # Key of a secret stored in this Secret object
+    key="JWT_PASSPHRASE",
+)
+
 # Collection items to be loaded into resto service from explorer.dea.ga.gov.au/collections
 # TODO: Investigate if this can be fetched from a google doc and loaded with XCom (maybe),
 #       OPS could then just update a google doc and start the pipeline.
@@ -228,7 +247,7 @@ with pipeline:
                         "RESTO_URL": "{{ params.RESTO_URL }}",
                         "COLLECTION_LIST": collection,
                     },
-                    secrets=[SECRET_ENV],
+                    secrets=[SECRET_ENV,SECRET_ENV_API_USERID,SECRET_ENV_JWT_PASSPHRASE],
                     reattach_on_restart=True,
                     resources={
                         "request_cpu": "250m",
