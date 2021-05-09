@@ -114,35 +114,26 @@ SECRET_ENV_JWT_PASSPHRASE = Secret(
 # Collection items to be loaded into resto service from explorer.dea.ga.gov.au/collections
 # TODO: Investigate if this can be fetched from a google doc and loaded with XCom (maybe),
 #       OPS could then just update a google doc and start the pipeline.
-COLLECTIONS_LIST = [
-    "fc_percentile_albers_annual",
-    "ga_ls5t_ard_3",
-    "ga_ls7e_ard_3",
-    "ga_ls8c_ard_3",
-    "high_tide_comp_20p",
-    "high_tide_comp_count",
-    "item_v2",
-    "low_tide_comp_20p",
-    "low_tide_comp_count",
-    "ls5_fc_albers",
-    "ls5_nbart_geomedian_annual",
-    "ls5_nbart_tmad_annual",
-    "ls7_fc_albers",
-    "ls7_nbart_geomedian_annual",
-    "ls7_nbart_tmad_annual",
-    "ls8_barest_earth_mosaic",
-    "ls8_fc_albers",
-    "ls8_nbart_geomedian_annual",
-    "ls8_nbart_tmad_annual",
-    "s2a_ard_granule",
-    "s2b_ard_granule",
-    "wofs_albers",
-    "wofs_annual_summary",
-    "wofs_apr_oct_summary",
-    "wofs_filtered_summary",
-    "wofs_nov_mar_summary",
-    "wofs_summary",
-]
+#read from github dea-config the latest csv file
+url = 'https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/NEMO-1761/workspaces/collections.csv'
+r = requests.get(url, allow_redirects=True)
+
+#read the name and the count columns
+open('collections.csv', 'wb').write(r.content)
+with open('collections.csv', 'rt') as csvfile:
+    # get number of columns
+    for line in csvfile.readlines():
+        array = line.split(',')
+
+    num_columns = len(array)
+    csvfile.seek(0)
+    reader = csv.reader(csvfile, delimiter=',')
+    next(reader, None)  # skip the headers
+    included_cols = [5]
+    COLLECTIONS_LIST = []
+    for row in reader:
+      if row[5] != 'None':
+          COLLECTIONS_LIST.append(row[5])
 
 # [START instantiate_dag]
 pipeline = DAG(
