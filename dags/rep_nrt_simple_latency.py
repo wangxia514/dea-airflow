@@ -4,7 +4,7 @@
 This DAG extracts latest timestamp values for a list of products in AWS ODC. It:
  * Connects to AWS ODC.
  * Runs multiple tasks (1 per product type) querying the latest timestamps for each from AWS ODC.
- * TODO: Inserts a summary of latest timestamps into the reporting DB.
+ * Inserts a summary of latest timestamps into the landsat.derivative_latency table in reporting DB.
 
 """
 
@@ -64,20 +64,20 @@ SELECT_BY_PRODUCT_AND_TIME_RANGE = """
 SELECT_SCHEMA = """SELECT * FROM information_schema.schemata WHERE catalog_name=%s and schema_name=%s;"""
 SELECT_TABLE = """SELECT * FROM information_schema.tables WHERE table_catalog=%s AND table_schema=%s AND table_name=%s;"""
 SELECT_COLUMN = """SELECT * FROM information_schema.columns WHERE table_catalog=%s AND table_schema=%s AND table_name=%s AND column_name=%s;"""
-INSERT_LATENCY = """INSERT INTO aws.latency_g0 VALUES (%s, %s, %s, %s);"""
+INSERT_LATENCY = """INSERT INTO landsat.derivative_latency VALUES (%s, %s, %s, %s);"""
 STRUCTURE = {
     "database": {
         "name": "reporting",
         "schemas": [
             {
-                "name": "aws",
+                "name": "landsat",
                 "tables": [
                     {
-                        "name": "latency_g0",
+                        "name": "derivative_latency",
                         "columns": [
                             {"name": "product"},
-                            {"name": "latest_sat_acq_ts"},
-                            {"name": "latest_processing_ts"},
+                            {"name": "sat_acq_date"},
+                            {"name": "processing_date"},
                             {"name": "last_updated"},
                         ],
                     }
@@ -161,6 +161,17 @@ with dag:
         Task to query AWS ODC with supplied `product_name` and insert a summary of latest timestamps into reporting DB
         """
 
+        execution_date = dt(
+            execution_date.year,
+            execution_date.month,
+            execution_date.day,
+            execution_date.hour,
+            execution_date.minute,
+            execution_date.second,
+            execution_date.microsecond,
+            tzinfo=execution_date.tz,
+        )
+
         log.info(
             "Starting Task for: {}@{}".format(product_name, execution_date.isoformat())
         )
@@ -222,9 +233,17 @@ with dag:
         log.info("Latest Processing Time Stamp: {}".format(latest_processing_ts))
 
         # Insert latest processing and satellite acquisition time for current execution time into reporting database
+        # for landsat.dervivative data the table is not TZ aware acq_date and processing_date are in UTC, last_updated is in AEST.
         rep_cursor.execute(
             INSERT_LATENCY,
-            (product_name, latest_sat_acq_ts, latest_processing_ts, execution_date),
+            (
+                product_name,
+                latest_sat_acq_ts.astimezone(tz=timezone.utc).replace(tzinfo=None),
+                latest_processing_ts.astimezone(tz=timezone.utc).replace(tzinfo=None),
+                execution_date.astimezone(
+                    tz=timezone(timedelta(hours=10), name="AEST")
+                ).replace(tzinfo=None),
+            ),
         )
         rep_conn.commit()
         log.info("REP Executed SQL: {}".format(rep_cursor.query.decode()))
