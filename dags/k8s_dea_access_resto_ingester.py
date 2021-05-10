@@ -56,6 +56,8 @@ from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.operators.dummy_operator import DummyOperator
 from infra.variables import DEA_ACCESS_RESTO_API_ADMIN_SECRET
+import requests
+import csv
 # [END import_module]
 
 # [START default_args]
