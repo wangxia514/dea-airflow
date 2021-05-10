@@ -115,7 +115,7 @@ SECRET_ENV_JWT_PASSPHRASE = Secret(
 # TODO: Investigate if this can be fetched from a google doc and loaded with XCom (maybe),
 #       OPS could then just update a google doc and start the pipeline.
 #read from github dea-config the latest csv file
-url = 'https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/NEMO-1761/workspaces/collections.csv'
+url = 'https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/develop/workspaces/collections.csv'
 r = requests.get(url, allow_redirects=True)
 
 #read the name and the count columns
@@ -123,8 +123,8 @@ open('collections.csv', 'wb').write(r.content)
 with open('collections.csv', 'rt') as csvfile:
     # get number of columns
     for line in csvfile.readlines():
-        array = line.split(',')
-
+       array = line.split(',')
+    
     num_columns = len(array)
     csvfile.seek(0)
     reader = csv.reader(csvfile, delimiter=',')
@@ -132,7 +132,7 @@ with open('collections.csv', 'rt') as csvfile:
     included_cols = [5]
     COLLECTIONS_LIST = []
     for row in reader:
-      if row[5] != 'None':
+       if row[5] != 'None':
           COLLECTIONS_LIST.append(row[5])
 
 # [START instantiate_dag]
