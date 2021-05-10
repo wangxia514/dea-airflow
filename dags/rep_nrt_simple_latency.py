@@ -161,6 +161,7 @@ with dag:
         Task to query AWS ODC with supplied `product_name` and insert a summary of latest timestamps into reporting DB
         """
 
+        # Convert pendulum to python datetime to make stripping timezone possible
         execution_date = dt(
             execution_date.year,
             execution_date.month,

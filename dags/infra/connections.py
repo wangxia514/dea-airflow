@@ -3,6 +3,8 @@
 """
 
 DB_ODC_READER_CONN = "db_odc_reader"  # qa
+DB_REP_WRITER_CONN = "db_rep_writer"
+
 AWS_SENTINEL_2_ARD_SYNC_CONN = "sentinel_2_ard_sync_user"  # qa
 
 # AWS CONN Alignment
