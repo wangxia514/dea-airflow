@@ -10,7 +10,7 @@ This DAG extracts latest timestamp values for a list of products in AWS ODC. It:
 
 import logging
 from datetime import datetime as dt
-from datetime import timedelta, timezone
+from datetime import timedelta, timezone, date
 
 from airflow import DAG
 from airflow.utils.dates import days_ago
@@ -28,7 +28,7 @@ rep_pg_hook = PostgresHook(postgres_conn_id=DB_REP_WRITER_CONN)
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": days_ago(0),
+    "start_date": dt(2021, 5, 1, tzinfo=timezone.utc),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
