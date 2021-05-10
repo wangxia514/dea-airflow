@@ -4,13 +4,13 @@
 This DAG extracts latest timestamp values for a list of products in AWS ODC. It:
  * Connects to AWS ODC.
  * Runs multiple tasks (1 per product type) querying the latest timestamps for each from AWS ODC.
- * TODO: Inserts a summary of latest timestamps into the reporting DB.
+ * Inserts a summary of latest timestamps into the landsat.derivative_latency table in reporting DB.
 
 """
 
 import logging
 from datetime import datetime as dt
-from datetime import timedelta, timezone
+from datetime import timedelta, timezone, date
 
 from airflow import DAG
 from airflow.utils.dates import days_ago
@@ -18,16 +18,17 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.hooks.postgres_hook import PostgresHook
 
-from infra.connections import DB_ODC_READER_CONN
+from infra.connections import DB_ODC_READER_CONN, DB_REP_WRITER_CONN
 
 log = logging.getLogger("airflow.task")
 
 odc_pg_hook = PostgresHook(postgres_conn_id=DB_ODC_READER_CONN)
+rep_pg_hook = PostgresHook(postgres_conn_id=DB_REP_WRITER_CONN)
 
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": days_ago(0),
+    "start_date": dt(2021, 5, 1, tzinfo=timezone.utc),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
@@ -60,8 +61,99 @@ SELECT_BY_PRODUCT_AND_TIME_RANGE = """
     AND
         dataset.added <= %s;
 """
+SELECT_SCHEMA = """SELECT * FROM information_schema.schemata WHERE catalog_name=%s and schema_name=%s;"""
+SELECT_TABLE = """SELECT * FROM information_schema.tables WHERE table_catalog=%s AND table_schema=%s AND table_name=%s;"""
+SELECT_COLUMN = """SELECT * FROM information_schema.columns WHERE table_catalog=%s AND table_schema=%s AND table_name=%s AND column_name=%s;"""
+INSERT_LATENCY = """INSERT INTO landsat.derivative_latency VALUES (%s, %s, %s, %s);"""
+STRUCTURE = {
+    "database": {
+        "name": "reporting",
+        "schemas": [
+            {
+                "name": "landsat",
+                "tables": [
+                    {
+                        "name": "derivative_latency",
+                        "columns": [
+                            {"name": "product"},
+                            {"name": "sat_acq_date"},
+                            {"name": "processing_date"},
+                            {"name": "last_updated"},
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+}
+
+
+def db_has_object(rep_cursor, sql, query_args):
+    """
+    Tests if an SQL query returns any rows, returns boolean
+    """
+    rep_cursor.execute(sql, query_args)
+    if rep_cursor.rowcount == 0:
+        return False
+    return True
+
 
 with dag:
+
+    # Task callable
+    def check_db_structure():
+        """
+        Task to check that the schema in reporting db has the correct tables, columns, fields before progressing
+        """
+        rep_conn = rep_pg_hook.get_conn()
+        rep_cursor = rep_conn.cursor()
+        database = STRUCTURE["database"]
+        structure_good = True
+        for schema in database["schemas"]:
+            result = db_has_object(
+                rep_cursor, SELECT_SCHEMA, (database["name"], schema["name"])
+            )
+            if not result:
+                structure_good = False
+            log.info(
+                "Test database '{}' has schema '{}: {}".format(
+                    database["name"], schema["name"], result
+                )
+            )
+            for table in schema["tables"]:
+                result = db_has_object(
+                    rep_cursor,
+                    SELECT_TABLE,
+                    (database["name"], schema["name"], table["name"]),
+                )
+                if not result:
+                    structure_good = False
+                log.info(
+                    "Test schema '{}' has table '{}: {}".format(
+                        schema["name"], table["name"], result
+                    )
+                )
+                for column in table["columns"]:
+                    result = db_has_object(
+                        rep_cursor,
+                        SELECT_COLUMN,
+                        (
+                            database["name"],
+                            schema["name"],
+                            table["name"],
+                            column["name"],
+                        ),
+                    )
+                    if not result:
+                        structure_good = False
+                    log.info(
+                        "Test table '{}' has column '{}: {}".format(
+                            table["name"], column["name"], result
+                        )
+                    )
+        if not structure_good:
+            raise Exception("Database structure does not match structure definition")
+        return "Database structure check passed"
 
     # Task callable
     def nrt_simple_latency(execution_date, product_name, **kwargs):
@@ -69,12 +161,27 @@ with dag:
         Task to query AWS ODC with supplied `product_name` and insert a summary of latest timestamps into reporting DB
         """
 
+        # Convert pendulum to python datetime to make stripping timezone possible
+        execution_date = dt(
+            execution_date.year,
+            execution_date.month,
+            execution_date.day,
+            execution_date.hour,
+            execution_date.minute,
+            execution_date.second,
+            execution_date.microsecond,
+            tzinfo=execution_date.tz,
+        )
+
         log.info(
             "Starting Task for: {}@{}".format(product_name, execution_date.isoformat())
         )
 
         # open the connection to the AWS ODC and get a cursor
         odc_cursor = odc_pg_hook.get_conn().cursor()
+        # open the connection to the Reporting DB and get a cursor
+        rep_conn = rep_pg_hook.get_conn()
+        rep_cursor = rep_conn.cursor()
 
         # List of days in the past to check latency on
         timedelta_list = [5, 15, 30, 90]
@@ -126,10 +233,32 @@ with dag:
         log.info("Latest Satellite Acquisition Time: {}".format(latest_sat_acq_ts))
         log.info("Latest Processing Time Stamp: {}".format(latest_processing_ts))
 
+        # Insert latest processing and satellite acquisition time for current execution time into reporting database
+        # for landsat.dervivative data the table is not TZ aware acq_date and processing_date are in UTC, last_updated is in AEST.
+        rep_cursor.execute(
+            INSERT_LATENCY,
+            (
+                product_name,
+                latest_sat_acq_ts.astimezone(tz=timezone.utc).replace(tzinfo=None),
+                latest_processing_ts.astimezone(tz=timezone.utc).replace(tzinfo=None),
+                execution_date.astimezone(
+                    tz=timezone(timedelta(hours=10), name="AEST")
+                ).replace(tzinfo=None),
+            ),
+        )
+        rep_conn.commit()
+        log.info("REP Executed SQL: {}".format(rep_cursor.query.decode()))
+        log.info("REP returned: {}".format(rep_cursor.statusmessage))
+
         return "Completed latency for {}".format(product_name)
 
     # Product list to extract the metric for, could potentially be part of dag configuration and managed in airflow UI?
     products_list = ["s2a_nrt_granule", "s2b_nrt_granule"]
+
+    ## Tasks
+    check_db = PythonOperator(
+        task_id="check_db_structure", python_callable=check_db_structure
+    )
 
     def create_task(product_name):
         """
@@ -142,4 +271,4 @@ with dag:
             provide_context=True,
         )
 
-    [create_task(product_name) for product_name in products_list]
+    check_db >> [create_task(product_name) for product_name in products_list]
