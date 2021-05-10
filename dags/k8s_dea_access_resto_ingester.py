@@ -117,7 +117,7 @@ SECRET_ENV_JWT_PASSPHRASE = Secret(
 # TODO: Investigate if this can be fetched from a google doc and loaded with XCom (maybe),
 #       OPS could then just update a google doc and start the pipeline.
 #read from github dea-config the latest csv file
-url = 'https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/develop/workspaces/collections.csv'
+url = 'https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/master/workspaces/collections.csv'
 r = requests.get(url, allow_redirects=True)
 
 #read the name and the count columns
