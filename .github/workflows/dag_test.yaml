@@ -52,6 +52,14 @@ jobs:
           pip install pylint pylint-airflow
           pip install -r requirements.txt
           pylint --load-plugins=pylint_airflow --disable=C,W --disable=similarities dags
+      - name: setup airflow and check dags list
+        run: |
+          export AIRFLOW__CORE__LOAD_EXAMPLES="False"
+          export AIRFLOW__CORE__PLUGINS_FOLDER="/home/runner/work/dea-airflow/dea-airflow/plugins"
+          export AIRFLOW__CORE__DAGS_FOLDER="/home/runner/work/dea-airflow/dea-airflow/dags"
+
+          airflow db init
+
       - name: run tests on dags
         run: |
           export PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}${PWD}/dags"
