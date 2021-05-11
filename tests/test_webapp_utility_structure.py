@@ -19,10 +19,8 @@ class testClass(unittest.TestCase):
     def test_dag(self):
         self.assertDagDictEqual(
             {
-                "DummyInstruction_0": ["DummyInstruction_1"],
-                "DummyInstruction_1": ["DummyInstruction_2"],
-                "DummyInstruction_2": ["DummyInstruction_3"],
-                "DummyInstruction_3": [],
+                "parse_dagrun_conf": [],
+                "run-ows-update-ranges": [],
             },
             dag,
         )
