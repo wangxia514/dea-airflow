@@ -1,5 +1,5 @@
 import unittest
-from dags.utility.utility_ows_update_extent import dag
+from utility.utility_ows_update_extent import dag
 
 
 class testClass(unittest.TestCase):
