@@ -19,7 +19,7 @@ class testClass(unittest.TestCase):
     def test_dag(self):
         self.assertDagDictEqual(
             {
-                "parse_dagrun_conf": [],
+                "parse_dagrun_conf": ["run-ows-update-ranges"],
                 "run-ows-update-ranges": [],
             },
             dag,
