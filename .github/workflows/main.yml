@@ -76,3 +76,9 @@ jobs:
       #     export PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}${PWD}/plugins"
       #     pip install -r requirements-dev.txt
       #     pytest tests
+
+      - name: run tests on dags
+        run: |
+          export PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}${PWD}/dags"
+          pip install -r requirements-dev.txt
+          pytest tests/test_webapp_utility_structure.py
