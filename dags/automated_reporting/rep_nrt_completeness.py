@@ -20,6 +20,7 @@ from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from airflow.hooks.postgres_hook import PostgresHook
 from airflow.hooks.S3_hook import S3Hook
+from airflow.models import Variable
 
 from infra.connections import DB_ODC_READER_CONN, DB_REP_WRITER_CONN, S3_REP_CONN
 from infra.variables import COP_API_REP_CREDS
@@ -41,6 +42,7 @@ default_args = {
     "email_on_retry": False,
     "retries": 2,
     "retry_delay": timedelta(minutes=5),
+    "copernicus_api_creds": Variable.get(COP_API_REP_CREDS, deserialize_json=True),
 }
 
 dag = DAG(
@@ -65,6 +67,7 @@ with dag:
         ###########
         ### Query Copernicus API for for all S2 L1 products for last X days
         ###########
+        copernicus_api_creds = default_args["copernicus_api_creds"]
 
         # base Copernicus API url and query, needs query arguments inserted
         cop_url = 'https://scihub.copernicus.eu/dhus/search?q=ingestiondate:[{} TO {}] AND \
@@ -91,7 +94,8 @@ with dag:
             Perform a GET to copernicus api for paged inventory data
             """
             return requests.get(
-                url, auth=(COP_API_REP_CREDS["user"], COP_API_REP_CREDS["password"])
+                url,
+                auth=(copernicus_api_creds["user"], copernicus_api_creds["password"]),
             )
 
         def format_url(offset=0):
