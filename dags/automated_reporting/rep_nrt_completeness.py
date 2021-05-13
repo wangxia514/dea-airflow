@@ -2,10 +2,12 @@
 # Completeness metric on CaRSA nrt products: AWS ODC/Sentinel Catalog -> AIRFLOW -> Reporting DB
 
 This DAG extracts latest timestamp values for a list of products in AWS ODC. It:
- * Connects to AWS ODC and downloads.
+ * Checks relavent table and columns are present in reporting DB.
  * Downloads latest product list from Sentinel API (Copernicus).
- * Runs multiple tasks (1 per product type) querying the completeness.
- * Inserts a summary of latest timestamps into the landsat.derivative_latency table in reporting DB.
+ * Downloads a list of tiles in AOI from S3.
+ * Connects to AWS ODC and downloads products list.
+ * Iterates through tile list and computes completeness for each.
+ * Inserts results into reporting DB [TODO].
 
 """
 import logging
@@ -43,7 +45,8 @@ default_args = {
 
 dag = DAG(
     "rep_nrt_completeness",
-    description="Completeness metric on Sentinel nrt products: AWS ODC/Sentinel Catalog -> AIRFLOW -> Reporting DB",
+    description="Completeness metric on Sentinel nrt products: AWS ODC/Sentinel Catalog \
+        -> AIRFLOW -> Reporting DB",
     tags=["reporting"],
     default_args=default_args,
     schedule_interval=timedelta(minutes=15),
@@ -64,7 +67,8 @@ with dag:
         ###########
 
         # base Copernicus API url and query, needs query arguments inserted
-        cop_url = 'https://scihub.copernicus.eu/dhus/search?q=ingestiondate:[{} TO {}] AND producttype:{} AND footprint:"Intersects({})"&start={}&rows=100&format=json'
+        cop_url = 'https://scihub.copernicus.eu/dhus/search?q=ingestiondate:[{} TO {}] AND \
+            producttype:{} AND footprint:"Intersects({})"&start={}&rows=100&format=json'
 
         # gets dates in a format suitable for Copernicus API
         cop_start_time = (execution_date - timedelta(days=days)).astimezone(
@@ -76,8 +80,8 @@ with dag:
         )
 
         log.info(
-            "Querying Sentinel/Copernicus API between {} - {}".format(
-                cop_start_time, cop_end_time
+            "Querying Copernicus API between {} - {} for {}".format(
+                cop_start_time, cop_end_time, producttype
             )
         )
 
@@ -151,7 +155,9 @@ with dag:
             raise Exception("Sentinel API Failed: {}".format(resp.status_code))
 
         log.info(
-            "Completed in {} seconds".format((dt.now() - start_time).total_seconds())
+            "Copernicus API download completed in {} seconds".format(
+                (dt.now() - start_time).total_seconds()
+            )
         )
 
         ###########
@@ -161,6 +167,7 @@ with dag:
         aoi_tiles = s3_hook.read_key(
             "aus_aoi_tile.txt", bucket_name="automated-reporting-airflow"
         ).splitlines()
+        log.info("Downloaded AOI tile list: {} tiles found".format(len(aoi_tiles)))
 
         ###########
         ### Query ODC for all S2 L1 products for last 30 days
@@ -176,7 +183,8 @@ with dag:
                 start_time.isoformat(), odc_end_time.isoformat()
             )
         )
-        # extact a processing and acquisition timestamps from AWS for product and timerange, print logs of query and row count
+        # extact a processing and acquisition timestamps from AWS for product and timerange,
+        # print logs of query and row count
 
         # open the connection to the AWS ODC and get a cursor
         odc_cursor = odc_pg_hook.get_conn().cursor()
@@ -184,15 +192,15 @@ with dag:
             SELECT_BY_PRODUCT_LIST_AND_TIME_RANGE,
             ("s2a_nrt_granule", "s2b_nrt_granule", odc_start_time, odc_end_time),
         )
-        log.info("ODC Query for: {} days".format(days))
-        log.info("ODC Executed SQL: {}".format(odc_cursor.query.decode()))
+        log.debug("ODC Executed SQL: {}".format(odc_cursor.query.decode()))
         log.info("ODC query returned: {} rows".format(odc_cursor.rowcount))
 
         # if nothing is returned in the given timeframe, loop again and go back further in time
         if odc_cursor.rowcount == 0:
             raise Exception("ODC query error, no data returned")
 
-        # Find the latest values for sat_acq and processing in the returned rows by updating latest_sat_acq_ts and latest_processing_ts
+        # Find the latest values for sat_acq and processing in the returned rows by updating
+        # latest_sat_acq_ts and latest_processing_ts
         odc_products = []
         for row in odc_cursor:
             id, indexed_time, granule_id, tile_id, sat_acq_ts, processing_ts = row
@@ -208,6 +216,7 @@ with dag:
         ###########
         ### Compute completeness and latency for every tile in AOI
         ###########
+        log.info("Computing completeness")
         output = list()
         for tile_id in aoi_tiles:
             t_s2_inventory = list(
@@ -245,12 +254,20 @@ with dag:
         total_missing = sum([x["missing"] for x in output])
         total_products = sum([x["total"] for x in output])
 
-        print(total_inventory, total_missing, total_products)
+        log.info("Completeness complete")
+        log.info("Total inventory: {}".format(total_inventory))
+        log.info("Total missing: {}".format(total_missing))
+        log.info("Total products: {}".format(total_products))
 
         ###########
         ### Insert completeness into reporting DB
         ###########
-        rep_pg_hook = PostgresHook(postgres_conn_id=DB_REP_WRITER_CONN)
+        log.info(
+            "Inserting completeness output to reporting DB: {} records".format(
+                len(output)
+            )
+        )
+        # rep_pg_hook = PostgresHook(postgres_conn_id=DB_REP_WRITER_CONN)
 
         return None
 
@@ -265,7 +282,8 @@ with dag:
     )
 
     op_kwargs = {
-        "aoi_polygon": "POLYGON((147.00 -44.93, 161.66 -32.15, 161.24 -16.65, 145.16 -8.17, 119.67 -11.63, 111.24 -22.15, 113.96 -36.60, 147.00 -44.93))",
+        "aoi_polygon": "POLYGON((147.00 -44.93, 161.66 -32.15, 161.24 -16.65, 145.16 -8.17, \
+            119.67 -11.63, 111.24 -22.15, 113.96 -36.60, 147.00 -44.93))",
         "producttype": "S2MSI1C",
         "days": 30,
     }
