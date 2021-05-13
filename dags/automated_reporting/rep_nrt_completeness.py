@@ -299,4 +299,5 @@ with dag:
         provide_context=True,
     )
 
-    check_db >> compute_sentinel_completness
+    # check_db >> compute_sentinel_completness
+    compute_sentinel_completness
