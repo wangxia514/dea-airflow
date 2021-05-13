@@ -1,8 +1,10 @@
 """
 infra provided connids
 """
+# Automated reporting connections
 DB_ODC_READER_CONN = "db_odc_reader"
 DB_REP_WRITER_CONN = "db_rep_writer"
+S3_REP_CONN = "s3_bucket_rep"
 
 # AWS CONN Alignment
 AWS_NCI_DB_BACKUP_CONN = "aws_nci_db_backup_s3"

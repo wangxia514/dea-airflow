@@ -1,0 +1,27 @@
+"""
+SQL commands for automated reporting dags
+"""
+
+SELECT_BY_PRODUCT_LIST_AND_TIME_RANGE = """
+    SELECT
+        dataset.id,
+        dataset.added AS indexed_time,
+        dataset.metadata #>> '{tile_id}'::text[] as granule_id,
+        RIGHT(SPLIT_PART(dataset.metadata #>> '{{tile_id}}'::text[], '_', 9), 5) as tile_id,
+        agdc.common_timestamp(dataset.metadata #>> '{extent,center_dt}'::text[]) as satellite_acquisition_time,
+        agdc.common_timestamp(dataset.metadata #>> '{system_information,time_processed}'::text[]) AS processing_time
+    FROM agdc.dataset
+        JOIN agdc.dataset_type ON dataset_type.id = dataset.dataset_type_ref
+    WHERE
+        dataset.archived IS NULL
+    AND
+        dataset_type.name in (%s,%s)
+    AND
+        dataset.added >= %s
+    AND
+        dataset.added <= %s;
+"""
+SELECT_SCHEMA = """SELECT * FROM information_schema.schemata WHERE catalog_name=%s and schema_name=%s;"""
+SELECT_TABLE = """SELECT * FROM information_schema.tables WHERE table_catalog=%s AND table_schema=%s AND table_name=%s;"""
+SELECT_COLUMN = """SELECT * FROM information_schema.columns WHERE table_catalog=%s AND table_schema=%s AND table_name=%s AND column_name=%s;"""
+INSERT_LATENCY = """INSERT INTO landsat.derivative_latency VALUES (%s, %s, %s, %s);"""
