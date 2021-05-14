@@ -41,7 +41,7 @@ COMMON = dedent("""
 
 default_args = {
     'owner': 'Kieran Ricardo',
-    'start_date': datetime(2018, 9, 12, tzinfo=local_tz), # earliest date in nci DB is 2016-06-29
+    'start_date': datetime(2016, 6, 1, tzinfo=local_tz), # earliest date in nci DB is 2016-06-29
     'retries': 1,
     'retry_delay': timedelta(minutes=5),
     'email_on_failure': False,
@@ -51,7 +51,7 @@ default_args = {
 }
 
 dag = DAG(
-    'nbart_nci_s2_upload_s3_v2',
+    'nbart_nci_s2_upload_s3_v3',
     doc_md=__doc__,
     default_args=default_args,
     catchup=True,
