@@ -231,7 +231,7 @@ with dag:
             missing = [
                 x["uuid"]
                 for x in t_s2_inventory
-                if x["uuid"] not in [y["uuid"] for y in t_odc_products]
+                if x["granule_id"] not in [y["granule_id"] for y in t_odc_products]
             ]
             latest_sat_acq_time = None
             latest_processing_time = None
@@ -249,7 +249,7 @@ with dag:
                 "total": len(t_odc_products),
                 "latest_sat_acq_time": latest_sat_acq_time,
                 "latest_processing_time": latest_processing_time,
-                "missing_uuids": ", ".join(missing),
+                "missing_ids": ", ".join(missing),
             }
             output.append(t_output)
 
