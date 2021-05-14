@@ -42,7 +42,6 @@ default_args = {
     "email_on_retry": False,
     "retries": 2,
     "retry_delay": timedelta(minutes=5),
-    "copernicus_api_creds": Variable.get(COP_API_REP_CREDS, deserialize_json=True),
 }
 
 dag = DAG(
@@ -67,7 +66,7 @@ with dag:
         ###########
         ### Query Copernicus API for for all S2 L1 products for last X days
         ###########
-        copernicus_api_creds = default_args["copernicus_api_creds"]
+        copernicus_api_creds = Variable.get(COP_API_REP_CREDS, deserialize_json=True)
 
         # base Copernicus API url and query, needs query arguments inserted
         cop_url = 'https://scihub.copernicus.eu/dhus/search?q=ingestiondate:[{} TO {}] AND \
