@@ -229,7 +229,7 @@ with dag:
                 filter(lambda x: x["tile_id"] == tile_id, odc_products)
             )
             missing = [
-                x["uuid"]
+                x["granule_id"]
                 for x in t_s2_inventory
                 if x["granule_id"] not in [y["granule_id"] for y in t_odc_products]
             ]
@@ -249,13 +249,22 @@ with dag:
                 "total": len(t_odc_products),
                 "latest_sat_acq_time": latest_sat_acq_time,
                 "latest_processing_time": latest_processing_time,
-                "missing_ids": ", ".join(missing),
+                "missing_ids": missing,
             }
             output.append(t_output)
 
         total_inventory = sum([x["inventory"] for x in output])
         total_missing = sum([x["missing"] for x in output])
         total_products = sum([x["total"] for x in output])
+
+        for record in output:
+            log.info(
+                "{} - {}:{}".format(
+                    record["tile_id"], record["inventory"], record["missing"]
+                )
+            )
+            for product_id in record["missing_ids"]:
+                log.info("    Missing:{}".format(product_id))
 
         log.info("Completeness complete")
         log.info("Total inventory: {}".format(total_inventory))
