@@ -138,6 +138,8 @@ with dag:
             for resp in responses:
                 if resp.ok:
                     data = resp.json()["feed"]
+                    if type(data["entry"]) == dict:
+                        data["entry"] = [data["entry"]]
                     for entry in data["entry"]:
                         row = {
                             "uuid": entry["id"],
