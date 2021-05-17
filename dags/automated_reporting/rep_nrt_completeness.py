@@ -38,7 +38,7 @@ default_args = {
     "depends_on_past": False,
     "start_date": dt(2021, 5, 1, tzinfo=timezone.utc),
     "email": ["tom.mcadam@ga.gov.au"],
-    "email_on_failure": True,
+    "email_on_failure": False,
     "email_on_retry": False,
     "retries": 2,
     "retry_delay": timedelta(minutes=5),
