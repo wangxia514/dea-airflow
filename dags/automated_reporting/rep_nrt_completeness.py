@@ -302,12 +302,11 @@ with dag:
         "days": 30,
     }
 
-    compute_sentinel_completness = PythonOperator(
+    compute_sentinel_completeness = PythonOperator(
         task_id="compute_sentinel_completeness",
         python_callable=sentinel_completeness,
         op_kwargs=op_kwargs,
         provide_context=True,
     )
 
-    # check_db >> compute_sentinel_completness
-    compute_sentinel_completness
+    check_db >> compute_sentinel_completeness
