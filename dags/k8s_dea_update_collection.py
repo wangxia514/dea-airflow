@@ -99,7 +99,7 @@ with pipeline:
          name="dea-access-collection-updater",
          task_id="task_collection_updater",  # task_0_0_fc_percentile_albers_annual
          image_pull_policy="Always",
-         image=UPDATE_COLLECTOR_IMAGE,
+         image=UPDATE_COLLECTION_IMAGE,
          is_delete_operator_pod=True,  # clean pod
          labels={"runner": "airflow"},
          env_vars={
