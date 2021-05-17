@@ -7,7 +7,7 @@ This DAG extracts latest timestamp values for a list of products in AWS ODC. It:
  * Downloads a list of tiles in AOI from S3.
  * Connects to AWS ODC and downloads products list.
  * Iterates through tile list and computes completeness for each.
- * Inserts results into reporting DB [TODO].
+ * Inserts results into reporting DB.
 
 """
 import logging
@@ -27,7 +27,11 @@ from infra.variables import COP_API_REP_CREDS
 
 from automated_reporting.tasks import check_db_schema
 from automated_reporting.schemas import COMPLETENESS_SCHEMA
-from automated_reporting.sql import SELECT_BY_PRODUCT_LIST_AND_TIME_RANGE
+from automated_reporting.sql import (
+    SELECT_BY_PRODUCT_LIST_AND_TIME_RANGE,
+    INSERT_COMPLETENESS,
+    INSERT_COMPLETENESS_MISSING,
+)
 from automated_reporting.helpers import python_dt
 from automated_reporting.aoi import AOI_POLYGON
 
@@ -231,7 +235,7 @@ with dag:
             t_odc_products = list(
                 filter(lambda x: x["tile_id"] == tile_id, odc_products)
             )
-            missing = [
+            missing_ids = [
                 x["granule_id"]
                 for x in t_s2_inventory
                 if x["granule_id"] not in [y["granule_id"] for y in t_odc_products]
@@ -245,34 +249,56 @@ with dag:
                 latest_processing_time = max(
                     t_odc_products, key=lambda x: x["processing_dt"]
                 )["processing_dt"]
+
+            missing = len(missing_ids)
+            expected = len(t_s2_inventory)
+            actual = expected - missing
+            try:
+                completeness = (float(actual) / float(expected)) * 100
+            except ZeroDivisionError as e:
+                completeness = 100.0
+
             t_output = {
                 "tile_id": tile_id,
-                "inventory": len(t_s2_inventory),
-                "missing": len(missing),
-                "total": len(t_odc_products),
-                "latest_sat_acq_time": latest_sat_acq_time,
-                "latest_processing_time": latest_processing_time,
-                "missing_ids": missing,
+                "completeness": completeness,
+                "expected": expected,
+                "missing": missing,
+                "actual": actual,
+                "latest_sat_acq_ts": latest_sat_acq_time,
+                "latest_processing_ts": latest_processing_time,
+                "missing_ids": missing_ids,
             }
             output.append(t_output)
 
-        total_inventory = sum([x["inventory"] for x in output])
+        # calculate summary stats for whole of aoi
+        total_expected = sum([x["expected"] for x in output])
         total_missing = sum([x["missing"] for x in output])
-        total_products = sum([x["total"] for x in output])
+        total_actual = sum([x["actual"] for x in output])
+        latest_sat_acq_ts = max(
+            filter(lambda x: x["latest_sat_acq_ts"] != None, output),
+            key=lambda x: x["latest_sat_acq_ts"],
+        )["latest_sat_acq_ts"]
+        latest_processing_ts = max(
+            filter(lambda x: x["latest_processing_ts"] != None, output),
+            key=lambda x: x["latest_processing_ts"],
+        )["latest_processing_ts"]
 
         for record in output:
             log.info(
-                "{} - {}:{}".format(
-                    record["tile_id"], record["inventory"], record["missing"]
+                "{} - {}:{}:{}".format(
+                    record["tile_id"],
+                    record["expected"],
+                    record["actual"],
+                    record["missing"],
                 )
             )
             for product_id in record["missing_ids"]:
                 log.info("    Missing:{}".format(product_id))
 
         log.info("Completeness complete")
-        log.info("Total inventory: {}".format(total_inventory))
+        log.info("Total expected: {}".format(total_expected))
         log.info("Total missing: {}".format(total_missing))
-        log.info("Total products: {}".format(total_products))
+        log.info("Total actual: {}".format(total_actual))
 
         ###########
         ### Insert completeness into reporting DB
@@ -282,8 +308,33 @@ with dag:
                 len(output)
             )
         )
-        # rep_pg_hook = PostgresHook(postgres_conn_id=DB_REP_WRITER_CONN)
-
+        rep_pg_hook = PostgresHook(postgres_conn_id=DB_REP_WRITER_CONN)
+        rep_conn = rep_pg_hook.get_conn()
+        rep_cursor = rep_conn.cursor()
+        for record in output:
+            rep_cursor.execute(
+                INSERT_COMPLETENESS,
+                (
+                    record["tile_id"],
+                    record["completeness"],
+                    record["expected"],
+                    record["actual"],
+                    "s2_nrt_l1",
+                    latest_sat_acq_ts,
+                    latest_processing_ts,
+                    execution_date,
+                ),
+            )
+            log.debug("Reporting Executed SQL: {}".format(rep_cursor.query.decode()))
+            last_id = rep_cursor.fetchone()[0]
+            for missing_id in record["missing_ids"]:
+                rep_cursor.execute(
+                    INSERT_COMPLETENESS_MISSING, (last_id, missing_id, execution_date)
+                )
+                log.debug(
+                    "Reporting Executed SQL: {}".format(rep_cursor.query.decode())
+                )
+        rep_conn.commit()
         return None
 
     ## Tasks
