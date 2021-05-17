@@ -29,6 +29,7 @@ from automated_reporting.tasks import check_db_schema
 from automated_reporting.schemas import COMPLETENESS_SCHEMA
 from automated_reporting.sql import SELECT_BY_PRODUCT_LIST_AND_TIME_RANGE
 from automated_reporting.helpers import python_dt
+from automated_reporting.aoi import AOI_POLYGON
 
 
 log = logging.getLogger("airflow.task")
@@ -296,8 +297,7 @@ with dag:
     )
 
     op_kwargs = {
-        "aoi_polygon": "POLYGON((147.00 -44.93, 161.66 -32.15, 161.24 -16.65, 145.16 -8.17, \
-            119.67 -11.63, 111.24 -22.15, 113.96 -36.60, 147.00 -44.93))",
+        "aoi_polygon": AOI_POLYGON,
         "producttype": "S2MSI1C",
         "days": 30,
     }
