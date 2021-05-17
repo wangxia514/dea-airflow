@@ -25,3 +25,11 @@ SELECT_SCHEMA = """SELECT * FROM information_schema.schemata WHERE catalog_name=
 SELECT_TABLE = """SELECT * FROM information_schema.tables WHERE table_catalog=%s AND table_schema=%s AND table_name=%s;"""
 SELECT_COLUMN = """SELECT * FROM information_schema.columns WHERE table_catalog=%s AND table_schema=%s AND table_name=%s AND column_name=%s;"""
 INSERT_LATENCY = """INSERT INTO landsat.derivative_latency VALUES (%s, %s, %s, %s);"""
+INSERT_COMPLETENESS = """
+    INSERT INTO reporting.completeness (geo_ref, completeness, expected_count, actual_count,
+        product_id, sat_acq_time, processing_time, last_updated)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    RETURNING id;"""
+INSERT_COMPLETENESS_MISSING = """
+    INSERT INTO reporting.completeness_missing (completeness_id, dataset_id, last_updated)
+    VALUES (%s, %s, %s);"""
