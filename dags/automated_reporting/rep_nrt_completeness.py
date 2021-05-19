@@ -41,7 +41,7 @@ log = logging.getLogger("airflow.task")
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt(2021, 5, 1, tzinfo=timezone.utc),
+    "start_date": dt(2021, 5, 15, tzinfo=timezone.utc),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
@@ -59,6 +59,134 @@ dag = DAG(
 )
 
 with dag:
+
+    def filter_products_to_region(products, region_id):
+        """Filter odc products to the relavent region"""
+        return list(filter(lambda x: x["region_id"] == region_id, products))
+
+    def get_expected_ids_missing_in_actual(r_expected_products, r_actual_products):
+        """return list of granule_ids in expected, that are missing in actual, for region"""
+        return list(
+            set([x["granule_id"] for x in r_expected_products])
+            - set([y["granule_id"] for y in r_actual_products])
+        )
+
+    def get_products_in_expected_and_actual(r_expected_products, r_actual_products):
+        """return a list of products that are in both expected and actual lists, for region"""
+        actual_ids = list(
+            set([x["granule_id"] for x in r_expected_products])
+            & set([y["granule_id"] for y in r_actual_products])
+        )
+        return list(filter(lambda x: x["granule_id"] in actual_ids, r_actual_products))
+
+    def calculate_metric_for_region(r_expected_products, r_actual_products):
+        """calculate completeness and latency for a single region"""
+
+        # make a list of granule_ids in the expected list, not in not in actual list, for this region
+        missing_ids = get_expected_ids_missing_in_actual(
+            r_expected_products, r_actual_products
+        )
+
+        # filter the actual products list for region to those in expected products for region
+        actual_products = get_products_in_expected_and_actual(
+            r_expected_products, r_actual_products
+        )
+
+        # get latest sat_acq_time and latest_processing_time from odc list for this tile
+        latest_sat_acq_time = None
+        latest_processing_time = None
+
+        if actual_products:
+            latest_sat_acq_time = max(actual_products, key=lambda x: x["center_dt"])[
+                "center_dt"
+            ]
+            latest_processing_time = max(
+                actual_products, key=lambda x: x["processing_dt"]
+            )["processing_dt"]
+
+        # calculate expected, actual, missing and completeness
+        expected = len(r_expected_products)
+        missing = len(missing_ids)
+        actual = expected - missing
+        # if there are no tiles expected show completeness as None/null
+        if expected > 0:
+            completeness = (float(actual) / float(expected)) * 100
+        else:
+            completeness = None
+
+        # add a dictionary representing this tile to the main output list
+        r_output = {
+            "completeness": completeness,
+            "expected": expected,
+            "missing": missing,
+            "actual": actual,
+            "latest_sat_acq_ts": latest_sat_acq_time,
+            "latest_processing_ts": latest_processing_time,
+            "missing_ids": missing_ids,
+        }
+        return r_output
+
+    def calculate_metrics_for_all_regions(aoi_list, expected_products, actual_products):
+        """calculate completeness and latency for every region in AOI"""
+
+        output = list()
+
+        # loop through each tile and compute completeness and latency
+        for region in aoi_list:
+
+            # create lists of products for expected and actual, filtered to this tile
+            r_expected_products = filter_products_to_region(expected_products, region)
+            r_actual_products = filter_products_to_region(actual_products, region)
+
+            # calculate completness and latency for this region
+            t_output = calculate_metric_for_region(
+                r_expected_products, r_actual_products
+            )
+
+            # add the metrics result to output_list
+            t_output["region_id"] = region
+            output.append(t_output)
+
+        return output
+
+    def calculate_summary_stats_for_aoi(output):
+        """calculate summary stats for whole of AOI based on output from each region"""
+
+        summary = dict()
+        # get completeness for whole of aoi
+        summary["expected"] = sum([x["expected"] for x in output])
+        summary["missing"] = sum([x["missing"] for x in output])
+        summary["actual"] = sum([x["actual"] for x in output])
+        if summary["expected"] > 0:
+            summary["completeness"] = completeness = (
+                float(summary["actual"]) / float(summary["expected"])
+            ) * 100
+        else:
+            summary["completeness"] = None
+
+        # get latency for whole of AOI
+        summary["latest_sat_acq_ts"] = None
+        sat_acq_time_list = list(
+            filter(lambda x: x["latest_sat_acq_ts"] != None, output)
+        )
+        if sat_acq_time_list:
+            summary["latest_sat_acq_ts"] = max(
+                sat_acq_time_list,
+                key=lambda x: x["latest_sat_acq_ts"],
+            )["latest_sat_acq_ts"]
+
+        # get latency for whole of AOI
+        summary["latest_processing_ts"] = None
+        processing_time_list = list(
+            filter(lambda x: x["latest_processing_ts"] != None, output)
+        )
+        if processing_time_list:
+            summary["latest_processing_ts"] = max(
+                processing_time_list,
+                key=lambda x: x["latest_processing_ts"],
+            )["latest_processing_ts"]
+
+        return summary
 
     # Task callable
     def sentinel_completeness(execution_date, days, producttype, aoi_polygon, **kwargs):
@@ -119,7 +247,7 @@ with dag:
                     return val["content"]
             return None
 
-        s2_inventory = []
+        expected_products = []
         start_time = dt.now()
 
         # make a first api call with a zero offset
@@ -129,7 +257,8 @@ with dag:
             # start a list of responses
             responses = [resp]
 
-            # use count from first response to build a list of urls for multi-threaded download
+            # use count from first response to build a list of urls for
+            # multi-threaded download
             count = int(resp.json()["feed"]["opensearch:totalResults"])
             log.info("Downloading: {}".format(count))
             urls = [format_url(offset) for offset in range(100, count, 100)]
@@ -139,7 +268,7 @@ with dag:
                 res = executor.map(get, urls)
                 responses += list(res)
 
-            # check responses and extract result in s2_inventory list
+            # check responses and extract result in expected_products list
             for resp in responses:
                 if resp.ok:
                     data = resp.json()["feed"]
@@ -151,15 +280,15 @@ with dag:
                             "granule_id": get_entry_val(
                                 entry, "str", "granuleidentifier"
                             ),
-                            "tile_id": get_entry_val(entry, "str", "tileid"),
+                            "region_id": get_entry_val(entry, "str", "tileid"),
                         }
-                        s2_inventory.append(row)
+                        expected_products.append(row)
                 else:
                     raise Exception("Sentinel API Failed: {}".format(resp.status_code))
-            log.info("Downloaded: {}".format(len(s2_inventory)))
+            log.info("Downloaded: {}".format(len(expected_products)))
 
             # check that the inventory list is the same length as the expected count
-            if count != len(s2_inventory):
+            if count != len(expected_products):
                 raise Exception("Sentinel API Failed: products missing from download")
         else:
             raise Exception("Sentinel API Failed: {}".format(resp.status_code))
@@ -174,10 +303,10 @@ with dag:
         ### Get a optimised tile list of AOI from S3
         ###########
         s3_hook = S3Hook(aws_conn_id=S3_REP_CONN)
-        aoi_tiles = s3_hook.read_key(
+        aoi_list = s3_hook.read_key(
             "aus_aoi_tile.txt", bucket_name="automated-reporting-airflow"
         ).splitlines()
-        log.info("Downloaded AOI tile list: {} tiles found".format(len(aoi_tiles)))
+        log.info("Downloaded AOI tile list: {} tiles found".format(len(aoi_list)))
 
         ###########
         ### Query ODC for all S2 L1 products for last 30 days
@@ -211,94 +340,53 @@ with dag:
 
         # Find the latest values for sat_acq and processing in the returned rows by updating
         # latest_sat_acq_ts and latest_processing_ts
-        odc_products = []
+        actual_products = []
         for row in odc_cursor:
-            id, indexed_time, granule_id, tile_id, sat_acq_ts, processing_ts = row
+            id, indexed_time, granule_id, region_id, sat_acq_ts, processing_ts = row
             row = {
                 "uuid": id,
                 "granule_id": granule_id,
-                "tile_id": tile_id,
+                "region_id": region_id,
                 "center_dt": sat_acq_ts,
                 "processing_dt": processing_ts,
             }
-            odc_products.append(row)
+            actual_products.append(row)
 
         ###########
         ### Compute completeness and latency for every tile in AOI
         ###########
+
         log.info("Computing completeness")
-        output = list()
-        for tile_id in aoi_tiles:
-            t_s2_inventory = list(
-                filter(lambda x: x["tile_id"] == tile_id, s2_inventory)
-            )
-            t_odc_products = list(
-                filter(lambda x: x["tile_id"] == tile_id, odc_products)
-            )
-            missing_ids = [
-                x["granule_id"]
-                for x in t_s2_inventory
-                if x["granule_id"] not in [y["granule_id"] for y in t_odc_products]
-            ]
-            latest_sat_acq_time = None
-            latest_processing_time = None
-            if t_odc_products:
-                latest_sat_acq_time = max(t_odc_products, key=lambda x: x["center_dt"])[
-                    "center_dt"
-                ]
-                latest_processing_time = max(
-                    t_odc_products, key=lambda x: x["processing_dt"]
-                )["processing_dt"]
 
-            missing = len(missing_ids)
-            expected = len(t_s2_inventory)
-            actual = expected - missing
-            try:
-                completeness = (float(actual) / float(expected)) * 100
-            except ZeroDivisionError as e:
-                completeness = 100.0
+        output = calculate_metrics_for_all_regions(
+            aoi_list, expected_products, actual_products
+        )
 
-            t_output = {
-                "tile_id": tile_id,
-                "completeness": completeness,
-                "expected": expected,
-                "missing": missing,
-                "actual": actual,
-                "latest_sat_acq_ts": latest_sat_acq_time,
-                "latest_processing_ts": latest_processing_time,
-                "missing_ids": missing_ids,
-            }
-            output.append(t_output)
-
-        # calculate summary stats for whole of aoi
-        total_expected = sum([x["expected"] for x in output])
-        total_missing = sum([x["missing"] for x in output])
-        total_actual = sum([x["actual"] for x in output])
-        latest_sat_acq_ts = max(
-            filter(lambda x: x["latest_sat_acq_ts"] != None, output),
-            key=lambda x: x["latest_sat_acq_ts"],
-        )["latest_sat_acq_ts"]
-        latest_processing_ts = max(
-            filter(lambda x: x["latest_processing_ts"] != None, output),
-            key=lambda x: x["latest_processing_ts"],
-        )["latest_processing_ts"]
-
+        # log tile level completeness and latency
         for record in output:
             log.info(
                 "{} - {}:{}:{}".format(
-                    record["tile_id"],
+                    record["region_id"],
                     record["expected"],
                     record["actual"],
                     record["missing"],
                 )
             )
+            # log missing granule ids for each tile
             for product_id in record["missing_ids"]:
                 log.info("    Missing:{}".format(product_id))
 
+        # calculate summary stats for whole of AOI
+        summary = calculate_summary_stats_for_aoi(output)
+
+        # log summary completenss and latency
         log.info("Completeness complete")
-        log.info("Total expected: {}".format(total_expected))
-        log.info("Total missing: {}".format(total_missing))
-        log.info("Total actual: {}".format(total_actual))
+        log.info("Total expected: {}".format(summary["expected"]))
+        log.info("Total missing: {}".format(summary["missing"]))
+        log.info("Total actual: {}".format(summary["actual"]))
+        log.info("Total completeness: {}".format(summary["completeness"]))
+        log.info("Latest Sat Acq Time: {}".format(summary["latest_sat_acq_ts"]))
+        log.info("Latest Processing Time: {}".format(summary["latest_processing_ts"]))
 
         ###########
         ### Insert completeness into reporting DB
@@ -308,20 +396,35 @@ with dag:
                 len(output)
             )
         )
+        # get a reporting database connection and cursor
         rep_pg_hook = PostgresHook(postgres_conn_id=DB_REP_WRITER_CONN)
         rep_conn = rep_pg_hook.get_conn()
         rep_cursor = rep_conn.cursor()
+        # insert summary metrics
+        rep_cursor.execute(
+            INSERT_COMPLETENESS,
+            (
+                "all_s2",
+                summary["completeness"],
+                summary["expected"],
+                summary["actual"],
+                "esa_s2_msi_level1c",
+                summary["latest_sat_acq_ts"],
+                summary["latest_processing_ts"],
+                execution_date,
+            ),
+        )
         for record in output:
             rep_cursor.execute(
                 INSERT_COMPLETENESS,
                 (
-                    record["tile_id"],
+                    record["region_id"],
                     record["completeness"],
                     record["expected"],
                     record["actual"],
-                    "s2_nrt_l1",
-                    latest_sat_acq_ts,
-                    latest_processing_ts,
+                    "esa_s2_msi_level1c",
+                    record["latest_sat_acq_ts"],
+                    record["latest_processing_ts"],
                     execution_date,
                 ),
             )
