@@ -209,3 +209,6 @@ logs/
 airflow-webserver.pid
 
 airflow.cfg
+
+# Vscode
+.vscode/
