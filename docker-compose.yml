@@ -48,6 +48,7 @@ services:
       - ./dags:/opt/airflow/dags
       - ./plugins:/opt/airflow/plugins
       - ./scripts:/opt/airflow/scripts
+      - ./tests:/opt/airflow/tests
       - logs/:/opt/airflow/logs
       - ./requirements.txt:/opt/airflow/requirements.txt
       - /dev/urandom:/dev/random   # Required to get non-blocking entropy source
