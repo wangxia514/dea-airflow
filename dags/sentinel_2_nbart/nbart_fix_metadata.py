@@ -7,6 +7,7 @@ from airflow import DAG, configuration
 from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
 from airflow.contrib.operators.ssh_operator import SSHOperator
+from infra.connections import AWS_DEA_PUBLIC_DATA_UPLOAD_CONN
 
 
 HOURS = 60 * 60
@@ -38,7 +39,7 @@ default_args = {
     'email_on_failure': False,
     'email': 'kieran.ricardo@ga.gov.au',
     'ssh_conn_id': 'lpgs_gadi',
-    'aws_conn_id': 'sentinel_2_ard_sync_user',
+    "aws_conn_id": AWS_DEA_PUBLIC_DATA_UPLOAD_CONN,
 }
 
 dag = DAG(
