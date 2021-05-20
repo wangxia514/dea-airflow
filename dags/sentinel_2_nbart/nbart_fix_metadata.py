@@ -43,7 +43,7 @@ default_args = {
 }
 
 dag = DAG(
-    'nbart_nci_s2_upload_s3_v3',
+    'nbart_fix_metadata',
     doc_md=__doc__,
     default_args=default_args,
     catchup=True,
