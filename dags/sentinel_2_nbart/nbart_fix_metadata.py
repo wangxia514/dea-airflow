@@ -57,7 +57,7 @@ with dag:
     upload_uploader_script = SFTPOperator(
         task_id="upload_uploader_script",
         local_filepath=str(Path(configuration.get('core', 'dags_folder')).parent / "scripts/s2_fix_metadata.py"),
-        remote_filepath=WORK_DIR + "/s2_fix_metadata.py",
+        remote_filepath=WORK_DIR + "/{{ds}}/s2_fix_metadata.py",
         operation=SFTPOperation.PUT,
         create_intermediate_dirs=True
     )
@@ -82,7 +82,8 @@ with dag:
             # Export AWS Access key/secret from Airflow connection module
             export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
             export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
-            python3 '{{ work_dir }}/s2_fix_metadata.py' {{ ds }} """),
+            python3 '{{ work_dir }}/s2_fix_metadata.py' {{ ds }} 
+            """),
         remote_host='gadi-dm.nci.org.au',
         params={'aws_hook': aws_hook},
         timeout=10 * HOURS,
