@@ -22,9 +22,8 @@ NCI_DIR = "/g/data/if87/datacube/002/S2_MSI_ARD/packaged"
 
 @click.command()
 @click.argument('date', type=str, nargs=1)
-@click.argument('sns_topic_arn', type=str)
 @click.option('--workers', type=int, default=4)
-def fix_metadata(date, sns_topic_arn, workers):
+def fix_metadata(date, workers):
     uri = f"s3://dea-public-data/baseline/s2a_ard_granule/{date}/**/*.yaml"
 
     fetcher = S3Fetcher(aws_unsigned=True)
@@ -32,10 +31,10 @@ def fix_metadata(date, sns_topic_arn, workers):
     s3_url_stream = (o.url for o in s3_obj_stream)
     data_stream = list(fetcher(s3_url_stream))
     with ThreadPoolExecutor(max_workers=workers) as executor:
-        futures = [executor.submit(process_dataset, s3_obj, sns_topic_arn) for s3_obj in data_stream]
+        futures = [executor.submit(process_dataset, s3_obj) for s3_obj in data_stream]
  
     
-def process_dataset(s3_obj, sns_topic_arn):
+def process_dataset(s3_obj):
     
     session = boto3.session.Session()
     s3_resource = session.resource("s3")
@@ -89,10 +88,6 @@ def process_dataset(s3_obj, sns_topic_arn):
         ACL="bucket-owner-full-control",
         ContentType="application/json"
     )
-
-    message_attributes = get_common_message_attributes(json.loads(stac_dump))
-    message_attributes.update({"action": {"DataType": "String", "StringValue": "ADDED"}})
-    publish_sns(sns_topic_arn, stac_dump, message_attributes, session=session)
 
 
 if __name__ == "__main__":

@@ -8,7 +8,6 @@ from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
 from airflow.contrib.operators.ssh_operator import SSHOperator
 
-from infra.sns_topics import SENTINEL_2_ARD_TOPIC_ARN
 
 HOURS = 60 * 60
 MINUTES = 60
@@ -83,7 +82,7 @@ with dag:
             # Export AWS Access key/secret from Airflow connection module
             export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
             export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
-            python3 '{{ work_dir }}/s2_fix_metadata.py' {{ ds }} """ + f"{SENTINEL_2_ARD_TOPIC_ARN} \n"),
+            python3 '{{ work_dir }}/s2_fix_metadata.py' {{ ds }} """),
         remote_host='gadi-dm.nci.org.au',
         params={'aws_hook': aws_hook},
         timeout=10 * HOURS,
