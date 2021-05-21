@@ -36,9 +36,6 @@ def fix_metadata(date, workers):
     
 def process_dataset(s3_obj):
     
-    session = boto3.session.Session()
-    s3_resource = session.resource("s3")
-    
     s3_eo3_path = s3_obj.url
     s3_stac_path = s3_eo3_path.replace("eo3", "stac")
     s3_stac_path = s3_stac_path.replace("yaml", "json")
@@ -76,7 +73,6 @@ def process_dataset(s3_obj):
     s3_dump(
         eo3_dump, 
         s3_eo3_path, 
-        s3=s3_resource,
         ACL="bucket-owner-full-control",
         ContentType="text/vnd.yaml",
     )
@@ -84,11 +80,10 @@ def process_dataset(s3_obj):
     s3_dump(
         stac_dump, 
         s3_stac_path, 
-        s3=s3_resource,
         ACL="bucket-owner-full-control",
         ContentType="application/json"
     )
 
 
 if __name__ == "__main__":
-    fix_metadata()
+    fix_metadata() 
