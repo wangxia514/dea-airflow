@@ -32,7 +32,11 @@ def fix_metadata(date, workers):
     data_stream = list(fetcher(s3_url_stream))
     with ThreadPoolExecutor(max_workers=workers) as executor:
         futures = [executor.submit(process_dataset, s3_obj) for s3_obj in data_stream]
- 
+        
+        for future in as_completed(futures):
+            if future.exception() is not None:
+                raise future.exception()
+
     
 def process_dataset(s3_obj):
     
@@ -41,7 +45,6 @@ def process_dataset(s3_obj):
     s3_stac_path = s3_stac_path.replace("yaml", "json")
     s3_path = s3_eo3_path.replace("eo3-ARD-METADATA.yaml", "")
 
-    
     nci_path = os.path.join(NCI_DIR, *s3_eo3_path.split('/')[5:-1], "ARD-METADATA.yaml")
     with open(nci_path) as fin:
         eo_metadata = yaml.safe_load(fin)
@@ -86,4 +89,4 @@ def process_dataset(s3_obj):
 
 
 if __name__ == "__main__":
-    fix_metadata() 
+    fix_metadata()
