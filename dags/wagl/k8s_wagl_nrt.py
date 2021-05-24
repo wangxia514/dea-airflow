@@ -58,7 +58,7 @@ SOURCE_BUCKET = "sentinel-s2-l1c"
 TRANSFER_BUCKET = "dea-sandbox-eks-nrt-scene-cache"
 
 BUCKET_REGION = "ap-southeast-2"
-S3_PREFIX = "s3://dea-public-data-dev/L2/sentinel-2-nrt/S2MSIARD/"
+S3_PREFIX = "s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/"
 
 AWS_CONN_ID = AWS_WAGL_NRT_CONN
 
