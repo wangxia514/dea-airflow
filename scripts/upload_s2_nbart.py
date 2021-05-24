@@ -256,6 +256,15 @@ def create_eo3(granule_dir):
     crs, grid_docs, measurement_docs = assembler._measurements.as_geo_docs()
     valid_data = assembler._measurements.consume_and_get_valid_data()
 
+    assembler.properties["odc:region_code"] = metadata["provider"]["reference_code"]
+    assembler.properties["gqa:cep90"] = metadata["gqa"]["residual"]["cep90"]
+    assembler.properties["gqa:error_message"] = metadata["gqa"]["error_message"]
+    assembler.properties["gqa:final_gcp_count"] =metadata["gqa"]["final_gcp_count"]
+    assembler.properties["gqa:ref_source"] = metadata["gqa"]["ref_source"]
+
+    for key in ["abs_iterative_mean", "abs", "iterative_mean", "iterative_stddev", "mean", "stddev"]:
+        assembler.properties[f"gqa:{key}_xy"] = metadata["gqa"]["residual"][key]["xy"]
+
     eo3 = DatasetDoc(
         id=assembler.dataset_id,
         label=assembler.label,
