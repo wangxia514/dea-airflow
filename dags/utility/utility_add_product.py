@@ -169,4 +169,8 @@ with dag:
         ),
     )
 
-    TASK_PLANNER >> [ADD_PRODUCT, INDEXING] >> SET_PRODUCTS >> EXPLORER_SUMMARY
+    TASK_PLANNER >> [
+        ADD_PRODUCT,
+        INDEXING,
+        ADD_PRODUCT >> INDEXING,
+    ] >> SET_PRODUCTS >> EXPLORER_SUMMARY
