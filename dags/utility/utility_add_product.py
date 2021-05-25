@@ -90,9 +90,6 @@ with dag:
         labels={"step": "datacube-product-add"},
         cmds=["datacube"],
         arguments=[
-            # "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
-            # "cemp_insar_alos_displacement",
-            # Jinja templates for arguments
             "product",
             "add",
             "{{ dag_run.conf.product_definition_uri }}",
