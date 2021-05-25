@@ -13,9 +13,7 @@ EXPLORER_IMAGE = (
 
 S3_TO_RDS_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/geoscienceaustralia/s3-to-rds:0.1.4"
 
-WAGL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:patch-20210428-1"
-)
+WAGL_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacubepipelines/legacy-nrt:release-20210525"
 
 # UNSTABLE IMAGES
 EXPLORER_UNSTABLE_IMAGE = "opendatacube/explorer:2.5.0-3-gd9f5a67"
