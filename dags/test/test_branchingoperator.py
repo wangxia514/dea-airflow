@@ -89,4 +89,4 @@ with dag:
         # provide_context=True,
     )
 
-    TASK_PLANNER >> [op1, op2] >> SET_PRODUCTS >> op3
+    TASK_PLANNER >> [op1, op2, op1 >> op2] >> SET_PRODUCTS >> op3
