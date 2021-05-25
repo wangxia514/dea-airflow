@@ -59,6 +59,8 @@ def check_dagrun_config(a, b, **kwargs):
         return "task-a"
     elif b:
         return "task-b"
+    else:
+        return "task-a"
 
 
 SET_REFRESH_PRODUCT_TASK_NAME = "parse_dagrun_conf"
