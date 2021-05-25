@@ -9,7 +9,7 @@ dag_run.conf format:
 
 #### example conf in json format
 
-    "product_defintion_uri": "https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/master/products/lccs/lc_ls_c2.odc-product.yaml",
+    "product_definition_uri": "https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/master/products/lccs/lc_ls_c2.odc-product.yaml",
     "product_name": "lc_ls_landcover_class_cyear_2_0"
 """
 
@@ -69,7 +69,7 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
-    tags=["k8s", "annual", "batch-indexing", "self-service"],
+    tags=["k8s", "add-product", "self-service"],
 )
 
 
@@ -87,7 +87,7 @@ with dag:
         namespace="processing",
         image=INDEXER_IMAGE,
         image_pull_policy="IfNotPresent",
-        labels={"step": "s3-to-rds"},
+        labels={"step": "datacube-product-add"},
         cmds=["datacube"],
         arguments=[
             # "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
