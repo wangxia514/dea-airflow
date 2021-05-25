@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
-from airflow.operator import DummyOperator
+from airflow.operator.dummy import DummyOperator
 
 DAG_NAME = "testing_branchoperator"
 
