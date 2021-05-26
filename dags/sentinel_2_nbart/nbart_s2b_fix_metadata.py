@@ -42,7 +42,7 @@ default_args = {
 }
 
 dag = DAG(
-    'nbart_fix_metadata',
+    'nbart_s2b_fix_metadata',
     doc_md=__doc__,
     default_args=default_args,
     catchup=True,
