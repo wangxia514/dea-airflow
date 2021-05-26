@@ -14,7 +14,7 @@ c2_default_args = {
     'owner': 'Damien Ayers',
     'depends_on_past': False,
     'start_date': c2_start_date,
-    'email': ['damien.ayers@ga.gov.au', "alex.leith@ga.gov.au", "david.gavin@ga.gov.au"],
+    'email': ['damien.ayers@ga.gov.au', "david.gavin@ga.gov.au", "kieran.ricardo@ga.gov.au"],
     'email_on_failure': True,
     'email_on_retry': False,
     'retries': 3,
