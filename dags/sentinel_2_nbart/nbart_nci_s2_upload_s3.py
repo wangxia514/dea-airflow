@@ -34,7 +34,7 @@ COMMON = dedent("""
         set -eu
         # Load the latest stable DEA module
         module use /g/data/v10/public/modules/modulefiles
-        module load dea
+        module load dea/20210527
         # Be verbose and echo what we run
         set -x
 """)
