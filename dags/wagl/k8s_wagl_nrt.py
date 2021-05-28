@@ -388,8 +388,8 @@ with pipeline:
             ),
             get_logs=True,
             resources={
-                "request_cpu": "1600m",
-                "request_memory": "15Gi",
+                "request_cpu": "1000m",
+                "request_memory": "12Gi",
             },
             volumes=[ancillary_volume],
             volume_mounts=[ancillary_volume_mount],
