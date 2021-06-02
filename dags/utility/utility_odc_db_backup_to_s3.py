@@ -96,7 +96,7 @@ with dag:
         task_id="dump-odc-db",
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,
-        is_delete_operator_pod=False,
+        is_delete_operator_pod=True,
     )
 
     # DB_DUMP_TEST = KubernetesPodOperator(
