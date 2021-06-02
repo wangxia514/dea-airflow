@@ -6,13 +6,14 @@ from datetime import datetime as dt, timedelta as td, timezone as tz
 
 from airflow.models import DagBag
 
-from automated_reporting.rep_nrt_completeness import (
+from automated_reporting.utilities.s2_completeness import (
     filter_products_to_region,
     get_expected_ids_missing_in_actual,
     get_products_in_expected_and_actual,
     calculate_metric_for_region,
     calculate_metrics_for_all_regions,
     calculate_summary_stats_for_aoi,
+    filter_expected_to_sensor,
 )
 
 ## Structure and Integration tests
@@ -119,13 +120,22 @@ class TestCompletenessDagUnits(unittest.TestCase):
         },  # product not in AOI
     ]
     EXPECTED_PRODUCTS = [
-        {"granule_id": "GRANULE_ID_1", "region_id": "54DFT"},
-        {"granule_id": "GRANULE_ID_2", "region_id": "54DFT"},
-        {"granule_id": "GRANULE_ID_3", "region_id": "54DFT"},
-        {"granule_id": "GRANULE_ID_4", "region_id": "54DFT"},
-        {"granule_id": "GRANULE_ID_6", "region_id": "55DCF"},
-        {"granule_id": "GRANULE_ID_7", "region_id": "55DCF"},
-        {"granule_id": "GRANULE_ID_8", "region_id": "00XXX"},  # product not in AOI
+        {"granule_id": "GRANULE_ID_1", "region_id": "54DFT", "sensor": "s2a"},
+        {"granule_id": "GRANULE_ID_2", "region_id": "54DFT", "sensor": "s2a"},
+        {"granule_id": "GRANULE_ID_3", "region_id": "54DFT", "sensor": "s2a"},
+        {"granule_id": "GRANULE_ID_4", "region_id": "54DFT", "sensor": "s2a"},
+        {"granule_id": "GRANULE_ID_6", "region_id": "55DCF", "sensor": "s2a"},
+        {"granule_id": "GRANULE_ID_7", "region_id": "55DCF", "sensor": "s2a"},
+        {
+            "granule_id": "GRANULE_ID_8",
+            "region_id": "00XXX",
+            "sensor": "s2a",
+        },  # product not in AOI
+        {
+            "granule_id": "GRANULE_ID_9",
+            "region_id": "55DCF",
+            "sensor": "s2b",
+        },  # s2b platform
     ]
 
     def test_filter_products_to_region_returns_filtered_list_of_odc_products(self):
@@ -155,7 +165,8 @@ class TestCompletenessDagUnits(unittest.TestCase):
         self.assertEqual(len(filtered_list), 0)
 
     def test_get_expected_ids_missing_in_actual(self):
-        r_expected_products = filter_products_to_region(self.EXPECTED_PRODUCTS, "54DFT")
+        expected_products = filter_products_to_region(self.EXPECTED_PRODUCTS, "54DFT")
+        r_expected_products = filter_expected_to_sensor(expected_products, "s2a")
         r_actual_products = filter_products_to_region(self.ACTUAL_PRODUCTS, "54DFT")
         result = get_expected_ids_missing_in_actual(
             r_expected_products, r_actual_products
@@ -163,7 +174,8 @@ class TestCompletenessDagUnits(unittest.TestCase):
         self.assertTrue("GRANULE_ID_3" in result)
         self.assertTrue("GRANULE_ID_4" in result)
 
-        r_expected_products = filter_products_to_region(self.EXPECTED_PRODUCTS, "55DCF")
+        expected_products = filter_products_to_region(self.EXPECTED_PRODUCTS, "55DCF")
+        r_expected_products = filter_expected_to_sensor(expected_products, "s2a")
         r_actual_products = filter_products_to_region(self.ACTUAL_PRODUCTS, "55DCF")
         result = get_expected_ids_missing_in_actual(
             r_expected_products, r_actual_products
@@ -196,7 +208,8 @@ class TestCompletenessDagUnits(unittest.TestCase):
         self.assertEqual(result["latest_processing_ts"], self.BT)
 
         # Case2 55DCF (100% completeness)
-        r_expected_products = filter_products_to_region(self.EXPECTED_PRODUCTS, "55DCF")
+        expected_products = filter_products_to_region(self.EXPECTED_PRODUCTS, "55DCF")
+        r_expected_products = filter_expected_to_sensor(expected_products, "s2a")
         r_actual_products = filter_products_to_region(self.ACTUAL_PRODUCTS, "55DCF")
         result = calculate_metric_for_region(r_expected_products, r_actual_products)
         self.assertEqual(result["completeness"], 100.0)
@@ -221,7 +234,7 @@ class TestCompletenessDagUnits(unittest.TestCase):
 
     def test_calculate_metrics_for_all_regions(self):
         result = calculate_metrics_for_all_regions(
-            self.AOI_LIST, self.EXPECTED_PRODUCTS, self.ACTUAL_PRODUCTS
+            "s2a", self.AOI_LIST, self.EXPECTED_PRODUCTS, self.ACTUAL_PRODUCTS
         )
         self.assertEqual(len(result), 3)
         self.assertTrue("54DFT" in [x["region_id"] for x in result])
@@ -230,7 +243,7 @@ class TestCompletenessDagUnits(unittest.TestCase):
 
     def test_calculate_summary_stats_for_aoi(self):
         output = calculate_metrics_for_all_regions(
-            self.AOI_LIST, self.EXPECTED_PRODUCTS, self.ACTUAL_PRODUCTS
+            "s2a", self.AOI_LIST, self.EXPECTED_PRODUCTS, self.ACTUAL_PRODUCTS
         )
         result = calculate_summary_stats_for_aoi(output)
         self.assertEqual(result["expected"], 6)
@@ -243,7 +256,7 @@ class TestCompletenessDagUnits(unittest.TestCase):
     def test_calculate_summary_stats_for_aoi(self):
         """This is an edge case where no actual products match expected"""
         output = calculate_metrics_for_all_regions(
-            self.AOI_LIST, self.EXPECTED_PRODUCTS, self.ACTUAL_PRODUCTS2
+            "s2a", self.AOI_LIST, self.EXPECTED_PRODUCTS, self.ACTUAL_PRODUCTS2
         )
         result = calculate_summary_stats_for_aoi(output)
         self.assertEqual(result["expected"], 6)
@@ -252,6 +265,15 @@ class TestCompletenessDagUnits(unittest.TestCase):
         self.assertAlmostEqual(result["completeness"], 0)
         self.assertEqual(result["latest_sat_acq_ts"], None)
         self.assertEqual(result["latest_processing_ts"], None)
+
+    def test_filter_exptected_to_sensor(self):
+        result = filter_expected_to_sensor(self.EXPECTED_PRODUCTS, "s2a")
+        self.assertEqual(len(result), 7)
+        self.assertEqual(result[0]["sensor"], "s2a")
+
+        result = filter_expected_to_sensor(self.EXPECTED_PRODUCTS, "s2b")
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["sensor"], "s2b")
 
 
 if __name__ == "__main__":
