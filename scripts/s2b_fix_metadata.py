@@ -44,8 +44,18 @@ def process_dataset(s3_obj):
     s3_stac_path = s3_eo3_path.replace("eo3", "stac")
     s3_stac_path = s3_stac_path.replace("yaml", "json")
     s3_path = s3_eo3_path.replace("eo3-ARD-METADATA.yaml", "")
-
+    granule = os.path.join(*s3_eo3_path.split('/')[5:-1])
     nci_path = os.path.join(NCI_DIR, *s3_eo3_path.split('/')[5:-1], "ARD-METADATA.yaml")
+    
+    if "S2A_OPER_MSI_ARD" in granule:
+        platform = "SENTINEL_2A"
+    elif "S2B_OPER_MSI_ARD" in granule:
+        platform = "SENTINEL_2B"
+    else:
+        raise ValueError(
+            f"Expected granule id to contain either 'S2A_OPER_MSI_ARD' or 'S2B_OPER_MSI_ARD', found '{granule}'"
+        )
+    
     with open(nci_path) as fin:
         eo_metadata = yaml.safe_load(fin)
     
@@ -56,7 +66,9 @@ def process_dataset(s3_obj):
     eo3_metadata["properties"]["gqa:error_message"] = eo_metadata["gqa"]["error_message"]
     eo3_metadata["properties"]["gqa:final_gcp_count"] = eo_metadata["gqa"]["final_gcp_count"]
     eo3_metadata["properties"]["gqa:ref_source"] = eo_metadata["gqa"]["ref_source"]
-
+    eo3_metadata["properties"]["sentinel:datatake_start_datetime"] = granule.split("_")[-4]
+    eo3_metadata["properties"]["eo:platform"] = platform
+    
     for key in ["abs_iterative_mean", "abs", "iterative_mean", "iterative_stddev", "mean", "stddev"]:
         eo3_metadata["properties"][f"gqa:{key}_xy"] = eo_metadata["gqa"]["residual"][key]["xy"]
 
