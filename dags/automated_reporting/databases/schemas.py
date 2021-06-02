@@ -1,15 +1,51 @@
 """
-Common tasks for automated reporting dags
+Schema utilities for automated reporting dags
 """
 
 import logging
 
 from airflow.hooks.postgres_hook import PostgresHook
 
-from automated_reporting.helpers import db_has_object
-from automated_reporting.sql import SELECT_SCHEMA, SELECT_TABLE, SELECT_COLUMN
+from automated_reporting.utilities import helpers
+from automated_reporting.databases import sql
 
 log = logging.getLogger("airflow.task")
+
+COMPLETENESS_SCHEMA = {
+    "database": {
+        "name": "reporting",
+        "schemas": [
+            {
+                "name": "reporting",
+                "tables": [
+                    {
+                        "name": "completeness",
+                        "columns": [
+                            {"name": "id"},
+                            {"name": "geo_ref"},
+                            {"name": "completeness"},
+                            {"name": "expected_count"},
+                            {"name": "actual_count"},
+                            {"name": "product_id"},
+                            {"name": "sat_acq_time"},
+                            {"name": "processing_time"},
+                            {"name": "last_updated"},
+                        ],
+                    },
+                    {
+                        "name": "completeness_missing",
+                        "columns": [
+                            {"name": "id"},
+                            {"name": "completeness_id"},
+                            {"name": "dataset_id"},
+                            {"name": "last_updated"},
+                        ],
+                    },
+                ],
+            }
+        ],
+    }
+}
 
 
 def check_db_schema(expected_schema, connection_id):
@@ -22,8 +58,8 @@ def check_db_schema(expected_schema, connection_id):
     database = expected_schema["database"]
     structure_good = True
     for schema in database["schemas"]:
-        result = db_has_object(
-            rep_cursor, SELECT_SCHEMA, (database["name"], schema["name"])
+        result = helpers.db_has_object(
+            rep_cursor, sql.SELECT_SCHEMA, (database["name"], schema["name"])
         )
         if not result:
             structure_good = False
@@ -33,9 +69,9 @@ def check_db_schema(expected_schema, connection_id):
             )
         )
         for table in schema["tables"]:
-            result = db_has_object(
+            result = helpers.db_has_object(
                 rep_cursor,
-                SELECT_TABLE,
+                sql.SELECT_TABLE,
                 (database["name"], schema["name"], table["name"]),
             )
             if not result:
@@ -46,9 +82,9 @@ def check_db_schema(expected_schema, connection_id):
                 )
             )
             for column in table["columns"]:
-                result = db_has_object(
+                result = helpers.db_has_object(
                     rep_cursor,
-                    SELECT_COLUMN,
+                    sql.SELECT_COLUMN,
                     (
                         database["name"],
                         schema["name"],

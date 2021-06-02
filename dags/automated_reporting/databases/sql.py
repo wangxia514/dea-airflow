@@ -2,7 +2,7 @@
 SQL commands for automated reporting dags
 """
 
-SELECT_BY_PRODUCT_LIST_AND_TIME_RANGE = """
+SELECT_BY_PRODUCT_AND_TIME_RANGE = """
     SELECT
         dataset.id,
         dataset.added AS indexed_time,
@@ -15,7 +15,7 @@ SELECT_BY_PRODUCT_LIST_AND_TIME_RANGE = """
     WHERE
         dataset.archived IS NULL
     AND
-        dataset_type.name in (%s,%s)
+        dataset_type.name = %s
     AND
         dataset.added >= %s
     AND
