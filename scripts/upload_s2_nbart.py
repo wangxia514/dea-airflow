@@ -147,7 +147,7 @@ def upload_metadata(granule_id):
     s3_eo3_path = f"{s3_path}eo3-ARD-METADATA.yaml"
     s3_stac_path = f"{s3_path}stac-ARD-METADATA.json"
 
-    eo3 = create_eo3(local_path)
+    eo3 = create_eo3(local_path, granule_id)
     stac = to_stac_item(
         eo3,
         stac_item_destination_url=s3_stac_path,
@@ -219,7 +219,7 @@ def add_datetime(assembler, granule_dir):
     assembler.datetime = datetime.datetime.strptime(eo['extent']['center_dt'], '%Y-%m-%dT%H:%M:%S.%fZ')
 
 
-def create_eo3(granule_dir):
+def create_eo3(granule_dir, granule_id):
     """
     Creates an eo3 document.
 
@@ -243,8 +243,10 @@ def create_eo3(granule_dir):
 
     if "S2A" in str(granule_dir):
         assembler.product_family = "s2a_ard_granule"
+        platform = "SENTINEL_2A"        
     else:
         assembler.product_family = "s2b_ard_granule"
+        platform = "SENTINEL_2B"
 
     assembler.processed_now()
 
@@ -261,6 +263,8 @@ def create_eo3(granule_dir):
     assembler.properties["gqa:error_message"] = metadata["gqa"]["error_message"]
     assembler.properties["gqa:final_gcp_count"] =metadata["gqa"]["final_gcp_count"]
     assembler.properties["gqa:ref_source"] = metadata["gqa"]["ref_source"]
+    assembler.properties["sentinel:datatake_start_datetime"] = granule_id.split("_")[-4]
+    assembler.properties["eo:platform"] = platform
 
     for key in ["abs_iterative_mean", "abs", "iterative_mean", "iterative_stddev", "mean", "stddev"]:
         assembler.properties[f"gqa:{key}_xy"] = metadata["gqa"]["residual"][key]["xy"]
