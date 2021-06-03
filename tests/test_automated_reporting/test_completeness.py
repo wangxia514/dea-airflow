@@ -25,13 +25,13 @@ class TestCompletenessDAGStructure(unittest.TestCase):
         cls.dagbag = DagBag(dag_folder=dag_folder)
 
     def test_dag_loaded(self):
-        dag = self.dagbag.get_dag(dag_id="rep_nrt_completeness")
+        dag = self.dagbag.get_dag(dag_id="rep_s2_completeness")
         self.assertDictEqual(self.dagbag.import_errors, {})
         self.assertIsNotNone(dag)
         self.assertEqual(len(dag.tasks), 2)
 
     def test_task(self):
-        dag = self.dagbag.get_dag(dag_id="rep_nrt_completeness")
+        dag = self.dagbag.get_dag(dag_id="rep_s2_completeness")
         self.assertTrue(dag.has_task("compute_sentinel_completeness"))
         task = dag.get_task("compute_sentinel_completeness")
         context = {"execution_date": pendulum.now()}
