@@ -74,3 +74,80 @@ def query(product_id, execution_date, days):
         if odc_conn is not None:
             odc_conn.close()
     return actual_products
+
+
+def query_stepped(product_id, execution_date, steps):
+    """Query odc progressively until a result is returned"""
+
+    odc_pg_hook = PostgresHook(postgres_conn_id=DB_ODC_READER_CONN)
+    odc_conn = None
+    results = []
+    try:
+        # open the connection to the AWS ODC and get a cursor
+        with odc_pg_hook.get_conn() as odc_conn:
+            with odc_conn.cursor() as odc_cursor:
+
+                # Loop through the time_delta list until we get some data back. Prevents returning a huge amount of data unecessarily from ODC.
+                for days_previous in steps:
+
+                    # caluclate a start and end time for the AWS ODC query
+                    end_time = execution_date
+                    start_time = end_time - timedelta(days=days_previous)
+
+                    # extact a processing and acquisition timestamps from AWS for product and timerange, print logs of query and row count
+                    odc_cursor.execute(
+                        sql.SELECT_BY_PRODUCT_AND_TIME_RANGE,
+                        (product_id, start_time, end_time),
+                    )
+                    log.info("ODC Query for: {} days".format(days_previous))
+                    log.info("ODC Executed SQL: {}".format(odc_cursor.query.decode()))
+                    log.info("ODC query returned: {} rows".format(odc_cursor.rowcount))
+
+                    # if nothing is returned in the given timeframe, loop again and go back further in time
+                    if odc_cursor.rowcount > 0:
+                        break
+                    else:
+                        continue
+
+                for row in odc_cursor:
+                    (
+                        id,
+                        indexed_time,
+                        granule_id,
+                        region_id,
+                        sat_acq_ts,
+                        processing_ts,
+                    ) = row
+                    row = {
+                        "uuid": id,
+                        "granule_id": granule_id,
+                        "region_id": region_id,
+                        "center_dt": sat_acq_ts,
+                        "processing_dt": processing_ts,
+                    }
+                    results.append(row)
+    except Exception as e:
+        raise e
+    finally:
+        if odc_conn is not None:
+            odc_conn.close()
+    return results
+
+    # Loop through the time_delta list until we get some data back. Prevents returning a huge amount of data unecessarily from ODC.
+    for days_previous in steps:
+
+        # caluclate a start and end time for the AWS ODC query
+        end_time = execution_date
+        start_time = end_time - timedelta(days=days_previous)
+
+        # extact a processing and acquisition timestamps from AWS for product and timerange, print logs of query and row count
+        odc_cursor.execute(
+            sql.SELECT_BY_PRODUCT_AND_TIME_RANGE, (product_id, start_time, end_time)
+        )
+        log.info("ODC Query for: {} days".format(days_previous))
+        log.info("ODC Executed SQL: {}".format(odc_cursor.query.decode()))
+        log.info("ODC query returned: {} rows".format(odc_cursor.rowcount))
+
+        # if nothing is returned in the given timeframe, loop again and go back further in time
+        if odc_cursor.rowcount == 0:
+            continue

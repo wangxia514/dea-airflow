@@ -47,6 +47,28 @@ COMPLETENESS_SCHEMA = {
     }
 }
 
+LATENCY_SCHEMA = {
+    "database": {
+        "name": "reporting",
+        "schemas": [
+            {
+                "name": "landsat",
+                "tables": [
+                    {
+                        "name": "derivative_latency",
+                        "columns": [
+                            {"name": "product"},
+                            {"name": "sat_acq_date"},
+                            {"name": "processing_date"},
+                            {"name": "last_updated"},
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+}
+
 
 def check_db_schema(expected_schema, connection_id):
     """
