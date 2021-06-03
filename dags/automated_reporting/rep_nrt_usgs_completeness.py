@@ -15,9 +15,10 @@ from datetime import datetime, timedelta, timezone
 import requests
 import json
 from pathlib import Path
+import os
 
 from airflow import DAG
-from airflow import configuration
+from airflow.configuration import conf
 from airflow.utils.dates import days_ago
 from airflow.operators.python_operator import PythonOperator
 from airflow.operators.dummy_operator import DummyOperator
@@ -428,10 +429,10 @@ with dag:
         :return: wrsPathRowList
         """
 
-        root = Path(configuration.get("core", "dags_folder")).parent
+        root = Path(conf.get("core", "dags_folder")).parent
         wrsPathRowList = []
 
-        with open(root / filePath) as f:
+        with open(os.path.join(root, filePath)) as f:
             reader = f.readlines()
 
             for row in reader:
