@@ -183,7 +183,7 @@ with dag:
         logger.info("Using service URL: {}".format(serviceUrl))
 
         # Get path row list
-        file_path = "dags/automated_reporting/landsat_l1_path_row_list.txt"
+        file_path = "dags/automated_reporting/aux_data/landsat_l1_path_row_list.txt"
         wrsPathRowList = landsat_path_row(file_path)
         logger.info("Loaded Path Row Listing")
 
