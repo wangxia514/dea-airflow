@@ -68,6 +68,7 @@ def process_dataset(s3_obj):
     eo3_metadata["properties"]["gqa:ref_source"] = eo_metadata["gqa"]["ref_source"]
     eo3_metadata["properties"]["sentinel:datatake_start_datetime"] = granule.split("_")[-4]
     eo3_metadata["properties"]["eo:platform"] = platform
+    eo3_metadata["properties"]["eo:instrument"] = "MSI"
     
     for key in ["abs_iterative_mean", "abs", "iterative_mean", "iterative_stddev", "mean", "stddev"]:
         eo3_metadata["properties"][f"gqa:{key}_xy"] = eo_metadata["gqa"]["residual"][key]["xy"]

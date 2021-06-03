@@ -265,6 +265,7 @@ def create_eo3(granule_dir, granule_id):
     assembler.properties["gqa:ref_source"] = metadata["gqa"]["ref_source"]
     assembler.properties["sentinel:datatake_start_datetime"] = granule_id.split("_")[-4]
     assembler.properties["eo:platform"] = platform
+    assembler.properties["eo:instrument"] = "MSI"
 
     for key in ["abs_iterative_mean", "abs", "iterative_mean", "iterative_stddev", "mean", "stddev"]:
         assembler.properties[f"gqa:{key}_xy"] = metadata["gqa"]["residual"][key]["xy"]
