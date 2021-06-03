@@ -101,7 +101,7 @@ structure = {
 }
 
 dag = DAG(
-    "nrt_completeness_usgs_nrt_l1",
+    "rep_usgs_completeness_nrt_l1",
     description="DAG for completeness and latency metric on USGS L1 C2 nrt product",
     tags=["reporting"],
     default_args=default_args,
