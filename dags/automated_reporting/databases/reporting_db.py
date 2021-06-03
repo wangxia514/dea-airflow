@@ -6,6 +6,7 @@ import logging
 from airflow.hooks.postgres_hook import PostgresHook
 from infra.connections import DB_REP_WRITER_CONN
 from automated_reporting.databases import sql
+from datetime import timezone, timedelta
 
 log = logging.getLogger("airflow.task")
 
@@ -36,6 +37,41 @@ def insert_completeness(db_completeness_writes):
                                 rep_cursor.query.decode()
                             )
                         )
+    except Exception as e:
+        raise e
+    finally:
+        if rep_conn is not None:
+            rep_conn.close()
+
+
+def insert_latency(
+    product_name, latest_sat_acq_ts, latest_processing_ts, execution_date
+):
+    """Insert latency result into reporting DB"""
+
+    rep_pg_hook = PostgresHook(postgres_conn_id=DB_REP_WRITER_CONN)
+    rep_conn = None
+    try:
+        # open the connection to the Reporting DB and get a cursor
+        with rep_pg_hook.get_conn() as rep_conn:
+            with rep_conn.cursor() as rep_cursor:
+                rep_cursor.execute(
+                    sql.INSERT_LATENCY,
+                    (
+                        product_name,
+                        latest_sat_acq_ts.astimezone(tz=timezone.utc).replace(
+                            tzinfo=None
+                        ),
+                        latest_processing_ts.astimezone(tz=timezone.utc).replace(
+                            tzinfo=None
+                        ),
+                        execution_date.astimezone(
+                            tz=timezone(timedelta(hours=10), name="AEST")
+                        ).replace(tzinfo=None),
+                    ),
+                )
+                log.info("REP Executed SQL: {}".format(rep_cursor.query.decode()))
+                log.info("REP returned: {}".format(rep_cursor.statusmessage))
     except Exception as e:
         raise e
     finally:

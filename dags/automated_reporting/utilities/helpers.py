@@ -2,7 +2,9 @@
 Helper functions for automated reporting dags
 """
 
-from datetime import datetime as dt
+from datetime import timezone, datetime as dt
+
+ZERO_TS = dt(1970, 1, 1, tzinfo=timezone.utc)
 
 
 def db_has_object(rep_cursor, sql, query_args):
