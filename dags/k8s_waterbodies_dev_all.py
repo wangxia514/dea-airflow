@@ -60,8 +60,6 @@ DEFAULT_ARGS = {
 
 # parallel --delay 5 --retries 3 --load 100%  --colsep ',' python -m dea_waterbodies.make_time_series ::: $CONFIG,--part,{1..24},--chunks,$NCHUNKS
 
- = ""
-
 # THE DAG
 dag = DAG(
     "k8s_waterbodies_dev_all",
