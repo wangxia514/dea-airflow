@@ -19,3 +19,5 @@ WAGL_IMAGE = (
 
 # UNSTABLE IMAGES
 EXPLORER_UNSTABLE_IMAGE = "opendatacube/explorer:2.5.0-3-gd9f5a67"
+
+WATERBODIES_UNSTABLE_IMAGE = "geoscienceaustralia/dea-waterbodies:latest"
