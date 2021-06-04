@@ -18,6 +18,8 @@ from infra.variables import (
     DB_READER_HOSTNAME,
     AWS_DEFAULT_REGION,
     DB_PORT,
+    WATERBODIES_DEV_USER_SECRET,
+    SECRET_ODC_WRITER_NAME,
 )
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
@@ -39,26 +41,24 @@ DEFAULT_ARGS = {
     },
     # Lift secrets into environment variables
     "secrets": [
-        Secret("env", "DB_USERNAME", 'odc-reader', "postgres-username"),
-        Secret("env", "DB_USERNAME", 'odc-reader', "postgres-password"),
+        Secret("env", "DB_USERNAME", SECRET_ODC_WRITER_NAME, "postgres-username"),
+        Secret("env", "DB_PASSWORD", SECRET_ODC_WRITER_NAME, "postgres-password"),
         Secret(
             "env",
             "AWS_ACCESS_KEY_ID",
-            "waterbodies-dev-user-creds",
+            WATERBODIES_DEV_USER_SECRET,
             "AWS_ACCESS_KEY_ID",
         ),
         Secret(
             "env",
             "AWS_SECRET_ACCESS_KEY",
-            "waterbodies-dev-user-creds",
+            WATERBODIES_DEV_USER_SECRET,
             "AWS_SECRET_ACCESS_KEY",
         ),
     ],
 }
 
 # parallel --delay 5 --retries 3 --load 100%  --colsep ',' python -m dea_waterbodies.make_time_series ::: $CONFIG,--part,{1..24},--chunks,$NCHUNKS
-
-WATERBODIES_BASH_COMMAND = "-mdea_waterbodies.make_time_series --part={part} --chunks={n_chunks}"
 
 # THE DAG
 dag = DAG(
@@ -71,15 +71,25 @@ dag = DAG(
 )
 
 with dag:
-    n_chunks = 24
+    n_chunks = 1
     for part in range(1, n_chunks + 1):
         # https://airflow.apache.org/docs/apache-airflow/1.10.12/_api/airflow/contrib/operators/
         # kubernetes_pod_operator/index.html#airflow.contrib.operators.kubernetes_pod_operator.KubernetesPodOperator
-        WATERBODIES_ALL_PART = KubernetesPodOperator(
+
+        cmd = [
+            "bash",
+            "-c",
+            dedent(
+                """
+                wget https://raw.githubusercontent.com/GeoscienceAustralia/dea-waterbodies/stable/ts_configs/config_small.ini -o config.ini
+                python -m dea_waterbodies.make_time_series config.ini --part={part} --chunks={n_chunks}
+                """.format(part=part, n_chunks=n_chunks)
+            ),
+        ]
+        KubernetesPodOperator(
             image=WATERBODIES_UNSTABLE_IMAGE,
             name="waterbodies-all",
-            cmds="python",
-            arguments=WATERBODIES_BASH_COMMAND.format(part=part, n_chunks=n_chunks).split(' '),
+            arguments=cmd,
             image_pull_policy="IfNotPresent",
             labels={"step": "waterbodies-dev-all-{part}".format(part=part)},
             get_logs=True,
