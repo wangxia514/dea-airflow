@@ -91,7 +91,7 @@ with dag:
             image=WATERBODIES_UNSTABLE_IMAGE,
             name="waterbodies-all",
             arguments=cmd,
-            image_pull_policy="Always",
+            image_pull_policy="IfNotPresent",
             labels={"step": "waterbodies-dev-all-{part}".format(part=part)},
             get_logs=True,
             affinity=ONDEMAND_NODE_AFFINITY,
