@@ -60,7 +60,7 @@ DEFAULT_ARGS = {
 
 # parallel --delay 5 --retries 3 --load 100%  --colsep ',' python -m dea_waterbodies.make_time_series ::: $CONFIG,--part,{1..24},--chunks,$NCHUNKS
 
-WATERBODIES_BASH_COMMAND = "-mdea_waterbodies.make_time_series config.ini --part={part} --chunks={n_chunks}"
+ = ""
 
 # THE DAG
 dag = DAG(
@@ -77,11 +77,21 @@ with dag:
     for part in range(1, n_chunks + 1):
         # https://airflow.apache.org/docs/apache-airflow/1.10.12/_api/airflow/contrib/operators/
         # kubernetes_pod_operator/index.html#airflow.contrib.operators.kubernetes_pod_operator.KubernetesPodOperator
+
+        cmd = [
+            "bash",
+            "-c",
+            dedent(
+                """
+                wget https://raw.githubusercontent.com/GeoscienceAustralia/dea-waterbodies/stable/ts_configs/config_small.ini -o config.ini
+                python -m dea_waterbodies.make_time_series config.ini --part={part} --chunks={n_chunks}
+                """.format(part=part, n_chunks=n_chunks)
+            ),
+        ]
         KubernetesPodOperator(
             image=WATERBODIES_UNSTABLE_IMAGE,
             name="waterbodies-all",
-            cmds="python",
-            arguments=WATERBODIES_BASH_COMMAND.format(part=part, n_chunks=n_chunks).split(' '),
+            arguments=cmd,
             image_pull_policy="IfNotPresent",
             labels={"step": "waterbodies-dev-all-{part}".format(part=part)},
             get_logs=True,
