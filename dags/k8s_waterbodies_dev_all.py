@@ -81,7 +81,7 @@ with dag:
             "-c",
             dedent(
                 """
-                wget https://raw.githubusercontent.com/GeoscienceAustralia/dea-waterbodies/stable/ts_configs/config_small.ini -o config.ini
+                wget https://raw.githubusercontent.com/GeoscienceAustralia/dea-waterbodies/stable/ts_configs/config_small.ini -O config.ini
                 cat config.ini
                 python -m dea_waterbodies.make_time_series config.ini --part={part} --chunks={n_chunks}
                 """.format(part=part, n_chunks=n_chunks)
