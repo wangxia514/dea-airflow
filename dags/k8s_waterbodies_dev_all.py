@@ -82,7 +82,7 @@ with dag:
             dedent(
                 """
                 wget https://raw.githubusercontent.com/GeoscienceAustralia/dea-waterbodies/stable/ts_configs/\\
-                    {{ dag_run.conf.get("config_name", "config_moree_test") }} -O config.ini
+                    {{{{ dag_run.conf.get("config_name", "config_moree_test") }}}} -O config.ini
                 cat config.ini
                 python -m dea_waterbodies.make_time_series config.ini --part={part} --chunks={n_chunks}
                 """.format(part=part, n_chunks=n_chunks)
