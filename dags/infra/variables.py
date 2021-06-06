@@ -18,6 +18,7 @@ SECRET_EXPLORER_WRITER_NAME = Variable.get(
 )  # qa
 SECRET_OWS_WRITER_NAME = Variable.get("db_ows_writer_secret", "ows-writer")  # qa
 SECRET_ODC_WRITER_NAME = Variable.get("db_odc_writer_secret", "odc-writer")  # qa
+SECRET_ODC_READER_NAME = Variable.get("db_odc_reader_secret", "odc-reader")  # qa
 SECRET_DBA_ADMIN_NAME = Variable.get("db_dba_admin_secret", "dba_admin")  # qa
 
 SECRET_EXPLORER_NCI_ADMIN_NAME = Variable.get(
