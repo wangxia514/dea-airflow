@@ -40,7 +40,7 @@ _LOG = logging.getLogger()
 default_args = {
     "owner": "Joshua Ellis",
     "depends_on_past": False,
-    "start_date": datetime(2020, 9, 11),
+    "start_date": datetime(2021, 6, 1),
     "email": ["joshua.ellis@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
@@ -57,12 +57,15 @@ ESTIMATED_COMPLETION_TIME = 3 * 60 * 60
 BUCKET_REGION = "ap-southeast-2"
 S3_PREFIX = "s3://dea-public-data-dev/L2/sentinel-2-nrt/S2MSIARD/"
 
-NUM_PARALLEL_PIPELINE = 5
+NUM_PARALLEL_PIPELINE = 1
 MAX_ACTIVE_RUNS = 12
 
 # this should be 10 in dev for 10% capacity
 # then it would just discard the other 9 messages polled
 NUM_MESSAGES_TO_POLL = 1
+
+# Which luigic config to use for this run
+LUIGI_CONFIG_PATH = "/scripts/luigi-sentinel-2.cfg"
 
 affinity = {
     "nodeAffinity": {
@@ -282,7 +285,7 @@ def finish_up(**context):
 
 
 pipeline = DAG(
-    "k8s_wagl_nrt_poc",
+    "k8s_wagl_nrt_sentinel_2",
     doc_md=__doc__,
     default_args=default_args,
     description="DEA Sentinel-2 NRT processing",
@@ -346,7 +349,7 @@ with pipeline:
             startup_timeout_seconds=600,
             # this is the wagl_nrt user in the wagl container
             # security_context=dict(runAsUser=10015, runAsGroup=10015, fsGroup=10015),
-            cmds=["/scripts/process-scene.sh"],
+            cmds=["/scripts/process-scene-sentinel-2.sh"],
             arguments=[
                 "{{ task_instance.xcom_pull(task_ids='receive_task_"
                 + str(index)
@@ -359,6 +362,7 @@ with pipeline:
                 + "', key='args')['granule_id'] }}",
                 BUCKET_REGION,
                 S3_PREFIX,
+                LUIGI_CONFIG_PATH,
             ],
             labels={
                 "runner": "airflow",
