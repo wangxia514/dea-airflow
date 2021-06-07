@@ -282,7 +282,7 @@ def finish_up(**context):
 
 
 pipeline = DAG(
-    "k8s_wagl_nrt",
+    "k8s_wagl_nrt_poc",
     doc_md=__doc__,
     default_args=default_args,
     description="DEA Sentinel-2 NRT processing",
