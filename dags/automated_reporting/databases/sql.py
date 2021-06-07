@@ -17,7 +17,7 @@ SELECT_BY_PRODUCT_AND_TIME_RANGE = """
     AND
         dataset_type.name = %s
     AND
-        dataset.added >= %s
+        dataset.added > %s
     AND
         dataset.added <= %s;
 """
