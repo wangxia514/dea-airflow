@@ -229,7 +229,13 @@ with dag:
                 filteredStacApiData, filteredS3List, wrsPathRowList, logger
             )
             expectedCount = gaCount + missingCounter
-            completeness = (gaCount / (gaCount + missingCounter)) * 100
+            try:
+                completeness = (float(gaCount) / float(expectedCount)) * 100.0
+            except:
+                # division by zero results in python error
+                # set this to none to match s2 dag logic
+                completeness = None
+
             completenessId = gen_sql_completeness(
                 "all_ls",
                 completeness,
@@ -497,11 +503,12 @@ with dag:
                 satAcqTime = max(row[4])
 
             try:
-                completeness = (actualCount / expectedCount) * 100
+                completeness = (float(actualCount) / float(expectedCount)) * 100.0
 
             except:
                 # division by zero results in python error
-                completeness = 0
+                # set this to none to match s2 logic
+                completeness = None
 
             executionStr = """INSERT INTO reporting.completeness (geo_ref, completeness, expected_count,
                 actual_count, product_id, sat_acq_time, processing_time, last_updated) VALUES (%s,%s,%s,%s,%s,%s,Null,%s)
@@ -509,7 +516,7 @@ with dag:
 
             params = (
                 geoRef,
-                float(completeness),
+                completeness,
                 int(expectedCount),
                 int(actualCount),
                 productId,
