@@ -19,12 +19,12 @@ import os
 
 from airflow import DAG
 from airflow.configuration import conf
-from airflow.utils.dates import days_ago
 from airflow.operators.python_operator import PythonOperator
-from airflow.operators.dummy_operator import DummyOperator
 from airflow.hooks.postgres_hook import PostgresHook
 
-from infra.connections import DB_ODC_READER_CONN, DB_REP_WRITER_CONN
+from infra.connections import DB_REP_WRITER_CONN
+
+from automated_reporting.utilities import helpers
 
 # Initialisations
 
@@ -55,20 +55,6 @@ databaseCompTable = "reporting.completeness"
 databaseMissingTable = "reporting.completeness_missing"
 databaseStacTable = "landsat.usgs_l1_nrt_c2_stac_listing"
 databaseGAS3Table = "landsat.ga_s3_level1_nrt_s3_listing"
-utcTimeNow = datetime.now(timezone.utc)
-
-# Set amount of days to look back to
-dayRange = 30
-
-# Get UTC datetime now and add one day to ensure nothing is missed
-utcTimeTomorrow = datetime.now(timezone.utc) + timedelta(days=1)
-
-# Minus X days
-utcDaysAgo = utcTimeNow - timedelta(days=int(dayRange))
-
-# Format dates to example '2020-11-01'
-startDate = utcDaysAgo.strftime("%Y-%m-%d")
-endDate = utcTimeTomorrow.strftime("%Y-%m-%d")
 
 selectSchema = """SELECT * FROM information_schema.schemata WHERE catalog_name=%s and schema_name=%s;"""
 selectTable = """SELECT * FROM information_schema.tables WHERE table_catalog=%s AND table_schema=%s AND table_name=%s;"""
@@ -175,11 +161,23 @@ with dag:
             raise Exception("Database structure does not match structure definition")
         return "Database structure check passed"
 
-    def main():
+    def main(execution_date, **kwargs):
         """
         Main function
         :return:
         """
+
+        # Set amount of days to look back to
+        dayRange = 30
+
+        execution_date = helpers.python_dt(execution_date)
+
+        # Format dates to example '2020-11-01'
+        start_time = execution_date - timedelta(days=dayRange)
+        end_time = execution_date + timedelta(days=1)
+        startDate = start_time.strftime("%Y-%m-%d")
+        endDate = end_time.strftime("%Y-%m-%d")
+
         logger.info("Starting reporting workflow for Landsat L1 NRT")
         logger.info("Using service URL: {}".format(serviceUrl))
 
@@ -190,7 +188,9 @@ with dag:
 
         for mission in missions:
             logger.info("Checking Stac API {}".format(mission))
-            output = landsat_search_stac(serviceUrl, logger, mission)
+            output = landsat_search_stac(
+                serviceUrl, logger, mission, startDate, endDate
+            )
             stacApiMatrix = collect_stac_api_results(output)
             logger.debug(stacApiMatrix)
 
@@ -198,16 +198,16 @@ with dag:
             gen_stac_api_inserts(stacApiMatrix)
 
             logger.info("Get last 30 days Stac metadata from DB {}".format(mission))
-            stacApiData = get_stac_metadata()
+            stacApiData = get_stac_metadata(start_time, end_time)
 
             if mission == "LANDSAT_8":
                 logger.info("Checking GA S3 Listing {}".format(mission))
-                s3List = get_s3_listing("L8C2")
+                s3List = get_s3_listing("L8C2", start_time, execution_date)
                 logger.debug("GA-S3 Listing: - {} - {}".format(mission, s3List))
                 productId = "usgs_ls8c_level1_nrt_c2"
             elif mission == "LANDSAT_7":
                 logger.info("Checking GA S3 Listing {}".format(mission))
-                s3List = get_s3_listing("L7C2")
+                s3List = get_s3_listing("L7C2", start_time, execution_date)
                 logger.debug("GA-S3 Listing: - {} - {}".format(mission, s3List))
                 productId = "usgs_ls7e_level1_nrt_c2"
 
@@ -238,11 +238,8 @@ with dag:
                 productId,
                 latestSatAcq,
                 "Null",
-                utcTimeNow,
+                execution_date,
             )
-
-            if len(missingMatrix) > 0:
-                gen_sql_completeness_missing(completenessId, missingMatrix, utcTimeNow)
 
             logger.info("***{} MISSION***".format(mission))
             logger.info(
@@ -252,7 +249,7 @@ with dag:
             )
             logger.info("Missing Matrix - {}".format(missingMatrix))
             gen_sql_completeness_path_row(
-                pathRowCounterMatrix, productId, "Null", "Null", utcTimeNow
+                pathRowCounterMatrix, productId, "Null", "Null", execution_date
             )
 
             return
@@ -293,7 +290,7 @@ with dag:
 
         return output
 
-    def landsat_search_stac(serviceUrl, logger, mission):
+    def landsat_search_stac(serviceUrl, logger, mission, startDate, endDate):
         """
         Conduct the search on the stac api
         :param serviceUrl: Stac API URL
@@ -356,7 +353,7 @@ with dag:
         satAcqList = []
 
         # Populating matrix with path rows and starting counters at 0
-        matrixWidth, matrixHeight = 3, len(wrsPathRowList)
+        matrixWidth, matrixHeight = 5, len(wrsPathRowList)
         pathRowCounterMatrix = [
             ["" for x in range(matrixWidth)] for y in range(matrixHeight)
         ]
@@ -366,8 +363,12 @@ with dag:
             for j in range(1, matrixWidth):
                 pathRowCounterMatrix[i][j] = 0
 
+        # Lists to store missing ids and acq times for each pathrow
+        for i in range(0, matrixHeight):
+            pathRowCounterMatrix[i][3] = list()
+            pathRowCounterMatrix[i][4] = list()
+
         for scene in stacApi:
-            satAcqList.append(scene[5])
             wrsPathRow = "{}_{}".format(scene[1], scene[2])
 
             # Loop through and add counters to each path-row for usgs index
@@ -378,12 +379,19 @@ with dag:
 
             # If product has been downloaded by GA
             if scene[0] in s3Listing:
-
+                satAcqList.append(scene[5])
                 # Loop through and add counters to each path-row for ga index
                 for i in range(0, matrixHeight):
-
                     if pathRowCounterMatrix[i][0] == wrsPathRow:
                         pathRowCounterMatrix[i][2] += 1
+                        pathRowCounterMatrix[i][4].append(
+                            scene[5]
+                        )  # store a list of sat_acq_times
+            # If product is missing store missing ids in matrix
+            else:
+                for i in range(0, matrixHeight):
+                    if pathRowCounterMatrix[i][0] == wrsPathRow:
+                        pathRowCounterMatrix[i][3].append(scene[0])
 
             # Counter for the sum of all wrs-path rows
             if scene[0] in s3Listing:
@@ -484,6 +492,9 @@ with dag:
             geoRef = row[0]
             expectedCount = int(row[1])
             actualCount = int(row[2])
+            satAcqTime = None
+            if row[4]:
+                satAcqTime = max(row[4])
 
             try:
                 completeness = (actualCount / expectedCount) * 100
@@ -493,7 +504,8 @@ with dag:
                 completeness = 0
 
             executionStr = """INSERT INTO reporting.completeness (geo_ref, completeness, expected_count,
-            actual_count, product_id, sat_acq_time, processing_time, last_updated) VALUES (%s,%s,%s,%s,%s,Null,Null,%s);"""
+                actual_count, product_id, sat_acq_time, processing_time, last_updated) VALUES (%s,%s,%s,%s,%s,%s,Null,%s)
+                RETURNING id;"""
 
             params = (
                 geoRef,
@@ -501,10 +513,19 @@ with dag:
                 int(expectedCount),
                 int(actualCount),
                 productId,
+                satAcqTime,
                 lastUpdated,
             )
 
-            execute_query(executionStr, params, cursor)
+            last_id = execute_query_id(executionStr, params, cursor)
+
+            # Insert missing scenes for each row_path
+            executionStr = """INSERT INTO reporting.completeness_missing (completeness_id, dataset_id, last_updated)
+                VALUES (%s, %s, %s);
+            """
+            for missing_scene in row[3]:
+                params = (last_id, missing_scene, lastUpdated)
+                execute_query(executionStr, params, cursor)
 
         return conn_commit(conn, cursor)
 
@@ -549,25 +570,6 @@ with dag:
 
         return conn_commit_return_id(conn, cursor)
 
-    def gen_sql_completeness_missing(completeness_id, missingMatrix, lastUpdated):
-        """
-        Generate SQL Inserts for missing data
-        :param databaseMissingTable:
-        :param completeness_id:
-        :param missingMatrix:
-        :param lastUpdated:
-        :return:
-        """
-        conn, cursor = open_cursor()
-        for missing in missingMatrix:
-            executionStr = """INSERT INTO reporting.completeness_missing (completeness_id, dataset_id, last_updated)
-            VALUES (%s, %s, %s);
-            """
-            params = int(completeness_id), missing[0], lastUpdated
-            execute_query(executionStr, params, cursor)
-
-        return conn_commit(conn, cursor)
-
     def gen_stac_api_inserts(stacApiMatrix):
         """
         Insert STAC API metadata into DB
@@ -584,26 +586,26 @@ with dag:
 
         return conn_commit(conn, cursor)
 
-    def get_stac_metadata():
+    def get_stac_metadata(start_time, end_time):
         """
         Get last 30 days of stac metadata from DB
         :return: stacAPI data
         """
-        executionStr = (
-            """SELECT * FROM landsat.usgs_l1_nrt_c2_stac_listing WHERE sat_acq >= %s;"""
-        )
-        params = (startDate,)
-        return data_select(executionStr, params)
+        executionStr = """SELECT * FROM landsat.usgs_l1_nrt_c2_stac_listing WHERE sat_acq > %s AND sat_acq <= %s;"""
+        params = (start_time, end_time)
 
-    def get_s3_listing(pipeline):
+        results = data_select(executionStr, params)
+        return results
+
+    def get_s3_listing(pipeline, start_time, end_time):
         """
         Get last 30 days of stac metadata from DB
         :param pipeline: Name of pipeline to get data from e.g. L7C2
         :return:
         """
         executionStr = """SELECT scene_id FROM landsat.ga_s3_level1_nrt_s3_listing
-        WHERE last_updated >= %s AND pipeline = %s;"""
-        params = (startDate, pipeline)
+        WHERE last_updated > %s AND last_updated <= %s AND pipeline = %s;"""
+        params = (start_time, end_time, pipeline)
         return data_select(executionStr, params)
 
     # Open database connection
@@ -626,6 +628,18 @@ with dag:
         """
         cursor.execute(query, params)
         return
+
+    def execute_query_id(query, params, cursor):
+        """
+        Execute Queries and return the inserted id
+        :param query:
+        :param params:
+        :param cursor:
+        :return: id of last inserted record
+        """
+        cursor.execute(query, params)
+        last_id = cursor.fetchone()[0]
+        return last_id
 
     def conn_commit(conn, cursor):
         """
@@ -692,8 +706,7 @@ with dag:
     )
 
     run_code = PythonOperator(
-        task_id="run_main",
-        python_callable=main,
+        task_id="run_main", python_callable=main, provide_context=True
     )
 
     check_db >> run_code
