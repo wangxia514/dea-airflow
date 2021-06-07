@@ -38,7 +38,7 @@ from infra.s3_buckets import S2_NRT_SOURCE_BUCKET, S2_NRT_TRANSFER_BUCKET
 _LOG = logging.getLogger()
 
 default_args = {
-    "owner": "Imam Alam",
+    "owner": "Joshua Ellis",
     "depends_on_past": False,
     "start_date": datetime(2020, 9, 11),
     "email": ["joshua.ellis@ga.gov.au"],
