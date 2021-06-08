@@ -70,6 +70,8 @@ dag = DAG(
     tags=["k8s", "landsat", "waterbodies"],
 )
 
+print(f'Using dea-waterbodies image {WATERBODIES_UNSTABLE_IMAGE}')
+
 with dag:
     n_chunks = 12
     for part in range(1, n_chunks + 1):
