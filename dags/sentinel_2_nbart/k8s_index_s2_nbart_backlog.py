@@ -54,6 +54,7 @@ DEFAULT_ARGS = {
 
 dag = DAG(
     "k8s_index_s2_nbart_backlog",
+    "start_date": datetime(2020, 6, 14),
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
