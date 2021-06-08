@@ -194,7 +194,11 @@ with dag:
             stacApiMatrix = collect_stac_api_results(output)
             logger.debug(stacApiMatrix)
 
-            logger.info("Inserting Stac metadata into DB {}".format(mission))
+            logger.info(
+                "Inserting Stac metadata into DB {}[{}]".format(
+                    mission, len(stacApiMatrix)
+                )
+            )
             gen_stac_api_inserts(stacApiMatrix)
 
             logger.info("Get last 30 days Stac metadata from DB {}".format(mission))
