@@ -52,7 +52,7 @@ DEFAULT_ARGS = {
     ],
 }
 
-record_path_list_with_prefix = ["--record-path " + path for path in NRT_PATHS]
+record_path_list_with_prefix = [f"--record-path '{path}'" for path in NRT_PATHS]
 index_product_string = " ".join(NRT_PRODUCTS)
 record_path_string = " ".join(record_path_list_with_prefix)
 
@@ -60,7 +60,7 @@ record_path_string = " ".join(record_path_list_with_prefix)
 INDEXING_BASH_COMMAND = [
     "bash",
     "-c",
-    f'sqs-to-dc {SQS_QUEUE_NAME} "{index_product_string}" {record_path_string} --skip-lineage --allow-unsafe',
+    f"sqs-to-dc --skip-lineage --allow-unsafe {SQS_QUEUE_NAME} '{index_product_string}' {record_path_string}",
 ]
 
 
