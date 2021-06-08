@@ -77,3 +77,23 @@ def insert_latency(
     finally:
         if rep_conn is not None:
             rep_conn.close()
+
+
+def expire_completeness(product_id):
+    """Expire completeness results in reporting DB"""
+
+    rep_pg_hook = PostgresHook(postgres_conn_id=DB_REP_WRITER_CONN)
+    rep_conn = None
+    count = None
+    try:
+        # open the connection to the Reporting DB and get a cursor
+        with rep_pg_hook.get_conn() as rep_conn:
+            with rep_conn.cursor() as rep_cursor:
+                rep_cursor.execute(sql.EXPIRE_COMPLETENESS, {"product_id": product_id})
+                count = rep_cursor.rowcount
+    except Exception as e:
+        raise e
+    finally:
+        if rep_conn is not None:
+            rep_conn.close()
+    return count
