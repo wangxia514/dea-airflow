@@ -64,9 +64,6 @@ MAX_ACTIVE_RUNS = 12
 # then it would just discard the other 9 messages polled
 NUM_MESSAGES_TO_POLL = 1
 
-# Which luigic config to use for this run
-LUIGI_CONFIG_PATH = "/scripts/luigi-sentinel-2.cfg"
-
 affinity = {
     "nodeAffinity": {
         "requiredDuringSchedulingIgnoredDuringExecution": {
@@ -362,7 +359,6 @@ with pipeline:
                 + "', key='args')['granule_id'] }}",
                 BUCKET_REGION,
                 S3_PREFIX,
-                LUIGI_CONFIG_PATH,
             ],
             labels={
                 "runner": "airflow",
