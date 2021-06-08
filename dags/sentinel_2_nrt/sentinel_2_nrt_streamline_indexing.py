@@ -23,8 +23,8 @@ from infra.sqs_queues import SQS_QUEUE_NAME
 from infra.iam_roles import INDEXING_ROLE
 from infra.pools import DEA_NEWDATA_PROCESSING_POOL
 from sentinel_2_nrt.env_cfg import (
-    INDEXING_PRODUCTS,
-    PRODUCT_RECORD_PATHS,
+    NRT_PRODUCTS,
+    NRT_PATHS,
 )
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
@@ -52,10 +52,8 @@ DEFAULT_ARGS = {
     ],
 }
 
-record_path_list_with_prefix = [
-    "--record-path " + path for path in PRODUCT_RECORD_PATHS
-]
-index_product_string = " ".join(INDEXING_PRODUCTS)
+record_path_list_with_prefix = ["--record-path " + path for path in NRT_PATHS]
+index_product_string = " ".join(NRT_PRODUCTS)
 record_path_string = " ".join(record_path_list_with_prefix)
 
 
