@@ -19,6 +19,7 @@ from infra.images import INDEXER_IMAGE
 DEFAULT_ARGS = {
     "owner": "Kieran Ricardo",
     "depends_on_past": False,
+    "start_date": datetime(2020, 6, 14),
     "email": ["kieran.ricardo@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
@@ -54,7 +55,6 @@ DEFAULT_ARGS = {
 
 dag = DAG(
     "k8s_index_s2_nbart_backlog",
-    "start_date": datetime(2020, 6, 14),
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
