@@ -62,7 +62,7 @@ dag = DAG(
 
 with dag:
     for year in range(2015, 2018): # TODO: update year range when all metadata fixed
-        for quarter in ["0[123]", "0[456]", "0[789]", "1[012]"]:
+        for i, quarter in enumerate(["0[123]", "0[456]", "0[789]", "1[012]"]):
 
             INDEXING = KubernetesPodOperator(
                 namespace="processing",
@@ -76,7 +76,7 @@ with dag:
                 ],
                 labels={"step": "s3-dc-indexing"},
                 name="datacube-index",
-                task_id=f"indexing-task-{year}-{quarter}",
+                task_id=f"indexing-task-{year}-Q{i+1}",
                 get_logs=True,
                 is_delete_operator_pod=True,
             )
