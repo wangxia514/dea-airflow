@@ -11,12 +11,12 @@ import logging
 from airflow.models import DagBag
 from airflow.configuration import conf
 
-from automated_reporting.rep_nrt_usgs_completeness import (
+from automated_reporting.tasks.usgs_completeness import (
     completeness_comparison_all,
-    collect_stac_api_results,
     landsat_path_row,
     filter_aoi,
 )
+from automated_reporting.utilities.stac_api import collect_stac_api_results
 import usgs_completeness_sample_data as sample_data
 
 logger = logging.getLogger("airflow.task")
@@ -37,7 +37,7 @@ class TestUSGSCompletenessDAGStructure(unittest.TestCase):
 
     def test_task(self):
         dag = self.dagbag.get_dag(dag_id="rep_usgs_completeness_nrt_l1")
-        self.assertTrue(dag.has_task("run_main"))
+        self.assertTrue(dag.has_task("usgs_completeness"))
 
 
 class TestUSGSCompletenessDagUnits(unittest.TestCase):
