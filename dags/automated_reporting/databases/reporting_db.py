@@ -4,17 +4,16 @@ Utilities for reporting db queries and inserts
 
 import logging
 from airflow.hooks.postgres_hook import PostgresHook
-from infra.connections import DB_REP_WRITER_CONN
 from automated_reporting.databases import sql
 from datetime import timezone, timedelta
 
 log = logging.getLogger("airflow.task")
 
 
-def insert_completeness(db_completeness_writes):
+def insert_completeness(connection_id, db_completeness_writes):
     """Insert completeness results into reporting DB"""
 
-    rep_pg_hook = PostgresHook(postgres_conn_id=DB_REP_WRITER_CONN)
+    rep_pg_hook = PostgresHook(postgres_conn_id=connection_id)
     rep_conn = None
     try:
         # open the connection to the Reporting DB and get a cursor
@@ -45,11 +44,11 @@ def insert_completeness(db_completeness_writes):
 
 
 def insert_latency(
-    product_name, latest_sat_acq_ts, latest_processing_ts, execution_date
+    connection_id, product_name, latest_sat_acq_ts, latest_processing_ts, execution_date
 ):
     """Insert latency result into reporting DB"""
 
-    rep_pg_hook = PostgresHook(postgres_conn_id=DB_REP_WRITER_CONN)
+    rep_pg_hook = PostgresHook(postgres_conn_id=connection_id)
     rep_conn = None
     try:
         # open the connection to the Reporting DB and get a cursor
@@ -79,10 +78,10 @@ def insert_latency(
             rep_conn.close()
 
 
-def expire_completeness(product_id):
+def expire_completeness(connection_id, product_id):
     """Expire completeness results in reporting DB"""
 
-    rep_pg_hook = PostgresHook(postgres_conn_id=DB_REP_WRITER_CONN)
+    rep_pg_hook = PostgresHook(postgres_conn_id=connection_id)
     rep_conn = None
     count = None
     try:

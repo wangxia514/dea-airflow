@@ -13,9 +13,10 @@ from datetime import timedelta, timezone
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 
-from infra.connections import DB_REP_WRITER_CONN
+import infra.connections as connections
 
-from automated_reporting.databases import schemas, reporting_db
+from automated_reporting.databases import schemas
+from automated_reporting.tasks import check_db_task, expire_completeness_task
 
 log = logging.getLogger("airflow.task")
 
@@ -40,27 +41,14 @@ dag = DAG(
 
 with dag:
 
-    # Task callable
-    def expire_completeness(product_id, **kwargs):
-        """
-        Task to redundent completeness metrics
-        """
-        log.info("Expiring completeness for product id: {}".format(product_id))
-
-        removed_count = reporting_db.expire_completeness(product_id)
-
-        log.info("Cleaned: {}".format(removed_count))
-
-        return None
-
-    ## Tasks
+    check_db_kwargs = {
+        "expected_schema": schemas.COMPLETENESS_SCHEMA,
+        "connection_id": connections.DB_REP_WRITER_CONN,
+    }
     check_db = PythonOperator(
         task_id="check_db_schema",
-        python_callable=schemas.check_db_schema,
-        op_kwargs={
-            "expected_schema": schemas.COMPLETENESS_SCHEMA,
-            "connection_id": DB_REP_WRITER_CONN,
-        },
+        python_callable=check_db_task,
+        op_kwargs=check_db_kwargs,
     )
 
     products_list = [
@@ -73,10 +61,14 @@ with dag:
         """
         Function to generate PythonOperator tasks with id based on `product_id`
         """
+        expire_completeness_kwargs = {
+            "connection_id": connections.DB_REP_WRITER_CONN,
+            "product_id": product_id,
+        }
         return PythonOperator(
             task_id="expire_completeness_" + product_id,
-            python_callable=expire_completeness,
-            op_kwargs={"product_id": product_id},
+            python_callable=expire_completeness_task,
+            op_kwargs=expire_completeness_kwargs,
             provide_context=True,
         )
 
