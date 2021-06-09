@@ -102,7 +102,7 @@ with dag:
             resources={
                 "request_cpu": "4000m",
                 "request_memory": "4Gi",
-            }
+            },
             namespace="processing",
             task_id="waterbodies-all-task-{part}".format(part=part),
         )
