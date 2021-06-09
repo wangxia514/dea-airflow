@@ -6,7 +6,7 @@ from datetime import datetime as dt, timedelta as td, timezone as tz
 
 from airflow.models import DagBag
 
-from automated_reporting.utilities.s2_completeness import (
+from automated_reporting.tasks.s2_completeness import (
     filter_products_to_region,
     get_expected_ids_missing_in_actual,
     get_products_in_expected_and_actual,

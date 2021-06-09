@@ -1,10 +1,14 @@
 """
-Utilities for s2 completeness calculations
+Task for s2 completeness calculations
 """
-
 import logging
 
+from airflow.hooks.S3_hook import S3Hook
+
+import infra.connections as connections
 from automated_reporting.utilities import helpers
+from automated_reporting.utilities import copernicus_api
+from automated_reporting.databases import odc_db, reporting_db
 
 log = logging.getLogger("airflow.task")
 
@@ -229,3 +233,59 @@ def generate_db_writes(sensor, summary, output, execution_date):
             completeness_record[-1].append([scene_id, execution_date])
         db_completeness_writes.append(completeness_record)
     return db_completeness_writes
+
+
+# Task callable
+def task(execution_date, days, connection_id, **kwargs):
+    """
+    Task to compute Sentinel L1 completeness
+    """
+
+    # query Copernicus API for for all S2 L1 products for last X days
+    expected_products = copernicus_api.query(execution_date, days)
+
+    # get a optimised tile list of AOI from S3
+    s3_hook = S3Hook(aws_conn_id=connections.S3_REP_CONN)
+    aoi_list = s3_hook.read_key(
+        "aus_aoi_tile.txt", bucket_name="automated-reporting-airflow"
+    ).splitlines()
+    log.info("Downloaded AOI tile list: {} tiles found".format(len(aoi_list)))
+
+    # a list of tuples to store values before writing to database
+    db_completeness_writes = []
+
+    # calculate metrics for each s2 sensor/platform and add to output list
+    for sensor in ["s2a", "s2b"]:
+
+        log.info("Computing completeness for: {}".format(sensor))
+
+        # query ODC for all S2 L1 products for last X days
+        actual_products = odc_db.query(
+            "{}_nrt_granule".format(sensor), execution_date, days
+        )
+
+        # compute completeness and latency for every tile in AOI
+        output = calculate_metrics_for_all_regions(
+            sensor, aoi_list, expected_products, actual_products
+        )
+
+        # calculate summary stats for whole of AOI
+        summary = calculate_summary_stats_for_aoi(output)
+
+        # write results to Airflow logs
+        log_results(sensor, summary, output)
+
+        # generate the list of database writes for sensor/platform
+        db_completeness_writes += generate_db_writes(
+            sensor, summary, output, execution_date
+        )
+
+    # write records to reporting database
+    reporting_db.insert_completeness(connection_id, db_completeness_writes)
+    log.info(
+        "Inserting completeness output to reporting DB: {} records".format(
+            len(db_completeness_writes)
+        )
+    )
+
+    return None
