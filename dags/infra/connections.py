@@ -4,6 +4,7 @@ infra provided connids
 # Automated reporting connections
 DB_ODC_READER_CONN = "db_odc_reader"
 DB_REP_WRITER_CONN = "db_rep_writer"
+DB_REP_WRITER_CONN_L = "db_rep_writer_L"
 S3_REP_CONN = "s3_bucket_rep"
 
 # AWS CONN Alignment
