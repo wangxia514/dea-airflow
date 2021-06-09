@@ -70,8 +70,6 @@ dag = DAG(
     tags=["k8s", "landsat", "waterbodies"],
 )
 
-print(f'Using dea-waterbodies image {WATERBODIES_UNSTABLE_IMAGE}')
-
 with dag:
     n_chunks = 12
     for part in range(1, n_chunks + 1):
@@ -83,10 +81,13 @@ with dag:
             "-c",
             dedent(
                 """
+                echo "Using dea-waterbodies image {image}"
                 wget https://raw.githubusercontent.com/GeoscienceAustralia/dea-waterbodies/stable/ts_configs/{conf} -O config.ini
                 cat config.ini
                 python -m dea_waterbodies.make_time_series config.ini --part={part} --chunks={n_chunks}
-                """.format(part=part, n_chunks=n_chunks, conf='{{ dag_run.conf.get("config_name", "config_moree_test") }}')
+                """.format(image=WATERBODIES_UNSTABLE_IMAGE,
+                           part=part, n_chunks=n_chunks,
+                           conf='{{ dag_run.conf.get("config_name", "config_moree_test") }}')
             ),
         ]
         KubernetesPodOperator(
