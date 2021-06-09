@@ -99,6 +99,10 @@ with dag:
             get_logs=True,
             affinity=ONDEMAND_NODE_AFFINITY,
             is_delete_operator_pod=True,
+            resources={
+                "request_cpu": "4000m",
+                "request_memory": "4Gi",
+            }
             namespace="processing",
             task_id="waterbodies-all-task-{part}".format(part=part),
         )
