@@ -147,6 +147,7 @@ def upload_metadata(granule_id):
     s3_eo3_path = f"{s3_path}eo3-ARD-METADATA.yaml"
     s3_stac_path = f"{s3_path}stac-ARD-METADATA.json"
 
+    product = "s2b_ard_granule" if "S2B" in granule_id  else "s2a_ard_granule"
     eo3 = create_eo3(local_path, granule_id)
     stac = to_stac_item(
         eo3,
@@ -154,10 +155,13 @@ def upload_metadata(granule_id):
         odc_dataset_metadata_url=s3_eo3_path,
         dataset_location=s3_path,
     )
+    stac["properties"]["odc:product"] = product
     stac_dump = json.dumps(stac, default=json_fallback, indent=4)
-
+    
+    eo3 = serialise.to_doc(eo3)
+    eo3["product"]["name"] = product
     s3_dump(
-        yaml.safe_dump(serialise.to_doc(eo3), default_flow_style=False), 
+        yaml.safe_dump(eo3, default_flow_style=False), 
         s3_eo3_path, 
         ACL="bucket-owner-full-control",
         ContentType="text/vnd.yaml"
