@@ -62,7 +62,7 @@ dag = DAG(
 )
 
 with dag:
-    for year in range(2015, 2018): # TODO: update year range when all metadata fixed
+    for year in range(2015, 2022):
         for i, quarter in enumerate(["0[123]", "0[456]", "0[789]", "1[012]"]):
 
             INDEXING = KubernetesPodOperator(
