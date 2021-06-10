@@ -47,7 +47,7 @@ dag = DAG(
     default_args=default_args,
     catchup=True,
     schedule_interval='@daily',
-    max_active_runs=4,
+    max_active_runs=16,
     default_view='tree',
     tags=['nci', 'sentinel_2'],
 )
