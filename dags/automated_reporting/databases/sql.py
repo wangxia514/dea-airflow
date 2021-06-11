@@ -39,3 +39,17 @@ INSERT_COMPLETENESS = """
 INSERT_COMPLETENESS_MISSING = """
     INSERT INTO reporting.completeness_missing (completeness_id, dataset_id, last_updated)
     VALUES (%s, %s, %s);"""
+
+EXPIRE_COMPLETENESS = """
+    DELETE FROM reporting.completeness
+    WHERE product_id = %(product_id)s
+    AND geo_ref NOT LIKE 'all_%%'
+    AND id NOT IN (
+        SELECT rr.id from (
+            SELECT geo_ref, max(last_updated) AS last_updated
+            FROM reporting.completeness
+            WHERE product_id = %(product_id)s
+            GROUP BY geo_ref ) r
+        INNER JOIN reporting.completeness rr
+        ON rr.geo_ref = r.geo_ref AND rr.last_updated = r.last_updated
+        AND rr.product_id = %(product_id)s);"""

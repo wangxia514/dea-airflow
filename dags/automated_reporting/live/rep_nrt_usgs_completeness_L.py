@@ -31,8 +31,8 @@ default_args = {
 }
 
 dag = DAG(
-    "rep_usgs_completeness_nrt_l1",
-    description="DAG for completeness and latency metric on USGS L1 C2 nrt product",
+    "rep_usgs_completeness_nrt_l1_L",
+    description="DAG for completeness and latency metric on USGS L1 C2 nrt product  in live reporting DB",
     tags=["reporting"],
     default_args=default_args,
     schedule_interval=timedelta(minutes=120),
@@ -40,10 +40,11 @@ dag = DAG(
 
 with dag:
     # Task callable
+    schema = schemas.USGS_COMPLETENESS_SCHEMA
 
     check_db_kwargs = {
-        "expected_schema": schemas.USGS_COMPLETENESS_SCHEMA,
-        "connection_id": connections.DB_REP_WRITER_CONN,
+        "expected_schema": schema,
+        "connection_id": connections.DB_REP_WRITER_CONN_L,
     }
     check_db = PythonOperator(
         task_id="check_db_schema",
@@ -51,7 +52,7 @@ with dag:
         op_kwargs=check_db_kwargs,
     )
 
-    completeness_kwargs = {"connection_id": connections.DB_REP_WRITER_CONN}
+    completeness_kwargs = {"connection_id": connections.DB_REP_WRITER_CONN_L}
     usgs_completeness = PythonOperator(
         task_id="usgs_completeness",
         python_callable=usgs_completeness_task,

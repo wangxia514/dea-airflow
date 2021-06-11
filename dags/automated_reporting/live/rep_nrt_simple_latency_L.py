@@ -14,7 +14,6 @@ from datetime import timedelta, timezone
 
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
-from airflow.hooks.postgres_hook import PostgresHook
 
 import infra.connections as connections
 
@@ -36,8 +35,8 @@ default_args = {
 }
 
 dag = DAG(
-    "rep_nrt_simple_latency",
-    description="DAG for simple latency metric on nrt products: AWS ODC -> AIRFLOW -> Reporting DB",
+    "rep_nrt_simple_latency_L",
+    description="DAG for simple latency metric on nrt products: AWS ODC -> AIRFLOW -> Live Reporting DB",
     tags=["reporting"],
     default_args=default_args,
     schedule_interval=timedelta(minutes=15),
@@ -46,9 +45,11 @@ dag = DAG(
 with dag:
 
     ## Tasks
+    schema = schemas.LATENCY_SCHEMA
+
     check_db_kwargs = {
-        "expected_schema": schemas.LATENCY_SCHEMA,
-        "connection_id": connections.DB_REP_WRITER_CONN,
+        "expected_schema": schema,
+        "connection_id": connections.DB_REP_WRITER_CONN_L,
     }
     check_db = PythonOperator(
         task_id="check_db_schema",
@@ -64,7 +65,7 @@ with dag:
         Function to generate PythonOperator tasks with id based on `product_name`
         """
         latency_kwargs = {
-            "connection_id": connections.DB_REP_WRITER_CONN,
+            "connection_id": connections.DB_REP_WRITER_CONN_L,
             "product_name": product_name,
         }
         return PythonOperator(

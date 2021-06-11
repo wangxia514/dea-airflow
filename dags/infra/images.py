@@ -2,7 +2,7 @@
 # IMAGES USED FOR DAGs
 """
 ## STABLE IMAGES
-INDEXER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/datacube-index:0.0.20"
+INDEXER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/datacube-index:latest"
 
 OWS_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/ows:latest"
 OWS_CONFIG_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/geoscienceaustralia/dea-datakube-config:latest"
@@ -22,4 +22,4 @@ WAGL_IMAGE_POC = "geoscienceaustralia/dea-wagl-docker:latest"
 # UNSTABLE IMAGES
 EXPLORER_UNSTABLE_IMAGE = "opendatacube/explorer:2.5.0-3-gd9f5a67"
 
-WATERBODIES_UNSTABLE_IMAGE = "geoscienceaustralia/dea-waterbodies:latest"
+WATERBODIES_UNSTABLE_IMAGE = "geoscienceaustralia/dea-waterbodies:1.0.1a6-6-g9fa9c66"

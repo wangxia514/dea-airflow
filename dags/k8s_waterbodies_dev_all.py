@@ -81,10 +81,13 @@ with dag:
             "-c",
             dedent(
                 """
+                echo "Using dea-waterbodies image {image}"
                 wget https://raw.githubusercontent.com/GeoscienceAustralia/dea-waterbodies/stable/ts_configs/{conf} -O config.ini
                 cat config.ini
                 python -m dea_waterbodies.make_time_series config.ini --part={part} --chunks={n_chunks}
-                """.format(part=part, n_chunks=n_chunks, conf='{{ dag_run.conf.get("config_name", "config_moree_test") }}')
+                """.format(image=WATERBODIES_UNSTABLE_IMAGE,
+                           part=part, n_chunks=n_chunks,
+                           conf='{{ dag_run.conf.get("config_name", "config_moree_test") }}')
             ),
         ]
         KubernetesPodOperator(
@@ -96,6 +99,10 @@ with dag:
             get_logs=True,
             affinity=ONDEMAND_NODE_AFFINITY,
             is_delete_operator_pod=True,
+            resources={
+                "request_cpu": "1000m",
+                "request_memory": "500Mi",
+            },
             namespace="processing",
             task_id="waterbodies-all-task-{part}".format(part=part),
         )

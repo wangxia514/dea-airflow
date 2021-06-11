@@ -10,14 +10,18 @@ from airflow.models import Variable
 
 from infra.variables import COP_API_REP_CREDS
 from automated_reporting.utilities import helpers
+from automated_reporting.aux_data import aoi
 
 log = logging.getLogger("airflow.task")
 
 
-def query(producttype, execution_date, days, aoi_polygon):
+def query(execution_date, days):
     """Query Copernicus/Scihub for a product type, date range and area of interest"""
 
     execution_date = helpers.python_dt(execution_date)
+
+    producttype = "S2MSI1C"
+    aoi_polygon = aoi.AOI_POLYGON
 
     copernicus_api_creds = Variable.get(COP_API_REP_CREDS, deserialize_json=True)
 

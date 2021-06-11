@@ -19,6 +19,7 @@ from infra.images import INDEXER_IMAGE
 DEFAULT_ARGS = {
     "owner": "Kieran Ricardo",
     "depends_on_past": False,
+    "start_date": datetime(2020, 6, 14),
     "email": ["kieran.ricardo@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
@@ -61,8 +62,8 @@ dag = DAG(
 )
 
 with dag:
-    for year in range(2015, 2018): # TODO: update year range when all metadata fixed
-        for quarter in ["0[123]", "0[456]", "0[789]", "1[012]"]:
+    for year in range(2015, 2022):
+        for i, quarter in enumerate(["0[123]", "0[456]", "0[789]", "1[012]"]):
 
             INDEXING = KubernetesPodOperator(
                 namespace="processing",
@@ -71,12 +72,13 @@ with dag:
                 arguments=[
                     "s3-to-dc",
                     "--skip-lineage",
+                    "--no-sign-request",
                     f"s3://dea-public-data/baseline/s2[ab]_ard_granule/{year}-{quarter}-*/*/eo3-ARD-METADATA.yaml",
                     dag.default_args["products"],
                 ],
                 labels={"step": "s3-dc-indexing"},
                 name="datacube-index",
-                task_id=f"indexing-task-{year}-{quarter}",
+                task_id=f"indexing-task-{year}-Q{i+1}",
                 get_logs=True,
                 is_delete_operator_pod=True,
             )
