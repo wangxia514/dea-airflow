@@ -3,6 +3,7 @@ Utilities for reporting db queries and inserts
 """
 
 import logging
+import re
 from airflow.hooks.postgres_hook import PostgresHook
 from automated_reporting.databases import sql
 from datetime import datetime as dt, timezone, timedelta
@@ -108,18 +109,10 @@ def insert_latency_list(connection_id, latency_results, execution_date):
         with rep_pg_hook.get_conn() as rep_conn:
             with rep_conn.cursor() as rep_cursor:
                 for latency in latency_results:
-                    sat_acq_ts = (
-                        dt.fromisoformat(latency["latest_sat_acq_ts"])
-                        .astimezone(tz=timezone.utc)
-                        .replace(tzinfo=None)
-                    )
+                    sat_acq_ts = dt.utcfromtimestamp(latency["latest_sat_acq_ts"])
                     proc_ts = None
                     if latency["latest_processing_ts"]:
-                        proc_ts = (
-                            dt.fromisoformat(latency["latest_processing_ts"])
-                            .astimezone(tz=timezone.utc)
-                            .replace(tzinfo=None)
-                        )
+                        proc_ts = dt.utcfromtimestamp(latency["latest_processing_ts"])
                     rep_cursor.execute(
                         sql.INSERT_LATENCY,
                         (
