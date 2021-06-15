@@ -64,10 +64,12 @@ dag = DAG(
     schedule_interval=None,
     catchup=False,
     tags=["k8s", "explorer"],
+    access_control={"utilityuser": {"can_dag_read", "can_dag_edit"}},
 )
 
 
 def parse_dagrun_conf(products, **kwargs):
+    """get dag run product"""
     if products:
         return products
     else:
