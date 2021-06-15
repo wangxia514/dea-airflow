@@ -5,7 +5,7 @@ Utilities for reporting db queries and inserts
 import logging
 from airflow.hooks.postgres_hook import PostgresHook
 from automated_reporting.databases import sql
-from datetime import timezone, timedelta
+from datetime import datetime as dt, timezone, timedelta
 
 log = logging.getLogger("airflow.task")
 
@@ -96,3 +96,45 @@ def expire_completeness(connection_id, product_id):
         if rep_conn is not None:
             rep_conn.close()
     return count
+
+
+def insert_latency_list(connection_id, latency_results, execution_date):
+    """Insert latency result into reporting DB"""
+
+    rep_pg_hook = PostgresHook(postgres_conn_id=connection_id)
+    rep_conn = None
+    try:
+        # open the connection to the Reporting DB and get a cursor
+        with rep_pg_hook.get_conn() as rep_conn:
+            with rep_conn.cursor() as rep_cursor:
+                for latency in latency_results:
+                    sat_acq_ts = (
+                        dt.fromisoformat(latency["latest_sat_acq_ts"])
+                        .astimezone(tz=timezone.utc)
+                        .replace(tzinfo=None)
+                    )
+                    proc_ts = None
+                    if latency["latest_processing_ts"]:
+                        proc_ts = (
+                            dt.fromisoformat(latency["latest_processing_ts"])
+                            .astimezone(tz=timezone.utc)
+                            .replace(tzinfo=None)
+                        )
+                    rep_cursor.execute(
+                        sql.INSERT_LATENCY,
+                        (
+                            latency["product_name"],
+                            sat_acq_ts,
+                            proc_ts,
+                            execution_date.astimezone(
+                                tz=timezone(timedelta(hours=10), name="AEST")
+                            ).replace(tzinfo=None),
+                        ),
+                    )
+                    log.info("REP Executed SQL: {}".format(rep_cursor.query.decode()))
+                    log.info("REP returned: {}".format(rep_cursor.statusmessage))
+    except Exception as e:
+        raise e
+    finally:
+        if rep_conn is not None:
+            rep_conn.close()
