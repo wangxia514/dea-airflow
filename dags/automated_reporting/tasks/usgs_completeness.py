@@ -434,6 +434,7 @@ def task(execution_date, connection_id, **kwargs):
     file_path = "dags/automated_reporting/aux_data/landsat_l1_path_row_list.txt"
     wrsPathRowList = landsat_path_row(file_path)
     logger.info("Loaded Path Row Listing")
+    latency_results = []
 
     for mission in missions:
         logger.info("Checking Stac API {}".format(mission))
@@ -496,7 +497,13 @@ def task(execution_date, connection_id, **kwargs):
             "Null",
             execution_date,
         )
-
+        latency_results.append(
+            {
+                "product_name": productId,
+                "latest_sat_acq_ts": latestSatAcq.isoformat(),
+                "latest_processing_ts": None,
+            }
+        )
         logger.info("***{} MISSION***".format(mission))
         logger.info(
             "Completeness - {}%. Expected Count - {}. Actual Count - {}.".format(
@@ -513,4 +520,4 @@ def task(execution_date, connection_id, **kwargs):
             execution_date,
         )
 
-        return None
+        return latency_results
