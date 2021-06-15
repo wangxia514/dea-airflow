@@ -19,5 +19,4 @@ def task(connection_id, execution_date, **kwargs):
 
     latency_results = kwargs["task_instance"].xcom_pull(task_ids="usgs_completeness")
     if latency_results:
-        print(latency_results)
         reporting_db.insert_latency_list(connection_id, latency_results, execution_date)

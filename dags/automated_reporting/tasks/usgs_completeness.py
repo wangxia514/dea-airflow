@@ -4,7 +4,7 @@ Task to calculate USGS NRT completeness using S3 listings and Stac API query
 import os
 from pathlib import Path
 import logging
-from datetime import timedelta
+from datetime import timedelta, timezone
 
 from airflow.configuration import conf
 from airflow.hooks.postgres_hook import PostgresHook
@@ -500,7 +500,9 @@ def task(execution_date, connection_id, **kwargs):
         latency_results.append(
             {
                 "product_name": productId,
-                "latest_sat_acq_ts": latestSatAcq.isoformat(),
+                "latest_sat_acq_ts": latestSatAcq.astimezone(
+                    tz=timezone.utc
+                ).timestamp(),
                 "latest_processing_ts": None,
             }
         )
