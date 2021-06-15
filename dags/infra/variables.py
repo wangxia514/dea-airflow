@@ -47,4 +47,4 @@ SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET = Variable.get(
 
 S2_NRT_AWS_CREDS = "wagl-nrt-aws-creds"
 
-COP_API_REP_CREDS = "copernicus_api_creds"
+COP_API_REP_CREDS = "copernicus_api_password"
