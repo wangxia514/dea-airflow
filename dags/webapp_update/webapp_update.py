@@ -1,5 +1,5 @@
 """
-# Sentinel-2_nrt update views automation
+# update views for explorer and ows
 
 This DAG uses k8s executors and in cluster with relevant tooling
 and configuration installed.
@@ -46,6 +46,7 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval="0 */6 * * *",  # every 6 hours
     catchup=False,
+    max_active_runs=1,
     tags=["k8s", "ows-update", "explorer-update"],
 )
 

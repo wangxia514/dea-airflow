@@ -115,6 +115,7 @@ def ows_update_extent_subdag(
         dag_id="%s.%s" % (parent_dag_name, child_dag_name),
         default_args=args,
         catchup=False,
+        max_active_runs=1,
     )
 
     KubernetesPodOperator(
