@@ -71,7 +71,3 @@ jobs:
               echo "error in dags"
               exit 1
           fi
-      - name: Check upgdate readiness
-        run: |
-          pip install apache-airflow-upgrade-check
-          airflow upgrade_check
