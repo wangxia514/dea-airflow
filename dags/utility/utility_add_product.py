@@ -117,7 +117,6 @@ CHECK_DAGRUN_CONFIG = "check_dagrun_config"
 with dag:
     TASK_PLANNER = BranchPythonOperator(
         task_id=CHECK_DAGRUN_CONFIG,
-        doc_md="This decides whether we need to Add a Product or just do the indexing",
         python_callable=check_dagrun_config,
         op_args=[
             "{{ dag_run.conf.product_definition_uri }}",
