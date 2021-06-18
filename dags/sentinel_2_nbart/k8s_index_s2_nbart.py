@@ -14,6 +14,12 @@ from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.operators.dummy_operator import DummyOperator
 from infra.sqs_queues import SENTINEL_2_ARD_INDEXING_SQS_QUEUE_NAME_ODC_DB
+from infra.variables import (
+    DB_DATABASE,
+    DB_HOSTNAME,
+    SECRET_ODC_WRITER_NAME,
+    SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET,
+)
 
 DEFAULT_ARGS = {
     "owner": "Kieran Ricardo",
@@ -27,39 +33,39 @@ DEFAULT_ARGS = {
     "index_sqs_queue": SENTINEL_2_ARD_INDEXING_SQS_QUEUE_NAME_ODC_DB,
     "products": "s2a_ard_granule s2b_ard_granule",
     "env_vars": {
-        "DB_HOSTNAME": "db-writer",
-        "DB_DATABASE": "odc",
+        "DB_HOSTNAME": DB_HOSTNAME,
+        "DB_DATABASE": DB_DATABASE,
     },
     # Lift secrets into environment variables
     "secrets": [
         Secret(
             "env",
             "DB_USERNAME",
-            "odc-writer",
+            SECRET_ODC_WRITER_NAME,
             "postgres-username",
         ),
         Secret(
             "env",
             "DB_PASSWORD",
-            "odc-writer",
+            SECRET_ODC_WRITER_NAME,
             "postgres-password",
         ),
         Secret(
             "env",
             "AWS_DEFAULT_REGION",
-            "sentinel-2-ard-indexing-creds",
+            SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET,
             "AWS_DEFAULT_REGION",
         ),
         Secret(
             "env",
             "AWS_ACCESS_KEY_ID",
-            "sentinel-2-ard-indexing-creds",
+            SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET,
             "AWS_ACCESS_KEY_ID",
         ),
         Secret(
             "env",
             "AWS_SECRET_ACCESS_KEY",
-            "sentinel-2-ard-indexing-creds",
+            SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET,
             "AWS_SECRET_ACCESS_KEY",
         ),
     ],
@@ -68,7 +74,7 @@ DEFAULT_ARGS = {
 from infra.images import INDEXER_IMAGE
 
 dag = DAG(
-    "k8s_index_s2_nbart_odc",
+    "k8s_index_s2_nbart",
     default_args=DEFAULT_ARGS,
     schedule_interval="0 */1 * * *",
     catchup=False,

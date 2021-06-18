@@ -14,7 +14,12 @@ from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.operators.dummy_operator import DummyOperator
 from infra.sqs_queues import SENTINEL_2_ARD_INDEXING_SQS_QUEUE_NAME_SANDBOX_DB
-from infra.variables import SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET
+from infra.variables import (
+    DB_SANDBOX_DATABASE,
+    DB_SANDBOX_USER_SECRET,
+    DB_HOSTNAME,
+    SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET,
+)
 
 DEFAULT_ARGS = {
     "owner": "Kieran Ricardo",
@@ -28,21 +33,21 @@ DEFAULT_ARGS = {
     "index_sqs_queue": SENTINEL_2_ARD_INDEXING_SQS_QUEUE_NAME_SANDBOX_DB,
     "products": "s2a_ard_granule s2b_ard_granule",
     "env_vars": {
-        "DB_HOSTNAME": "db-writer",
-        "DB_DATABASE": "sandbox",
+        "DB_HOSTNAME": DB_HOSTNAME,
+        "DB_DATABASE": DB_SANDBOX_DATABASE,
     },
     # Lift secrets into environment variables
     "secrets": [
         Secret(
             "env",
             "DB_USERNAME",
-            "odc-writer",
+            DB_SANDBOX_USER_SECRET,
             "postgres-username",
         ),
         Secret(
             "env",
             "DB_PASSWORD",
-            "odc-writer",
+            DB_SANDBOX_USER_SECRET,
             "postgres-password",
         ),
         Secret(
