@@ -64,10 +64,10 @@ class testClass(unittest.TestCase):
         self.assertDagDictEqual(
             {
                 "check_dagrun_config": ["add-product-task", "batch-indexing-task"],
-                "add-product-task": [],
-                "batch-indexing-task": [],
-                "parse_dagrun_conf": ["run-cubedash-gen-refresh-stat"],
-                "run-cubedash-gen-refresh-stat": [],
+                "add-product-task": ["batch-indexing-task"],
+                "batch-indexing-task": ["run-cubedash-gen-refresh-stat"],
+                "parse_dagrun_conf": ["explorer-summary-task"],
+                "explorer-summary-task": [],
             },
             add_product_index_utility_dag,
         )
