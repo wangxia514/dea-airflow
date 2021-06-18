@@ -1,35 +1,48 @@
 """
-## Utility Tool (Self Serve)
-For adding a new odc product to the database and index datasets
+# Product Adding and Indexing Utility Tool (Self Serve)
 
-#### Utility customisation
-The DAG can be parameterized with run time configuration `product_definition_uri`, `s3_glob` and `product_name`
+This DAG should be triggered manually and will:
 
-the process is as follow:
-1. datacube product add
-2. datacube dataset index
+- Add a new Product to the database *(Optional)*
+- Index a glob of datasets on S3
+- Update Datacube Explorer so that you can see the results
+
+## Customisation
+
+There are three configuration arguments:
+
+- `product_definition_uri`: A HTTP/S url to a Product Definition YAML *(Optional)*
+- `s3_glob`: An S3 URL or Glob pattern, as recognised by `s3-to-dc` *(Optional)*
+- `product_name`: The name of the product
+
+The commands which are executed are:
+
+1. `datacube product add`
+2. `s3-to-dc`
 3. update explorer
 
-dag_run.conf format:
 
-#### example conf in json format
+## Sample Configuration
 
-    "product_definition_uri": "https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/master/products/lccs/lc_ls_c2.odc-product.yaml",
-    "s3_glob": "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
-    "product_name": "lc_ls_landcover_class_cyear_2_0"
+    {
+        "product_definition_uri": "https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/master/products/lccs/lc_ls_c2.odc-product.yaml",
+        "s3_glob": "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
+        "product_name": "lc_ls_landcover_class_cyear_2_0"
+    }
+
 """
 
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.operators.subdag_operator import SubDagOperator
-from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
-from airflow.kubernetes.secret import Secret
-from subdags.subdag_ows_views import ows_update_extent_subdag
-from subdags.subdag_explorer_summary import explorer_refresh_stats_subdag
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+from airflow.kubernetes.secret import Secret
+from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 
 from infra.images import INDEXER_IMAGE
+from infra.podconfig import (
+    ONDEMAND_NODE_AFFINITY,
+)
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
@@ -37,13 +50,14 @@ from infra.variables import (
     AWS_DEFAULT_REGION,
     DB_PORT,
 )
-from infra.podconfig import (
-    ONDEMAND_NODE_AFFINITY,
-)
+from subdags.subdag_explorer_summary import explorer_refresh_operator
+
+ADD_PRODUCT_TASK_ID = "add-product-task"
+
+INDEXING_TASK_ID = "batch-indexing-task"
 
 DAG_NAME = "utility_add_product_index_dataset_explorer_update"
 
-# DAG CONFIGURATION
 DEFAULT_ARGS = {
     "owner": "Pin Jin",
     "depends_on_past": False,
@@ -67,7 +81,6 @@ DEFAULT_ARGS = {
     ],
 }
 
-
 # THE DAG
 dag = DAG(
     dag_id=DAG_NAME,
@@ -75,7 +88,7 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
-    tags=["k8s", "add-product", "self-service", "index-datasets", "explorer-update"],
+    tags=["k8s", "add-product", "utility", "self-service", "index-datasets", "explorer-update"],
 )
 
 
@@ -91,26 +104,25 @@ def check_dagrun_config(product_definition_uri, s3_glob, **kwargs):
     determine task needed to perform
     """
     if product_definition_uri and s3_glob:
-        return ["add-product-task", "batch-indexing-task"]
+        return [ADD_PRODUCT_TASK_ID, INDEXING_TASK_ID]
     elif product_definition_uri:
-        return "add-product-task"
+        return ADD_PRODUCT_TASK_ID
     elif s3_glob:
-        return "batch-indexing-task"
+        return INDEXING_TASK_ID
 
 
 SET_REFRESH_PRODUCT_TASK_NAME = "parse_dagrun_conf"
 CHECK_DAGRUN_CONFIG = "check_dagrun_config"
 
 with dag:
-
     TASK_PLANNER = BranchPythonOperator(
         task_id=CHECK_DAGRUN_CONFIG,
+        doc_md="This decides whether we need to Add a Product or just do the indexing",
         python_callable=check_dagrun_config,
         op_args=[
             "{{ dag_run.conf.product_definition_uri }}",
             "{{ dag_run.conf.s3_glob }}",
         ],
-        # provide_context=True,
     )
 
     ADD_PRODUCT = KubernetesPodOperator(
@@ -125,7 +137,7 @@ with dag:
             "{{ dag_run.conf.product_definition_uri }}",
         ],
         name="datacube-add-product",
-        task_id="add-product-task",
+        task_id=ADD_PRODUCT_TASK_ID,
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
@@ -146,7 +158,7 @@ with dag:
             "--no-sign-request",
         ],
         name="datacube-index",
-        task_id="batch-indexing-task",
+        task_id=INDEXING_TASK_ID,
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
@@ -156,21 +168,12 @@ with dag:
         task_id=SET_REFRESH_PRODUCT_TASK_NAME,
         python_callable=parse_dagrun_conf,
         op_args=["{{ dag_run.conf.product_name }}"],
-        # provide_context=True,
     )
 
-    EXPLORER_SUMMARY = SubDagOperator(
-        task_id="run-cubedash-gen-refresh-stat",
-        subdag=explorer_refresh_stats_subdag(
-            DAG_NAME,
-            "run-cubedash-gen-refresh-stat",
-            DEFAULT_ARGS,
-            SET_REFRESH_PRODUCT_TASK_NAME,
-        ),
+    EXPLORER_SUMMARY = explorer_refresh_operator(
+        xcom_task_id=SET_REFRESH_PRODUCT_TASK_NAME,
     )
 
-    TASK_PLANNER >> [
-        ADD_PRODUCT,
-        INDEXING,
-        ADD_PRODUCT >> INDEXING,
-    ] >> SET_PRODUCTS >> EXPLORER_SUMMARY
+    TASK_PLANNER >> [ADD_PRODUCT, INDEXING]
+    ADD_PRODUCT >> INDEXING >> EXPLORER_SUMMARY
+    SET_PRODUCTS >> EXPLORER_SUMMARY
