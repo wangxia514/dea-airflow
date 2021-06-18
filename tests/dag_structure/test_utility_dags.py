@@ -65,7 +65,7 @@ class testClass(unittest.TestCase):
             {
                 "check_dagrun_config": ["add-product-task", "batch-indexing-task"],
                 "add-product-task": ["batch-indexing-task"],
-                "batch-indexing-task": ["run-cubedash-gen-refresh-stat"],
+                "batch-indexing-task": ["explorer-summary-task"],
                 "parse_dagrun_conf": ["explorer-summary-task"],
                 "explorer-summary-task": [],
             },
