@@ -38,6 +38,7 @@ from airflow import DAG
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
+from airflow.utils.trigger_rule import TriggerRule
 
 from infra.images import INDEXER_IMAGE
 from infra.podconfig import (
@@ -161,6 +162,7 @@ with dag:
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
+        trigger_rule=TriggerRule.NONE_FAILED_OR_SKIPPED  # Needed in case add product was skipped
     )
 
     SET_PRODUCTS = PythonOperator(
