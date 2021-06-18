@@ -1,4 +1,3 @@
-version: '3.7'
 services:
   postgres:
     image: postgres:12
@@ -14,7 +13,7 @@ services:
         max-size: 10m
         max-file: "3"
   setup-airflow:
-    image: &image apache/airflow:1.10.14-python3.8
+    image: &image apache/airflow:1.10.15-python3.8
     #    image: &image apache/airflow:v1-10-test-python3.8-ci
     depends_on:
       - postgres
@@ -26,13 +25,14 @@ services:
       - AIRFLOW__SMTP__SMTP_HOST=maildev
       - AIRFLOW__CORE__ENABLE_XCOM_PICKLING=False
       - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
+      - AIRFLOW__WEBSERVER__RBAC=True
       # Default Connections Used in the DEA Airflow deployment
       - AIRFLOW_CONN_LPGS_GADI=ssh://dra547@gadi.nci.org.au/
       - AIRFLOW_CONN_DEA_PUBLIC_DATA_UPLOAD=s3://foo:bar@dea-public-data-dev/
       - AIRFLOW_CONN_AWS_NCI_DB_BACKUP=s3://foo:bar@dea-db-backups/
       - HOST_USER_ID=${UID}
       - HOST_GROUP_ID=${GID}
-    command: bash -c 'airflow upgradedb'
+    command: bash -c 'airflow upgradedb; airflow users create -e airflow@localhost -f Airflow -l None -p airflow -r Admin -u airflow'
   webserver:
     image: *image
     restart: always
@@ -54,7 +54,8 @@ services:
       - /dev/urandom:/dev/random   # Required to get non-blocking entropy source
     ports:
       - "8080:8080"
-    command: webserver
+        #    command: webserver
+    command: bash -c 'pip install -r /opt/airflow/requirements.txt; airflow webserver'
     healthcheck:
       test: ["CMD-SHELL", "[ -f /opt/airflow/airflow-webserver.pid ]"]
       interval: 30s
@@ -72,7 +73,8 @@ services:
         max-size: 10m
         max-file: "3"
     volumes: *volumes
-    command: scheduler
+    #    command: scheduler
+    command: bash -c 'pip install -r /opt/airflow/requirements.txt; airflow scheduler'
     ports:
       - "8793:8793"
     healthcheck:
