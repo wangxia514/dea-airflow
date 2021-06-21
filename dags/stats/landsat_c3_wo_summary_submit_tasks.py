@@ -17,7 +17,7 @@ from infra.images import STAT_IMAGE
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
-    SECRET_ODC_WRITER_NAME,
+    SECRET_ODC_READER_NAME,
     AWS_DEFAULT_REGION,
 )
 from infra.sqs_queues import LS_C3_WO_SUMMARY_QUEUE
@@ -35,7 +35,18 @@ DEFAULT_ARGS = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
-    
+    "env_vars": {
+        # We need the DB access to get the Tasks from ODC
+        "DB_HOSTNAME": DB_HOSTNAME,
+        "DB_DATABASE": DB_DATABASE,
+        "DB_PORT": "5432",
+        "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
+    },
+    # Lift secrets into environment variables
+    "secrets": [
+        Secret("env", "DB_USERNAME", SECRET_ODC_READER_NAME, "postgres-username"),
+        Secret("env", "DB_PASSWORD", SECRET_ODC_READER_NAME, "postgres-password"),
+    ],
 }
 
 # annual summary input is the daily WOfS
@@ -46,9 +57,9 @@ FREQUENCY = "annual" # if we split the summary of WOfS summaries task in another
 CACHE_AND_UPLOADING_BASH_COMMAND = [
     "bash",
     "-c",
-    f"odc-stats save-tasks --help",
-    #f"odc-stats save-tasks '{PRODUCT_NAME}' --year=2009 --grid au-30 --frequency '{FREQUENCY}' ga_ls_wo_3_'{FREQUENCY}'.db",
-#    "&&", 
+    f"odc-stats save-tasks '{PRODUCT_NAME}' --year=2009 --grid au-30 --frequency '{FREQUENCY}' ga_ls_wo_3_'{FREQUENCY}'.db",
+    "&&", 
+    "ls -lh"
 #    f"s3 cp ga_ls_wo_3_'{FREQUENCY}'.db s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_'{FREQUENCY}'.db",
 ]
 
