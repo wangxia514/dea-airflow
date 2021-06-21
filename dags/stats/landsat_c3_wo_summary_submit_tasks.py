@@ -68,7 +68,7 @@ dag = DAG(
     "landset_c3_wo_summary_submit_tasks",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
-    schedule_interval="@once",  # manually trigger it every year
+    schedule_interval=None,  # manually trigger it every year
     catchup=False,
     max_active_runs=1,
     tags=["k8s", "ls-c3-wofs-summary", "submit-stat-task"],
