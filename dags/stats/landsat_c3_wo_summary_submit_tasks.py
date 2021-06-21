@@ -94,7 +94,6 @@ with dag:
         name="datacube-stats",
         task_id="submit-stat-task",
         get_logs=True,
-        pool=DEA_NEWDATA_PROCESSING_POOL,
         affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
     )
