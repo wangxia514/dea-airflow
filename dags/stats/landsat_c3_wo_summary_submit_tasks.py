@@ -22,7 +22,7 @@ from infra.variables import (
 )
 from infra.sqs_queues import LS_C3_WO_SUMMARY_QUEUE
 from infra.pools import DEA_NEWDATA_PROCESSING_POOL
-from infra.iam_roles import DB_DUMP_S3_ROLE
+from infra.iam_roles import STAT_USER
 
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
@@ -87,7 +87,7 @@ with dag:
         image_pull_policy="IfNotPresent",
         cmds=["bash", "-c"],
         arguments=CACHE_AND_UPLOADING_BASH_COMMAND,
-        annotations={"iam.amazonaws.com/role": DB_DUMP_S3_ROLE},
+        annotations={"iam.amazonaws.com/user": STAT_USER},
         labels={"step": "task-to-sqs"},
         name="datacube-stats",
         task_id="submit-stat-task",
