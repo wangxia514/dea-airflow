@@ -71,7 +71,7 @@ dag = DAG(
 
 with dag:
 
-    START = DummyOperator(task_id="start-tasks")
+    START = DummyOperator(task_id="start-stats-tasks")
 
     CACHEING = KubernetesPodOperator(
         namespace="processing",
@@ -86,6 +86,6 @@ with dag:
         is_delete_operator_pod=True,
     )
 
-    COMPLETE = DummyOperator(task_id="tasks-complete")
+    COMPLETE = DummyOperator(task_id="tasks-stats-complete")
 
-    START >> COMPLETE
+    START >> CACHEING >> COMPLETE
