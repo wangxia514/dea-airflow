@@ -56,12 +56,9 @@ FREQUENCY = "annual" # if we split the summary of WOfS summaries task in another
 
 # only grab 2009 data to speed up test, the search expression may open to the user later
 CACHE_AND_UPLOADING_BASH_COMMAND = [
-    "bash",
-    "-c",
-    f"odc-stats save-tasks '{PRODUCT_NAME}' --year=2009 --grid au-30 --frequency '{FREQUENCY}' ga_ls_wo_3_'{FREQUENCY}'.db;",
-    "bash",
-    "-c",
-    f"s3 cp ga_ls_wo_3_'{FREQUENCY}'.db s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_'{FREQUENCY}_test_from_airflow'.db",
+    f"odc-stats save-tasks '{PRODUCT_NAME}' --year=2009 --grid au-30 --frequency '{FREQUENCY}' ga_ls_wo_3_'{FREQUENCY}'.db",
+    "aws --version"
+    #f"s3 cp ga_ls_wo_3_'{FREQUENCY}'.db s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_'{FREQUENCY}_test_from_airflow'.db",
 ]
 
 SUBIT_TASKS_BASH_COMMAND = [
@@ -89,6 +86,7 @@ with dag:
         namespace="processing",
         image=STAT_IMAGE,
         image_pull_policy="IfNotPresent",
+        cmds=["bash", "-c"],
         arguments=CACHE_AND_UPLOADING_BASH_COMMAND,
         annotations={"iam.amazonaws.com/role": DB_DUMP_S3_ROLE},
         labels={"step": "task-to-sqs"},
