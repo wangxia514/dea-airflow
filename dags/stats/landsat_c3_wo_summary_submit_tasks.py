@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+from airflow.operators.dummy_operator import DummyOperator
 
 from infra.images import STAT_IMAGE
 from infra.variables import (
@@ -81,6 +82,9 @@ dag = DAG(
 )
 
 with dag:
+
+    START = DummyOperator(task_id="start-tasks")
+
     CACHEING = KubernetesPodOperator(
         namespace="processing",
         image=STAT_IMAGE,
@@ -95,4 +99,6 @@ with dag:
         is_delete_operator_pod=True,
     )
 
-    # UPLOADING = 
+    COMPLETE = DummyOperator(task_id="tasks-complete")
+
+    START >> CACHEING >> COMPLETE
