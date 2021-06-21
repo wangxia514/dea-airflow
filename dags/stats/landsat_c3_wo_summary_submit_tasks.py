@@ -53,9 +53,13 @@ PRODUCT_NAME = "ga_ls_wo_3"
 FREQUENCY = "annual" # if we split the summary of WOfS summaries task in another DAG, this value could be a hardcode value
 
 # only grab 2009 data to speed up test, the search expression may open to the user later
-CACHE_TASKS_BASH_COMMAND = f"odc-stats save-tasks '{PRODUCT_NAME}' --year=2009 --grid au-30 --frequency '{FREQUENCY}' ga_ls_wo_3_'{FREQUENCY}'.db"
-
-UPLOADING_BASH_COMMAND = f"s3 cp ga_ls_wo_3_'{FREQUENCY}'.db s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_'{FREQUENCY}'.db"
+CACHE_AND_UPLOADING_BASH_COMMAND = [
+    "bash",
+    "-c",
+    f"odc-stats save-tasks '{PRODUCT_NAME}' --year=2009 --grid au-30 --frequency '{FREQUENCY}' ga_ls_wo_3_'{FREQUENCY}'.db",
+#    "&&", 
+#    f"s3 cp ga_ls_wo_3_'{FREQUENCY}'.db s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_'{FREQUENCY}'.db",
+]
 
 SUBIT_TASKS_BASH_COMMAND = [
     "bash",
@@ -80,9 +84,7 @@ with dag:
         namespace="processing",
         image=STAT_IMAGE,
         image_pull_policy="IfNotPresent",
-        command: ["/bin/sh","-c"]
-        #args: [f"{CACHE_TASKS_BASH_COMMAND} && {UPLOADING_BASH_COMMAND}"]
-        args: [f"{CACHE_TASKS_BASH_COMMAND}"] # once pass the 'check-task' test, then also enable the upload test
+        arguments=CACHE_AND_UPLOADING_BASH_COMMAND,
         labels={"step": "task-to-sqs"},
         name="datacube-stats",
         task_id="submit-stat-task",
