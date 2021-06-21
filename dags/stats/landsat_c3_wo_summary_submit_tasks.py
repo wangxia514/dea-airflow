@@ -55,7 +55,7 @@ FREQUENCY = "annual" # if we split the summary of WOfS summaries task in another
 # only grab 2009 data to speed up test, the search expression may open to the user later
 CACHE_TASKS_BASH_COMMAND = f"odc-stats save-tasks '{PRODUCT_NAME}' --year=2009 --grid au-30 --frequency '{FREQUENCY}' ga_ls_wo_3_'{FREQUENCY}'.db"
 
-UPLOADING_BASH_COMMAND = ["s3 cp ga_ls_wo_3_'{FREQUENCY}'.db s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_'{FREQUENCY}'.db"
+UPLOADING_BASH_COMMAND = f"s3 cp ga_ls_wo_3_'{FREQUENCY}'.db s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_'{FREQUENCY}'.db"
 
 SUBIT_TASKS_BASH_COMMAND = [
     "bash",
