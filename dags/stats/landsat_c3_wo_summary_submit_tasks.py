@@ -58,8 +58,9 @@ FREQUENCY = "annual" # if we split the summary of WOfS summaries task in another
 CACHE_AND_UPLOADING_BASH_COMMAND = [
     "bash",
     "-c",
-    f"odc-stats save-tasks '{PRODUCT_NAME}' --year=2009 --grid au-30 --frequency '{FREQUENCY}' ga_ls_wo_3_'{FREQUENCY}'.db",
-    "&&", 
+    f"odc-stats save-tasks '{PRODUCT_NAME}' --year=2009 --grid au-30 --frequency '{FREQUENCY}' ga_ls_wo_3_'{FREQUENCY}'.db;",
+    "bash",
+    "-c",
     f"s3 cp ga_ls_wo_3_'{FREQUENCY}'.db s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_'{FREQUENCY}_test_from_airflow'.db",
 ]
 
