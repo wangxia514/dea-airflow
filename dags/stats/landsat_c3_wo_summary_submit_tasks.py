@@ -35,18 +35,7 @@ DEFAULT_ARGS = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
-    "env_vars": {
-        # We need the DB access to get the Tasks from ODC
-        "DB_HOSTNAME": DB_HOSTNAME,
-        "DB_DATABASE": DB_DATABASE,
-        "DB_PORT": "5432",
-        "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
-    },
-    # Lift secrets into environment variables
-    "secrets": [
-        Secret("env", "DB_USERNAME", SECRET_ODC_WRITER_NAME, "postgres-username"),
-        Secret("env", "DB_PASSWORD", SECRET_ODC_WRITER_NAME, "postgres-password"),
-    ],
+    
 }
 
 # annual summary input is the daily WOfS
@@ -76,7 +65,6 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval=None,  # manually trigger it every year
     catchup=False,
-    max_active_runs=1,
     tags=["k8s", "ls-c3-wofs-summary", "submit-stat-task"],
     params={"labels": {"env": "dev"}},
 )
@@ -100,4 +88,4 @@ with dag:
 
     COMPLETE = DummyOperator(task_id="tasks-complete")
 
-    START >> CACHEING >> COMPLETE
+    START >> COMPLETE
