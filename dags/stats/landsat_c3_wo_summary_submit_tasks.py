@@ -22,6 +22,7 @@ from infra.variables import (
 )
 from infra.sqs_queues import LS_C3_WO_SUMMARY_QUEUE
 from infra.pools import DEA_NEWDATA_PROCESSING_POOL
+from infra.iam_roles import DB_DUMP_S3_ROLE
 
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
@@ -59,8 +60,7 @@ CACHE_AND_UPLOADING_BASH_COMMAND = [
     "-c",
     f"odc-stats save-tasks '{PRODUCT_NAME}' --year=2009 --grid au-30 --frequency '{FREQUENCY}' ga_ls_wo_3_'{FREQUENCY}'.db",
     "&&", 
-    "ls -lh"
-#    f"s3 cp ga_ls_wo_3_'{FREQUENCY}'.db s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_'{FREQUENCY}'.db",
+    f"s3 cp ga_ls_wo_3_'{FREQUENCY}'.db s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_'{FREQUENCY}_test_from_airflow'.db",
 ]
 
 SUBIT_TASKS_BASH_COMMAND = [
@@ -89,6 +89,7 @@ with dag:
         image=STAT_IMAGE,
         image_pull_policy="IfNotPresent",
         arguments=CACHE_AND_UPLOADING_BASH_COMMAND,
+        annotations={"iam.amazonaws.com/role": DB_DUMP_S3_ROLE},
         labels={"step": "task-to-sqs"},
         name="datacube-stats",
         task_id="submit-stat-task",
