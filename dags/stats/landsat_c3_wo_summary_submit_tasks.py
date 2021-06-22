@@ -69,17 +69,18 @@ DEFAULT_ARGS = {
 # annual summary input is the daily WOfS
 PRODUCT_NAME = "ga_ls_wo_3"
 FREQUENCY = "annual" # if we split the summary of WOfS summaries task in another DAG, this value could be a hardcode value
+LS_C3_WO_SUMMARY_QUEUE_NAME = LS_C3_WO_SUMMARY_QUEUE.split("/")[-1]
 
 # only grab 2009 data to speed up test, the search expression may open to the user later
 CACHE_AND_UPLOADING_BASH_COMMAND = [
-    f"odc-stats save-tasks '{PRODUCT_NAME}' --year=2009 --grid au-30 --frequency '{FREQUENCY}' ga_ls_wo_3_'{FREQUENCY}'.db && ls -lh && " \
-    f"aws s3 cp ga_ls_wo_3_'{FREQUENCY}'.db s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_'{FREQUENCY}_test_from_airflow'.db",
+    f"odc-stats save-tasks {PRODUCT_NAME} --year=2009 --grid au-30 --frequency {FREQUENCY} ga_ls_wo_3_{FREQUENCY}.db && ls -lh && " \
+    f"aws s3 cp ga_ls_wo_3_{FREQUENCY}.db s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_{FREQUENCY}_test_from_airflow.db",
 ]
 
+# Test CMD in JupyterHub: odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_annual_test_from_airflow.db queue=dea-dev-eks-stats-kk ":1"
+# Only submit single message to do the test
 SUBIT_TASKS_BASH_COMMAND = [
-    "bash",
-    "-c",
-    f"odc-stats publish-tasks ga_ls_wo_3_'{FREQUENCY}'.db queue '{LS_C3_WO_SUMMARY_QUEUE}'",
+    f"odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_{FREQUENCY}_test_from_airflow.db queue={LS_C3_WO_SUMMARY_QUEUE_NAME} ':1'",
 ]
 
 # THE DAG
@@ -95,7 +96,7 @@ dag = DAG(
 
 with dag:
 
-    START = DummyOperator(task_id="start-stats-tasks")
+    START = DummyOperator(task_id="start-stats-submit-tasks")
 
     CACHEING = KubernetesPodOperator(
         namespace="processing",
@@ -103,14 +104,28 @@ with dag:
         image_pull_policy="IfNotPresent",
         cmds=["bash", "-c"],
         arguments=CACHE_AND_UPLOADING_BASH_COMMAND,
-        labels={"step": "task-to-sqs"},
+        labels={"step": "task-to-s3"},
         name="datacube-stats",
-        task_id="submit-stat-task",
+        task_id="cache-stat-tasks",
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
     )
 
-    COMPLETE = DummyOperator(task_id="tasks-stats-complete")
+    SUBMITTING = KubernetesPodOperator(
+        namespace="processing",
+        image=STAT_IMAGE,
+        image_pull_policy="IfNotPresent",
+        cmds=["bash", "-c"],
+        arguments=SUBIT_TASKS_BASH_COMMAND,
+        labels={"step": "task-to-sqs"},
+        name="datacube-stats",
+        task_id="submit-stat-tasks",
+        get_logs=True,
+        affinity=ONDEMAND_NODE_AFFINITY,
+        is_delete_operator_pod=True,
+    )
 
-    START >> CACHEING >> COMPLETE
+    COMPLETE = DummyOperator(task_id="complete-stats-submit-tasks")
+
+    START >> CACHEING >> SUBMITTING >> COMPLETE
