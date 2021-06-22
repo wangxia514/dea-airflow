@@ -3,6 +3,9 @@
 ### explore refresh stats
 This is utility is to provide administrators the easy accessiblity to run ad-hoc --refresh-stats
 
+## Note
+All list of utility dags here: https://github.com/GeoscienceAustralia/dea-airflow/tree/develop/dags/utility, see Readme
+
 #### default run
     `cubedash-gen --no-init-database --refresh-stats --force-refresh s2a_nrt_granule`
     `cubedash-gen --no-init-database --refresh-stats --force-refresh s2b_nrt_granule`

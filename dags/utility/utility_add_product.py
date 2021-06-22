@@ -7,6 +7,9 @@ This DAG should be triggered manually and will:
 - Index a glob of datasets on S3 *(Optional)*
 - Update Datacube Explorer so that you can see the results
 
+## Note
+All list of utility dags here: https://github.com/GeoscienceAustralia/dea-airflow/tree/develop/dags/utility, see Readme
+
 ## Customisation
 
 There are three configuration arguments:

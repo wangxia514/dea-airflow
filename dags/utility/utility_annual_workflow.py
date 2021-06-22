@@ -2,6 +2,9 @@
 ## Utility Tool (Self Serve)
 For indexing more dataset from s3 to an existing established product and ows layers.
 
+## Note
+All list of utility dags here: https://github.com/GeoscienceAustralia/dea-airflow/tree/develop/dags/utility, see Readme
+
 #### Utility customisation
 The DAG can be parameterized with run time configuration `product` and `s3_glob`
 

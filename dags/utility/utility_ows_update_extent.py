@@ -3,6 +3,9 @@
 ### ows update ranges
 This is utility is to provide administrators the easy accessiblity to run ad-hoc --views and update-ranges
 
+## Note
+All list of utility dags here: https://github.com/GeoscienceAustralia/dea-airflow/tree/develop/dags/utility, see Readme
+
 #### default run
     `datacube-ows-update --views`
     `datacube-ows-update s2_nrt_granule_nbar_t`
