@@ -4,7 +4,7 @@
 This DAG should be triggered manually and will:
 
 - Add a new Product to the database *(Optional)*
-- Index a glob of datasets on S3
+- Index a glob of datasets on S3 *(Optional)*
 - Update Datacube Explorer so that you can see the results
 
 ## Customisation
@@ -89,7 +89,7 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
-    tags=["k8s", "add-product", "utility", "self-service", "index-datasets", "explorer-update"],
+    tags=["k8s", "add-product", "self-service", "index-datasets", "explorer-update"],
 )
 
 
@@ -162,7 +162,7 @@ with dag:
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
-        trigger_rule=TriggerRule.NONE_FAILED_OR_SKIPPED  # Needed in case add product was skipped
+        trigger_rule=TriggerRule.NONE_FAILED_OR_SKIPPED,  # Needed in case add product was skipped
     )
 
     SET_PRODUCTS = PythonOperator(
