@@ -18,11 +18,10 @@ from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_ODC_READER_NAME,
-    AWS_DEFAULT_REGION,
+    PROCESSING_STATS_USER_SECRET
 )
 from infra.sqs_queues import LS_C3_WO_SUMMARY_QUEUE
 from infra.pools import DEA_NEWDATA_PROCESSING_POOL
-from infra.iam_roles import STAT_USER
 
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
@@ -41,12 +40,29 @@ DEFAULT_ARGS = {
         "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
         "DB_PORT": "5432",
-        "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
     },
     # Lift secrets into environment variables
     "secrets": [
         Secret("env", "DB_USERNAME", SECRET_ODC_READER_NAME, "postgres-username"),
         Secret("env", "DB_PASSWORD", SECRET_ODC_READER_NAME, "postgres-password"),
+        Secret(
+            "env",
+            "AWS_DEFAULT_REGION",
+            PROCESSING_STATS_USER_SECRET,
+            "AWS_DEFAULT_REGION",
+        ),
+        Secret(
+            "env",
+            "AWS_ACCESS_KEY_ID",
+            PROCESSING_STATS_USER_SECRET,
+            "AWS_ACCESS_KEY_ID",
+        ),
+        Secret(
+            "env",
+            "AWS_SECRET_ACCESS_KEY",
+            PROCESSING_STATS_USER_SECRET,
+            "AWS_SECRET_ACCESS_KEY",
+        )
     ],
 }
 
@@ -87,7 +103,6 @@ with dag:
         image_pull_policy="IfNotPresent",
         cmds=["bash", "-c"],
         arguments=CACHE_AND_UPLOADING_BASH_COMMAND,
-        annotations={"iam.amazonaws.com/user": STAT_USER},
         labels={"step": "task-to-sqs"},
         name="datacube-stats",
         task_id="submit-stat-task",

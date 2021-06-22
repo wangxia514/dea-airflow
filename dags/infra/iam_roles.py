@@ -12,7 +12,3 @@ DB_DUMP_S3_ROLE = Variable.get("db_dump_s3_role", "dea-dev-eks-db-dump-to-s3") #
 
 # NCI db sync
 NCI_DBSYNC_ROLE = Variable.get("nci_dbsync_role", "svc-dea-dev-eks-nci-dbsync") #qa
-
-# AWS user config
-# Come from: https://bitbucket.org/geoscienceaustralia/datakube/src/master/modules/statistician/main.tf
-STAT_USER = Variable.get("processing_stat_user", "svc-dea-dev-eks-stats-policy")
