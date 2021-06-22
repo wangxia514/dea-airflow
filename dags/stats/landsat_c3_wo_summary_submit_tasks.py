@@ -69,6 +69,7 @@ DEFAULT_ARGS = {
 # annual summary input is the daily WOfS
 PRODUCT_NAME = "ga_ls_wo_3"
 FREQUENCY = "annual" # if we split the summary of WOfS summaries task in another DAG, this value could be a hardcode value
+LS_C3_WO_SUMMARY_QUEUE_NAME = LS_C3_WO_SUMMARY_QUEUE.split("/")[-1]
 
 # only grab 2009 data to speed up test, the search expression may open to the user later
 CACHE_AND_UPLOADING_BASH_COMMAND = [
@@ -79,7 +80,7 @@ CACHE_AND_UPLOADING_BASH_COMMAND = [
 # Test CMD in JupyterHub: odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_annual_test_from_airflow.db queue=dea-dev-eks-stats-kk ":1"
 # Only submit single message to do the test
 SUBIT_TASKS_BASH_COMMAND = [
-    f"odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_{FREQUENCY}_test_from_airflow.db queue={LS_C3_WO_SUMMARY_QUEUE} ':1'",
+    f"odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_{FREQUENCY}_test_from_airflow.db queue={LS_C3_WO_SUMMARY_QUEUE_NAME} ':1'",
 ]
 
 # THE DAG
