@@ -80,7 +80,7 @@ CACHE_AND_UPLOADING_BASH_COMMAND = [
 # Test CMD in JupyterHub: odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_annual_test_from_airflow.db queue=dea-dev-eks-stats-kk ":1"
 # Only submit single message to do the test
 SUBIT_TASKS_BASH_COMMAND = [
-    f"odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_{FREQUENCY}_test_from_airflow.db queue={LS_C3_WO_SUMMARY_QUEUE_NAME} ':1'",
+    f"odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_{FREQUENCY}_test_from_airflow.db queue=dea-dev-eks-stats-kk ':1'",
 ]
 
 # THE DAG
@@ -123,7 +123,7 @@ with dag:
         task_id="submit-stat-tasks",
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,
-        is_delete_operator_pod=True,
+        is_delete_operator_pod=False, # leave it for a while, so I can login and grab the relative AWS cred for debugging
     )
 
     COMPLETE = DummyOperator(task_id="complete-stats-submit-tasks")
