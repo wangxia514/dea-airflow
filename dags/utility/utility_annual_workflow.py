@@ -9,8 +9,11 @@ dag_run.conf format:
 
 #### example conf in json format
 
-    "s3_glob": "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
-    "product": "cemp_insar_alos_displacement"
+    {
+        "s3_glob": "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
+        "product": "cemp_insar_alos_displacement"
+    }
+
 """
 from datetime import datetime, timedelta
 
@@ -34,7 +37,7 @@ from infra.podconfig import (
     ONDEMAND_NODE_AFFINITY,
 )
 
-DAG_NAME = "utility_indexing_annual_ows_explorer_update"
+DAG_NAME = "utility_batch_indexing_ows_explorer_update"
 
 # DAG CONFIGURATION
 DEFAULT_ARGS = {
@@ -68,7 +71,7 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
-    tags=["k8s", "annual", "batch-indexing", "self-service"],
+    tags=["k8s", "batch-indexing", "web-app-update", "self-service"],
 )
 
 

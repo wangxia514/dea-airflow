@@ -15,8 +15,17 @@ otherwise provide products to be refreshed seperated by space, i.e. `s2a_nrt_gra
 dag_run.conf format:
 
 #### example conf in json format
-    "products": "--all"
-    "products": "s2a_nrt_granule s2b_nrt_granule"
+
+    {
+        "products": "--all"
+    }
+
+    or
+
+    {
+        "products": "s2a_nrt_granule s2b_nrt_granule"
+    }
+
 """
 
 from airflow import DAG
@@ -63,7 +72,7 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
-    tags=["k8s", "explorer"],
+    tags=["k8s", "explorer", "self-service"],
     access_control={"utilityuser": {"can_dag_read", "can_dag_edit"}},
 )
 
