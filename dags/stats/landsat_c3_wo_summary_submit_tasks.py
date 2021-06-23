@@ -68,20 +68,20 @@ DEFAULT_ARGS = {
 
 # annual summary input is the daily WOfS
 PRODUCT_NAME = "ga_ls_wo_3"
-FREQUENCY = "annual" # if we split the summary of WOfS summaries task in another DAG, this value could be a hardcode value
+FREQUENCY = "all" # if we split the summary of WOfS summaries task in another DAG, this value could be a hardcode value
 LS_C3_WO_SUMMARY_QUEUE_NAME = LS_C3_WO_SUMMARY_QUEUE.split("/")[-1]
 
 # Please use the airflow {{ dag_run.conf }} to pass search expression, and add relative 'workable' examples in this DAG's doc.
 CACHE_AND_UPLOADING_BASH_COMMAND = [
     #f"odc-stats save-tasks {PRODUCT_NAME} --year=2009 --grid au-30 --frequency {FREQUENCY} ga_ls_wo_3_{FREQUENCY}.db && ls -lh && " \
     f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCY} ga_ls_wo_3_{FREQUENCY}.db && ls -lh && " \
-    f"aws s3 cp ga_ls_wo_3_{FREQUENCY}.db s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_{FREQUENCY}_test_from_airflow.db",
+    f"aws s3 cp ga_ls_wo_3_{FREQUENCY}.db s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_{FREQUENCY}_dev_db_from_airflow.db",
 ]
 
 # Test CMD in JupyterHub: odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_annual_test_from_airflow.db dea-dev-eks-stats-kk ":1"
 # Only submit single message to do the test
 SUBIT_TASKS_BASH_COMMAND = [
-    f"odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_{FREQUENCY}_test_from_airflow.db {LS_C3_WO_SUMMARY_QUEUE_NAME} ':1'",
+    f"odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_{FREQUENCY}_dev_db_from_airflow.db {LS_C3_WO_SUMMARY_QUEUE_NAME} ':1'",
 ]
 
 # THE DAG
