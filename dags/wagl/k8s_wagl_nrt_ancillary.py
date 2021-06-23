@@ -106,6 +106,9 @@ SYNC_JOBS = [
         "s3://ga-sentinel/ancillary/water_vapour/fallback/",
         "/ancillary/water_vapour/fallback/",
     ),
+    "echo removing existing fallback brdf",
+    "mkdir -p /ancillary/brdf/fallback/",
+    "find /ancillary/brdf/fallback/ -type f -exec rm {} \;",
     "echo synching brdf fallback",
     *[
         sync(
