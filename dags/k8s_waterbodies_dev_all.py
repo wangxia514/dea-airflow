@@ -21,7 +21,6 @@ from infra.variables import (
     WATERBODIES_DEV_USER_SECRET,
     SECRET_ODC_READER_NAME,
 )
-from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
 # DAG CONFIGURATION
 DEFAULT_ARGS = {
@@ -58,6 +57,28 @@ DEFAULT_ARGS = {
     ],
 }
 
+# Kubernetes autoscaling group affinity
+affinity = {
+    "nodeAffinity": {
+        "requiredDuringSchedulingIgnoredDuringExecution": {
+            "nodeSelectorTerms": [
+                {
+                    "matchExpressions": [
+                        {
+                            "key": "nodegroup",
+                            "operator": "In",
+                            "values": [
+                                "r5-4xl-waterbodies",
+                            ],
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
+
+# This is the original waterbodies command:
 # parallel --delay 5 --retries 3 --load 100%  --colsep ',' python -m dea_waterbodies.make_time_series ::: $CONFIG,--part,{1..24},--chunks,$NCHUNKS
 
 # THE DAG
@@ -97,7 +118,7 @@ with dag:
             image_pull_policy="IfNotPresent",
             labels={"step": "waterbodies-dev-all-{part}".format(part=part)},
             get_logs=True,
-            affinity=ONDEMAND_NODE_AFFINITY,
+            affinity=affinity,
             is_delete_operator_pod=True,
             resources={
                 "request_cpu": "1000m",
