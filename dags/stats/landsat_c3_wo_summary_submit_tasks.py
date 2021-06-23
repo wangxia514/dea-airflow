@@ -71,9 +71,10 @@ PRODUCT_NAME = "ga_ls_wo_3"
 FREQUENCY = "annual" # if we split the summary of WOfS summaries task in another DAG, this value could be a hardcode value
 LS_C3_WO_SUMMARY_QUEUE_NAME = LS_C3_WO_SUMMARY_QUEUE.split("/")[-1]
 
-# only grab 2009 data to speed up test, the search expression may open to the user later
+# Please use the airflow {{ dag_run.conf }} to pass search expression, and add relative 'workable' examples in this DAG's doc.
 CACHE_AND_UPLOADING_BASH_COMMAND = [
-    f"odc-stats save-tasks {PRODUCT_NAME} --year=2009 --grid au-30 --frequency {FREQUENCY} ga_ls_wo_3_{FREQUENCY}.db && ls -lh && " \
+    #f"odc-stats save-tasks {PRODUCT_NAME} --year=2009 --grid au-30 --frequency {FREQUENCY} ga_ls_wo_3_{FREQUENCY}.db && ls -lh && " \
+    f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCY} ga_ls_wo_3_{FREQUENCY}.db && ls -lh && " \
     f"aws s3 cp ga_ls_wo_3_{FREQUENCY}.db s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_{FREQUENCY}_test_from_airflow.db",
 ]
 
@@ -112,6 +113,7 @@ with dag:
         is_delete_operator_pod=True,
     )
 
+    """
     SUBMITTING = KubernetesPodOperator(
         namespace="processing",
         image=STAT_IMAGE,
@@ -125,7 +127,9 @@ with dag:
         affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
     )
-
+    """
+    
     COMPLETE = DummyOperator(task_id="complete-stats-submit-tasks")
 
-    START >> CACHEING >> SUBMITTING >> COMPLETE
+    # START >> CACHEING >> SUBMITTING >> COMPLETE
+    START >> CACHEING >> COMPLETE
