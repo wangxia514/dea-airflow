@@ -99,6 +99,55 @@ SYNC_JOBS = [
         )
         for doy in brdf_doys(DOY)
     ],
+    # New additions for NRT
+    "echo synching water_vapour fallback",
+    sync(
+        '--exclude "*" --include pr_wtr.eatm.average.h5',
+        "s3://ga-sentinel/ancillary/water_vapour/fallback/",
+        "/ancillary/water_vapour/fallback/",
+    ),
+    "echo removing existing fallback brdf",
+    "mkdir -p /ancillary/brdf/fallback/",
+    "find /ancillary/brdf/fallback/ -type f -exec rm {} \;",
+    "echo synching brdf fallback",
+    *[
+        sync(
+            f"",
+            f"s3://ga-sentinel/ancillary/BRDF/fallback/MCD43A1.006/{doy}/",
+            f"/ancillary/brdf/fallback/{doy}/",
+        )
+        for doy in brdf_doys(DOY)
+    ],
+    "echo synching elevation",
+    sync(
+        '--exclude "*" --include dsm1sv1_0_Clean.h5',
+        "s3://ga-sentinel/ancillary/eoancillarydata-2/elevation/tc_aus_3sec/",
+        "/ancillary/eoancillarydata-2/elevation/tc_aus_3sec/",
+    ),
+    "echo synching AATSR aerosol",
+    sync(
+        '--exclude "*" --include aerosol.h5',
+        "s3://ga-sentinel/ancillary/eoancillarydata-2/aerosol/AATSR/2.0/",
+        "/ancillary/eoancillarydata-2/aerosol/AATSR/2.0/",
+    ),
+    "echo synching ocean mask",
+    sync(
+        '--exclude "*" --include base_oz_tile_set_water_mask_geotif.tif',
+        "s3://ga-sentinel/ancillary/eoancillarydata-2/ocean_mask/",
+        "/ancillary/eoancillarydata-2/ocean_mask/",
+    ),
+    "echo synching ozone",
+    sync(
+        '--exclude "*" --include ozone.h5',
+        "s3://ga-sentinel/ancillary/eoancillarydata-2/lookup_tables/ozone/",
+        "/ancillary/eoancillarydata-2/lookup_tables/ozone/",
+    ),
+    "echo synching elevation",
+    sync(
+        '--exclude "*" --include DEM_one_deg_20June2019.h5',
+        "s3://ga-sentinel/ancillary/eoancillarydata-2/elevation/world_1deg/",
+        "/ancillary/eoancillarydata-2/elevation/world_1deg/",
+    ),
     "find /ancillary/ -type f",
     # this is needed because we want the wagl_nrt user to have write access
     "find /ancillary/ -type d | xargs chmod g+w",
