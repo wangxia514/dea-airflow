@@ -101,8 +101,8 @@ DEFAULT_ARGS = {
 # annual summary input is the daily WOfS
 PRODUCT_NAME = "ga_ls_wo_3"
 
-frequence_input = "{{ dag_run.conf['FREQUENCY'] }}"
-year_input = "{{ dag_run.conf['YEAR'] }}"
+frequence_input = "{{ dag_run.conf.FREQUENCY }}"
+year_input = "{{ dag_run.conf.YEAR }}"
 
 FREQUENCY = frequence_input if frequence_input else "annual" # if not define frequence from out side, use annual as default
 
@@ -140,13 +140,15 @@ dag = DAG(
     params={"labels": {"env": "dev"}},
 )
 
-def print_context(**kwargs):
+def print_context(ds):
     """Print the Airflow context and dynamic values."""
-    print("{{ dag_run.conf['FREQUENCY'] }}")
-    print("{{ dag_run.conf['YEAR'] }}")
+    print(ds, type(ds))
+    if ds:
+        print("empty string is also a true?")
+    else:
+        print("else statement")
     print(CACHE_AND_UPLOADING_BASH_COMMAND)
-    print(SUBIT_TASKS_BASH_COMMAND)
-    return 'Whatever you return gets printed in the logs'
+    return "Whatever you return gets printed in the logs"
 
 with dag:
 
@@ -155,6 +157,7 @@ with dag:
     PRINTOUT = PythonOperator(
             task_id='print_the_debug_context',
             python_callable=print_context,
+            op_args=["{{ dag_run.conf.test_value }}"]
         )
 
     CACHEING = KubernetesPodOperator(
