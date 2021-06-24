@@ -142,8 +142,8 @@ dag = DAG(
 
 def print_context(**kwargs):
     """Print the Airflow context and dynamic values."""
-    print(kwargs['dag_run'].conf.get('FREQUENCY'))
-    print(kwargs['dag_run'].conf.get('YEAR'))
+    print("{{ dag_run.conf['FREQUENCY'] }}")
+    print("{{ dag_run.conf['YEAR'] }}")
     print(CACHE_AND_UPLOADING_BASH_COMMAND)
     print(SUBIT_TASKS_BASH_COMMAND)
     return 'Whatever you return gets printed in the logs'
@@ -189,5 +189,5 @@ with dag:
     
     COMPLETE = DummyOperator(task_id="complete-stats-submit-tasks")
 
-    # START >> CACHEING >> SUBMITTING >> COMPLETE
-    START >>PRINTOUT >> CACHEING >> COMPLETE
+    # START >> PRINTOUT >> CACHEING >> SUBMITTING >> COMPLETE
+    START >> PRINTOUT >> CACHEING >> COMPLETE
