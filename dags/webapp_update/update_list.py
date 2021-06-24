@@ -4,6 +4,7 @@ UPDATE_EXTENT_PRODUCTS = (
     "wofs_albers",
     "fc_albers_combined",
     "s2_ard_granule_nbar_t",
+    "s2_ard_granule",
     "ga_ls_wo_3",
     "ga_ls_fc_3",
     "ga_ls5t_ard_3",
@@ -15,6 +16,8 @@ UPDATE_EXTENT_PRODUCTS = (
 EXPLORER_UPDATE_LIST = (
     "s2a_nrt_granule",
     "s2b_nrt_granule",
+    "s2a_ard_granule",
+    "s2b_ard_granule",
     "ga_s2a_ard_nbar_granule",
     "ga_s2b_ard_nbar_granule",
     "wofs_albers",
