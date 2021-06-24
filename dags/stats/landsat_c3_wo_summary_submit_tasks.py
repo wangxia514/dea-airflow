@@ -18,17 +18,18 @@ When manually trigger this DAG, we can put dag_run.conf there. The dag_run.conf 
 
 #### example conf in json format
 
+    If we try to only select special year, passing example JSON
     {
         "FREQUENCY": "annual",
         "YEAR": "2009"
-    }
-    or 
+    },
+
+    If we plan to include all years, do not put YEAR value, passing example JSON
     {
-        "FREQUENCY": "annual",
-        "YEAR": "all"
+        "FREQUENCY": "annual-fy",
     }
 
-    It does NOT support mult-year like
+    NOTE: it does NOT support multi-year like
         {
         "FREQUENCY": "annual",
         "YEAR": "2009-2010"
@@ -111,15 +112,13 @@ YEAR = year_input if year_input else "2009" # if not define year from outside, u
 # the expected name pattern is: ga_ls_wo_3_annual_2009 or ga_ls_wo_3_annual_all
 OUTPUT_DB = f"ga_ls_wo_3_{FREQUENCY}_{YEAR}.db"
 
-YEAR_FILTER = "" if YEAR == 'all' else f"--year={YEAR}" # if define year as ALL, will not filter any year
-
 LS_C3_WO_SUMMARY_QUEUE_NAME = LS_C3_WO_SUMMARY_QUEUE.split("/")[-1]
 
 # Please use the airflow {{ dag_run.conf }} to pass search expression, and add relative 'workable' examples in this DAG's doc.
 CACHE_AND_UPLOADING_BASH_COMMAND = [
     #f"odc-stats save-tasks {PRODUCT_NAME} --year=2009 --grid au-30 --frequency {FREQUENCY} ga_ls_wo_3_{FREQUENCY}.db && ls -lh && " \
     #f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCY} {YEAR_FILTER} {OUTPUT_DB} && ls -lh && " \
-    f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCY} {YEAR_FILTER} {OUTPUT_DB} && ls -lh"
+    f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCY} {YEAR} {OUTPUT_DB} && ls -lh"
     # f"aws s3 cp ga_ls_wo_3_{FREQUENCY}.db s3://dea-dev-stats-processing/dbs/{OUTPUT_DB}",
 ]
 
