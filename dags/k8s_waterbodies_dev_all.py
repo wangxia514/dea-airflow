@@ -32,6 +32,7 @@ DEFAULT_ARGS = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
+    "startup_timeout_seconds": timedelta(minutes=5),
     "env_vars": {
         "DB_HOSTNAME": DB_READER_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
