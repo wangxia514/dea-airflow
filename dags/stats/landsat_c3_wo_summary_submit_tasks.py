@@ -102,32 +102,6 @@ DEFAULT_ARGS = {
 # annual summary input is the daily WOfS
 PRODUCT_NAME = "ga_ls_wo_3"
 
-frequence_input = "{{ dag_run.conf.FREQUENCY }}"
-year_input = "{{ dag_run.conf.YEAR }}"
-
-FREQUENCY = frequence_input if frequence_input else "annual" # if not define frequence from out side, use annual as default
-
-YEAR = year_input if year_input else "2009" # if not define year from outside, use 2009 as default
-
-# the expected name pattern is: ga_ls_wo_3_annual_2009 or ga_ls_wo_3_annual_all
-OUTPUT_DB = f"ga_ls_wo_3_{FREQUENCY}_{YEAR}.db"
-
-LS_C3_WO_SUMMARY_QUEUE_NAME = LS_C3_WO_SUMMARY_QUEUE.split("/")[-1]
-
-# Please use the airflow {{ dag_run.conf }} to pass search expression, and add relative 'workable' examples in this DAG's doc.
-CACHE_AND_UPLOADING_BASH_COMMAND = [
-    #f"odc-stats save-tasks {PRODUCT_NAME} --year=2009 --grid au-30 --frequency {FREQUENCY} ga_ls_wo_3_{FREQUENCY}.db && ls -lh && " \
-    #f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCY} {YEAR} {OUTPUT_DB} && ls -lh && " \
-    f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCY} {YEAR} {OUTPUT_DB} && ls -lh"
-    # f"aws s3 cp ga_ls_wo_3_{FREQUENCY}.db s3://dea-dev-stats-processing/dbs/{OUTPUT_DB}_from_airflow",
-]
-
-# Test CMD in JupyterHub: odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_annual_test_from_airflow.db dea-dev-eks-stats-kk ":1"
-# Only submit single message to do the test
-SUBIT_TASKS_BASH_COMMAND = [
-    f"odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/{OUTPUT_DB} {LS_C3_WO_SUMMARY_QUEUE_NAME} ':1'",
-]
-
 # THE DAG
 dag = DAG(
     "landset_c3_wo_summary_submit_tasks",
@@ -150,6 +124,32 @@ def print_context(ds):
     return "Whatever you return gets printed in the logs"
 
 with dag:
+
+    frequence_input = "{{ dag_run.conf.FREQUENCY }}"
+    year_input = "{{ dag_run.conf.YEAR }}"
+
+    FREQUENCY = frequence_input if frequence_input else "annual" # if not define frequence from out side, use annual as default
+
+    YEAR = year_input if year_input else "2009" # if not define year from outside, use 2009 as default
+
+    # the expected name pattern is: ga_ls_wo_3_annual_2009 or ga_ls_wo_3_annual_all
+    OUTPUT_DB = f"ga_ls_wo_3_{FREQUENCY}_{YEAR}.db"
+
+    LS_C3_WO_SUMMARY_QUEUE_NAME = LS_C3_WO_SUMMARY_QUEUE.split("/")[-1]
+
+    # Please use the airflow {{ dag_run.conf }} to pass search expression, and add relative 'workable' examples in this DAG's doc.
+    CACHE_AND_UPLOADING_BASH_COMMAND = [
+        #f"odc-stats save-tasks {PRODUCT_NAME} --year=2009 --grid au-30 --frequency {FREQUENCY} ga_ls_wo_3_{FREQUENCY}.db && ls -lh && " \
+        #f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCY} {YEAR} {OUTPUT_DB} && ls -lh && " \
+        f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCY} {YEAR} {OUTPUT_DB} && ls -lh"
+        # f"aws s3 cp ga_ls_wo_3_{FREQUENCY}.db s3://dea-dev-stats-processing/dbs/{OUTPUT_DB}_from_airflow",
+    ]
+
+    # Test CMD in JupyterHub: odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_annual_test_from_airflow.db dea-dev-eks-stats-kk ":1"
+    # Only submit single message to do the test
+    SUBIT_TASKS_BASH_COMMAND = [
+        f"odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/{OUTPUT_DB} {LS_C3_WO_SUMMARY_QUEUE_NAME} ':1'",
+    ]
 
     START = DummyOperator(task_id="start-stats-submit-tasks")
 
