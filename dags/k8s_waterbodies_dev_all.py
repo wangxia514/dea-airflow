@@ -78,6 +78,10 @@ affinity = {
     }
 }
 
+tolerations = [
+    {"key": "dedicated", "operator": "Equal", "value": "waterbodies", "effect": "NoSchedule"}
+]
+
 # This is the original waterbodies command:
 # parallel --delay 5 --retries 3 --load 100%  --colsep ',' python -m dea_waterbodies.make_time_series ::: $CONFIG,--part,{1..24},--chunks,$NCHUNKS
 
@@ -125,5 +129,6 @@ with dag:
                 "request_memory": "500Mi",
             },
             namespace="processing",
+            tolerations=tolerations,
             task_id="waterbodies-all-task-{part}".format(part=part),
         )
