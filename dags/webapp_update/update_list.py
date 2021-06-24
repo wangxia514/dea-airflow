@@ -17,8 +17,8 @@ UPDATE_EXTENT_PRODUCTS = (
 EXPLORER_UPDATE_LIST = (
     "s2a_nrt_granule",
     "s2b_nrt_granule",
-    "ga_s2a_ard_nbar_granule",
-    "ga_s2b_ard_nbar_granule",
+    "s2a_ard_granule",
+    "s2b_ard_granule",
     "wofs_albers",
     "ls5_fc_albers",
     "ls7_fc_albers",
