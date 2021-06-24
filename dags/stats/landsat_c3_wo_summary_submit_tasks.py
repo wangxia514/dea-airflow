@@ -42,6 +42,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+from airflow.operators.python_operator import PythonOperator
 from airflow.operators.dummy_operator import DummyOperator
 
 from infra.images import STAT_IMAGE
@@ -117,7 +118,8 @@ LS_C3_WO_SUMMARY_QUEUE_NAME = LS_C3_WO_SUMMARY_QUEUE.split("/")[-1]
 # Please use the airflow {{ dag_run.conf }} to pass search expression, and add relative 'workable' examples in this DAG's doc.
 CACHE_AND_UPLOADING_BASH_COMMAND = [
     #f"odc-stats save-tasks {PRODUCT_NAME} --year=2009 --grid au-30 --frequency {FREQUENCY} ga_ls_wo_3_{FREQUENCY}.db && ls -lh && " \
-    f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCY} {YEAR_FILTER} {OUTPUT_DB} && ls -lh && " \
+    #f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCY} {YEAR_FILTER} {OUTPUT_DB} && ls -lh && " \
+    f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCY} {YEAR_FILTER} {OUTPUT_DB} && ls -lh"
     # f"aws s3 cp ga_ls_wo_3_{FREQUENCY}.db s3://dea-dev-stats-processing/dbs/{OUTPUT_DB}",
 ]
 
@@ -138,9 +140,22 @@ dag = DAG(
     params={"labels": {"env": "dev"}},
 )
 
+def print_context(**kwargs):
+    """Print the Airflow context and dynamic values."""
+    print(kwargs['dag_run'].conf.get('FREQUENCY'))
+    print(kwargs['dag_run'].conf.get('YEAR'))
+    print(CACHE_AND_UPLOADING_BASH_COMMAND)
+    print(SUBIT_TASKS_BASH_COMMAND)
+    return 'Whatever you return gets printed in the logs'
+
 with dag:
 
     START = DummyOperator(task_id="start-stats-submit-tasks")
+
+    PRINTOUT = PythonOperator(
+            task_id='print_the_debug_context',
+            python_callable=print_context,
+        )
 
     CACHEING = KubernetesPodOperator(
         namespace="processing",
@@ -175,4 +190,4 @@ with dag:
     COMPLETE = DummyOperator(task_id="complete-stats-submit-tasks")
 
     # START >> CACHEING >> SUBMITTING >> COMPLETE
-    START >> CACHEING >> COMPLETE
+    START >>PRINTOUT >> CACHEING >> COMPLETE
