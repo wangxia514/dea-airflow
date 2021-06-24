@@ -8,7 +8,7 @@ from datetime import datetime
 
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators.email import EmailOperator
+from airflow.operators.email_operator import EmailOperator
 
 from operators.ssh_operators import ShortCircuitSSHOperator, TemplateToSFTPOperator
 

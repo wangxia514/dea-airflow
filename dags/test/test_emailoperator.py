@@ -3,7 +3,7 @@ SMTP infra setup testing dag
 """
 from datetime import datetime
 from airflow import DAG
-from airflow.operators.email import EmailOperator
+from airflow.operators.email_operator import EmailOperator
 
 
 default_args = {
