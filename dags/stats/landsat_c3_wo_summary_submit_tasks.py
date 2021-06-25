@@ -165,7 +165,7 @@ with dag:
         cmds=[
             "bash", 
             "-c",
-            f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='frequence') }} {{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='year_filter') }} {{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='output_db_filename') }} && ls -lh"
+            f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {{{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='frequence') }}}} {{{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='year_filter') }}}} {{{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='output_db_filename') }}}} && ls -lh"
         ],
         labels={"step": "task-to-s3"},
         name="datacube-stats",
