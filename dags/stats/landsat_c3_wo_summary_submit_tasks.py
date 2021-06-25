@@ -133,18 +133,18 @@ def parse_job_args_fn(**kwargs):
 
 with dag:
     # Please use the airflow {{ dag_run.conf }} to pass search expression, and add relative 'workable' examples in this DAG's doc.
-    CACHE_AND_UPLOADING_BASH_COMMAND = [
+    #CACHE_AND_UPLOADING_BASH_COMMAND = [
         #f"odc-stats save-tasks {PRODUCT_NAME} --year=2009 --grid au-30 --frequency {FREQUENCY} ga_ls_wo_3_{FREQUENCY}.db && ls -lh && " \
         #f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCY} {YEAR} {OUTPUT_DB} && ls -lh && " \
-        f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCY} {YEAR} {OUTPUT_DB} && ls -lh"
+    #    f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCY} {YEAR} {OUTPUT_DB} && ls -lh"
         # f"aws s3 cp ga_ls_wo_3_{FREQUENCY}.db s3://dea-dev-stats-processing/dbs/{OUTPUT_DB}_from_airflow",
-    ]
+    #]
 
     # Test CMD in JupyterHub: odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_annual_test_from_airflow.db dea-dev-eks-stats-kk ":1"
     # Only submit single message to do the test
-    SUBIT_TASKS_BASH_COMMAND = [
-        f"odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/{OUTPUT_DB} {LS_C3_WO_SUMMARY_QUEUE_NAME} ':1'",
-    ]
+    #SUBIT_TASKS_BASH_COMMAND = [
+    #    f"odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/{OUTPUT_DB} {LS_C3_WO_SUMMARY_QUEUE_NAME} ':1'",
+    #]
 
     START = DummyOperator(task_id="start-stats-submit-tasks")
 
