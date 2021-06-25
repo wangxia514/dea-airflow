@@ -101,6 +101,7 @@ DEFAULT_ARGS = {
 
 # annual summary input is the daily WOfS
 PRODUCT_NAME = "ga_ls_wo_3"
+LS_C3_WO_SUMMARY_QUEUE_NAME = LS_C3_WO_SUMMARY_QUEUE.split("/")[-1]
 
 # THE DAG
 dag = DAG(
@@ -113,30 +114,24 @@ dag = DAG(
     params={"labels": {"env": "dev"}},
 )
 
-def print_context(ds):
-    """Print the Airflow context and dynamic values."""
-    print(ds, type(ds))
-    if ds:
-        print("empty string is also a true?")
-    else:
-        print("else statement")
-    print(CACHE_AND_UPLOADING_BASH_COMMAND)
-    return "Whatever you return gets printed in the logs"
+dag.trigger_arguments = {"FREQUENCY": "string", "YEAR": "string"} # these are the arguments we would like to passed manually
+
+def parse_job_args_fn(**kwargs):  
+    dag_run_conf = kwargs["dag_run"].conf #  here we get the parameters we specify when triggering
+
+    frequence = dag_run_conf["FREQUENCY"] if dag_run_conf["FREQUENCY"] else "annual"
+    year = dag_run_conf["YEAR"] if dag_run_conf["YEAR"] else "2009"
+    year_filter = year if year.lower() != "all" else "" # if use pass 'all' as the year value, then do not pass any year value as filter
+    
+    # the expected name pattern is: ga_ls_wo_3_annual_2009 or ga_ls_wo_3_annual_all
+    OUTPUT_DB = f"ga_ls_wo_3_{frequence}_{year}.db"
+
+    # push it as an airflow xcom, can be used directly in K8s Pod operator
+    kwargs["ti"].xcom_push(key="frequence", value=frequence) 
+    kwargs["ti"].xcom_push(key="year_filter", value=year_filter) 
+    kwargs["ti"].xcom_push(key="db_name", value=OUTPUT_DB)
 
 with dag:
-
-    frequence_input = "{{ dag_run.conf.FREQUENCY }}"
-    year_input = "{{ dag_run.conf.YEAR }}"
-
-    FREQUENCY = frequence_input if frequence_input else "annual" # if not define frequence from out side, use annual as default
-
-    YEAR = year_input if year_input else "2009" # if not define year from outside, use 2009 as default
-
-    # the expected name pattern is: ga_ls_wo_3_annual_2009 or ga_ls_wo_3_annual_all
-    OUTPUT_DB = f"ga_ls_wo_3_{FREQUENCY}_{YEAR}.db"
-
-    LS_C3_WO_SUMMARY_QUEUE_NAME = LS_C3_WO_SUMMARY_QUEUE.split("/")[-1]
-
     # Please use the airflow {{ dag_run.conf }} to pass search expression, and add relative 'workable' examples in this DAG's doc.
     CACHE_AND_UPLOADING_BASH_COMMAND = [
         #f"odc-stats save-tasks {PRODUCT_NAME} --year=2009 --grid au-30 --frequency {FREQUENCY} ga_ls_wo_3_{FREQUENCY}.db && ls -lh && " \
@@ -153,18 +148,22 @@ with dag:
 
     START = DummyOperator(task_id="start-stats-submit-tasks")
 
-    PRINTOUT = PythonOperator(
-            task_id='print_the_debug_context',
-            python_callable=print_context,
-            op_args=["{{ dag_run.conf.test_value }}"]
-        )
+    PARSE_INPUT = PythonOperator(  
+        task_id="parse_job_args_task",
+        python_callable=parse_job_args_fn,
+        provide_context=True,
+        dag=dag
+    )
 
     CACHEING = KubernetesPodOperator(
         namespace="processing",
         image=STAT_IMAGE,
         image_pull_policy="IfNotPresent",
         cmds=["bash", "-c"],
-        arguments=CACHE_AND_UPLOADING_BASH_COMMAND,
+        arguments=
+        [
+            f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {{ task_instance.xcom_pull(key='frequence') }} {{ task_instance.xcom_pull(key='year_filter') }} {{ task_instance.xcom_pull(key='db_name') }} && ls -lh"
+        ]
         labels={"step": "task-to-s3"},
         name="datacube-stats",
         task_id="cache-stat-tasks",
@@ -191,5 +190,5 @@ with dag:
     
     COMPLETE = DummyOperator(task_id="complete-stats-submit-tasks")
 
-    # START >> PRINTOUT >> CACHEING >> SUBMITTING >> COMPLETE
-    START >> PRINTOUT >> CACHEING >> COMPLETE
+    # START >> PARSE_INPUT >> CACHEING >> SUBMITTING >> COMPLETE
+    START >> PARSE_INPUT >> CACHEING >> COMPLETE
