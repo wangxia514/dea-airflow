@@ -27,7 +27,7 @@ services:
       - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
       - AIRFLOW__WEBSERVER__RBAC=True
       # Default Connections Used in the DEA Airflow deployment
-      - AIRFLOW_CONN_LPGS_GADI=ssh://dra547@gadi.nci.org.au/
+      - AIRFLOW_CONN_LPGS_GADI=ssh://foo:bar@gadi.nci.org.au/
       - AIRFLOW_CONN_DEA_PUBLIC_DATA_UPLOAD=s3://foo:bar@dea-public-data-dev/
       - AIRFLOW_CONN_AWS_NCI_DB_BACKUP=s3://foo:bar@dea-db-backups/
       - HOST_USER_ID=${UID}
