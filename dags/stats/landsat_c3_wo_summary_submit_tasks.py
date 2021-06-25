@@ -103,13 +103,20 @@ DEFAULT_ARGS = {
 PRODUCT_NAME = "ga_ls_wo_3"
 LS_C3_WO_SUMMARY_QUEUE_NAME = LS_C3_WO_SUMMARY_QUEUE.split("/")[-1]
 
+FREQUENCE = "{{{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='frequence') }}}}"
+YEAR_FILTER = "{{{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='year_filter') }}}}"
+DB_NAME = "{{{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='output_db_filename') }}}}"
+
 CACHE_AND_UPLOADING_BASH_COMMAND = [
-        #f"odc-stats save-tasks {PRODUCT_NAME} --year=2009 --grid au-30 --frequency {FREQUENCY} ga_ls_wo_3_{FREQUENCY}.db && ls -lh && " \
-        #f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCY} {YEAR} {OUTPUT_DB} && ls -lh && " \
-        #f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCY} {YEAR} {OUTPUT_DB} && ls -lh"
-        f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {{{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='frequence') }}}} {{{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='year_filter') }}}} {{{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='output_db_filename') }}}} && ls -lh"
-        # f"aws s3 cp ga_ls_wo_3_{FREQUENCY}.db s3://dea-dev-stats-processing/dbs/{OUTPUT_DB}_from_airflow",
-    ]
+    f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCE} {YEAR_FILTER} {DB_NAME} && ls -lh && " \
+    f"aws s3 cp {DB_NAME} s3://dea-dev-stats-processing/dbs/airflow_test/{DB_NAME}",
+]
+
+# Test CMD in JupyterHub: odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_annual_test_from_airflow.db dea-dev-eks-stats-kk ":1"
+# Only submit single message to do the test
+SUBIT_TASKS_BASH_COMMAND = [
+    f"odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/airflow_test/{DB_NAME} {LS_C3_WO_SUMMARY_QUEUE_NAME} ':1'",
+]
 
 # THE DAG
 dag = DAG(
@@ -126,7 +133,7 @@ dag.trigger_arguments = {"FREQUENCY": "string", "YEAR": "string"} # these are th
 
 def parse_job_args_fn(**kwargs):
     """
-    This method aims to parse the input from manually trigger, and post parse result to XCome.
+    This method aims to parse the input from manually trigger, use default value if input is empty, then post parsed result to XCome.
     """
     dag_run_conf = kwargs["dag_run"].conf #  here we get the parameters we specify when triggering
 
@@ -143,14 +150,6 @@ def parse_job_args_fn(**kwargs):
     kwargs["ti"].xcom_push(key="output_db_filename", value=output_db_filename)
 
 with dag:
-    # Please use the airflow {{ dag_run.conf }} to pass search expression, and add relative 'workable' examples in this DAG's doc.
-    
-
-    # Test CMD in JupyterHub: odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_annual_test_from_airflow.db dea-dev-eks-stats-kk ":1"
-    # Only submit single message to do the test
-    #SUBIT_TASKS_BASH_COMMAND = [
-    #    f"odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/{OUTPUT_DB} {LS_C3_WO_SUMMARY_QUEUE_NAME} ':1'",
-    #]
 
     START = DummyOperator(task_id="start-stats-submit-tasks")
 
@@ -175,7 +174,6 @@ with dag:
         is_delete_operator_pod=True,
     )
 
-    """
     SUBMITTING = KubernetesPodOperator(
         namespace="processing",
         image=STAT_IMAGE,
@@ -189,9 +187,7 @@ with dag:
         affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
     )
-    """
     
     COMPLETE = DummyOperator(task_id="complete-stats-submit-tasks")
 
-    # START >> PARSE_INPUT >> CACHEING >> SUBMITTING >> COMPLETE
-    START >> PARSE_INPUT >> CACHEING >> COMPLETE
+    START >> PARSE_INPUT >> CACHEING >> SUBMITTING >> COMPLETE
