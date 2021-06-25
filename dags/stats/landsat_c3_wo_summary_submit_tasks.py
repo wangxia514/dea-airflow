@@ -103,9 +103,9 @@ DEFAULT_ARGS = {
 PRODUCT_NAME = "ga_ls_wo_3"
 LS_C3_WO_SUMMARY_QUEUE_NAME = LS_C3_WO_SUMMARY_QUEUE.split("/")[-1]
 
-FREQUENCE = "{{{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='frequence') }}}}"
-YEAR_FILTER = "{{{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='year_filter') }}}}"
-DB_NAME = "{{{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='output_db_filename') }}}}"
+FREQUENCE = "{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='frequence') }}"
+YEAR_FILTER = "{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='year_filter') }}"
+DB_NAME = "{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='output_db_filename') }}"
 
 CACHE_AND_UPLOADING_BASH_COMMAND = [
     f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCE} {YEAR_FILTER} {DB_NAME} && ls -lh && " \
