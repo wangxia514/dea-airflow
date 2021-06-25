@@ -122,20 +122,17 @@ def parse_job_args_fn(**kwargs):
     """
     dag_run_conf = kwargs["dag_run"].conf #  here we get the parameters we specify when triggering
 
-    print(dag_run_conf)
-    print(type(dag_run_conf))
-
-    frequence = dag_run_conf["FREQUENCY"] if dag_run_conf["FREQUENCY"] else "annual"
-    year = dag_run_conf["YEAR"] if dag_run_conf["YEAR"] else "2009"
+    frequence = dag_run_conf["FREQUENCY"] if "FREQUENCY" in dag_run_conf else "annual"
+    year = dag_run_conf["YEAR"] if "YEAR" in dag_run_conf else "2009"
     year_filter = year if year.lower() != "all" else "" # if use pass 'all' as the year value, then do not pass any year value as filter
     
     # the expected name pattern is: ga_ls_wo_3_annual_2009 or ga_ls_wo_3_annual_all
-    OUTPUT_DB = f"ga_ls_wo_3_{frequence}_{year}.db"
+    output_db_filename = f"ga_ls_wo_3_{frequence}_{year}.db"
 
     # push it as an airflow xcom, can be used directly in K8s Pod operator
     kwargs["ti"].xcom_push(key="frequence", value=frequence) 
     kwargs["ti"].xcom_push(key="year_filter", value=year_filter) 
-    kwargs["ti"].xcom_push(key="db_name", value=OUTPUT_DB)
+    kwargs["ti"].xcom_push(key="output_db_filename", value=output_db_filename)
 
 with dag:
     # Please use the airflow {{ dag_run.conf }} to pass search expression, and add relative 'workable' examples in this DAG's doc.
@@ -168,7 +165,7 @@ with dag:
         cmds=["bash", "-c"],
         arguments=
         [
-            f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {{ task_instance.xcom_pull(key='frequence') }} {{ task_instance.xcom_pull(key='year_filter') }} {{ task_instance.xcom_pull(key='db_name') }} && ls -lh"
+            f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {{ task_instance.xcom_pull(key='frequence') }} {{ task_instance.xcom_pull(key='year_filter') }} {{ task_instance.xcom_pull(key='output_db_filename') }} && ls -lh"
         ],
         labels={"step": "task-to-s3"},
         name="datacube-stats",
