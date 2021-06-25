@@ -26,16 +26,26 @@ When manually trigger this DAG, we can put dag_run.conf there. The dag_run.conf 
 
     If we plan to include all years, do not put YEAR value, passing example JSON
     {
-        "FREQUENCY": "annual-fy"
+        "FREQUENCY": "annual-fy",
+        "YEAR": "all"
     }
+
+    If we put nothing, or miss FREQUENCY or YEAR in the dag_run format, like
+    {
+        "FREQUENCY": "annual",
+    } 
+    or 
+    {
+        "YEAR": "2000"
+    }
+    
+    it will use default year: 2009, and default frequency: annual. 
 
     NOTE: it does NOT support multi-year like
         {
         "FREQUENCY": "annual",
         "YEAR": "2009-2010"
     }
-
-if the DAG run config is empty, the default year is 2009, and default frequency is annual.
 
 """
 from datetime import datetime, timedelta
