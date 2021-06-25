@@ -1,39 +1,29 @@
 """
 Run wagl NRT pipeline in Airflow.
 """
+import json
 import logging
 from datetime import datetime, timedelta
-import random
-from urllib.parse import urlencode, quote_plus, urlparse
-import json
+from urllib.parse import urlparse
 
 import yaml
-
 from airflow import DAG
-
-from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
-from airflow.contrib.operators.kubernetes_pod_operator import Resources
-from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
-from airflow.contrib.hooks.aws_sns_hook import AwsSnsHook
-from airflow.contrib.hooks.aws_sqs_hook import SQSHook
-from airflow.contrib.hooks.aws_hook import AwsHook
-from airflow.contrib.sensors.aws_sqs_sensor import SQSSensor
 from airflow.kubernetes.secret import Secret
 from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
-from airflow.hooks.S3_hook import S3Hook
-from airflow.utils.trigger_rule import TriggerRule
+from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
+from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
+from airflow.providers.amazon.aws.hooks.sns import AwsSnsHook
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 
-import kubernetes.client.models as k8s
-
-from infra.pools import WAGL_TASK_POOL
-from infra.images import WAGL_IMAGE, S3_TO_RDS_IMAGE
 from infra.connections import AWS_WAGL_NRT_CONN
-from infra.sqs_queues import S2_NRT_PROCESS_SCENE_QUEUE
-from infra.sns_notifications import PUBLISH_S2_NRT_SNS
-from infra.variables import S2_NRT_AWS_CREDS
+from infra.images import WAGL_IMAGE, S3_TO_RDS_IMAGE
+from infra.pools import WAGL_TASK_POOL
 from infra.s3_buckets import S2_NRT_SOURCE_BUCKET, S2_NRT_TRANSFER_BUCKET
+from infra.sns_notifications import PUBLISH_S2_NRT_SNS
+from infra.sqs_queues import S2_NRT_PROCESS_SCENE_QUEUE
+from infra.variables import S2_NRT_AWS_CREDS
 
 _LOG = logging.getLogger()
 

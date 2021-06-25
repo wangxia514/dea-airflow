@@ -4,7 +4,7 @@ Fetch wagl NRT ancillary.
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.kubernetes.secret import Secret
 from airflow.kubernetes.volume import Volume

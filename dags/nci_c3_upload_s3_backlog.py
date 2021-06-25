@@ -25,9 +25,9 @@ from textwrap import dedent
 from pathlib import Path
 
 from airflow import DAG, configuration
-from airflow.contrib.hooks.aws_hook import AwsHook
-from airflow.contrib.operators.ssh_operator import SSHOperator
-from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
+from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
+from airflow.providers.ssh.operators.ssh import SSHOperator
+from airflow.providers.sftp.operators.sftp import SFTPOperator, SFTPOperation
 from infra.connections import AWS_DEA_PUBLIC_DATA_LANDSAT_3_SYNC_CONN
 
 # TODO: Replace with actual start date and end date

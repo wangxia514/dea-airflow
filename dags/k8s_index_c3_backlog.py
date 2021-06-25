@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 import kubernetes.client.models as k8s
 from airflow import DAG
-from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from airflow.operators.subdag_operator import SubDagOperator
 from infra.variables import SECRET_ODC_WRITER_NAME, DB_HOSTNAME

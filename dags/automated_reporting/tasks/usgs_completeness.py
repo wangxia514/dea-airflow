@@ -7,7 +7,7 @@ import logging
 from datetime import timedelta, timezone
 
 from airflow.configuration import conf
-from airflow.hooks.postgres_hook import PostgresHook
+from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 from automated_reporting.utilities import helpers, stac_api
 

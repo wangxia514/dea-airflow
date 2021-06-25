@@ -8,8 +8,8 @@ from base64 import b64encode
 from io import StringIO
 
 from airflow import AirflowException, conf
-from airflow.contrib.hooks.ssh_hook import SSHHook
-from airflow.contrib.operators.sftp_operator import _make_intermediate_dirs
+from airflow.providers.ssh.hooks.ssh import SSHHook
+from airflow.providers.sftp.operators.sftp import _make_intermediate_dirs
 from airflow.models import BaseOperator, SkipMixin
 from airflow.utils.decorators import apply_defaults
 

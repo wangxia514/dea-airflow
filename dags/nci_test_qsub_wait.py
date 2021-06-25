@@ -2,7 +2,7 @@
 # Test DAG for submitting PBS Jobs and awaiting their completion
 """
 from airflow import DAG
-from airflow.contrib.operators.ssh_operator import SSHOperator
+from airflow.providers.ssh.operators.ssh import SSHOperator
 
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 from datetime import datetime, timedelta

@@ -3,7 +3,7 @@ Task for s2 completeness calculations
 """
 import logging
 
-from airflow.hooks.S3_hook import S3Hook
+from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 
 import infra.connections as connections
 from automated_reporting.utilities import helpers

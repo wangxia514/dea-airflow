@@ -3,7 +3,7 @@ Task to check that the schema in reporting db has the correct tables, columns, f
 """
 import logging
 
-from airflow.hooks.postgres_hook import PostgresHook
+from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 from automated_reporting.utilities import helpers
 from automated_reporting.databases import sql

@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 
 from textwrap import dedent
 
@@ -100,7 +100,7 @@ with dag:
     n_chunks = 12
     for part in range(1, n_chunks + 1):
         # https://airflow.apache.org/docs/apache-airflow/1.10.12/_api/airflow/contrib/operators/
-        # kubernetes_pod_operator/index.html#airflow.contrib.operators.kubernetes_pod_operator.KubernetesPodOperator
+        # kubernetes_pod_operator/index.html#airflow.providers.cncf.kubernetes.operators.kubernetes_pod.KubernetesPodOperator
 
         cmd = [
             "bash",

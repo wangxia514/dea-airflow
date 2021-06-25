@@ -4,7 +4,7 @@ Utilities for reporting db queries and inserts
 
 import logging
 import re
-from airflow.hooks.postgres_hook import PostgresHook
+from airflow.providers.postgres.hooks.postgres import PostgresHook
 from automated_reporting.databases import sql
 from datetime import datetime as dt, timezone, timedelta
 

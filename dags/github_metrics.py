@@ -23,9 +23,7 @@ import psycopg2
 import requests
 from airflow import DAG
 from airflow import secrets
-from airflow.contrib.hooks.ssh_hook import SSHHook
-from airflow.hooks.postgres_hook import PostgresHook
-from airflow.operators.postgres_operator import PostgresOperator
+from airflow.providers.ssh.hooks.ssh import SSHHook
 from airflow.operators.python_operator import PythonOperator
 
 LOG = logging.getLogger(__name__)

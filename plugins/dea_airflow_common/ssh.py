@@ -8,7 +8,7 @@ TODO: And then try to push it upstream as it's useful functionality
 from select import select
 
 from airflow import AirflowException
-from airflow.contrib.hooks.ssh_hook import SSHHook
+from airflow.providers.ssh.hooks.ssh import SSHHook
 from airflow.utils.decorators import apply_defaults
 
 

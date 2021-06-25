@@ -26,7 +26,7 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.kubernetes.secret import Secret
 from subdags.subdag_ows_views import ows_update_extent_subdag
 from subdags.subdag_explorer_summary import explorer_refresh_stats_subdag
-from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 
 from infra.images import INDEXER_IMAGE
 from infra.variables import (

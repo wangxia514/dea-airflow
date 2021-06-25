@@ -1,5 +1,5 @@
 import mockssh
-from airflow.contrib.hooks.ssh_hook import SSHHook
+from airflow.providers.ssh.hooks.ssh import SSHHook
 
 import pytest
 import paramiko

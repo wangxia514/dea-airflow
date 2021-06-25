@@ -5,7 +5,7 @@ This subdag can be called by other dags
 
 from airflow import DAG
 
-from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from webapp_update.update_list import EXPLORER_UPDATE_LIST
 from infra.podconfig import ONDEMAND_NODE_AFFINITY

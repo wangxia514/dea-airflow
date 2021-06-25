@@ -13,8 +13,8 @@ from datetime import datetime, timedelta
 from textwrap import dedent
 
 from airflow import DAG
-from airflow.contrib.hooks.aws_hook import AwsHook
-from airflow.contrib.operators.ssh_operator import SSHOperator
+from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
+from airflow.providers.ssh.operators.ssh import SSHOperator
 
 from operators.ssh_operators import SecretHandlingSSHOperator
 from infra.connections import AWS_NCI_DB_BACKUP_CONN

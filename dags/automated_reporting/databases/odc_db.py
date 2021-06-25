@@ -5,7 +5,7 @@ Utilities for odc db queries
 import logging
 from datetime import timedelta
 
-from airflow.hooks.postgres_hook import PostgresHook
+from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 from infra.connections import DB_ODC_READER_CONN
 from automated_reporting.utilities import helpers
