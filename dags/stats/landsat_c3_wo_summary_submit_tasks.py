@@ -103,6 +103,14 @@ DEFAULT_ARGS = {
 PRODUCT_NAME = "ga_ls_wo_3"
 LS_C3_WO_SUMMARY_QUEUE_NAME = LS_C3_WO_SUMMARY_QUEUE.split("/")[-1]
 
+CACHE_AND_UPLOADING_BASH_COMMAND = [
+        #f"odc-stats save-tasks {PRODUCT_NAME} --year=2009 --grid au-30 --frequency {FREQUENCY} ga_ls_wo_3_{FREQUENCY}.db && ls -lh && " \
+        #f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCY} {YEAR} {OUTPUT_DB} && ls -lh && " \
+        #f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCY} {YEAR} {OUTPUT_DB} && ls -lh"
+        f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {{{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='frequence') }}}} {{{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='year_filter') }}}} output {{{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='output_db_filename') }}}} && ls -lh"
+        # f"aws s3 cp ga_ls_wo_3_{FREQUENCY}.db s3://dea-dev-stats-processing/dbs/{OUTPUT_DB}_from_airflow",
+    ]
+
 # THE DAG
 dag = DAG(
     "landset_c3_wo_summary_submit_tasks",
@@ -124,7 +132,7 @@ def parse_job_args_fn(**kwargs):
 
     frequence = dag_run_conf["FREQUENCY"] if "FREQUENCY" in dag_run_conf else "annual"
     year = dag_run_conf["YEAR"] if "YEAR" in dag_run_conf else "2009"
-    year_filter = year if year.lower() != "all" else "" # if use pass 'all' as the year value, then do not pass any year value as filter
+    year_filter = "--year=" + year if year.lower() != "all" else "" # if use pass 'all' as the year value, then do not pass any year value as filter
     
     # the expected name pattern is: ga_ls_wo_3_annual_2009 or ga_ls_wo_3_annual_all
     output_db_filename = f"ga_ls_wo_3_{frequence}_{year}.db"
@@ -136,12 +144,7 @@ def parse_job_args_fn(**kwargs):
 
 with dag:
     # Please use the airflow {{ dag_run.conf }} to pass search expression, and add relative 'workable' examples in this DAG's doc.
-    #CACHE_AND_UPLOADING_BASH_COMMAND = [
-        #f"odc-stats save-tasks {PRODUCT_NAME} --year=2009 --grid au-30 --frequency {FREQUENCY} ga_ls_wo_3_{FREQUENCY}.db && ls -lh && " \
-        #f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCY} {YEAR} {OUTPUT_DB} && ls -lh && " \
-    #    f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCY} {YEAR} {OUTPUT_DB} && ls -lh"
-        # f"aws s3 cp ga_ls_wo_3_{FREQUENCY}.db s3://dea-dev-stats-processing/dbs/{OUTPUT_DB}_from_airflow",
-    #]
+    
 
     # Test CMD in JupyterHub: odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_annual_test_from_airflow.db dea-dev-eks-stats-kk ":1"
     # Only submit single message to do the test
@@ -162,11 +165,8 @@ with dag:
         namespace="processing",
         image=STAT_IMAGE,
         image_pull_policy="IfNotPresent",
-        cmds=[
-            "bash", 
-            "-c",
-            f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {{{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='frequence') }}}} {{{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='year_filter') }}}} {{{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='output_db_filename') }}}} && ls -lh"
-        ],
+        cmds=["bash", "-c"],
+        arguments=CACHE_AND_UPLOADING_BASH_COMMAND,
         labels={"step": "task-to-s3"},
         name="datacube-stats",
         task_id="cache-stat-tasks",
