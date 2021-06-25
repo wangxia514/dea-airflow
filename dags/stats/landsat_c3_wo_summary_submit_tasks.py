@@ -107,7 +107,7 @@ CACHE_AND_UPLOADING_BASH_COMMAND = [
         #f"odc-stats save-tasks {PRODUCT_NAME} --year=2009 --grid au-30 --frequency {FREQUENCY} ga_ls_wo_3_{FREQUENCY}.db && ls -lh && " \
         #f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCY} {YEAR} {OUTPUT_DB} && ls -lh && " \
         #f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCY} {YEAR} {OUTPUT_DB} && ls -lh"
-        f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {{{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='frequence') }}}} {{{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='year_filter') }}}} output {{{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='output_db_filename') }}}} && ls -lh"
+        f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {{{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='frequence') }}}} {{{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='year_filter') }}}} {{{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='output_db_filename') }}}} && ls -lh"
         # f"aws s3 cp ga_ls_wo_3_{FREQUENCY}.db s3://dea-dev-stats-processing/dbs/{OUTPUT_DB}_from_airflow",
     ]
 
