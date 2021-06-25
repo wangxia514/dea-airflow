@@ -5,7 +5,7 @@ SQLAlchemy == 1.3.23
 # backport for v2.0 readiness
 apache-airflow-backport-providers-cncf-kubernetes
 apache-airflow-backport-providers-postgres
-# apache-airflow-backport-providers-http
+apache-airflow-backport-providers-amazon
 apache-airflow-backport-providers-email
 apache-airflow-backport-providers-ssh
 apache-airflow-backport-providers-sftp
