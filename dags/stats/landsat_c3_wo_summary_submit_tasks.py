@@ -154,7 +154,7 @@ with dag:
     PARSE_INPUT = PythonOperator(  
         task_id="parse_job_args_task",
         python_callable=parse_job_args_fn,
-        provide_context=True,
+        provide_context=True, # if not default this, the callback method cannot access the context
         dag=dag
     )
 
@@ -162,10 +162,10 @@ with dag:
         namespace="processing",
         image=STAT_IMAGE,
         image_pull_policy="IfNotPresent",
-        cmds=["bash", "-c"],
-        arguments=
-        [
-            f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {{ task_instance.xcom_pull(key='frequence') }} {{ task_instance.xcom_pull(key='year_filter') }} {{ task_instance.xcom_pull(key='output_db_filename') }} && ls -lh"
+        cmds=[
+            "bash", 
+            "-c",
+            f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='frequence') }} {{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='year_filter') }} {{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='output_db_filename') }} && ls -lh"
         ],
         labels={"step": "task-to-s3"},
         name="datacube-stats",
