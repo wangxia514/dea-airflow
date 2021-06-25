@@ -30,12 +30,13 @@ OWS_SECRETS = [
 
 # MOUNT OWS_CFG via init_container
 # for main container mount
-ows_cfg_mount = VolumeMount(
-    "ows-config-volume", mount_path=OWS_CFG_MOUNT_PATH, sub_path=None, read_only=False
+ows_cfg_mount = k8s.V1VolumeMount(
+    name="ows-config-volume", mount_path=OWS_CFG_MOUNT_PATH, sub_path=None, read_only=False
 )
 
-s3_backup_volume = k8s.V1Volume(name="s3-backup-volume",
-                                )
+
+ows_cfg_volume = k8s.V1Volume(name="ows-config-volume")
+
 
 # for init container mount
 cfg_image_mount = k8s.V1VolumeMount(
