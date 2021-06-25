@@ -3,12 +3,11 @@ Fetch wagl NRT ancillary.
 """
 from datetime import datetime, timedelta
 
+import kubernetes.client.models as k8s
 from airflow import DAG
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
-from airflow.operators.dummy_operator import DummyOperator
 from airflow.kubernetes.secret import Secret
-from airflow.kubernetes.volume import Volume
-from airflow.kubernetes.volume_mount import VolumeMount
+from airflow.operators.dummy_operator import DummyOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 
 from infra.pools import WAGL_TASK_POOL
 
@@ -85,7 +84,7 @@ SYNC_JOBS = [
         )
         # if first week of year, fetch last year as well
         for year in [NOW.year]
-        + ([NOW.year - 1] if NOW.month == 1 and NOW.day < 7 else [])
+                    + ([NOW.year - 1] if NOW.month == 1 and NOW.day < 7 else [])
     ],
     "echo removing existing brdf",
     "mkdir -p /ancillary/brdf-jl/",
@@ -174,7 +173,6 @@ affinity = {
     }
 }
 
-
 tolerations = [
     {"key": "dedicated", "operator": "Equal", "value": "wagl", "effect": "NoSchedule"}
 ]
@@ -192,19 +190,19 @@ default_args = {
     "secrets": [Secret("env", None, "wagl-nrt-aws-creds")],
 }
 
-
-ancillary_volume_mount = VolumeMount(
+ancillary_volume_mount = k8s.V1VolumeMount(
     name="wagl-nrt-ancillary-volume",
     mount_path="/ancillary",
     sub_path=None,
     read_only=False,
 )
 
-ancillary_volume = Volume(
+ancillary_volume = k8s.V1Volume(
     name="wagl-nrt-ancillary-volume",
-    configs={"persistentVolumeClaim": {"claimName": "wagl-nrt-ancillary-volume"}},
+    persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(
+        claim_name="wagl-nrt-ancillary-volume"
+    )
 )
-
 
 pipeline = DAG(
     "k8s_wagl_nrt_ancillary",

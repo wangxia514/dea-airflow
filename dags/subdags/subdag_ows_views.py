@@ -1,16 +1,18 @@
 """
 # Sentinel-2_nrt ows update
 """
-from airflow import DAG
-from airflow.kubernetes.volume import Volume
-from airflow.kubernetes.volume_mount import VolumeMount
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
-from airflow.kubernetes.secret import Secret
 from textwrap import dedent
 
 import kubernetes.client.models as k8s
+from airflow import DAG
+from airflow.kubernetes.secret import Secret
+from airflow.kubernetes.volume_mount import VolumeMount
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 
 from infra.images import OWS_CONFIG_IMAGE, OWS_IMAGE
+from infra.podconfig import ONDEMAND_NODE_AFFINITY
+from infra.pools import DEA_NEWDATA_PROCESSING_POOL
+from infra.variables import SECRET_OWS_WRITER_NAME
 from subdags.podconfig import (
     OWS_CFG_PATH,
     OWS_CFG_MOUNT_PATH,
@@ -19,11 +21,7 @@ from subdags.podconfig import (
     OWS_PYTHON_PATH,
     OWS_CFG_FOLDER_PATH,
 )
-from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from webapp_update.update_list import UPDATE_EXTENT_PRODUCTS
-from infra.variables import SECRET_OWS_WRITER_NAME
-from infra.pools import DEA_NEWDATA_PROCESSING_POOL
-
 
 OWS_SECRETS = [
     Secret("env", "DB_USERNAME", SECRET_OWS_WRITER_NAME, "postgres-username"),
@@ -36,11 +34,8 @@ ows_cfg_mount = VolumeMount(
     "ows-config-volume", mount_path=OWS_CFG_MOUNT_PATH, sub_path=None, read_only=False
 )
 
-
-ows_cfg_volume_config = {}
-
-ows_cfg_volume = Volume(name="ows-config-volume", configs=ows_cfg_volume_config)
-
+s3_backup_volume = k8s.V1Volume(name="s3-backup-volume",
+                                )
 
 # for init container mount
 cfg_image_mount = k8s.V1VolumeMount(
@@ -61,7 +56,7 @@ config_container = k8s.V1Container(
 
 
 def ows_update_extent_subdag(
-    parent_dag_name: str, child_dag_name: str, args: dict, xcom_task_id: str = None
+        parent_dag_name: str, child_dag_name: str, args: dict, xcom_task_id: str = None
 ):
     """[summary]
 

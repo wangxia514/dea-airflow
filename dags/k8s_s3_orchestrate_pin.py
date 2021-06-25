@@ -19,14 +19,12 @@ The DAG has to be parameterized with S3_Glob and Target product as below.
 """
 from datetime import datetime, timedelta
 
+import kubernetes.client.models as k8s
 from airflow import DAG
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
-import kubernetes.client.models as k8s
-from airflow.kubernetes.volume_mount import VolumeMount
-from airflow.kubernetes.volume import Volume
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 
 from infra.variables import DB_HOSTNAME
 
@@ -64,15 +62,11 @@ OWS_CONFIG_IMAGE = "geoscienceaustralia/dea-datakube-config:1.5.1"
 OWS_CFG_IMAGEPATH = "/opt/dea-config/dev/services/wms/ows/ows_cfg.py"
 
 # for main container mount
-ows_cfg_mount = VolumeMount(
-    "ows-config-volume", mount_path="/env/config", sub_path=None, read_only=False
+ows_cfg_mount = k8s.V1VolumeMount(
+    name="ows-config-volume", mount_path="/env/config", sub_path=None, read_only=False
 )
 
-
-ows_cfg_volume_config = {}
-
-ows_cfg_volume = Volume(name="ows-config-volume", configs=ows_cfg_volume_config)
-
+ows_cfg_volume = k8s.V1Volume(name="ows-config-volume")
 
 # for init container mount
 cfg_image_mount = k8s.V1VolumeMount(

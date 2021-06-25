@@ -1,32 +1,28 @@
 """
 MODTRAN6 image test.
 """
-from datetime import datetime, timedelta
+from datetime import datetime
+
+import kubernetes.client.models as k8s
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.kubernetes.volume import Volume
-from airflow.kubernetes.volume_mount import VolumeMount
-from airflow.operators.python_operator import PythonOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
-from airflow_kubernetes_job_operator.kubernetes_job_operator import (
-    KubernetesJobOperator,
-)
-
 
 MOD6_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/mod6:test-20210311"
 
-ancillary_volume_mount = VolumeMount(
+ancillary_volume_mount = k8s.V1VolumeMount(
     name="wagl-nrt-ancillary-volume",
     mount_path="/modtran6",
     sub_path=None,
     read_only=False,
 )
 
-
-ancillary_volume = Volume(
+ancillary_volume = k8s.V1Volume(
     name="wagl-nrt-ancillary-volume",
-    configs={"persistentVolumeClaim": {"claimName": "wagl-nrt-ancillary-volume"}},
+    persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(
+        claim_name="wagl-nrt-ancillary-volume"
+    )
 )
 
 default_args = {
@@ -38,7 +34,6 @@ default_args = {
     "email_on_retry": False,
     "retries": 0,
 }
-
 
 dag = DAG(
     "k8s_wagl_modtran_test",
@@ -52,7 +47,6 @@ dag = DAG(
     schedule_interval=None,
     tags=["k8s", "dea", "psc", "dev", "wagl"],
 )
-
 
 with dag:
     START = DummyOperator(task_id="start")

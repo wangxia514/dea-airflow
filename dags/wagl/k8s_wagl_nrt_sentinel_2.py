@@ -1,39 +1,28 @@
 """
 Run wagl NRT pipeline in Airflow.
 """
+import json
 import logging
 from datetime import datetime, timedelta
-import random
-from urllib.parse import urlencode, quote_plus, urlparse
-import json
-
-import yaml
-
-from airflow import DAG
-
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
-from airflow.contrib.operators.kubernetes_pod_operator import Resources
-from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
-from airflow.providers.amazon.aws.hooks.sns import AwsSnsHook
-from airflow.providers.amazon.aws.hooks.sqs import SQSHook
-from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
-from airflow.providers.amazon.aws.sensors.sqs import SQSSensor
-from airflow.kubernetes.secret import Secret
-from airflow.kubernetes.volume import Volume
-from airflow.kubernetes.volume_mount import VolumeMount
-from airflow.providers.amazon.aws.hooks.s3 import S3Hook
-from airflow.utils.trigger_rule import TriggerRule
+from urllib.parse import urlparse
 
 import kubernetes.client.models as k8s
+import yaml
+from airflow import DAG
+from airflow.kubernetes.secret import Secret
+from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
+from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
+from airflow.providers.amazon.aws.hooks.sns import AwsSnsHook
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 
-from infra.pools import WAGL_TASK_POOL
-from infra.images import WAGL_IMAGE_POC, S3_TO_RDS_IMAGE
 from infra.connections import AWS_WAGL_NRT_CONN
-from infra.sqs_queues import S2_NRT_PROCESS_SCENE_QUEUE
-from infra.sns_notifications import PUBLISH_S2_NRT_SNS
-from infra.variables import S2_NRT_AWS_CREDS
+from infra.images import WAGL_IMAGE_POC, S3_TO_RDS_IMAGE
+from infra.pools import WAGL_TASK_POOL
 from infra.s3_buckets import S2_NRT_SOURCE_BUCKET, S2_NRT_TRANSFER_BUCKET
+from infra.sns_notifications import PUBLISH_S2_NRT_SNS
+from infra.sqs_queues import S2_NRT_PROCESS_SCENE_QUEUE
+from infra.variables import S2_NRT_AWS_CREDS
 
 _LOG = logging.getLogger()
 
@@ -53,9 +42,7 @@ default_args = {
     ],
 }
 
-
 ESTIMATED_COMPLETION_TIME = 3 * 60 * 60
-
 
 BUCKET_REGION = "ap-southeast-2"
 S3_PREFIX = "s3://dea-public-data-dev/L2/sentinel-2-nrt/S2MSIARD/"
@@ -91,18 +78,18 @@ tolerations = [
     {"key": "dedicated", "operator": "Equal", "value": "wagl", "effect": "NoSchedule"}
 ]
 
-
-ancillary_volume_mount = VolumeMount(
+ancillary_volume_mount = k8s.V1VolumeMount(
     name="wagl-nrt-ancillary-volume",
     mount_path="/ancillary",
     sub_path=None,
     read_only=False,
 )
 
-
-ancillary_volume = Volume(
+ancillary_volume = k8s.V1Volume(
     name="wagl-nrt-ancillary-volume",
-    configs={"persistentVolumeClaim": {"claimName": "wagl-nrt-ancillary-volume"}},
+    persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(
+        claim_name="wagl-nrt-ancillary-volume"
+    )
 )
 
 
@@ -375,14 +362,14 @@ with pipeline:
                 MODTRAN_DATA="/ancillary/MODTRAN6.0.2.3G/DATA",
                 bucket_region=BUCKET_REGION,
                 datastrip_url="{{ task_instance.xcom_pull(task_ids='receive_task_"
-                + str(index)
-                + "', key='args')['datastrip_url'] }}",
+                              + str(index)
+                              + "', key='args')['datastrip_url'] }}",
                 granule_url="{{ task_instance.xcom_pull(task_ids='receive_task_"
-                + str(index)
-                + "', key='args')['granule_url'] }}",
+                            + str(index)
+                            + "', key='args')['granule_url'] }}",
                 granule_id="{{ task_instance.xcom_pull(task_ids='receive_task_"
-                + str(index)
-                + "', key='args')['granule_id'] }}",
+                           + str(index)
+                           + "', key='args')['granule_id'] }}",
                 s3_prefix=S3_PREFIX,
             ),
             get_logs=True,
