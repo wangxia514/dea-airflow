@@ -47,7 +47,10 @@ default_args = {
     "retries": 0,
     "retry_delay": timedelta(minutes=5),
     "pool": WAGL_TASK_POOL,
-    "secrets": [Secret("env", None, S2_NRT_AWS_CREDS)],
+    "secrets": [
+        Secret("env", None, S2_NRT_AWS_CREDS),
+        Secret("env", None, "modtran-key"),
+    ],
 }
 
 
