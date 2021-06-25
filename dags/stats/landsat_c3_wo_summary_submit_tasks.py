@@ -116,8 +116,14 @@ dag = DAG(
 
 dag.trigger_arguments = {"FREQUENCY": "string", "YEAR": "string"} # these are the arguments we would like to passed manually
 
-def parse_job_args_fn(**kwargs):  
+def parse_job_args_fn(**kwargs):
+    """
+    This method aims to parse the input from manually trigger, and post parse result to XCome.
+    """
     dag_run_conf = kwargs["dag_run"].conf #  here we get the parameters we specify when triggering
+
+    print(dag_run_conf)
+    print(type(dag_run_conf))
 
     frequence = dag_run_conf["FREQUENCY"] if dag_run_conf["FREQUENCY"] else "annual"
     year = dag_run_conf["YEAR"] if dag_run_conf["YEAR"] else "2009"
