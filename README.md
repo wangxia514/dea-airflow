@@ -33,6 +33,9 @@ Then start up `docker-compose`:
 docker-compose up
 ```
 
+Connect to the [Local Airflow Webserver](http://localhost:8080/) in your browser, and login with Username: `airflow`, 
+Password: `airflow`.
+
 ## Local Editing of DAG's
 
 DAGs can be locally edited and validated. Development can be done in `conda` or `venv` according to developer preference. Grab everything airflow and write DAGs. Use `autopep8` and `pylint` to achieve import validation and consistent formatting as the CI pipeline for this repository matures.
