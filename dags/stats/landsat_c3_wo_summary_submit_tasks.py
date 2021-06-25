@@ -163,7 +163,7 @@ with dag:
         arguments=
         [
             f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {{ task_instance.xcom_pull(key='frequence') }} {{ task_instance.xcom_pull(key='year_filter') }} {{ task_instance.xcom_pull(key='db_name') }} && ls -lh"
-        ]
+        ],
         labels={"step": "task-to-s3"},
         name="datacube-stats",
         task_id="cache-stat-tasks",
