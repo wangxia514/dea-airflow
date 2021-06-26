@@ -372,6 +372,7 @@ with pipeline:
                 "stage": "wagl",
             },
             env_vars=dict(
+                MODTRAN_DATA="/ancillary/MODTRAN6.0.2.3G/DATA",
                 bucket_region=BUCKET_REGION,
                 datastrip_url="{{ task_instance.xcom_pull(task_ids='receive_task_"
                 + str(index)
