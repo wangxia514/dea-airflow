@@ -125,7 +125,7 @@ CACHE_AND_UPLOADING_BASH_COMMAND = [
 # Test CMD in JupyterHub: odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/ga_ls_wo_3_annual_test_from_airflow.db dea-dev-eks-stats-kk ":1"
 # Only submit single message to do the test
 SUBIT_TASKS_BASH_COMMAND = [
-    f"odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/airflow_test/{DB_NAME} {LS_C3_WO_SUMMARY_QUEUE_NAME} ':1'",
+    f"odc-stats publish-tasks s3://dea-dev-stats-processing/dbs/airflow_test/{DB_NAME} {LS_C3_WO_SUMMARY_QUEUE_NAME} ':10'",
 ]
 
 # THE DAG
