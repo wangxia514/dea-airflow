@@ -60,8 +60,8 @@ jobs:
           export AIRFLOW__CORE__DAGS_FOLDER="/home/runner/work/dea-airflow/dea-airflow/dags"
 
           airflow db init
-          airflow connections add 'aws_nci_db_backup' --conn_type aws --conn_login AWSKEY --conn_password AWS_PASS
-          airflow connections add 'lpgs_gadi' --conn_type ssh --conn_login USERNAME --conn_password PASS
+          airflow connections add 'aws_nci_db_backup' --conn_type 'aws' --conn_login 'AWSKEY' --conn_password 'AWS_PASS'
+          airflow connections add 'lpgs_gadi' --conn_type 'ssh' --conn_login 'USERNAME' --conn_password 'PASS'
           airflow info
           airflow dags list
 
