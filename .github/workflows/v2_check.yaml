@@ -76,5 +76,5 @@ jobs:
       - name: run tests on dags
         run: |
           export PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}${PWD}/dags"
-          pip install -r requirements-dev.txt
+          pip install pylint==2.7.2 pytest==6.2.2 pylint-airflow
           pytest tests/dag_structure

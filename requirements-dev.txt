@@ -1,4 +1,4 @@
-apache-airflow[amazon,cncf.kubernetes,sftp,postgres,redis,ssh,celery]==2.1.0
+apache-airflow[aws,kubernetes,postgres,redis,ssh,celery]==1.10.15
 pytest==6.2.2
 pylint==2.7.2
 pylint-airflow
