@@ -1,4 +1,4 @@
-apache-airflow[aws,kubernetes,postgres,redis,ssh,celery]==1.10.14
+apache-airflow[aws,kubernetes,postgres,redis,ssh,celery]==1.10.15
 pytest==6.2.2
 pylint==2.7.2
 pylint-airflow
@@ -6,4 +6,3 @@ pylint-airflow
 # This install from git is required to support passing content through stdin
 git+git://github.com/omad/mock-ssh-server@80e6ebd#mock-ssh-server
 #mock-ssh-server==0.9.0
-

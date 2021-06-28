@@ -3,7 +3,7 @@
 """
 from textwrap import dedent
 
-import kubernetes.client.models as k8s
+from kubernetes.client import models as k8s
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.kubernetes.volume_mount import VolumeMount
