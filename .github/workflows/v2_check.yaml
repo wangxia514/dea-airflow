@@ -48,6 +48,7 @@ jobs:
         run: which python
       - name: Install airflow and run pylint
         run: |
+          pip uninstall apache-airflow
           pip install apache-airflow[aws,kubernetes,postgres,redis,ssh,celery]==2.1.0 -c constraints.txt
           pip install pylint pylint-airflow
           pip install -r requirements.txt
