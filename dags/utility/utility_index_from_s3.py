@@ -199,4 +199,4 @@ with dag:
         dag=dag,
     )
 
-    GET_CONFIG > INDEX
+    GET_CONFIG >> INDEX
