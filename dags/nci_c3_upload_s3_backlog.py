@@ -154,7 +154,9 @@ def create_dag(dag_id, product, start_date, end_date):
             create_intermediate_dirs=True,
         )
         # Execute script to upload Landsat collection 3 data to s3 bucket
-        aws_hook = AwsHook(aws_conn_id=dag.default_args["aws_conn_id"])
+        aws_hook = AwsHook(
+            aws_conn_id=dag.default_args["aws_conn_id"], client_type="s3"
+        )
         execute_c3_to_s3_script = SSHOperator(
             task_id=f"execute_c3_to_s3_script_{product}",
             command=dedent(COMMON + RUN_UPLOAD_SCRIPT),

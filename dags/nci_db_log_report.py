@@ -71,7 +71,7 @@ with DAG(
         command=COMMON + "pgbadger -I -O ${PWD}/reports/ logs/*",
     )
 
-    aws_conn = AwsHook(aws_conn_id=AWS_CONN_ID)
+    aws_conn = AwsHook(aws_conn_id=AWS_CONN_ID, client_type="s3")
     upload_to_s3 = SecretHandlingSSHOperator(
         task_id="upload_to_s3",
         params=dict(aws_conn=aws_conn),
