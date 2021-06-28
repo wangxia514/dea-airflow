@@ -3,7 +3,7 @@
 """
 from textwrap import dedent
 
-import kubernetes.client.models as k8s
+import kubernetes.client.models as V1VolumeMount, k8s
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.kubernetes.volume_mount import VolumeMount
@@ -30,16 +30,16 @@ OWS_SECRETS = [
 
 # MOUNT OWS_CFG via init_container
 # for main container mount
-ows_cfg_mount = k8s.V1VolumeMount(
+ows_cfg_mount = V1VolumeMount(
     name="ows-config-volume", mount_path=OWS_CFG_MOUNT_PATH, sub_path=None, read_only=False
 )
 
 
-ows_cfg_volume = k8s.V1Volume(name="ows-config-volume")
+ows_cfg_volume = V1Volume(name="ows-config-volume")
 
 
 # for init container mount
-cfg_image_mount = k8s.V1VolumeMount(
+cfg_image_mount = V1VolumeMount(
     mount_path=OWS_CFG_MOUNT_PATH,
     name="ows-config-volume",
     sub_path=None,
