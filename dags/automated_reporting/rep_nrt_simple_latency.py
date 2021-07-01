@@ -57,7 +57,7 @@ with dag:
     )
 
     # Product list to extract the metric for, could potentially be part of dag configuration and managed in airflow UI?
-    products_list = ["s2a_nrt_granule", "s2b_nrt_granule"]
+    products_list = ["s2a_nrt_granule", "s2b_nrt_granule", "ga_s2_wo_3"]
 
     def create_task(product_name):
         """

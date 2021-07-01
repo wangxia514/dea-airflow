@@ -14,6 +14,13 @@ from automated_reporting.databases import sql
 log = logging.getLogger("airflow.task")
 
 
+SQL_QUERY = {
+    "s2a_nrt_granule": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE1,
+    "s2b_nrt_granule": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE1,
+    "ga_s2_wo_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE2,
+}
+
+
 def query(product_id, execution_date, days):
     """Query odc for a product id, date and number of days"""
     odc_pg_hook = PostgresHook(postgres_conn_id=DB_ODC_READER_CONN)
@@ -38,7 +45,7 @@ def query(product_id, execution_date, days):
         with odc_pg_hook.get_conn() as odc_conn:
             with odc_conn.cursor() as odc_cursor:
                 odc_cursor.execute(
-                    sql.SELECT_BY_PRODUCT_AND_TIME_RANGE,
+                    SQL_QUERY[product_id],
                     (product_id, odc_start_time, odc_end_time),
                 )
                 log.debug("ODC Executed SQL: {}".format(odc_cursor.query.decode()))
@@ -96,7 +103,7 @@ def query_stepped(product_id, execution_date, steps):
 
                     # extact a processing and acquisition timestamps from AWS for product and timerange, print logs of query and row count
                     odc_cursor.execute(
-                        sql.SELECT_BY_PRODUCT_AND_TIME_RANGE,
+                        SQL_QUERY[product_id],
                         (product_id, start_time, end_time),
                     )
                     log.info("ODC Query for: {} days".format(days_previous))
@@ -141,9 +148,7 @@ def query_stepped(product_id, execution_date, steps):
         start_time = end_time - timedelta(days=days_previous)
 
         # extact a processing and acquisition timestamps from AWS for product and timerange, print logs of query and row count
-        odc_cursor.execute(
-            sql.SELECT_BY_PRODUCT_AND_TIME_RANGE, (product_id, start_time, end_time)
-        )
+        odc_cursor.execute(SQL_QUERY[product_id], (product_id, start_time, end_time))
         log.info("ODC Query for: {} days".format(days_previous))
         log.info("ODC Executed SQL: {}".format(odc_cursor.query.decode()))
         log.info("ODC query returned: {} rows".format(odc_cursor.rowcount))
