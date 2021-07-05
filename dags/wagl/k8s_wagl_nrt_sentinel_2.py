@@ -14,7 +14,6 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
 from airflow.providers.amazon.aws.hooks.sns import AwsSnsHook
-from airflow.providers.amazon.aws.hooks.sqs import SQSHook
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 
 from infra.connections import AWS_WAGL_NRT_CONN
@@ -187,7 +186,7 @@ def tile_args(tile_info):
 
 def get_sqs():
     """ SQS client. """
-    return SQSHook(aws_conn_id=AWS_WAGL_NRT_CONN)
+    return AwsHook(aws_conn_id=AWS_WAGL_NRT_CONN, client_type="sqs").get_session()
 
 
 def get_s3():
