@@ -186,7 +186,7 @@ def tile_args(tile_info):
 
 def get_sqs():
     """ SQS client. """
-    return AwsHook(aws_conn_id=AWS_WAGL_NRT_CONN).get_session().client(client_type="sqs")
+    return AwsHook(aws_conn_id=AWS_WAGL_NRT_CONN, client_type="sqs").get_session().client()
 
 
 def get_s3():
