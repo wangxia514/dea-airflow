@@ -99,5 +99,5 @@ with dag:
         name="datacube-index",
         task_id="indexing-task",
         get_logs=True,
-        is_delete_operator_pod=False,
+        is_delete_operator_pod=True,
     )
