@@ -20,20 +20,22 @@ from infra.connections import AWS_DEA_PUBLIC_DATA_UPLOAD_CONN
 HOURS = 60 * 60
 MINUTES = 60
 DAYS = HOURS * 24
+WORK_DIR = "/g/data/v10/work/s2_nbart_rolling_archive_dev"
+SENTINEL_2_ARD_TOPIC_ARN = "arn:aws:sns:ap-southeast-2:451924316694:dea-dev-eks-l2-nbart"
 
 local_tz = pendulum.timezone("Australia/Canberra")
 
 # language="Shell Script"
 COMMON = dedent(
     """
-        {% set work_dir = '/g/data/v10/work/s2_nbart_rolling_archive/' + ds  -%}
+        {% set work_dir = '/g/data/v10/work/s2_nbart_rolling_archive_dev/' + ds  -%}
         mkdir -p {{work_dir}}
         cd {{ work_dir }}
         # echo on and exit on fail
         set -eu
         # Load the latest stable DEA module
         module use /g/data/v10/public/modules/modulefiles
-        module load dea
+        module load dea/20210527
         # Be verbose and echo what we run
         set -x
 """
@@ -65,13 +67,18 @@ with dag:
     # Uploading s2_to_s3_rolling.py script to NCI
     upload_uploader_script = SFTPOperator(
         task_id="upload_uploader_script",
-        local_filepath=str(
-            Path(configuration.get("core", "dags_folder"))
-            / "sentinel_2_nbart/upload_s2_nbart.py"
-        ),
-        remote_filepath="/g/data/v10/work/s2_nbart_rolling_archive/{{ds}}/upload_s2_nbart.py",
+        local_filepath=str(Path(configuration.get('core', 'dags_folder')).parent / "scripts/upload_s2_nbart.py"),
+        remote_filepath=WORK_DIR + "/{{ds}}/upload_s2_nbart.py",
         operation=SFTPOperation.PUT,
-        create_intermediate_dirs=True,
+        create_intermediate_dirs=True
+    )
+
+    upload_utils = SFTPOperator(
+        task_id="upload_utils",
+        local_filepath=str(Path(configuration.get('core', 'dags_folder')).parent / "scripts/c3_to_s3_rolling.py"),
+        remote_filepath=WORK_DIR + "/{{ds}}/c3_to_s3_rolling.py",
+        operation=SFTPOperation.PUT,
+        create_intermediate_dirs=True
     )
     # language="Shell Script"
     generate_list = SSHOperator(
@@ -93,7 +100,7 @@ with dag:
                 INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id
                 INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref
                 WHERE dst.name='$product_name'
-                  AND ds.added BETWEEN '{{ prev_execution_date }}' AND '{{ execution_date.add(days=1) }}';
+                  AND ds.added BETWEEN '{{ prev_execution_date }}' AND '{{ execution_date.add(days=1) }}' LIMIT 10;
             EOF
             done
             echo -n Num Datasets to upload:
@@ -118,11 +125,10 @@ with dag:
             # Export AWS Access key/secret from Airflow connection module
             export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
             export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
-            python3 '{{ work_dir }}/upload_s2_nbart.py' granule_ids.txt
-        """
+            python3 '{{ work_dir }}/upload_s2_nbart.py' granule_ids.txt """ + f"{SENTINEL_2_ARD_TOPIC_ARN} \n"
         ),
         remote_host="gadi-dm.nci.org.au",
         params={"aws_hook": aws_hook},
         timeout=10 * HOURS,
     )
-    [upload_uploader_script, generate_list] >> execute_upload
+    [upload_uploader_script, upload_utils, generate_list] >> execute_upload
