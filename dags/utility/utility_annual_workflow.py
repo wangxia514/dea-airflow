@@ -98,6 +98,7 @@ with dag:
             # "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
             # "cemp_insar_alos_displacement",
             # Jinja templates for arguments
+            "--skip-lineage",
             "{{ dag_run.conf.s3_glob }}",
             "{{ dag_run.conf.product }}",
             "--no-sign-request",
