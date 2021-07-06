@@ -12,7 +12,7 @@ from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
-from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
+from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from airflow.providers.amazon.aws.hooks.sns import AwsSnsHook
 from airflow.providers.amazon.aws.hooks.sqs import SQSHook
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
@@ -192,7 +192,7 @@ def get_sqs():
 
 def get_s3():
     """ S3 client. """
-    return AwsHook(aws_conn_id=AWS_WAGL_NRT_CONN).get_session().client("s3")
+    return S3Hook(aws_conn_id=AWS_WAGL_NRT_CONN).get_conn()
 
 
 def get_message(sqs, url):
