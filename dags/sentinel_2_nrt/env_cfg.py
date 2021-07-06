@@ -31,7 +31,7 @@ INDEXING_PRODUCTS = (
 # S3 Record list for indexing products
 # TODO: This list need to be split when multiple SQS queues are setup for different products
 PRODUCT_RECORD_PATHS = (
-    "L2/sentinel-2-nbar/S2MSIARD_NBAR/*/*/ARD-METADATA.yaml",
+    "L2/sentinel-2-nrt/S2MSIARD/*/*/ARD-METADATA.yaml",
     "WOfS/WOFLs/v2.1.5/combined/*/*/*/*/*/*.yaml",
     "fractional-cover/fc/v2.2.1/*/*/*/*/*/*/*.yaml",
 )
