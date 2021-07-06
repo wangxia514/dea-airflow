@@ -12,9 +12,9 @@ from textwrap import dedent
 
 import pendulum
 from airflow import DAG, configuration
-from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
-from airflow.providers.sftp.operators.sftp import SFTPOperator, SFTPOperation
-from airflow.providers.ssh.operators.ssh import SSHOperator
+from airflow.contrib.hooks.aws_hook import AwsHook
+from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
+from airflow.contrib.operators.ssh_operator import SSHOperator
 from infra.connections import AWS_DEA_PUBLIC_DATA_UPLOAD_CONN
 
 HOURS = 60 * 60
@@ -113,7 +113,7 @@ with dag:
     )
 
     # Execute script to upload sentinel-2 data to s3 bucket
-    aws_hook = AwsHook(aws_conn_id=dag.default_args["aws_conn_id"], client_type="s3")
+    aws_hook = AwsHook(aws_conn_id=dag.default_args["aws_conn_id"])
 
     execute_upload = SSHOperator(
         task_id="execute_upload",
