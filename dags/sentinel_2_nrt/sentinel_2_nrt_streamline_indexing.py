@@ -27,6 +27,9 @@ from sentinel_2_nrt.env_cfg import (
 )
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
+INDEXER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/datacube-index:0.0.20"
+
+
 # DAG CONFIGURATION
 DEFAULT_ARGS = {
     "owner": "Pin Jin",
