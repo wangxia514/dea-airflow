@@ -1,5 +1,5 @@
 ---
-name: DAGs unit tests
+name: v1.10.15 airflow DAGs unit tests
 
 on:
   push:
@@ -46,7 +46,7 @@ jobs:
         run: conda --version
       - name: Check python
         run: which python
-      - name: Install airflow and run pylint
+      - name: Install airflow
         run: |
           pip install apache-airflow[aws,kubernetes,postgres,redis,ssh,celery]==1.10.15 -c constraints.txt
           pip install pylint pylint-airflow
