@@ -7,6 +7,7 @@ SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE1 = """
         dataset.id,
         dataset.added AS indexed_time,
         dataset.metadata #>> '{tile_id}'::text[] as granule_id,
+        null as parent_id,
         RIGHT(SPLIT_PART(dataset.metadata #>> '{{tile_id}}'::text[], '_', 9), 5) as tile_id,
         agdc.common_timestamp(dataset.metadata #>> '{extent,center_dt}'::text[]) as satellite_acquisition_time,
         agdc.common_timestamp(dataset.metadata #>> '{system_information,time_processed}'::text[]) AS processing_time
@@ -28,6 +29,7 @@ SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE2 = """
         dataset.id,
         dataset.added AS indexed_time,
         dataset.metadata #>> '{properties,title}'::text[] as granule_id,
+        dataset.metadata #>> '{properties,sentinel:sentinel_tile_id}'::text[] as parent_id,
         dataset.metadata #>> '{properties,odc:region_code}'::text[] as tile_id,
         agdc.common_timestamp(dataset.metadata #>> '{properties,datetime}'::text[]) as satellite_acquisition_time,
         agdc.common_timestamp(dataset.metadata #>> '{properties,created}'::text[]) AS processing_time
