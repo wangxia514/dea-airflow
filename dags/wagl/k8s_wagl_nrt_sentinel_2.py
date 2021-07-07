@@ -264,7 +264,8 @@ def finish_up(**context):
     _LOG.info("dataset location: %s", dataset_location)
 
     s3 = get_s3()
-    _LOG.info("bucket: ", parsed.netloc, " => key: ", parsed.path.lstrip("/"))
+    _LOG.info("bucket: %s", parsed.netloc)
+    _LOG.info("key: %s", parsed.path.lstrip("/"))
     response = s3.get_object(Bucket=parsed.netloc, Key=parsed.path.lstrip("/"))
     body = json.dumps(yaml.safe_load(response["Body"]), indent=2)
 
