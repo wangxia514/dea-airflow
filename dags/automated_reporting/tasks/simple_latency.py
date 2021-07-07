@@ -42,9 +42,10 @@ def task(connection_id, execution_date, product_name, **kwargs):
         latest_processing_ts == helpers.ZERO_TS
         or latest_processing_ts == helpers.ZERO_TS
     ):
-        raise Exception(
+        log.error(
             "Unable to find data in ODC for last {} days".format(max(timedelta_list))
         )
+        return None
 
     # Log success
     log.info("Latest Satellite Acquisition Time: {}".format(latest_sat_acq_ts))
@@ -60,4 +61,5 @@ def task(connection_id, execution_date, product_name, **kwargs):
         execution_date,
     )
 
-    return "Completed latency for {}".format(product_name)
+    log.info("Completed latency for {}".format(product_name))
+    return None

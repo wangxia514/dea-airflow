@@ -19,7 +19,11 @@ from airflow.operators.python_operator import PythonOperator
 
 import infra.connections as connections
 from automated_reporting.databases import schemas
-from automated_reporting.tasks import s2_completeness_task, check_db_task
+from automated_reporting.tasks import (
+    s2_completeness_ard_task,
+    s2_completeness_wo_task,
+    check_db_task,
+)
 
 log = logging.getLogger("airflow.task")
 
@@ -61,11 +65,18 @@ with dag:
         "days": 30,
         "connection_id": connections.DB_REP_WRITER_CONN_L,
     }
-    compute_sentinel_completeness = PythonOperator(
-        task_id="compute_sentinel_completeness",
-        python_callable=s2_completeness_task,
+    compute_sentinel_ard_completeness = PythonOperator(
+        task_id="compute_sentinel_ard_completeness",
+        python_callable=s2_completeness_ard_task,
         op_kwargs=completeness_kwargs,
         provide_context=True,
     )
 
-    check_db >> compute_sentinel_completeness
+    compute_sentinel_wo_completeness = PythonOperator(
+        task_id="compute_sentinel_wo_completeness",
+        python_callable=s2_completeness_wo_task,
+        op_kwargs=completeness_kwargs,
+        provide_context=True,
+    )
+
+    check_db >> [compute_sentinel_ard_completeness, compute_sentinel_wo_completeness]

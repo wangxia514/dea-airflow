@@ -31,7 +31,7 @@ def query(product_id, execution_date, days):
     odc_start_time = execution_date - timedelta(days=days)
     odc_end_time = execution_date
     log.info(
-        "Querying Sentinel/Copernicus Inventory between {} - {}".format(
+        "Querying ODC Inventory between {} - {}".format(
             odc_start_time.isoformat(), odc_end_time.isoformat()
         )
     )
@@ -51,10 +51,6 @@ def query(product_id, execution_date, days):
                 log.debug("ODC Executed SQL: {}".format(odc_cursor.query.decode()))
                 log.info("ODC query returned: {} rows".format(odc_cursor.rowcount))
 
-                # if nothing is returned in the given timeframe, loop again and go back further in time
-                if odc_cursor.rowcount == 0:
-                    raise Exception("ODC query error, no data returned")
-
                 # Find the latest values for sat_acq and processing in the returned rows by updating
                 # latest_sat_acq_ts and latest_processing_ts
 
@@ -63,6 +59,7 @@ def query(product_id, execution_date, days):
                         id,
                         indexed_time,
                         granule_id,
+                        parent_id,
                         region_id,
                         sat_acq_ts,
                         processing_ts,
@@ -70,6 +67,7 @@ def query(product_id, execution_date, days):
                     row = {
                         "uuid": id,
                         "granule_id": granule_id,
+                        "parent_id": parent_id,
                         "region_id": region_id,
                         "center_dt": sat_acq_ts,
                         "processing_dt": processing_ts,
@@ -121,6 +119,7 @@ def query_stepped(product_id, execution_date, steps):
                         id,
                         indexed_time,
                         granule_id,
+                        parent_id,
                         region_id,
                         sat_acq_ts,
                         processing_ts,
@@ -139,20 +138,3 @@ def query_stepped(product_id, execution_date, steps):
         if odc_conn is not None:
             odc_conn.close()
     return results
-
-    # Loop through the time_delta list until we get some data back. Prevents returning a huge amount of data unecessarily from ODC.
-    for days_previous in steps:
-
-        # caluclate a start and end time for the AWS ODC query
-        end_time = execution_date
-        start_time = end_time - timedelta(days=days_previous)
-
-        # extact a processing and acquisition timestamps from AWS for product and timerange, print logs of query and row count
-        odc_cursor.execute(SQL_QUERY[product_id], (product_id, start_time, end_time))
-        log.info("ODC Query for: {} days".format(days_previous))
-        log.info("ODC Executed SQL: {}".format(odc_cursor.query.decode()))
-        log.info("ODC query returned: {} rows".format(odc_cursor.rowcount))
-
-        # if nothing is returned in the given timeframe, loop again and go back further in time
-        if odc_cursor.rowcount == 0:
-            continue

@@ -88,23 +88,16 @@ def filter_expected_to_sensor(expected_products, sensor):
     return [p for p in expected_products if p["sensor"] == sensor]
 
 
-def calculate_metrics_for_all_regions(
-    sensor, aoi_list, expected_products, actual_products
-):
+def calculate_metrics_for_all_regions(aoi_list, expected_products, actual_products):
     """calculate completeness and latency for every region in AOI"""
 
     output = list()
-
-    # filter expected products on sensor
-    filtered_expected_products = filter_expected_to_sensor(expected_products, sensor)
 
     # loop through each tile and compute completeness and latency
     for region in aoi_list:
 
         # create lists of products for expected and actual, filtered to this tile
-        r_expected_products = filter_products_to_region(
-            filtered_expected_products, region
-        )
+        r_expected_products = filter_products_to_region(expected_products, region)
         r_actual_products = filter_products_to_region(actual_products, region)
 
         # calculate completness and latency for this region
@@ -177,19 +170,19 @@ def log_results(sensor, summary, output):
         )
     )
     # log region level completeness and latency
-    for record in output:
-        log.info(
-            "{} - {} - {}:{}:{}".format(
-                sensor,
-                record["region_id"],
-                record["expected"],
-                record["actual"],
-                record["missing"],
-            )
-        )
-        # log missing granule ids for each tile
-        for scene_id in record["missing_ids"]:
-            log.info("    Missing:{}".format(scene_id))
+    # for record in output:
+    #     log.info(
+    #         "{} - {} - {}:{}:{}".format(
+    #             sensor,
+    #             record["region_id"],
+    #             record["expected"],
+    #             record["actual"],
+    #             record["missing"],
+    #         )
+    #     )
+    #     # log missing granule ids for each tile
+    #     for scene_id in record["missing_ids"]:
+    #         log.info("    Missing:{}".format(scene_id))
 
 
 def generate_db_writes(sensor, summary, output, execution_date):
@@ -235,10 +228,97 @@ def generate_db_writes(sensor, summary, output, execution_date):
     return db_completeness_writes
 
 
-# Task callable
-def task(execution_date, days, connection_id, **kwargs):
+def streamline_with_copericus_format(product_list):
     """
-    Task to compute Sentinel L1 completeness
+    Modify the data returned from odc to match that returned from Copernicus to make
+    calculations reuseable for different levels.
+    """
+    copernicus_format = list()
+    for product in product_list:
+        row = {
+            "uuid": product["uuid"],
+            "granule_id": product["granule_id"],
+            "region_id": product["region_id"],
+            "sensor": product["granule_id"][:3].lower(),
+        }
+        copernicus_format.append(row)
+    return copernicus_format
+
+
+def swap_in_parent(product_list):
+    """
+    Swap parent_id into granule_id to allow reusing completeness calculation.
+    """
+    for product in product_list:
+        product["granule_id"] = product["parent_id"]
+    return product_list
+
+
+# Task callable
+def task_wo(execution_date, days, connection_id, **kwargs):
+    """
+    Task to compute Sentinel2 WO completeness
+    """
+
+    # query ODC for for all S2 ARD products for last X days
+    expected_products_odc = odc_db.query("s2a_nrt_granule", execution_date, days)
+    expected_products_odc += odc_db.query("s2b_nrt_granule", execution_date, days)
+
+    # streamline the ODC results back to match the Copernicus query
+    expected_products = streamline_with_copericus_format(expected_products_odc)
+
+    # get a optimised tile list of AOI from S3
+    s3_hook = S3Hook(aws_conn_id=connections.S3_REP_CONN)
+    aoi_list = s3_hook.read_key(
+        "aus_aoi_tile.txt", bucket_name="automated-reporting-airflow"
+    ).splitlines()
+    log.info("Downloaded AOI tile list: {} tiles found".format(len(aoi_list)))
+
+    # a list of tuples to store values before writing to database
+    db_completeness_writes = []
+
+    # calculate metrics for each s2 sensor/platform and add to output list
+    sensor = "ga_s2_wo_3"
+
+    log.info("Computing completeness for: {}".format(sensor))
+
+    # query ODC for all S2 L1 products for last X days
+    actual_products = odc_db.query(sensor, execution_date, days)
+
+    # swap granule_id and parent_id
+    actual_products = swap_in_parent(actual_products)
+
+    # compute completeness and latency for every tile in AOI
+    output = calculate_metrics_for_all_regions(
+        aoi_list, expected_products, actual_products
+    )
+
+    # calculate summary stats for whole of AOI
+    summary = calculate_summary_stats_for_aoi(output)
+
+    # write results to Airflow logs
+    log_results(sensor, summary, output)
+
+    # generate the list of database writes for sensor/platform
+    db_completeness_writes += generate_db_writes(
+        sensor, summary, output, execution_date
+    )
+
+    # write records to reporting database
+    reporting_db.insert_completeness(connection_id, db_completeness_writes)
+    log.info(
+        "Inserting completeness output to reporting DB: {} records".format(
+            len(db_completeness_writes)
+        )
+    )
+
+    return None
+
+
+# Task callable
+def task_ard(execution_date, days, connection_id, **kwargs):
+    """
+    Task to compute Sentinel2 ARD completeness
     """
 
     # query Copernicus API for for all S2 L1 products for last X days
@@ -264,9 +344,14 @@ def task(execution_date, days, connection_id, **kwargs):
             "{}_nrt_granule".format(sensor), execution_date, days
         )
 
+        # filter expected products on sensor (just for completeness between lo and l1)
+        filtered_expected_products = filter_expected_to_sensor(
+            expected_products, sensor
+        )
+
         # compute completeness and latency for every tile in AOI
         output = calculate_metrics_for_all_regions(
-            sensor, aoi_list, expected_products, actual_products
+            aoi_list, filtered_expected_products, actual_products
         )
 
         # calculate summary stats for whole of AOI
