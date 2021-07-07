@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 
 import kubernetes.client.models as k8s
 import yaml
+import yaml.constructor
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
@@ -267,6 +268,7 @@ def finish_up(**context):
     _LOG.info("bucket: %s", parsed.netloc)
     _LOG.info("key: %s", parsed.path.lstrip("/"))
     response = s3.get_object(Bucket=parsed.netloc, Key=parsed.path.lstrip("/"))
+    yaml.constructor.SafeConstructor.yaml_constructors[u'tag:yaml.org,2002:timestamp'] = yaml.constructor.SafeConstructor.yaml_constructors[u'tag:yaml.org,2002:str']
     body = json.dumps(yaml.safe_load(response["Body"]), indent=2)
 
     _LOG.info("publishing to SNS: %s", body)
