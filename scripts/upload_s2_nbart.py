@@ -144,7 +144,7 @@ def upload_metadata(granule_id):
     granule_s3_path = get_granule_s3_path(granule_id)
 
     s3_path = f"s3://{S3_BUCKET}/{granule_s3_path}/"
-    s3_eo3_path = f"{s3_path}eo3-ARD-METADATA.yaml"
+    s3_eo3_path = f"{s3_path}eo3-ARD-METADATA.odc-metadata.yaml"
     s3_stac_path = f"{s3_path}stac-ARD-METADATA.json"
 
     product = "s2b_ard_granule" if "S2B" in granule_id  else "s2a_ard_granule"
@@ -159,6 +159,8 @@ def upload_metadata(granule_id):
     stac_dump = json.dumps(stac, default=json_fallback, indent=4)
     
     eo3 = serialise.to_doc(eo3)
+    eo3['lineage']['ard'][0] = str(eo3['lineage']['ard'][0])
+    eo3["label"] = eo3["label"].replace(eo3["product"]["name"], product)
     eo3["product"]["name"] = product
     s3_dump(
         yaml.safe_dump(eo3, default_flow_style=False), 
@@ -226,7 +228,6 @@ def add_datetime(assembler, granule_dir):
 def create_eo3(granule_dir, granule_id):
     """
     Creates an eo3 document.
-
     :param granule_dir (Path): the granule directory
     :return: DatasetDoc of eo3 metadata
     """
@@ -245,11 +246,10 @@ def create_eo3(granule_dir, granule_id):
             metadata_path=granule_dir / "dummy",
     )
 
+    assembler.product_family = "ard"
     if "S2A" in str(granule_dir):
-        assembler.product_family = "s2a_ard_granule"
         platform = "SENTINEL_2A"        
     else:
-        assembler.product_family = "s2b_ard_granule"
         platform = "SENTINEL_2B"
 
     assembler.processed_now()
@@ -258,21 +258,44 @@ def create_eo3(granule_dir, granule_id):
     add_to_eo3(assembler, granule_dir, "NBART", lambda x: code_to_band[x.split('_')[-1]], expand_valid_data)
     add_to_eo3(assembler, granule_dir, "SUPPLEMENTARY", lambda x: x[3:].lower(), expand_valid_data)
     add_to_eo3(assembler, granule_dir, "QA", lambda x: x[3:].lower().replace('combined_', ''), expand_valid_data)
+    
+    thumbnail_fn = next(fn for fn in os.listdir(granule_dir / "NBART") if "NBART_THUMBNAIL" in fn)
+    assembler.add_accessory_file("thumbnail:nbart", f"NBART/{thumbnail_fn}")
+    assembler.note_source_datasets("ard", metadata["id"])
 
     crs, grid_docs, measurement_docs = assembler._measurements.as_geo_docs()
     valid_data = assembler._measurements.consume_and_get_valid_data()
 
     assembler.properties["odc:region_code"] = metadata["provider"]["reference_code"]
+    assembler.properties["odc:producer"] = "ga.gov.au"
+    assembler.properties["odc:file_format"] = "GeoTIFF"
+    assembler.properties["odc:processing_datetime"] = metadata["system_information"]["time_processed"]
+
     assembler.properties["gqa:cep90"] = metadata["gqa"]["residual"]["cep90"]
     assembler.properties["gqa:error_message"] = metadata["gqa"]["error_message"]
     assembler.properties["gqa:final_gcp_count"] =metadata["gqa"]["final_gcp_count"]
     assembler.properties["gqa:ref_source"] = metadata["gqa"]["ref_source"]
-    assembler.properties["sentinel:datatake_start_datetime"] = granule_id.split("_")[-4]
+
     assembler.properties["eo:platform"] = platform
     assembler.properties["eo:instrument"] = "MSI"
+    assembler.properties["eo:cloud_cover"] = metadata["lineage"]["source_datasets"]["S2MSI1C"]["image"]["cloud_cover_percentage"]
+    assembler.properties["eo:sun_azimuth"] = metadata["lineage"]["source_datasets"]["S2MSI1C"]["image"]["sun_azimuth"]
+    assembler.properties["eo:sun_elevation"] = metadata["lineage"]["source_datasets"]["S2MSI1C"]["image"]["sun_elevation"]
+    assembler.properties["eo:gsd"] = 10
+
+    assembler.properties["dea:dataset_maturity"] = "final"
+    
+    assembler.properties["sentinel:datatake_start_datetime"] = granule_id.split("_")[-4]
+    assembler.properties["sentinel:utm_zone"] = metadata["provider"]["reference_code"][:2]
+    assembler.properties["sentinel:latitude_band"] = metadata["provider"]["reference_code"][2]
+    assembler.properties["sentinel:grid_square"] = metadata["provider"]["reference_code"][3:]
+    assembler.properties["sentinel:sentinel_tile_id"] = metadata["tile_id"]
+    assembler.properties["sentinel:datastrip_id"] = metadata["lineage"]["source_datasets"]["S2MSI1C"]["datastrip_id"]
 
     for key in ["abs_iterative_mean", "abs", "iterative_mean", "iterative_stddev", "mean", "stddev"]:
         assembler.properties[f"gqa:{key}_xy"] = metadata["gqa"]["residual"][key]["xy"]
+        assembler.properties[f"gqa:{key}_x"] = metadata["gqa"]["residual"][key]["x"]
+        assembler.properties[f"gqa:{key}_y"] = metadata["gqa"]["residual"][key]["y"]
 
     eo3 = DatasetDoc(
         id=assembler.dataset_id,
