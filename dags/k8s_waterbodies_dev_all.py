@@ -162,7 +162,7 @@ with dag:
     # Now the chunking should be sent via xcom. Fire up the subdag to do scheduling.
     subdag = SubDagOperator(
         subdag=distribute(parent_dag=dag),
-        task_id='waterbodies-all-distribute',
+        task_id='schedule',
         dag=dag,
     )
 
