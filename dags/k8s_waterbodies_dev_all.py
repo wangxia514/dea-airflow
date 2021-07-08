@@ -110,7 +110,7 @@ def distribute(parent_dag=None):
 
     if len(parent_dag.get_active_runs()) > 0:
         xcom_result = parent_dag.get_task_instances(
-            settings.Session,
+            session=settings.Session,
             start_date=parent_dag.get_active_runs()[-1])[-1].xcom_pull(
                 dag_id='k8s_waterbodies_dev_all.schedule',
                 task_ids='waterbodies-all-getchunks')
