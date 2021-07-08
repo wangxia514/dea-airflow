@@ -5,7 +5,7 @@ Utilities for reporting db queries and inserts
 import logging
 import re
 
-from psycopg2.errors import UniqueViolation  # disable
+from psycopg2.errors import UniqueViolation
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from automated_reporting.databases import sql
 from datetime import datetime as dt, timezone, timedelta
