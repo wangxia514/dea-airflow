@@ -124,7 +124,7 @@ def distribute(parent_dag=None):
         print('Nothing is being done')
     with dag:
         test = PythonOperator(
-                do_nothing,
+                python_callable=do_nothing,
                 task_id='dummy',
                 dag=dag,
                 on_success_callback=lambda: print('hello world!'),
