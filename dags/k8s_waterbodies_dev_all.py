@@ -121,6 +121,7 @@ def distribute(parent_dag=None):
             #         task_id=i,
             #         dag=dag
             #     )
+    return dag
 
 with dag:
     config_name = '{{ dag_run.conf.get("config_name", "config_moree_test") }}'
