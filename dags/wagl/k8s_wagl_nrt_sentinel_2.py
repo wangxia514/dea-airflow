@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 
 import kubernetes.client.models as k8s
 import yaml
-import yaml.constructor
+
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
@@ -25,6 +25,11 @@ from infra.s3_buckets import S2_NRT_SOURCE_BUCKET, S2_NRT_TRANSFER_BUCKET
 from infra.sns_notifications import PUBLISH_S2_NRT_SNS
 from infra.sqs_queues import S2_NRT_PROCESS_SCENE_QUEUE
 from infra.variables import S2_NRT_AWS_CREDS
+
+try:
+    from yaml import CSafeLoader as SafeLoader  # type: ignore
+except ImportError:
+    from yaml import SafeLoader  # type: ignore
 
 _LOG = logging.getLogger()
 
@@ -238,6 +243,25 @@ def receive_task(**context):
 
         return f"dea-s2-wagl-nrt-copy-scene-{index}"
 
+class NoDatesSafeLoader(SafeLoader):  # pylint: disable=too-many-ancestors
+    @classmethod
+    def remove_implicit_resolver(cls, tag_to_remove):
+        """
+        Removes implicit resolvers for a particular tag
+        Takes care not to modify resolvers in super classes.
+        We want to load datetimes as strings, not dates. We go on to
+        serialise as json which doesn't have the advanced types of
+        yaml, and leads to slightly different objects down the track.
+        """
+        if 'yaml_implicit_resolvers' not in cls.__dict__:
+            cls.yaml_implicit_resolvers = cls.yaml_implicit_resolvers.copy()
+
+        for first_letter, mappings in cls.yaml_implicit_resolvers.items():
+            cls.yaml_implicit_resolvers[first_letter] = [(tag, regexp)
+                                                         for tag, regexp in mappings
+                                                         if tag != tag_to_remove]
+
+NoDatesSafeLoader.remove_implicit_resolver('tag:yaml.org,2002:timestamp')
 
 def finish_up(**context):
     """ Delete the SQS message to mark completion, broadcast to SNS. """
@@ -268,8 +292,7 @@ def finish_up(**context):
     _LOG.info("bucket: %s", parsed.netloc)
     _LOG.info("key: %s", parsed.path.lstrip("/"))
     response = s3.get_object(Bucket=parsed.netloc, Key=parsed.path.lstrip("/"))
-    yaml.constructor.SafeConstructor.yaml_constructors[u'tag:yaml.org,2002:timestamp'] = yaml.constructor.SafeConstructor.yaml_constructors[u'tag:yaml.org,2002:str']
-    body = json.dumps(yaml.safe_load(response["Body"]), indent=2)
+    body = json.dumps(yaml.load(response["Body"], Loader=NoDatesSafeLoader), indent=2)
 
     _LOG.info("publishing to SNS: %s", body)
     sns_hook = AwsSnsHook(aws_conn_id=AWS_WAGL_NRT_CONN)
