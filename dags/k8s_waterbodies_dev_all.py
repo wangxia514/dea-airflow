@@ -129,14 +129,16 @@ with dag:
 
     # Now we need to download the DBF and do the chunking.
     # We will do this within a Kubernetes pod.
+    n_chunks = 12
     getchunks_cmd = [
         "bash",
         "-c",
         dedent("""
             echo "Using dea-waterbodies image {image}"
-            python -m dea_waterbodies.make_chunks {conf} > /airflow/xcom/return.json
+            python -m dea_waterbodies.make_chunks {conf} {n_chunks} > /airflow/xcom/return.json
             """.format(image=WATERBODIES_UNSTABLE_IMAGE,
-                        conf=config_path)
+                        conf=config_path,
+                        n_chunks=n_chunks)
         ),
     ]
     
