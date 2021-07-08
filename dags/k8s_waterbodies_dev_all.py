@@ -5,7 +5,6 @@ DAG to run the "all" workflow of DEA Waterbodies.
 """
 import configparser
 from datetime import datetime, timedelta
-from urllib.request import urlopen
 from pathlib import Path
 
 from airflow import DAG, settings
@@ -14,8 +13,6 @@ from airflow.models import TaskInstance
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 
 from textwrap import dedent
-from osgeo import ogr
-import fsspec
 
 from infra.images import WATERBODIES_UNSTABLE_IMAGE
 
