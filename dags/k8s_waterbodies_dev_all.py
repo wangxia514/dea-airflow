@@ -10,6 +10,7 @@ from pathlib import Path
 from airflow import DAG, settings
 from airflow.kubernetes.secret import Secret
 from airflow.models import TaskInstance
+from airflow.operators.subdag_operator import SubDagOperator
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 
 from textwrap import dedent
@@ -99,8 +100,8 @@ dag = DAG(
     tags=["k8s", "landsat", "waterbodies"],
 )
 
-
-def distribute(start_date, parent_dag=None):
+# THE SUBDAG
+def distribute(parent_dag=None):
     dag = DAG(
         'k8s_waterbodies_dev_all.schedule',
         schedule_interval=None,
@@ -157,7 +158,14 @@ with dag:
         task_id="waterbodies-all-getchunks",
     )
 
-    # Now the chunking should be sent via xcom.
+    # Now the chunking should be sent via xcom. Fire up the subdag to do scheduling.
+    subdag = SubDagOperator(
+        subdag=distribute(parent_dag=dag),
+        task_id='waterbodies-all-distribute',
+        dag=dag,
+    )
+
+    getchunks >> subdag
 
     # for part in range(1, n_chunks + 1):
     #     # https://airflow.apache.org/docs/apache-airflow/1.10.12/_api/airflow/contrib/operators/
