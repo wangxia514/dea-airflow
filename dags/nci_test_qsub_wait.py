@@ -4,6 +4,7 @@
 from airflow import DAG
 from airflow.providers.ssh.operators.ssh import SSHOperator
 
+from operators.pbs_job_operator import PBSJobOperator
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 from datetime import datetime, timedelta
 
@@ -26,20 +27,19 @@ with DAG(
     template_searchpath="templates/",
     doc_md=__doc__,
 ) as dag:
-    submit_pbs_job = SSHOperator(
-        task_id="submit_foo_pbs_job",
+    submit_pbs_job = PBSJobOperator(
+        task_id=f"run_foo_pbs_job",
         ssh_conn_id="lpgs_gadi",
-        command="""
-          {% set work_dir = '~/airflow_testing/' -%}
-          mkdir -p {{ work_dir }};
-          cd {{ work_dir }};
-          qsub \
+        work_dir="~/airflow_testing/",
+        qsub_args="""
           -q express \
           -W umask=33 \
           -l wd,walltime=0:10:00,mem=3GB -m abe \
           -l storage=gdata/v10+gdata/fk4+gdata/rs0+gdata/if87 \
-          -P {{ params.project }} -o {{ work_dir }} -e {{ work_dir }} \
-          -- /bin/bash -l -c \
+          -P {{ params.project }}  \
+        """,
+        qsub_command="""
+          /bin/bash -l -c \
               "source $HOME/.bashrc; \
               module use /g/data/v10/public/modules/modulefiles/; \
               module load {{ params.module }}; \
@@ -51,12 +51,4 @@ with DAG(
             "module": "dea/unstable",
             "year": "2019",
         },
-        do_xcom_push=True,
     )
-    wait_for_completion = PBSJobSensor(
-        task_id="wait_for_completion",
-        ssh_conn_id="lpgs_gadi",
-        pbs_job_id="{{ ti.xcom_pull(task_ids='submit_pbs_job') }}",
-    )
-
-    submit_pbs_job >> wait_for_completion
