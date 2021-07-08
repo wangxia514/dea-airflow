@@ -24,4 +24,4 @@ WAGL_IMAGE_POC = "geoscienceaustralia/dea-wagl-docker:latest"
 # UNSTABLE IMAGES
 EXPLORER_UNSTABLE_IMAGE = "opendatacube/explorer:2.5.0-3-gd9f5a67"
 
-WATERBODIES_UNSTABLE_IMAGE = "geoscienceaustralia/dea-waterbodies:1.1.1-8-g86e9ac1"
+WATERBODIES_UNSTABLE_IMAGE = "geoscienceaustralia/dea-waterbodies:1.1.1-9-ge4ccf53"
