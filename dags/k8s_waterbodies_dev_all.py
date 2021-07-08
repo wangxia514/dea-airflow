@@ -118,10 +118,10 @@ def distribute(parent_dag=None):
     #             task_ids='waterbodies-all-getchunks')
     #     if xcom_result:
     #         print(xcom_result)
-    #         def do_nothing(*args, **kwargs):
-    #             print('Nothing is being done')
     #         
     # return dag
+    def do_nothing(*args, **kwargs):
+        print('Nothing is being done')
     with dag:
         test = PythonOperator(
                 do_nothing,
