@@ -10,6 +10,7 @@ from pathlib import Path
 from airflow import DAG, settings
 from airflow.kubernetes.secret import Secret
 from airflow.models import TaskInstance
+from airflow.operators.dummy import DummyOperator
 from airflow.operators.subdag_operator import SubDagOperator
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 
@@ -116,11 +117,11 @@ def distribute(parent_dag=None):
                 task_ids='waterbodies-all-getchunks')
         if xcom_result:
             print(xcom_result)
-            # for i in xcom_result:
-            #     test = DummyOperator(
-            #         task_id=i,
-            #         dag=dag
-            #     )
+            test = DummyOperator(
+                task_id='dummy',
+                dag=dag,
+                on_success_callback=lambda: print('result', xcom_result),
+            )
     return dag
 
 with dag:
