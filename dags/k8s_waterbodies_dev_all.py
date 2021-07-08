@@ -109,21 +109,25 @@ def distribute(parent_dag=None):
         default_args=DEFAULT_ARGS,
     )
 
-    if len(parent_dag.get_active_runs()) > 0:
-        xcom_result = parent_dag.get_task_instances(
-            session=settings.Session,
-            start_date=parent_dag.get_active_runs()[-1])[-1].xcom_pull(
-                dag_id='k8s_waterbodies_dev_all.schedule',
-                task_ids='waterbodies-all-getchunks')
-        if xcom_result:
-            print(xcom_result)
-            def do_nothing(*args, **kwargs):
-                print('Nothing is being done')
-            test = PythonOperator(
+
+    # if len(parent_dag.get_active_runs()) > 0:
+    #     xcom_result = parent_dag.get_task_instances(
+    #         session=settings.Session,
+    #         start_date=parent_dag.get_active_runs()[-1])[-1].xcom_pull(
+    #             dag_id='k8s_waterbodies_dev_all.schedule',
+    #             task_ids='waterbodies-all-getchunks')
+    #     if xcom_result:
+    #         print(xcom_result)
+    #         def do_nothing(*args, **kwargs):
+    #             print('Nothing is being done')
+    #         
+    # return dag
+    with dag:
+        test = PythonOperator(
                 do_nothing,
                 task_id='dummy',
                 dag=dag,
-                on_success_callback=lambda: print('result', xcom_result),
+                on_success_callback=lambda: print('hello world!'),
             )
     return dag
 
@@ -170,6 +174,7 @@ with dag:
         subdag=distribute(parent_dag=dag),
         task_id='schedule',
         dag=dag,
+        provide_context=True,
     )
 
     getchunks >> subdag
