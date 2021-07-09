@@ -39,9 +39,9 @@ default_args = {
 }
 
 dag = DAG(
-    "rep_s2_completeness_L",
+    "rep_s2_completeness_dev",
     description="Completeness metric on Sentinel nrt products: AWS ODC/Sentinel Catalog \
-        -> AIRFLOW -> Live Reporting DB",
+        -> AIRFLOW -> Reporting DB",
     tags=["reporting"],
     default_args=default_args,
     schedule_interval=timedelta(minutes=15),
@@ -49,11 +49,9 @@ dag = DAG(
 
 with dag:
 
-    schema = schemas.COMPLETENESS_SCHEMA
-
     check_db_kwargs = {
-        "expected_schema": schema,
-        "connection_id": connections.DB_REP_WRITER_CONN_L,
+        "expected_schema": schemas.COMPLETENESS_SCHEMA,
+        "connection_id": connections.DB_REP_WRITER_CONN_DEV,
     }
     check_db = PythonOperator(
         task_id="check_db_schema",
@@ -63,7 +61,7 @@ with dag:
 
     completeness_kwargs = {
         "days": 30,
-        "connection_id": connections.DB_REP_WRITER_CONN_L,
+        "connection_id": connections.DB_REP_WRITER_CONN_DEV,
     }
     compute_sentinel_ard_completeness = PythonOperator(
         task_id="compute_sentinel_ard_completeness",

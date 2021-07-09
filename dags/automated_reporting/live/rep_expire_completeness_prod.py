@@ -32,8 +32,8 @@ default_args = {
 }
 
 dag = DAG(
-    "rep_expire_completeness",
-    description="Expire redundent completeness metrics",
+    "rep_expire_completeness_prod",
+    description="Expire redundent completeness metrics in live reporting DB",
     tags=["reporting"],
     default_args=default_args,
     schedule_interval="10 */2 * * *",  # try and avoid completeness generation
@@ -41,9 +41,11 @@ dag = DAG(
 
 with dag:
 
+    schema = schemas.COMPLETENESS_SCHEMA
+
     check_db_kwargs = {
-        "expected_schema": schemas.COMPLETENESS_SCHEMA,
-        "connection_id": connections.DB_REP_WRITER_CONN,
+        "expected_schema": schema,
+        "connection_id": connections.DB_REP_WRITER_CONN_PROD,
     }
     check_db = PythonOperator(
         task_id="check_db_schema",
@@ -62,7 +64,7 @@ with dag:
         Function to generate PythonOperator tasks with id based on `product_id`
         """
         expire_completeness_kwargs = {
-            "connection_id": connections.DB_REP_WRITER_CONN,
+            "connection_id": connections.DB_REP_WRITER_CONN_PROD,
             "product_id": product_id,
         }
         return PythonOperator(
