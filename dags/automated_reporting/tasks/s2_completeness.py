@@ -254,6 +254,12 @@ def swap_in_parent(product_list):
     return product_list
 
 
+def get_aoi_list():
+    file_path = "dags/automated_reporting/aux_data/sentinel2_aoi_list.txt"
+    with open(file_path) as f:
+        return f.read().splitlines()
+
+
 # Task callable
 def task_wo(execution_date, days, connection_id, **kwargs):
     """
@@ -267,12 +273,9 @@ def task_wo(execution_date, days, connection_id, **kwargs):
     # streamline the ODC results back to match the Copernicus query
     expected_products = streamline_with_copericus_format(expected_products_odc)
 
-    # get a optimised tile list of AOI from S3
-    s3_hook = S3Hook(aws_conn_id=connections.S3_REP_CONN)
-    aoi_list = s3_hook.read_key(
-        "aus_aoi_tile.txt", bucket_name="automated-reporting-airflow"
-    ).splitlines()
-    log.info("Downloaded AOI tile list: {} tiles found".format(len(aoi_list)))
+    # get a optimised tile list of AOI
+    aoi_list = get_aoi_list()
+    log.info("Loaded AOI tile list: {} tiles found".format(len(aoi_list)))
 
     # a list of tuples to store values before writing to database
     db_completeness_writes = []
@@ -324,12 +327,9 @@ def task_ard(execution_date, days, connection_id, **kwargs):
     # query Copernicus API for for all S2 L1 products for last X days
     expected_products = copernicus_api.query(execution_date, days)
 
-    # get a optimised tile list of AOI from S3
-    s3_hook = S3Hook(aws_conn_id=connections.S3_REP_CONN)
-    aoi_list = s3_hook.read_key(
-        "aus_aoi_tile.txt", bucket_name="automated-reporting-airflow"
-    ).splitlines()
-    log.info("Downloaded AOI tile list: {} tiles found".format(len(aoi_list)))
+    # get a optimised tile list of AOI
+    aoi_list = get_aoi_list()
+    log.info("Loaded AOI tile list: {} tiles found".format(len(aoi_list)))
 
     # a list of tuples to store values before writing to database
     db_completeness_writes = []
