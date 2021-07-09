@@ -110,10 +110,9 @@ dag = DAG(
 )
 
 def branch_mem(part, **kwargs):
-    chunk_json = json.loads(
-        kwargs['ti'].xcom_pull(
-            task_ids='waterbodies-all-getchunks',
-            key="return_value"))
+    chunk_json = kwargs['ti'].xcom_pull(
+        task_ids='waterbodies-all-getchunks',
+        key="return_value")
     assert 0 <= part < len(chunk_json['chunks'])
     part_details = chunk_json['chunks'][part]
     max_mem = float(part_details["max_mem_Mi"])
