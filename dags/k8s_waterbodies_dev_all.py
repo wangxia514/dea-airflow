@@ -139,7 +139,7 @@ def k8s_pod_task(mem, part, name):
             EOF
             
             # Parse the JSON into the right format with Python.
-            python - <<EOF
+            python - << EOF
             import json
             with open('ids.json') as f:
                 j = json.load(f)
