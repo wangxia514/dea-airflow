@@ -6,6 +6,7 @@ from pathlib import Path
 import logging
 from datetime import timedelta, timezone
 
+from psycopg2.errors import UniqueViolation  # pylint: disable-msg=E0611
 from airflow.configuration import conf
 from airflow.hooks.postgres_hook import PostgresHook
 
@@ -216,13 +217,14 @@ def gen_sql_completeness_path_row(
 
         last_id = execute_query_id(executionStr, params, cursor)
 
-        # Insert missing scenes for each row_path
-        executionStr = """INSERT INTO reporting.completeness_missing (completeness_id, dataset_id, last_updated)
-            VALUES (%s, %s, %s);
-        """
-        for missing_scene in row[3]:
-            params = (last_id, missing_scene, lastUpdated)
-            execute_query(executionStr, params, cursor)
+        if last_id is not None:
+            # Insert missing scenes for each row_path
+            executionStr = """INSERT INTO reporting.completeness_missing (completeness_id, dataset_id, last_updated)
+                VALUES (%s, %s, %s);
+            """
+            for missing_scene in row[3]:
+                params = (last_id, missing_scene, lastUpdated)
+                execute_query(executionStr, params, cursor)
 
     return conn_commit(conn, cursor)
 
@@ -266,8 +268,7 @@ def gen_sql_completeness(
     )
 
     execute_query(executionStr, params, cursor)
-
-    return conn_commit_return_id(conn, cursor)
+    return conn_commit(conn, cursor)
 
 
 def gen_stac_api_inserts(connection_id, stacApiMatrix):
@@ -331,8 +332,12 @@ def execute_query(query, params, cursor):
     :param cursor:
     :return:
     """
-    cursor.execute(query, params)
-    return
+    try:
+        cursor.execute(query, params)
+        return True
+    except UniqueViolation as e:
+        logger.error("Duplicate item in database")
+        return False
 
 
 def execute_query_id(query, params, cursor):
@@ -343,9 +348,13 @@ def execute_query_id(query, params, cursor):
     :param cursor:
     :return: id of last inserted record
     """
-    cursor.execute(query, params)
-    last_id = cursor.fetchone()[0]
-    return last_id
+    try:
+        cursor.execute(query, params)
+        last_id = cursor.fetchone()[0]
+        return last_id
+    except UniqueViolation as e:
+        logger.error("Duplicate item in database")
+        return None
 
 
 def conn_commit(conn, cursor):
@@ -367,36 +376,6 @@ def conn_commit(conn, cursor):
             cursor.close()
             conn.close()
         return
-
-
-def conn_commit_return_id(conn, cursor):
-    """
-    Commit the queries to DB and return id
-    :param conn:
-    :param cursor:
-    :return:
-    """
-    try:
-        conn.commit()
-
-        try:
-            lastId = cursor.fetchone()[0]
-        except:
-            lastId = []
-            pass
-
-    # except (Exception, psycopg2.Error) as error:
-    except:
-        lastId = []
-        if conn:
-            # logger.error("Failed to insert records into DB", error)
-            logger.error("Failed to insert records into DB")
-
-    finally:
-        if conn:
-            cursor.close()
-            conn.close()
-        return lastId
 
 
 def data_select(connection_id, query, params):
@@ -486,7 +465,7 @@ def task(execution_date, connection_id, **kwargs):
             # set this to none to match s2 dag logic
             completeness = None
 
-        completenessId = gen_sql_completeness(
+        gen_sql_completeness(
             connection_id,
             "all_ls",
             completeness,

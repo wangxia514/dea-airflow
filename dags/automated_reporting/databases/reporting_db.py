@@ -4,7 +4,7 @@ Utilities for reporting db queries and inserts
 
 import logging
 import re
-from psycopg2.errors import UniqueViolation # pylint: disable-msg=E0611
+from psycopg2.errors import UniqueViolation  # pylint: disable-msg=E0611
 from airflow.hooks.postgres_hook import PostgresHook
 from automated_reporting.databases import sql
 from datetime import datetime as dt, timezone, timedelta
@@ -131,6 +131,8 @@ def insert_latency_list(connection_id, latency_results, execution_date):
                     )
                     log.info("REP Executed SQL: {}".format(rep_cursor.query.decode()))
                     log.info("REP returned: {}".format(rep_cursor.statusmessage))
+    except UniqueViolation as e:
+        log.error("Duplicate item in database")
     except Exception as e:
         raise e
     finally:
