@@ -141,7 +141,7 @@ def k8s_pod_task(mem, part, name):
             # Execute waterbodies on the IDs.
             echo "Processing:"
             cat ids.txt
-            cat ids.txt | python -m dea_waterbodies.make_time_series config.ini
+            cat ids.txt | python -m dea_waterbodies.make_time_series --config config.ini
             """.format(image=WATERBODIES_UNSTABLE_IMAGE,
                         conf=config_path,
                         part=part)
