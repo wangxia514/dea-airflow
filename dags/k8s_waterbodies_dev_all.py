@@ -134,19 +134,19 @@ def k8s_pod_task(mem, part, name):
             cat config.ini
             
             # Write xcom data to a JSON file.
-            cat << JSON > ids.json
+            cat << EOF > ids.json
             {{{{ ti.xcom_pull(task_ids='waterbodies-all-getchunks') }}}}
-            JSON
+            EOF
             
             # Parse the JSON into the right format with Python.
-            python - << PY
+            python - <<EOF
             import json
             with open('ids.json') as f:
                 j = json.load(f)
             with open('ids.txt', 'w') as f:
                 ids = j['chunks'][{part}]['ids']
-                f.write('\n'.join(ids))
-            PY
+                f.write('\\n'.join(ids))
+            EOF
 
             # Execute waterbodies on the IDs.
             echo "Processing:"
