@@ -168,12 +168,12 @@ def k8s_pod_task(mem, part, name):
 
 
 with dag:
-    config_name = '{{ dag_run.conf.get("config_name", "config_moree_test") }}'
+    config_name = '{{ dag_run.conf.get("config_name", "config_moree_test_aws") }}'
     config_path = f'https://raw.githubusercontent.com/GeoscienceAustralia/dea-waterbodies/stable/ts_configs/{config_name}'
 
     # Now we need to download the DBF and do the chunking.
     # We will do this within a Kubernetes pod.
-    n_chunks = 12
+    n_chunks = 128
     getchunks_cmd = [
         "bash",
         "-c",
