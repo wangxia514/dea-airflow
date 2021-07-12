@@ -26,7 +26,7 @@ from automated_reporting.tasks import (
 default_args = {
     "owner": "James Miller",
     "depends_on_past": False,
-    "start_date": datetime(2021, 5, 27, tzinfo=timezone.utc),
+    "start_date": datetime(2021, 7, 5, tzinfo=timezone.utc),
     "email": ["james.miller@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": True,

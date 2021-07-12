@@ -23,7 +23,7 @@ log = logging.getLogger("airflow.task")
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt(2021, 6, 7, tzinfo=timezone.utc),
+    "start_date": dt(2021, 7, 12, tzinfo=timezone.utc),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,

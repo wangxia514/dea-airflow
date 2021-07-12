@@ -27,7 +27,7 @@ from automated_reporting.tasks import check_db_task, simple_latency_task
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt(2021, 5, 1, tzinfo=timezone.utc),
+    "start_date": dt(2021, 7, 5, tzinfo=timezone.utc),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
