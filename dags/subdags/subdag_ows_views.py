@@ -140,7 +140,7 @@ def ows_update_extent_subdag(
     return dag_subdag
 
 
-def ows_update_operator(xcom_task_id=None, args={}):
+def ows_update_operator(xcom_task_id=None, dag={}):
     """
     arg = dag default arg
     """
@@ -155,7 +155,7 @@ def ows_update_operator(xcom_task_id=None, args={}):
         "DATACUBE_OWS_CFG": OWS_DATACUBE_CFG,
         "PYTHONPATH": OWS_PYTHON_PATH,
     }
-    args.setdefault("env_vars", ows_env_cfg).update(ows_env_cfg)
+    dag.default_args.setdefault("env_vars", ows_env_cfg).update(ows_env_cfg)
 
     OWS_BASH_COMMAND = [
         "bash",

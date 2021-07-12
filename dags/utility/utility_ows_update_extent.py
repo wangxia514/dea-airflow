@@ -103,7 +103,7 @@ with dag:
 
     OWS_UPDATE_EXTENTS = ows_update_operator(
         xcom_task_id=SET_REFRESH_PRODUCT_TASK_NAME,
-        args=DEFAULT_ARGS,
+        dag=dag,
     )
 
     OWS_UPDATE_EXTENTS_SUBDAG = SubDagOperator(
