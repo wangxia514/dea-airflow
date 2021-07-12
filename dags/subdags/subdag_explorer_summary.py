@@ -5,7 +5,9 @@ This subdag can be called by other dags
 
 from airflow import DAG
 
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from airflow.kubernetes.secret import Secret
 from webapp_update.update_list import EXPLORER_UPDATE_LIST
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
@@ -74,7 +76,7 @@ def explorer_refresh_stats_subdag(
     return dag_subdag
 
 
-def explorer_refresh_operator(xcom_task_id):
+def explorer_refresh_operator(xcom_task_id=None):
     """
     Expects to be run within the context of a DAG
     """
