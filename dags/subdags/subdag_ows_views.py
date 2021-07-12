@@ -188,7 +188,7 @@ def ows_update_operator(xcom_task_id=None, args={}):
         volumes=[ows_cfg_volume],
         volume_mounts=[ows_cfg_mount],
         init_containers=[config_container],
-        is_delete_operator_pod=True,
+        is_delete_operator_pod=False,
         affinity=ONDEMAND_NODE_AFFINITY,
         pool=DEA_NEWDATA_PROCESSING_POOL,
     )
