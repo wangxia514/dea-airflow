@@ -36,7 +36,6 @@ from datetime import datetime, timedelta
 from airflow.operators.python_operator import PythonOperator
 
 from airflow.kubernetes.secret import Secret
-from airflow.operators.subdag_operator import SubDagOperator
 from subdags.subdag_explorer_summary import explorer_refresh_operator
 from infra.variables import (
     DB_DATABASE,

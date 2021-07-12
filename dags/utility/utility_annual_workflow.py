@@ -24,7 +24,7 @@ from airflow import DAG
 from airflow.operators.subdag_operator import SubDagOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.kubernetes.secret import Secret
-from subdags.subdag_ows_views import ows_update_extent_subdag
+from subdags.subdag_ows_views import ows_update_operator
 from subdags.subdag_explorer_summary import explorer_refresh_operator
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
@@ -123,15 +123,7 @@ with dag:
         xcom_task_id=SET_REFRESH_PRODUCT_TASK_NAME,
     )
 
-    OWS_UPDATE_EXTENTS = SubDagOperator(
-        task_id="run-ows-update-ranges",
-        subdag=ows_update_extent_subdag(
-            DAG_NAME,
-            "run-ows-update-ranges",
-            DEFAULT_ARGS,
-            SET_REFRESH_PRODUCT_TASK_NAME,
-        ),
-    )
+    OWS_UPDATE_EXTENTS = ows_update_operator(arg=DEFAULT_ARGS)
 
     INDEXING >> SET_PRODUCTS
     SET_PRODUCTS >> EXPLORER_SUMMARY

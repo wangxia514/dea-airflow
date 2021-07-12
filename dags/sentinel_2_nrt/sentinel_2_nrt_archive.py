@@ -16,7 +16,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 from textwrap import dedent
 
 from infra.images import INDEXER_IMAGE
-from subdags.subdag_ows_views import ows_update_extent_subdag
+from subdags.subdag_ows_views import ows_update_operator
 
 from infra.variables import (
     DB_DATABASE,
@@ -26,7 +26,6 @@ from infra.variables import (
 )
 from infra.pools import DEA_NEWDATA_PROCESSING_POOL
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
-from airflow.operators.subdag_operator import SubDagOperator
 from subdags.subdag_explorer_summary import explorer_refresh_operator
 from sentinel_2_nrt.env_cfg import ARCHIVE_CONDITION, ARCHIVE_PRODUCTS
 
@@ -98,12 +97,7 @@ with dag:
         is_delete_operator_pod=True,
     )
 
-    OWS_UPDATE_EXTENTS = SubDagOperator(
-        task_id="run-ows-update-ranges",
-        subdag=ows_update_extent_subdag(
-            DAG_NAME, "run-ows-update-ranges", DEFAULT_ARGS
-        ),
-    )
+    OWS_UPDATE_EXTENTS = ows_update_operator()
 
     EXPLORER_SUMMARY = explorer_refresh_operator()
 
