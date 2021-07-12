@@ -13,6 +13,7 @@ from airflow import DAG, settings
 from airflow.kubernetes.secret import Secret
 from airflow.operators.python_operator import BranchPythonOperator
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+import boto3
 
 from textwrap import dedent
 
@@ -110,9 +111,19 @@ dag = DAG(
 )
 
 def branch_mem(part, **kwargs):
-    chunk_json = kwargs['ti'].xcom_pull(
+    chunk_path_json = kwargs['ti'].xcom_pull(
         task_ids='waterbodies-all-getchunks',
         key="return_value")
+    chunks_path = chunk_path_json['chunks_path']
+    split = chunks_path.split('/')
+    bucket = split[2]
+    path = '/'.join(split[3:])
+    s3 = boto3.resource('s3')
+    # Download the JSON
+    print('Downloading', path, 'from bucket', bucket)
+    s3.Bucket(bucket).download_file(path, 'chunks.json')
+    with open('chunks.json') as f:
+        chunk_json = json.load(f)
     assert 0 <= part < len(chunk_json['chunks'])
     part_details = chunk_json['chunks'][part]
     max_mem = float(part_details["max_mem_Mi"])
