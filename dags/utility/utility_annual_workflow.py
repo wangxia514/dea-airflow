@@ -123,7 +123,7 @@ with dag:
         xcom_task_id=SET_REFRESH_PRODUCT_TASK_NAME,
     )
 
-    OWS_UPDATE_EXTENTS = ows_update_operator(args=DEFAULT_ARGS)
+    OWS_UPDATE_EXTENTS = ows_update_operator(dag=dag)
 
     INDEXING >> SET_PRODUCTS
     SET_PRODUCTS >> EXPLORER_SUMMARY
