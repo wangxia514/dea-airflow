@@ -25,8 +25,10 @@ from airflow.operators.subdag_operator import SubDagOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.kubernetes.secret import Secret
 from subdags.subdag_ows_views import ows_update_extent_subdag
-from subdags.subdag_explorer_summary import explorer_refresh_stats_subdag
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from subdags.subdag_explorer_summary import explorer_refresh_operator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 
 from infra.images import INDEXER_IMAGE
 from infra.variables import (
@@ -117,14 +119,8 @@ with dag:
         # provide_context=True,
     )
 
-    EXPLORER_SUMMARY = SubDagOperator(
-        task_id="run-cubedash-gen-refresh-stat",
-        subdag=explorer_refresh_stats_subdag(
-            DAG_NAME,
-            "run-cubedash-gen-refresh-stat",
-            DEFAULT_ARGS,
-            SET_REFRESH_PRODUCT_TASK_NAME,
-        ),
+    EXPLORER_SUMMARY = explorer_refresh_operator(
+        xcom_task_id=SET_REFRESH_PRODUCT_TASK_NAME,
     )
 
     OWS_UPDATE_EXTENTS = SubDagOperator(
