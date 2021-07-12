@@ -14,6 +14,7 @@ from airflow.kubernetes.secret import Secret
 from airflow.operators.python_operator import BranchPythonOperator
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 import boto3
+from botocore.handlers import disable_signing
 
 from textwrap import dedent
 
@@ -118,11 +119,8 @@ def branch_mem(part, **kwargs):
     split = chunks_path.split('/')
     bucket = split[2]
     path = '/'.join(split[3:])
-    session = boto3.Session(
-        aws_access_key_id='na',
-        aws_secret_access_key='na',
-    )
-    s3 = session.resource('s3')
+    s3 = boto3.resource('s3')
+    s3.meta.client.meta.events.register('choose-signer.s3.*', disable_signing)
     # Download the JSON
     print('Downloading', path, 'from bucket', bucket)
     s3.Bucket(bucket).download_file(path, 'chunks.json')
