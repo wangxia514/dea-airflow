@@ -36,8 +36,7 @@ from datetime import datetime, timedelta
 from airflow.operators.python_operator import PythonOperator
 
 from airflow.kubernetes.secret import Secret
-from airflow.operators.subdag_operator import SubDagOperator
-from subdags.subdag_ows_views import ows_update_operator, ows_update_extent_subdag
+from subdags.subdag_ows_views import ows_update_operator
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
@@ -106,15 +105,4 @@ with dag:
         dag=dag,
     )
 
-    OWS_UPDATE_EXTENTS_SUBDAG = SubDagOperator(
-        task_id="run-ows-update-ranges",
-        subdag=ows_update_extent_subdag(
-            DAG_NAME,
-            "run-ows-update-ranges",
-            DEFAULT_ARGS,
-            SET_REFRESH_PRODUCT_TASK_NAME,
-        ),
-    )
-
     SET_PRODUCTS >> OWS_UPDATE_EXTENTS
-    SET_PRODUCTS >> OWS_UPDATE_EXTENTS_SUBDAG
