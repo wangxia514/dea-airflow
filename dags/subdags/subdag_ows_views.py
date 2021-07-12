@@ -60,7 +60,7 @@ config_container = k8s.V1Container(
 )
 
 
-def ows_update_operator(xcom_task_id=None, dag={}):
+def ows_update_operator(xcom_task_id=None, dag=None):
     """
     reusaeble operator to be used in other dag processes.
     """
