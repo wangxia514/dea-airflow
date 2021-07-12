@@ -52,6 +52,6 @@ dag = DAG(
 
 with dag:
 
-    OWS_UPDATE_EXTENTS = ows_update_operator(arg=DEFAULT_ARGS)
+    OWS_UPDATE_EXTENTS = ows_update_operator(args=DEFAULT_ARGS)
 
     EXPLORER_SUMMARY = explorer_refresh_operator()

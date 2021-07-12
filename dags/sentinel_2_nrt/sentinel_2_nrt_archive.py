@@ -97,7 +97,7 @@ with dag:
         is_delete_operator_pod=True,
     )
 
-    OWS_UPDATE_EXTENTS = ows_update_operator()
+    OWS_UPDATE_EXTENTS = ows_update_operator(args=DEFAULT_ARGS)
 
     EXPLORER_SUMMARY = explorer_refresh_operator()
 
