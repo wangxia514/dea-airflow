@@ -32,8 +32,8 @@ class testClass(unittest.TestCase):
     def test_explorer_utility_dag(self):
         self.assertDagDictEqual(
             {
-                "parse_dagrun_conf": ["run-cubedash-gen-refresh-stat"],
-                "run-cubedash-gen-refresh-stat": [],
+                "parse_dagrun_conf": ["explorer-summary-task"],
+                "explorer-summary-task": [],
             },
             explorer_utility_dag,
         )
@@ -43,10 +43,10 @@ class testClass(unittest.TestCase):
             {
                 "batch-indexing-task": ["parse_dagrun_conf"],
                 "parse_dagrun_conf": [
-                    "run-cubedash-gen-refresh-stat",
+                    "explorer-summary-task",
                     "run-ows-update-ranges",
                 ],
-                "run-cubedash-gen-refresh-stat": [],
+                "explorer-summary-task": [],
                 "run-ows-update-ranges": [],
             },
             annual_utility_dag,

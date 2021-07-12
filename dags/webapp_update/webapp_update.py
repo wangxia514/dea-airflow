@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from airflow.kubernetes.secret import Secret
 from airflow.operators.subdag_operator import SubDagOperator
 from subdags.subdag_ows_views import ows_update_extent_subdag
-from subdags.subdag_explorer_summary import explorer_refresh_stats_subdag
+from subdags.subdag_explorer_summary import explorer_refresh_operator
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
@@ -60,9 +60,4 @@ with dag:
         ),
     )
 
-    EXPLORER_SUMMARY = SubDagOperator(
-        task_id="run-cubedash-gen-refresh-stat",
-        subdag=explorer_refresh_stats_subdag(
-            DAG_NAME, "run-cubedash-gen-refresh-stat", DEFAULT_ARGS
-        ),
-    )
+    EXPLORER_SUMMARY = explorer_refresh_operator()

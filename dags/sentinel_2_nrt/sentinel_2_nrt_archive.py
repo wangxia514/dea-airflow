@@ -10,7 +10,9 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from textwrap import dedent
 
 from infra.images import INDEXER_IMAGE
@@ -25,7 +27,7 @@ from infra.variables import (
 from infra.pools import DEA_NEWDATA_PROCESSING_POOL
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from airflow.operators.subdag_operator import SubDagOperator
-from subdags.subdag_explorer_summary import explorer_refresh_stats_subdag
+from subdags.subdag_explorer_summary import explorer_refresh_operator
 from sentinel_2_nrt.env_cfg import ARCHIVE_CONDITION, ARCHIVE_PRODUCTS
 
 DAG_NAME = "sentinel_2_nrt_archive"
@@ -103,12 +105,7 @@ with dag:
         ),
     )
 
-    EXPLORER_SUMMARY = SubDagOperator(
-        task_id="run-cubedash-gen-refresh-stat",
-        subdag=explorer_refresh_stats_subdag(
-            DAG_NAME, "run-cubedash-gen-refresh-stat", DEFAULT_ARGS
-        ),
-    )
+    EXPLORER_SUMMARY = explorer_refresh_operator()
 
     ARCHIVE_EXTRANEOUS_DS >> OWS_UPDATE_EXTENTS
     ARCHIVE_EXTRANEOUS_DS >> EXPLORER_SUMMARY
