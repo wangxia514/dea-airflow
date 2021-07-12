@@ -154,7 +154,7 @@ def k8s_pod_task(mem, part, name):
             import json
             with open('ids.json') as f:
                 ids = json.load(f)
-            with open('ids.txt') as f:
+            with open('ids.txt', 'w') as f:
                 f.write('\\n'.join(ids['chunks'][{part}]['ids']))
             EOF
             
