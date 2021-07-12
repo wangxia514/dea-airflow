@@ -91,7 +91,7 @@ tolerations = [
 MEM_BRANCHES = OrderedDict([
     ('tiny', 512),
     ('small', 1024),
-    ('large', 32 * 1024),
+    ('large', 8 * 1024),
     ('huge', 64 * 1024),
     ('jumbo', 128 * 1024),
 ])
@@ -132,10 +132,17 @@ def k8s_pod_task(mem, part, name):
             echo "Using dea-waterbodies image {image}"
             wget {conf} -O config.ini
             cat config.ini
+
+            # Download xcom path to the IDs file.
+            aws s3 cp {{{{ ti.xcom_pull(task_ids='waterbodies-all-getchunks')['chunks_path'] }}}} ./ids.json
             
             # Write xcom data to a TXT file.
-            cat << EOF > ids.txt
-            {{{{ '\\n'.join(ti.xcom_pull(task_ids='waterbodies-all-getchunks')['chunks'][{part}]['ids']) }}}}
+            python - << EOF
+            import json
+            with open('ids.json') as f:
+                ids = json.load(f)
+            with open('ids.txt') as f:
+                f.write('\\n'.join(ids['chunks'][{part}]['ids']))
             EOF
             
             # Execute waterbodies on the IDs.
