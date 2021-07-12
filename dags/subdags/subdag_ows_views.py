@@ -75,7 +75,16 @@ def ows_update_operator(xcom_task_id=None, dag={}):
         "DATACUBE_OWS_CFG": OWS_DATACUBE_CFG,
         "PYTHONPATH": OWS_PYTHON_PATH,
     }
-    dag.default_args.setdefault("env_vars", ows_env_cfg).update(ows_env_cfg)
+    if dag:
+        env_vars = dag.default_args.get("env_vars", {}).copy()
+    else:
+        env_vars = {}
+
+    env_vars.update({
+        "WMS_CONFIG_PATH": OWS_CFG_PATH,
+        "DATACUBE_OWS_CFG": OWS_DATACUBE_CFG,
+        "PYTHONPATH": OWS_PYTHON_PATH,
+    })
 
     OWS_BASH_COMMAND = [
         "bash",
