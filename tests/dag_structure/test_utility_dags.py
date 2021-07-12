@@ -23,8 +23,8 @@ class testClass(unittest.TestCase):
     def test_ows_utility_dag(self):
         self.assertDagDictEqual(
             {
-                "parse_dagrun_conf": ["run-ows-update-ranges"],
-                "run-ows-update-ranges": [],
+                "parse_dagrun_conf": ["ows-update-range"],
+                "ows-update-range": [],
             },
             ows_utility_dag,
         )
@@ -44,10 +44,10 @@ class testClass(unittest.TestCase):
                 "batch-indexing-task": ["parse_dagrun_conf"],
                 "parse_dagrun_conf": [
                     "explorer-summary-task",
-                    "run-ows-update-ranges",
+                    "ows-update-range",
                 ],
                 "explorer-summary-task": [],
-                "run-ows-update-ranges": [],
+                "ows-update-range": [],
             },
             annual_utility_dag,
         )
