@@ -147,7 +147,8 @@ def k8s_pod_task(mem, part, name):
             cat config.ini
 
             # Download xcom path to the IDs file.
-            aws s3 cp {{{{ ti.xcom_pull(task_ids='waterbodies-all-getchunks')['chunks_path'] }}}} ./ids.json
+            echo "Downloading {{{{ ti.xcom_pull(task_ids='waterbodies-all-getchunks')['chunks_path'] }}}}"
+            aws s3 cp {{{{ ti.xcom_pull(task_ids='waterbodies-all-getchunks')['chunks_path'] }}}} ids.json
             
             # Write xcom data to a TXT file.
             python - << EOF
