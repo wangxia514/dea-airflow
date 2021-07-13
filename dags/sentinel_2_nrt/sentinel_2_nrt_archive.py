@@ -29,7 +29,7 @@ from sentinel_2_nrt.env_cfg import (
     ARCHIVE_PRODUCTS,
 )
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
-
+from webapp_update.update_list import EXPLORER_UPDATE_LIST
 
 DAG_NAME = "sentinel_2_nrt_archive"
 
@@ -98,7 +98,7 @@ with DAG(
 
     OWS_UPDATE_EXTENTS = ows_update_operator(dag=dag)
 
-    EXPLORER_SUMMARY = explorer_refresh_operator()
+    EXPLORER_SUMMARY = explorer_refresh_operator(" ".join(EXPLORER_UPDATE_LIST))
 
     ARCHIVE_EXTRANEOUS_DS >> OWS_UPDATE_EXTENTS
     ARCHIVE_EXTRANEOUS_DS >> EXPLORER_SUMMARY

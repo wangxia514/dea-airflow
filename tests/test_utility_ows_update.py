@@ -33,6 +33,31 @@ def test_utility_ows_update():
 
 def test_explorer_update():
     with DAG(dag_id="ows_update_test", start_date=datetime(2021, 1, 1)) as dag:
-        task1 = explorer_refresh_operator()
-        task2 = explorer_refresh_operator()
+        task1 = explorer_refresh_operator("space separated list")
+        task2 = explorer_refresh_operator("{{ dag_run.conf.products }}")
+        task3 = explorer_refresh_operator(["list", "of", "products"])
     ti = TaskInstance(task=task1, execution_date=datetime.now())
+    template_context = ti.get_template_context()
+
+    # Test task1 arguments is populated using the supplied string
+    assert (
+        "cubedash-gen -v --no-init-database --refresh-stats space separated list"
+        in task1.arguments[2]
+    )
+
+    # Test task2 after templating is populated with a user DagRun supplied set of products
+    dag_run = DagRun()
+    dag_run.conf = {"products": "hello world"}
+    template_context["dag_run"] = dag_run
+
+    task2.render_template_fields(template_context)
+    assert (
+        "cubedash-gen -v --no-init-database --refresh-stats hello world"
+        in task2.arguments[2]
+    )
+
+    # Test task3 uses a correctly expanded list of products
+    assert (
+        "cubedash-gen -v --no-init-database --refresh-stats list of products"
+        in task3.arguments[2]
+    )

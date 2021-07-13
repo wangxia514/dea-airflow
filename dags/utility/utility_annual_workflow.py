@@ -1,6 +1,6 @@
 """
 ## Utility Tool (Self Serve)
-For indexing more dataset from s3 to an existing established product and ows layers.
+For indexing datasets from s3 into an existing product and OWS layer/s.
 
 #### Utility customisation
 The DAG can be parameterized with run time configuration `product` and `s3_glob`
@@ -91,7 +91,7 @@ with DAG(
         is_delete_operator_pod=True,
     )
 
-    EXPLORER_SUMMARY = explorer_refresh_operator()
+    EXPLORER_SUMMARY = explorer_refresh_operator("{{ dag_run.conf.product }}")
 
     OWS_UPDATE_EXTENTS = ows_update_operator(dag=dag)
 
