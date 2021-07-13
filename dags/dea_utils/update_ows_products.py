@@ -1,34 +1,31 @@
 """
-# Sentinel-2_nrt ows update
+Tool for creating a Kubernetes Pod Operator for Updating Datacube OWS
 """
-from airflow import DAG
-from airflow.kubernetes.volume import Volume
-from airflow.kubernetes.volume_mount import VolumeMount
-from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
-from airflow.kubernetes.secret import Secret
-
 from textwrap import dedent
 
 import kubernetes.client.models as k8s
+from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+from airflow.kubernetes.secret import Secret
+from airflow.kubernetes.volume import Volume
+from airflow.kubernetes.volume_mount import VolumeMount
 
 from infra.images import OWS_CONFIG_IMAGE, OWS_IMAGE
-from subdags.podconfig import (
-    OWS_CFG_PATH,
-    OWS_CFG_MOUNT_PATH,
-    OWS_CFG_IMAGEPATH,
-    OWS_DATACUBE_CFG,
-    OWS_PYTHON_PATH,
-    OWS_CFG_FOLDER_PATH,
-)
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
-from webapp_update.update_list import UPDATE_EXTENT_PRODUCTS
 from infra.variables import SECRET_OWS_WRITER_NAME
+from webapp_update.update_list import OWS_UPDATE_LIST
+
+# OWS pod specific configuration
+OWS_CFG_FOLDER_PATH = "/env/config/ows_refactored"
+OWS_CFG_MOUNT_PATH = "/env/config"
+OWS_CFG_PATH = OWS_CFG_MOUNT_PATH + "/ows_refactored/ows_root_cfg.py"
+OWS_CFG_IMAGEPATH = "/opt/dea-config/prod/services/wms/ows_refactored"
+OWS_PYTHON_PATH = "/env/config"
+OWS_DATACUBE_CFG = "ows_refactored.ows_root_cfg.ows_cfg"
 
 OWS_SECRETS = [
     Secret("env", "DB_USERNAME", SECRET_OWS_WRITER_NAME, "postgres-username"),
     Secret("env", "DB_PASSWORD", SECRET_OWS_WRITER_NAME, "postgres-password"),
 ]
-
 
 # MOUNT OWS_CFG via init_container
 # for main container mount
@@ -36,11 +33,9 @@ ows_cfg_mount = VolumeMount(
     "ows-config-volume", mount_path=OWS_CFG_MOUNT_PATH, sub_path=None, read_only=False
 )
 
-
 ows_cfg_volume_config = {}
 
 ows_cfg_volume = Volume(name="ows-config-volume", configs=ows_cfg_volume_config)
-
 
 # for init container mount
 cfg_image_mount = k8s.V1VolumeMount(
@@ -62,29 +57,31 @@ config_container = k8s.V1Container(
 
 def ows_update_operator(xcom_task_id=None, dag=None):
     """
-    reusaeble operator to be used in other dag processes.
+    Create a Task to update OWS Products and Extents
+
+    OWS Updates are partially configured with environment variables, pass in the `dag` to include
+    default environment variables as well.
+
+    Uses either a default list of products, or pull the list of products from the supplied `xcom_task_id` arg.
     """
     if xcom_task_id:
         products = f"{{{{ task_instance.xcom_pull(task_ids='{xcom_task_id}') }}}}"
     else:
-        products = " ".join(UPDATE_EXTENT_PRODUCTS)
+        products = " ".join(OWS_UPDATE_LIST)
 
     # append ows specific env_vars to args
-    ows_env_cfg = {
-        "WMS_CONFIG_PATH": OWS_CFG_PATH,
-        "DATACUBE_OWS_CFG": OWS_DATACUBE_CFG,
-        "PYTHONPATH": OWS_PYTHON_PATH,
-    }
     if dag:
         env_vars = dag.default_args.get("env_vars", {}).copy()
     else:
         env_vars = {}
 
-    env_vars.update({
-        "WMS_CONFIG_PATH": OWS_CFG_PATH,
-        "DATACUBE_OWS_CFG": OWS_DATACUBE_CFG,
-        "PYTHONPATH": OWS_PYTHON_PATH,
-    })
+    env_vars.update(
+        {
+            "WMS_CONFIG_PATH": OWS_CFG_PATH,
+            "DATACUBE_OWS_CFG": OWS_DATACUBE_CFG,
+            "PYTHONPATH": OWS_PYTHON_PATH,
+        }
+    )
 
     OWS_BASH_COMMAND = [
         "bash",
@@ -102,7 +99,7 @@ def ows_update_operator(xcom_task_id=None, dag=None):
             done;
         """
         )
-        % (products),
+        % products,
     ]
 
     return KubernetesPodOperator(

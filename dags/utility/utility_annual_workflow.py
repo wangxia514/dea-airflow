@@ -17,8 +17,8 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from airflow.kubernetes.secret import Secret
-from subdags.subdag_ows_views import ows_update_operator
-from subdags.subdag_explorer_summary import explorer_refresh_operator
+from dea_utils.update_ows_products import ows_update_operator
+from dea_utils.update_explorer_summaries import explorer_refresh_operator
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 
 from infra.images import INDEXER_IMAGE

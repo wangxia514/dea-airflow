@@ -24,7 +24,7 @@ from datetime import datetime, timedelta
 from airflow.operators.python_operator import PythonOperator
 
 from airflow.kubernetes.secret import Secret
-from subdags.subdag_explorer_summary import explorer_refresh_operator
+from dea_utils.update_explorer_summaries import explorer_refresh_operator
 
 from infra.variables import (
     DB_DATABASE,
@@ -68,6 +68,7 @@ dag = DAG(
 
 
 def parse_dagrun_conf(products, **kwargs):
+    """Extract the list of products from the DAGRun Configuration"""
     if products:
         return products
     else:

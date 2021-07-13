@@ -5,17 +5,17 @@ This DAG uses k8s executors and in cluster with relevant tooling
 and configuration installed.
 """
 
-from airflow import DAG
 from datetime import datetime, timedelta
 
-from airflow.kubernetes.secret import Secret
-from subdags.subdag_ows_views import ows_update_operator
-from subdags.subdag_explorer_summary import explorer_refresh_operator
+from airflow import DAG
+
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     AWS_DEFAULT_REGION,
 )
+from dea_utils.update_explorer_summaries import explorer_refresh_operator
+from dea_utils.update_ows_products import ows_update_operator
 
 DAG_NAME = "webapp_update"
 
@@ -37,20 +37,17 @@ DEFAULT_ARGS = {
     },
 }
 
-
 # THE DAG
-dag = DAG(
+with DAG(
     dag_id=DAG_NAME,
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval="0 */6 * * *",  # every 6 hours
     catchup=False,
     tags=["k8s", "ows-update", "explorer-update"],
-)
+) as dag:
+    # Both OWS and Explorer can update at the same time
 
+    ows_update_operator(dag=dag)
 
-with dag:
-
-    OWS_UPDATE_EXTENTS = ows_update_operator(dag=dag)
-
-    EXPLORER_SUMMARY = explorer_refresh_operator()
+    explorer_refresh_operator()

@@ -3,7 +3,6 @@
 This subdag can be called by other dags
 """
 
-from airflow import DAG
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from webapp_update.update_list import EXPLORER_UPDATE_LIST

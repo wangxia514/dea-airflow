@@ -15,7 +15,7 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from textwrap import dedent
 
 from infra.images import INDEXER_IMAGE
-from subdags.subdag_ows_views import ows_update_operator
+from dea_utils.update_ows_products import ows_update_operator
 
 from infra.variables import (
     DB_DATABASE,
@@ -23,7 +23,7 @@ from infra.variables import (
     AWS_DEFAULT_REGION,
     SECRET_ODC_WRITER_NAME,
 )
-from subdags.subdag_explorer_summary import explorer_refresh_operator
+from dea_utils.update_explorer_summaries import explorer_refresh_operator
 from sentinel_2_nrt.env_cfg import (
     ARCHIVE_CONDITION,
     ARCHIVE_PRODUCTS,
@@ -75,16 +75,14 @@ DEFAULT_ARGS = {
 }
 
 # THE DAG
-dag = DAG(
+with DAG(
     dag_id=DAG_NAME,
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval="0 1 * * *",  # daily at 1am
     catchup=False,
     tags=["k8s", "sentinel-2", "archive"],
-)
-
-with dag:
+) as dag:
 
     ARCHIVE_EXTRANEOUS_DS = KubernetesPodOperator(
         namespace="processing",

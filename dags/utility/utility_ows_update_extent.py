@@ -19,20 +19,19 @@ dag_run.conf format:
     "products": "s2a_nrt_granule s2b_nrt_granule"
 """
 
-from airflow import DAG
 from datetime import datetime, timedelta
-from airflow.operators.python_operator import PythonOperator
 
-from airflow.kubernetes.secret import Secret
-from subdags.subdag_ows_views import ows_update_operator
+from airflow import DAG
+from airflow.operators.python_operator import PythonOperator
 
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     AWS_DEFAULT_REGION,
 )
+from dea_utils.update_ows_products import ows_update_operator
 from webapp_update.update_list import (
-    UPDATE_EXTENT_PRODUCTS,
+    OWS_UPDATE_LIST,
 )
 
 DAG_NAME = "utility_ows-update-extent"
@@ -56,28 +55,24 @@ DEFAULT_ARGS = {
 }
 
 
-# THE DAG
-dag = DAG(
+def parse_dagrun_conf(products, **kwargs):
+    """Extract the list of products from the DAGRun Configuration"""
+    if products:
+        return products
+    else:
+        return " ".join(OWS_UPDATE_LIST)
+
+
+SET_REFRESH_PRODUCT_TASK_NAME = "parse_dagrun_conf"
+
+with DAG(
     dag_id=DAG_NAME,
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
     tags=["k8s", "ows"],
-)
-
-
-def parse_dagrun_conf(products, **kwargs):
-    if products:
-        return products
-    else:
-        return " ".join(UPDATE_EXTENT_PRODUCTS)
-
-
-SET_REFRESH_PRODUCT_TASK_NAME = "parse_dagrun_conf"
-
-with dag:
-
+) as dag:
     SET_PRODUCTS = PythonOperator(
         task_id=SET_REFRESH_PRODUCT_TASK_NAME,
         python_callable=parse_dagrun_conf,
