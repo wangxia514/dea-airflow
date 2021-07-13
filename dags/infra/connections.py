@@ -2,7 +2,9 @@
 # connection ids created by terraform
 """
 
+# Automated reporting connections
 DB_ODC_READER_CONN = "db_odc_reader"  # qa
+
 AWS_SENTINEL_2_ARD_SYNC_CONN = "sentinel_2_ard_sync_user"  # qa
 
 # AWS CONN Alignment
