@@ -44,5 +44,3 @@ DB_SANDBOX_USER_SECRET = Variable.get("db_sandbox_user_secret", "ows-db")  # qa
 SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET = Variable.get(
     "sentinel_2_ard_indexing_aws_user_secret", "sentinel-2-ard-indexing-creds"
 )
-
-COP_API_REP_CREDS = "copernicus_api_password"

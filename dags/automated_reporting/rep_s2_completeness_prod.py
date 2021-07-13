@@ -17,7 +17,7 @@ from datetime import timedelta, timezone
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 
-import infra.connections as connections
+from automated_reporting import connections
 from automated_reporting.databases import schemas
 from automated_reporting.tasks import (
     s2_completeness_ard_task,

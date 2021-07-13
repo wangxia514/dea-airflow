@@ -16,7 +16,7 @@ from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from airflow.hooks.postgres_hook import PostgresHook
 
-import infra.connections as connections
+from automated_reporting import connections
 
 log = logging.getLogger("airflow.task")
 

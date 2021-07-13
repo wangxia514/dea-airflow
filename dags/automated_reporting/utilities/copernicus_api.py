@@ -8,7 +8,7 @@ from concurrent import futures
 from datetime import timezone, timedelta, datetime as dt
 from airflow.models import Variable
 
-from infra.variables import COP_API_REP_CREDS
+from automated_reporting.variables import COP_API_REP_CREDS
 from automated_reporting.utilities import helpers
 from automated_reporting.aux_data import aoi
 

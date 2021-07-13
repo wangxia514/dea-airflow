@@ -15,7 +15,7 @@ from datetime import timedelta, timezone
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 
-import infra.connections as connections
+from automated_reporting import connections
 
 log = logging.getLogger("airflow.task")
 
