@@ -67,16 +67,15 @@ INDEXING_BASH_COMMAND = [
 
 
 # THE DAG
-dag = DAG(
+with DAG(
     "sentinel_2_nrt_streamline_indexing",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval="0 */1 * * *",  # hourly
     catchup=False,
     tags=["k8s", "sentinel-2", "streamline-indexing"],
-)
+) as dag:
 
-with dag:
     INDEXING = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,

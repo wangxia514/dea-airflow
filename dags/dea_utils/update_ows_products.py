@@ -55,7 +55,7 @@ config_container = k8s.V1Container(
 )
 
 
-def ows_update_operator(xcom_task_id=None, dag=None):
+def ows_update_operator(dag=None):
     """
     Create a Task to update OWS Products and Extents
 
@@ -64,12 +64,7 @@ def ows_update_operator(xcom_task_id=None, dag=None):
 
     Uses either a default list of products, or pull the list of products from the supplied `xcom_task_id` arg.
     """
-    if xcom_task_id:
-        products = f"{{{{ task_instance.xcom_pull(task_ids='{xcom_task_id}') }}}}"
-    else:
-        products = " ".join(OWS_UPDATE_LIST)
-
-    # append ows specific env_vars to args
+    # append ows specific env_vars to default env_vars
     if dag:
         env_vars = dag.default_args.get("env_vars", {}).copy()
     else:
@@ -90,7 +85,8 @@ def ows_update_operator(xcom_task_id=None, dag=None):
             """
             datacube-ows-update --version
             datacube-ows-update --views
-            for product in %s; do
+            for product in {% if dag_run.conf.products %}{{dag_run.conf.products}}{% else %}{{
+                params.default_products|join(' ') }}{% endif %}; do
                 if [ $product == "--all" ]; then
                     datacube-ows-update
                 else
@@ -98,8 +94,7 @@ def ows_update_operator(xcom_task_id=None, dag=None):
                 fi
             done;
         """
-        )
-        % products,
+        ),
     ]
 
     return KubernetesPodOperator(
@@ -116,4 +111,5 @@ def ows_update_operator(xcom_task_id=None, dag=None):
         init_containers=[config_container],
         is_delete_operator_pod=True,
         affinity=ONDEMAND_NODE_AFFINITY,
+        params=dict(default_products=OWS_UPDATE_LIST),
     )

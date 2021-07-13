@@ -1,15 +1,14 @@
 """
-# Explorer cubedash-gen refresh-stats subdag
-This subdag can be called by other dags
+A reusable Task for refreshing datacube explorer instances
 """
 
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
-from webapp_update.update_list import EXPLORER_UPDATE_LIST
-from infra.images import EXPLORER_IMAGE
-from infra.variables import SECRET_EXPLORER_WRITER_NAME
-from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
+from infra.images import EXPLORER_IMAGE
+from infra.podconfig import ONDEMAND_NODE_AFFINITY
+from infra.variables import SECRET_EXPLORER_WRITER_NAME
+from webapp_update.update_list import EXPLORER_UPDATE_LIST
 
 EXPLORER_SECRETS = [
     Secret("env", "DB_USERNAME", SECRET_EXPLORER_WRITER_NAME, "postgres-username"),
@@ -17,20 +16,19 @@ EXPLORER_SECRETS = [
 ]
 
 
-def explorer_refresh_operator(xcom_task_id=None):
+def explorer_refresh_operator():
     """
     Expects to be run within the context of a DAG
     """
-
-    if xcom_task_id:
-        products = f"{{{{ task_instance.xcom_pull(task_ids='{xcom_task_id}') }}}}"
-    else:
-        products = " ".join(EXPLORER_UPDATE_LIST)
-
     EXPLORER_BASH_COMMAND = [
         "bash",
         "-c",
-        f"cubedash-gen -v --no-init-database --refresh-stats {products}",
+        "cubedash-gen -v --no-init-database --refresh-stats "
+        "{% if dag_run.conf.products %}"
+        "{{ dag_run.conf.products }}"
+        "{% else %}"
+        "{{ param.default_products|join(' ') }}"
+        "{% endif %}",
     ]
     return KubernetesPodOperator(
         namespace="processing",
@@ -43,4 +41,5 @@ def explorer_refresh_operator(xcom_task_id=None):
         get_logs=True,
         is_delete_operator_pod=True,
         affinity=ONDEMAND_NODE_AFFINITY,
+        params=dict(default_products=EXPLORER_UPDATE_LIST),
     )

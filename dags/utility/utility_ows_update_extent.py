@@ -22,16 +22,12 @@ dag_run.conf format:
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.operators.python_operator import PythonOperator
 
+from dea_utils.update_ows_products import ows_update_operator
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     AWS_DEFAULT_REGION,
-)
-from dea_utils.update_ows_products import ows_update_operator
-from webapp_update.update_list import (
-    OWS_UPDATE_LIST,
 )
 
 DAG_NAME = "utility_ows-update-extent"
@@ -54,17 +50,6 @@ DEFAULT_ARGS = {
     },
 }
 
-
-def parse_dagrun_conf(products, **kwargs):
-    """Extract the list of products from the DAGRun Configuration"""
-    if products:
-        return products
-    else:
-        return " ".join(OWS_UPDATE_LIST)
-
-
-SET_REFRESH_PRODUCT_TASK_NAME = "parse_dagrun_conf"
-
 with DAG(
     dag_id=DAG_NAME,
     doc_md=__doc__,
@@ -73,16 +58,6 @@ with DAG(
     catchup=False,
     tags=["k8s", "ows"],
 ) as dag:
-    SET_PRODUCTS = PythonOperator(
-        task_id=SET_REFRESH_PRODUCT_TASK_NAME,
-        python_callable=parse_dagrun_conf,
-        op_args=["{{ dag_run.conf.products }}"],
-        # provide_context=True,
-    )
-
-    OWS_UPDATE_EXTENTS = ows_update_operator(
-        xcom_task_id=SET_REFRESH_PRODUCT_TASK_NAME,
+    ows_update_operator(
         dag=dag,
     )
-
-    SET_PRODUCTS >> OWS_UPDATE_EXTENTS
