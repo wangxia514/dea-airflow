@@ -15,11 +15,10 @@ dag_run.conf format:
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.operators.subdag_operator import SubDagOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.kubernetes.secret import Secret
-from subdags.subdag_ows_views import ows_update_extent_subdag
-from subdags.subdag_explorer_summary import explorer_refresh_stats_subdag
+from subdags.subdag_ows_views import ows_update_operator
+from subdags.subdag_explorer_summary import explorer_refresh_operator
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 
 from infra.images import INDEXER_IMAGE
@@ -113,24 +112,12 @@ with dag:
         # provide_context=True,
     )
 
-    EXPLORER_SUMMARY = SubDagOperator(
-        task_id="run-cubedash-gen-refresh-stat",
-        subdag=explorer_refresh_stats_subdag(
-            DAG_NAME,
-            "run-cubedash-gen-refresh-stat",
-            DEFAULT_ARGS,
-            SET_REFRESH_PRODUCT_TASK_NAME,
-        ),
+    EXPLORER_SUMMARY = explorer_refresh_operator(
+        xcom_task_id=SET_REFRESH_PRODUCT_TASK_NAME,
     )
 
-    OWS_UPDATE_EXTENTS = SubDagOperator(
-        task_id="run-ows-update-ranges",
-        subdag=ows_update_extent_subdag(
-            DAG_NAME,
-            "run-ows-update-ranges",
-            DEFAULT_ARGS,
-            SET_REFRESH_PRODUCT_TASK_NAME,
-        ),
+    OWS_UPDATE_EXTENTS = ows_update_operator(
+        xcom_task_id=SET_REFRESH_PRODUCT_TASK_NAME, dag=dag
     )
 
     INDEXING >> SET_PRODUCTS

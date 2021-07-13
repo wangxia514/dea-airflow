@@ -18,43 +18,22 @@ EXPLORER_SECRETS = [
 ]
 
 
-def explorer_refresh_stats_subdag(
-    parent_dag_name: str, child_dag_name: str, args: dict, xcom_task_id: str = None
-):
-    """[summary]
-
-    Args:
-        parent_dag_name (str): [Name of parent dag]
-        child_dag_name (str): [Name of this dag for parent dag's reference]
-        args (dict): [dag arguments]
-        xcom_task_id (str, optional): [If this dag needs to xcom_pull a products value set by a pre-task]. Defaults to None.
-
-    Returns:
-        [type]: [subdag for processing]
+def explorer_refresh_operator(xcom_task_id=None):
+    """
+    Expects to be run within the context of a DAG
     """
 
     if xcom_task_id:
-        products = (
-            "{{{{ task_instance.xcom_pull(dag_id='{}', task_ids='{}') }}}}".format(
-                parent_dag_name, xcom_task_id
-            )
-        )
+        products = f"{{{{ task_instance.xcom_pull(task_ids='{xcom_task_id}') }}}}"
     else:
         products = " ".join(EXPLORER_UPDATE_LIST)
 
     EXPLORER_BASH_COMMAND = [
         "bash",
         "-c",
-        f"cubedash-gen --no-init-database --refresh-stats -v {products}",
+        f"cubedash-gen -v --no-init-database --refresh-stats {products}",
     ]
-
-    dag_subdag = DAG(
-        dag_id="%s.%s" % (parent_dag_name, child_dag_name),
-        default_args=args,
-        catchup=False,
-    )
-
-    KubernetesPodOperator(
+    return KubernetesPodOperator(
         namespace="processing",
         image=EXPLORER_IMAGE,
         arguments=EXPLORER_BASH_COMMAND,
@@ -63,9 +42,6 @@ def explorer_refresh_stats_subdag(
         name="explorer-summary",
         task_id="explorer-summary-task",
         get_logs=True,
-        affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
-        dag=dag_subdag,
+        affinity=ONDEMAND_NODE_AFFINITY,
     )
-
-    return dag_subdag

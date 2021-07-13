@@ -60,26 +60,12 @@ config_container = k8s.V1Container(
 )
 
 
-def ows_update_extent_subdag(
-    parent_dag_name: str, child_dag_name: str, args: dict, xcom_task_id: str = None
-):
-    """[summary]
-
-    Args:
-        parent_dag_name (str): [Name of parent dag]
-        child_dag_name (str): [Name of this dag for parent dag's reference]
-        args (dict): [dag arguments]
-        xcom_task_id (str, optional): [If this dag needs to xcom_pull a products value set by a pre-task]. Defaults to None.
-
-    Returns:
-        [type]: [subdag for processing]
+def ows_update_operator(xcom_task_id=None, dag=None):
+    """
+    reusaeble operator to be used in other dag processes.
     """
     if xcom_task_id:
-        products = (
-            "{{{{ task_instance.xcom_pull(dag_id='{}', task_ids='{}') }}}}".format(
-                parent_dag_name, xcom_task_id
-            )
-        )
+        products = f"{{{{ task_instance.xcom_pull(task_ids='{xcom_task_id}') }}}}"
     else:
         products = " ".join(UPDATE_EXTENT_PRODUCTS)
 
@@ -89,13 +75,23 @@ def ows_update_extent_subdag(
         "DATACUBE_OWS_CFG": OWS_DATACUBE_CFG,
         "PYTHONPATH": OWS_PYTHON_PATH,
     }
-    args.setdefault("env_vars", ows_env_cfg).update(ows_env_cfg)
+    if dag:
+        env_vars = dag.default_args.get("env_vars", {}).copy()
+    else:
+        env_vars = {}
+
+    env_vars.update({
+        "WMS_CONFIG_PATH": OWS_CFG_PATH,
+        "DATACUBE_OWS_CFG": OWS_DATACUBE_CFG,
+        "PYTHONPATH": OWS_PYTHON_PATH,
+    })
 
     OWS_BASH_COMMAND = [
         "bash",
         "-c",
         dedent(
             """
+            datacube-ows-update --version
             datacube-ows-update --views
             for product in %s; do
                 if [ $product == "--all" ]; then
@@ -109,27 +105,18 @@ def ows_update_extent_subdag(
         % (products),
     ]
 
-    dag_subdag = DAG(
-        dag_id="%s.%s" % (parent_dag_name, child_dag_name),
-        default_args=args,
-        catchup=False,
-    )
-
-    KubernetesPodOperator(
+    return KubernetesPodOperator(
         namespace="processing",
         image=OWS_IMAGE,
         arguments=OWS_BASH_COMMAND,
         secrets=OWS_SECRETS,
-        labels={"step": "ows-mv"},
-        name="ows-update-extents",
-        task_id="ows-update-extents",
+        labels={"step": "ows-update-range"},
+        name="ows-update-range",
+        task_id="ows-update-range",
         get_logs=True,
         volumes=[ows_cfg_volume],
         volume_mounts=[ows_cfg_mount],
         init_containers=[config_container],
         is_delete_operator_pod=True,
         affinity=ONDEMAND_NODE_AFFINITY,
-        dag=dag_subdag,
     )
-
-    return dag_subdag
