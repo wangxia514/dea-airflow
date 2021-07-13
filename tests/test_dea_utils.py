@@ -9,8 +9,9 @@ from dea_utils.update_ows_products import ows_update_operator
 
 def test_utility_ows_update():
     with DAG(dag_id="ows_update_test", start_date=datetime(2021, 1, 1)) as dag:
-        task1 = ows_update_operator(dag=dag)
-        task2 = ows_update_operator(dag=dag)
+        task1 = ows_update_operator("space separated list", dag=dag)
+        task2 = ows_update_operator("{{ dag_run.conf.products }}", dag=dag)
+        task3 = ows_update_operator(["list", "of", "products"], dag=dag)
     ti = TaskInstance(task=task1, execution_date=datetime.now())
 
     # Test using the default set of OWS products
@@ -19,7 +20,7 @@ def test_utility_ows_update():
     assert template_context
 
     task1.render_template_fields(template_context)
-    assert "for product in s2_nrt_granule_nbar_t wofs_albers" in task1.arguments[2]
+    assert "for product in space separated list" in task1.arguments[2]
 
     # Test overriding the products using dag_run.conf
     dag_run = DagRun()
@@ -29,6 +30,9 @@ def test_utility_ows_update():
     task2.render_template_fields(template_context)
     assert task2.arguments
     assert "for product in hello world" in task2.arguments[2]
+
+    # Test 3: supplying a list of products when creating the task
+    assert "for product in list of products" in task3.arguments[2]
 
 
 def test_explorer_update():

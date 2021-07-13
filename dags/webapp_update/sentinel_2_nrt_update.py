@@ -16,6 +16,7 @@ from infra.variables import (
 )
 from dea_utils.update_explorer_summaries import explorer_refresh_operator
 from dea_utils.update_ows_products import ows_update_operator
+from webapp_update.update_list import EXPLORER_UPDATE_LIST, OWS_UPDATE_LIST
 
 DAG_NAME = "webapp_update"
 
@@ -48,6 +49,6 @@ with DAG(
 ) as dag:
     # Both OWS and Explorer can update at the same time
 
-    ows_update_operator(dag=dag)
+    ows_update_operator(products=OWS_UPDATE_LIST, dag=dag)
 
-    explorer_refresh_operator()
+    explorer_refresh_operator(products=EXPLORER_UPDATE_LIST)

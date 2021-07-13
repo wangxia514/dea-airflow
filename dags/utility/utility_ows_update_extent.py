@@ -58,6 +58,4 @@ with DAG(
     catchup=False,
     tags=["k8s", "ows"],
 ) as dag:
-    ows_update_operator(
-        dag=dag,
-    )
+    ows_update_operator(products="{{ dag_run.conf.products }}", dag=dag)

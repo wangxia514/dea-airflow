@@ -93,7 +93,9 @@ with DAG(
 
     EXPLORER_SUMMARY = explorer_refresh_operator("{{ dag_run.conf.product }}")
 
-    OWS_UPDATE_EXTENTS = ows_update_operator(dag=dag)
+    OWS_UPDATE_EXTENTS = ows_update_operator(
+        products="{{ dag_run.conf.product }}", dag=dag
+    )
 
     INDEXING >> EXPLORER_SUMMARY
     INDEXING >> OWS_UPDATE_EXTENTS

@@ -1,6 +1,7 @@
 """
 Tool for creating a Kubernetes Pod Operator for Updating Datacube OWS
 """
+from collections.abc import Sequence
 from textwrap import dedent
 
 import kubernetes.client.models as k8s
@@ -55,15 +56,16 @@ config_container = k8s.V1Container(
 )
 
 
-def ows_update_operator(dag=None):
+def ows_update_operator(products, dag=None):
     """
     Create a Task to update OWS Products and Extents
 
     OWS Updates are partially configured with environment variables, pass in the `dag` to include
     default environment variables as well.
 
-    Uses either a default list of products, or pull the list of products from the supplied `xcom_task_id` arg.
     """
+    if isinstance(products, Sequence) and not isinstance(products, str):
+        products = " ".join(products)
     # append ows specific env_vars to default env_vars
     if dag:
         env_vars = dag.default_args.get("env_vars", {}).copy()
@@ -82,11 +84,10 @@ def ows_update_operator(dag=None):
         "bash",
         "-c",
         dedent(
-            """
+            f"""
             datacube-ows-update --version
             datacube-ows-update --views
-            for product in {% if dag_run.conf.products %}{{dag_run.conf.products}}{% else %}{{
-                params.default_products|join(' ') }}{% endif %}; do
+            for product in {products}; do
                 if [ $product == "--all" ]; then
                     datacube-ows-update
                 else
