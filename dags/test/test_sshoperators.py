@@ -16,6 +16,7 @@ from infra.connections import AWS_DEA_PUBLIC_DATA_UPLOAD_CONN
 # from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
 # from airflow.providers.sftp.operators.sftp import SFTPOperator, SFTPOperation
 from airflow.providers.ssh.operators.ssh import SSHOperator as v2_SSHOperator
+from airflow.providers.ssh.hooks.ssh import SSHHook as v2_SSHHook
 
 
 HOURS = 60 * 60
@@ -42,8 +43,8 @@ dag = DAG(
     "test_ssh_operators",
     doc_md=__doc__,
     default_args=default_args,
-    catchup=True,
-    schedule_interval="@daily",
+    catchup=False,
+    schedule_interval=None,
     max_active_runs=4,
     default_view="tree",
     tags=["test", "SSHOPERATOR"],
