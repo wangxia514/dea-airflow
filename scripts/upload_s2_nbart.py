@@ -4,7 +4,6 @@ Script to sync Sentinel-2 data from NCI to AWS S3 bucket
 """
 
 import logging
-import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures._base import as_completed
@@ -13,38 +12,30 @@ from pathlib import Path
 import os
 import json
 import boto3
-import botocore
 from eodatasets3 import DatasetAssembler
 from eodatasets3.scripts.tostac import json_fallback
 import datetime
 
 import click
 import yaml
-from odc.aws import s3_client
 from tqdm import tqdm
 from eodatasets3.stac import to_stac_item
 from eodatasets3.model import (
     DatasetDoc,
     ProductDoc,
     AccessoryDoc,
-    Location,
 )
 
-import rasterio
-from eodatasets3 import serialise, validate, images, documents
-from rasterio import DatasetReader
+from eodatasets3 import serialise
 from shapely.geometry.polygon import Polygon
 
 from c3_to_s3_rolling import (
-    check_granule_exists,
-    publish_sns,
     get_common_message_attributes,
-    sync_granule
 )
 
-NCI_DIR = '/g/data/if87/datacube/002/S2_MSI_ARD/packaged'
-S3_BUCKET = 'dea-public-data-dev'
-WORK_DIR = Path('/g/data/v10/work/s2_nbart_rolling_archive_dev')
+NCI_DIR = "/g/data/if87/datacube/002/S2_MSI_ARD/packaged"
+S3_BUCKET = "dea-public-data-dev"
+WORK_DIR = Path("/g/data/v10/work/s2_nbart_rolling_archive_dev")
 
 S3 = None
 
@@ -58,13 +49,15 @@ def setup_logging():
         c_handler = TqdmLoggingHandler()
     else:
         c_handler = logging.StreamHandler()
-    f_handler = logging.FileHandler('s3_uploads.log')
+    f_handler = logging.FileHandler("s3_uploads.log")
     c_handler.setLevel(logging.INFO)
     f_handler.setLevel(logging.INFO)
 
     # Create formatters and add it to handlers
     # c_format = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
     c_handler.setFormatter(formatter)
     f_handler.setFormatter(formatter)
 
@@ -74,9 +67,9 @@ def setup_logging():
 
 
 @click.command()
-@click.argument('granule_ids', type=click.File('r'))
-@click.argument('sns_topic_arn', type=str)
-@click.option('--workers', type=int, default=10)
+@click.argument("granule_ids", type=click.File("r"))
+@click.argument("sns_topic_arn", type=str)
+@click.option("--workers", type=int, default=10)
 def main(granule_ids, sns_topic_arn, workers):
     """
     Script to sync Sentinel-2 data from NCI to AWS S3 bucket
@@ -89,9 +82,14 @@ def main(granule_ids, sns_topic_arn, workers):
 
     _LOG.info(f"{len(granule_ids)} granules to upload.")
     with ThreadPoolExecutor(max_workers=workers) as executor:
-        futures = [executor.submit(upload_granule, granule_id, sns_topic_arn) for granule_id in granule_ids]
+        futures = [
+            executor.submit(upload_granule, granule_id, sns_topic_arn)
+            for granule_id in granule_ids
+        ]
 
-        for future in tqdm(as_completed(futures), total=len(granule_ids), unit='granules', disable=None):
+        for future in tqdm(
+            as_completed(futures), total=len(granule_ids), unit="granules", disable=None
+        ):
             _LOG.info(f"Completed uploaded: {future.result()}")
 
 
@@ -102,7 +100,7 @@ def upload_granule(granule_id, sns_topic_arn):
     session = boto3.session.Session()
     bucket_stac_path = f"{get_granule_s3_path(granule_id)}/stac-ARD-METADATA.json"
 
-    if True: #not check_granule_exists(S3_BUCKET, bucket_stac_path, session=session):
+    if True:  # not check_granule_exists(S3_BUCKET, bucket_stac_path, session=session):
         # sync_granule(
         #     granule_id,
         #     NCI_DIR,
@@ -126,7 +124,12 @@ def upload_granule(granule_id, sns_topic_arn):
         #     _LOG.info(f"SNS send failed: {e}. Granule id: {granule_id}")
 
         _LOG.info(f"Uploading STAC: {granule_id}")
-        s3_dump(stac_dump, s3_stac_path, ACL="bucket-owner-full-control", ContentType="application/json")  # upload STAC last
+        s3_dump(
+            stac_dump,
+            s3_stac_path,
+            ACL="bucket-owner-full-control",
+            ContentType="application/json",
+        )  # upload STAC last
     else:
         _LOG.info(f"Granule {granule_id} already uploaded, skipping.")
 
@@ -157,7 +160,7 @@ def upload_metadata(granule_id):
     s3_eo3_path = f"{s3_path}eo3-ARD-METADATA.odc-metadata.yaml"
     s3_stac_path = f"{s3_path}stac-ARD-METADATA.json"
 
-    product = "s2b_ard_granule" if "S2B" in granule_id  else "s2a_ard_granule"
+    product = "s2b_ard_granule" if "S2B" in granule_id else "s2a_ard_granule"
     eo3 = create_eo3(local_path, granule_id)
     stac = to_stac_item(
         eo3,
@@ -167,16 +170,16 @@ def upload_metadata(granule_id):
     )
     stac["properties"]["odc:product"] = product
     stac_dump = json.dumps(stac, default=json_fallback, indent=4)
-    
+
     eo3 = serialise.to_doc(eo3)
-    eo3['lineage']['ard'][0] = str(eo3['lineage']['ard'][0])
+    eo3["lineage"]["ard"][0] = str(eo3["lineage"]["ard"][0])
     eo3["label"] = eo3["label"].replace(eo3["product"]["name"], product)
     eo3["product"]["name"] = product
     s3_dump(
-        yaml.safe_dump(eo3, default_flow_style=False), 
-        s3_eo3_path, 
+        yaml.safe_dump(eo3, default_flow_style=False),
+        s3_eo3_path,
         ACL="bucket-owner-full-control",
-        ContentType="text/vnd.yaml"
+        ContentType="text/vnd.yaml",
     )
 
     return stac_dump, s3_stac_path
@@ -198,12 +201,17 @@ class TqdmLoggingHandler(logging.Handler):
 
 
 code_to_band = {
-    "B01": 'nbart_coastal_aerosol', "B02": 'nbart_blue',
-    "B03": 'nbart_green', "B04": 'nbart_red',
-    "B05": 'nbart_red_edge_1', "B06": 'nbart_red_edge_2',
-    "B07": 'nbart_red_edge_3', "B08": 'nbart_nir_1',
-    "B11": 'nbart_swir_2', "B12": 'nbart_swir_3',
-    "B8A": 'nbart_nir_2'
+    "B01": "nbart_coastal_aerosol",
+    "B02": "nbart_blue",
+    "B03": "nbart_green",
+    "B04": "nbart_red",
+    "B05": "nbart_red_edge_1",
+    "B06": "nbart_red_edge_2",
+    "B07": "nbart_red_edge_3",
+    "B08": "nbart_nir_1",
+    "B11": "nbart_swir_2",
+    "B12": "nbart_swir_3",
+    "B8A": "nbart_nir_2",
 }
 
 
@@ -215,12 +223,19 @@ def add_to_eo3(assembler, granule_dir, folder, func, expand_valid_data):
     :param folder (str): the subfolder containing the measurement bands
     :param func: a function that transforms file names to the correct band name
     """
-    fns = [os.path.join(folder, fn) for fn in os.listdir(granule_dir / folder) if fn[-3:] == "TIF"]
+    fns = [
+        os.path.join(folder, fn)
+        for fn in os.listdir(granule_dir / folder)
+        if fn[-3:] == "TIF"
+    ]
     fns = [fn for fn in fns if "QUICKLOOK" not in fn]
     for i, fn in enumerate(fns):
-        name = func(fn.split('.')[-2])
+        name = func(fn.split(".")[-2])
         assembler.note_measurement(
-            name, fn, relative_to_dataset_location=True, expand_valid_data=expand_valid_data
+            name,
+            fn,
+            relative_to_dataset_location=True,
+            expand_valid_data=expand_valid_data,
         )
 
 
@@ -231,7 +246,9 @@ def add_datetime(assembler, granule_dir):
     eo_path = granule_dir / "ARD-METADATA.yaml"
     with open(eo_path) as fin:
         eo = yaml.safe_load(fin)
-    assembler.datetime = datetime.datetime.strptime(eo['extent']['center_dt'], '%Y-%m-%dT%H:%M:%S.%fZ')
+    assembler.datetime = datetime.datetime.strptime(
+        eo["extent"]["center_dt"], "%Y-%m-%dT%H:%M:%S.%fZ"
+    )
 
 
 def create_eo3(granule_dir, granule_id):
@@ -245,30 +262,50 @@ def create_eo3(granule_dir, granule_id):
         metadata = yaml.safe_load(fin)
 
     try:
-        coords = metadata['grid_spatial']['projection']['valid_data']['coordinates']
+        coords = metadata["grid_spatial"]["projection"]["valid_data"]["coordinates"]
         expand_valid_data = False
     except KeyError:
         expand_valid_data = True
 
     assembler = DatasetAssembler(
-            dataset_location=granule_dir,
-            metadata_path=granule_dir / "dummy",
+        dataset_location=granule_dir,
+        metadata_path=granule_dir / "dummy",
     )
 
     assembler.product_family = "ard"
     if "S2A" in str(granule_dir):
-        platform = "SENTINEL_2A"        
+        platform = "SENTINEL_2A"
     else:
         platform = "SENTINEL_2B"
 
     assembler.processed_now()
 
     add_datetime(assembler, granule_dir)
-    add_to_eo3(assembler, granule_dir, "NBART", lambda x: code_to_band[x.split('_')[-1]], expand_valid_data)
-    add_to_eo3(assembler, granule_dir, "SUPPLEMENTARY", lambda x: x[3:].lower(), expand_valid_data)
-    add_to_eo3(assembler, granule_dir, "QA", lambda x: x[3:].lower().replace('combined_', ''), expand_valid_data)
-    
-    thumbnail_fn = next(fn for fn in os.listdir(granule_dir / "NBART") if "NBART_THUMBNAIL" in fn)
+    add_to_eo3(
+        assembler,
+        granule_dir,
+        "NBART",
+        lambda x: code_to_band[x.split("_")[-1]],
+        expand_valid_data,
+    )
+    add_to_eo3(
+        assembler,
+        granule_dir,
+        "SUPPLEMENTARY",
+        lambda x: x[3:].lower(),
+        expand_valid_data,
+    )
+    add_to_eo3(
+        assembler,
+        granule_dir,
+        "QA",
+        lambda x: x[3:].lower().replace("combined_", ""),
+        expand_valid_data,
+    )
+
+    thumbnail_fn = next(
+        fn for fn in os.listdir(granule_dir / "NBART") if "NBART_THUMBNAIL" in fn
+    )
     assembler.add_accessory_file("thumbnail:nbart", f"NBART/{thumbnail_fn}")
     assembler.note_source_datasets("ard", metadata["id"])
 
@@ -278,30 +315,53 @@ def create_eo3(granule_dir, granule_id):
     assembler.properties["odc:region_code"] = metadata["provider"]["reference_code"]
     assembler.properties["odc:producer"] = "ga.gov.au"
     assembler.properties["odc:file_format"] = "GeoTIFF"
-    assembler.properties["odc:processing_datetime"] = metadata["system_information"]["time_processed"]
+    assembler.properties["odc:processing_datetime"] = metadata["system_information"][
+        "time_processed"
+    ]
 
     assembler.properties["gqa:cep90"] = metadata["gqa"]["residual"]["cep90"]
     assembler.properties["gqa:error_message"] = metadata["gqa"]["error_message"]
-    assembler.properties["gqa:final_gcp_count"] =metadata["gqa"]["final_gcp_count"]
+    assembler.properties["gqa:final_gcp_count"] = metadata["gqa"]["final_gcp_count"]
     assembler.properties["gqa:ref_source"] = metadata["gqa"]["ref_source"]
 
     assembler.properties["eo:platform"] = platform
     assembler.properties["eo:instrument"] = "MSI"
-    assembler.properties["eo:cloud_cover"] = metadata["lineage"]["source_datasets"]["S2MSI1C"]["image"]["cloud_cover_percentage"]
-    assembler.properties["eo:sun_azimuth"] = metadata["lineage"]["source_datasets"]["S2MSI1C"]["image"]["sun_azimuth"]
-    assembler.properties["eo:sun_elevation"] = metadata["lineage"]["source_datasets"]["S2MSI1C"]["image"]["sun_elevation"]
+    assembler.properties["eo:cloud_cover"] = metadata["lineage"]["source_datasets"][
+        "S2MSI1C"
+    ]["image"]["cloud_cover_percentage"]
+    assembler.properties["eo:sun_azimuth"] = metadata["lineage"]["source_datasets"][
+        "S2MSI1C"
+    ]["image"]["sun_azimuth"]
+    assembler.properties["eo:sun_elevation"] = metadata["lineage"]["source_datasets"][
+        "S2MSI1C"
+    ]["image"]["sun_elevation"]
     assembler.properties["eo:gsd"] = 10
 
     assembler.properties["dea:dataset_maturity"] = "final"
-    
-    assembler.properties["sentinel:datatake_start_datetime"] = granule_id.split("_")[-4]
-    assembler.properties["sentinel:utm_zone"] = metadata["provider"]["reference_code"][:2]
-    assembler.properties["sentinel:latitude_band"] = metadata["provider"]["reference_code"][2]
-    assembler.properties["sentinel:grid_square"] = metadata["provider"]["reference_code"][3:]
-    assembler.properties["sentinel:sentinel_tile_id"] = metadata["tile_id"]
-    assembler.properties["sentinel:datastrip_id"] = metadata["lineage"]["source_datasets"]["S2MSI1C"]["datastrip_id"]
 
-    for key in ["abs_iterative_mean", "abs", "iterative_mean", "iterative_stddev", "mean", "stddev"]:
+    assembler.properties["sentinel:datatake_start_datetime"] = granule_id.split("_")[-4]
+    assembler.properties["sentinel:utm_zone"] = metadata["provider"]["reference_code"][
+        :2
+    ]
+    assembler.properties["sentinel:latitude_band"] = metadata["provider"][
+        "reference_code"
+    ][2]
+    assembler.properties["sentinel:grid_square"] = metadata["provider"][
+        "reference_code"
+    ][3:]
+    assembler.properties["sentinel:sentinel_tile_id"] = metadata["tile_id"]
+    assembler.properties["sentinel:datastrip_id"] = metadata["lineage"][
+        "source_datasets"
+    ]["S2MSI1C"]["datastrip_id"]
+
+    for key in [
+        "abs_iterative_mean",
+        "abs",
+        "iterative_mean",
+        "iterative_stddev",
+        "mean",
+        "stddev",
+    ]:
         assembler.properties[f"gqa:{key}_xy"] = metadata["gqa"]["residual"][key]["xy"]
         assembler.properties[f"gqa:{key}_x"] = metadata["gqa"]["residual"][key]["x"]
         assembler.properties[f"gqa:{key}_y"] = metadata["gqa"]["residual"][key]["y"]
@@ -329,10 +389,10 @@ def create_eo3(granule_dir, granule_id):
 
     for measurement in eo3.measurements.values():
         if measurement.grid is None:
-            measurement.grid = 'default'
+            measurement.grid = "default"
 
     return eo3
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

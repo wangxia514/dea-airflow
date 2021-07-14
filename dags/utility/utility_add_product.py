@@ -38,9 +38,11 @@ The commands which are executed are:
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from airflow.kubernetes.secret import Secret
-from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
+from airflow.operators.python_operator import BranchPythonOperator
 from airflow.utils.trigger_rule import TriggerRule
 
 from infra.images import INDEXER_IMAGE
@@ -54,7 +56,7 @@ from infra.variables import (
     AWS_DEFAULT_REGION,
     DB_PORT,
 )
-from subdags.subdag_explorer_summary import explorer_refresh_operator
+from dea_utils.update_explorer_summaries import explorer_refresh_operator
 
 ADD_PRODUCT_TASK_ID = "add-product-task"
 
@@ -96,13 +98,6 @@ dag = DAG(
 )
 
 
-def parse_dagrun_conf(product_name, **kwargs):
-    """
-    parse input
-    """
-    return product_name
-
-
 def check_dagrun_config(product_definition_uri, s3_glob, **kwargs):
     """
     determine task needed to perform
@@ -115,7 +110,6 @@ def check_dagrun_config(product_definition_uri, s3_glob, **kwargs):
         return INDEXING_TASK_ID
 
 
-SET_REFRESH_PRODUCT_TASK_NAME = "parse_dagrun_conf"
 CHECK_DAGRUN_CONFIG = "check_dagrun_config"
 
 with dag:
@@ -168,16 +162,7 @@ with dag:
         trigger_rule=TriggerRule.NONE_FAILED_OR_SKIPPED,  # Needed in case add product was skipped
     )
 
-    SET_PRODUCTS = PythonOperator(
-        task_id=SET_REFRESH_PRODUCT_TASK_NAME,
-        python_callable=parse_dagrun_conf,
-        op_args=["{{ dag_run.conf.product_name }}"],
-    )
-
-    EXPLORER_SUMMARY = explorer_refresh_operator(
-        xcom_task_id=SET_REFRESH_PRODUCT_TASK_NAME,
-    )
+    EXPLORER_SUMMARY = explorer_refresh_operator("{{ dag_run.conf.product_name }}")
 
     TASK_PLANNER >> [ADD_PRODUCT, INDEXING]
     ADD_PRODUCT >> INDEXING >> EXPLORER_SUMMARY
-    SET_PRODUCTS >> EXPLORER_SUMMARY

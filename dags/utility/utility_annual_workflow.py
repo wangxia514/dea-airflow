@@ -21,11 +21,9 @@ dag_run.conf format:
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.operators.subdag_operator import SubDagOperator
-from airflow.operators.python_operator import PythonOperator
 from airflow.kubernetes.secret import Secret
-from subdags.subdag_ows_views import ows_update_operator
-from subdags.subdag_explorer_summary import explorer_refresh_operator
+from dea_utils.update_explorer_summaries import explorer_refresh_operator
+from dea_utils.update_ows_products import ows_update_operator
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
@@ -79,16 +77,6 @@ dag = DAG(
     tags=["k8s", "batch-indexing", "web-app-update", "self-service"],
 )
 
-
-def parse_dagrun_conf(product, **kwargs):
-    """
-    parse input
-    """
-    return product
-
-
-SET_REFRESH_PRODUCT_TASK_NAME = "parse_dagrun_conf"
-
 with dag:
     INDEXING = KubernetesPodOperator(
         namespace="processing",
@@ -112,21 +100,11 @@ with dag:
         is_delete_operator_pod=True,
     )
 
-    SET_PRODUCTS = PythonOperator(
-        task_id=SET_REFRESH_PRODUCT_TASK_NAME,
-        python_callable=parse_dagrun_conf,
-        op_args=["{{ dag_run.conf.product }}"],
-        # provide_context=True,
-    )
-
-    EXPLORER_SUMMARY = explorer_refresh_operator(
-        xcom_task_id=SET_REFRESH_PRODUCT_TASK_NAME,
-    )
+    EXPLORER_SUMMARY = explorer_refresh_operator("{{ dag_run.conf.product }}")
 
     OWS_UPDATE_EXTENTS = ows_update_operator(
-        xcom_task_id=SET_REFRESH_PRODUCT_TASK_NAME, dag=dag
+        products="{{ dag_run.conf.product }}", dag=dag
     )
 
-    INDEXING >> SET_PRODUCTS
-    SET_PRODUCTS >> EXPLORER_SUMMARY
-    SET_PRODUCTS >> OWS_UPDATE_EXTENTS
+    INDEXING >> OWS_UPDATE_EXTENTS
+    INDEXING >> EXPLORER_SUMMARY

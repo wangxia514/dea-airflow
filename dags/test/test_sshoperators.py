@@ -2,11 +2,10 @@
 Test ssh operators
 """
 from datetime import datetime, timedelta
-from pathlib import Path
 from textwrap import dedent
 
 import pendulum
-from airflow import DAG, configuration
+from airflow import DAG
 
 # from airflow.contrib.hooks.aws_hook import AwsHook
 # from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
@@ -16,7 +15,7 @@ from infra.connections import AWS_DEA_PUBLIC_DATA_UPLOAD_CONN
 # from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
 # from airflow.providers.sftp.operators.sftp import SFTPOperator, SFTPOperation
 from airflow.providers.ssh.operators.ssh import SSHOperator as v2_SSHOperator
-from airflow.providers.ssh.hooks.ssh import SSHHook as v2_SSHHook
+from airflow.providers.ssh.hooks.ssh import SSHHook as v2_SSHHook  # noqa: F401
 
 
 HOURS = 60 * 60

@@ -33,13 +33,13 @@ When manually trigger this DAG, we can put dag_run.conf there. The dag_run.conf 
     If we put nothing, or miss FREQUENCY or YEAR in the dag_run format, like
     {
         "FREQUENCY": "annual",
-    } 
-    or 
+    }
+    or
     {
         "YEAR": "2000"
     }
-    
-    it will use default year: 2009, and default frequency: annual. 
+
+    it will use default year: 2009, and default frequency: annual.
 
     NOTE: it does NOT support multi-year like
         {
@@ -52,7 +52,9 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from airflow.operators.python_operator import PythonOperator
 from airflow.operators.dummy_operator import DummyOperator
 
@@ -61,10 +63,9 @@ from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_ODC_READER_NAME,
-    PROCESSING_STATS_USER_SECRET
+    PROCESSING_STATS_USER_SECRET,
 )
 from infra.sqs_queues import LS_C3_WO_SUMMARY_QUEUE
-from infra.pools import DEA_NEWDATA_PROCESSING_POOL
 
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
@@ -105,7 +106,7 @@ DEFAULT_ARGS = {
             "AWS_SECRET_ACCESS_KEY",
             PROCESSING_STATS_USER_SECRET,
             "AWS_SECRET_ACCESS_KEY",
-        )
+        ),
     ],
 }
 
@@ -113,12 +114,16 @@ DEFAULT_ARGS = {
 PRODUCT_NAME = "ga_ls_wo_3"
 LS_C3_WO_SUMMARY_QUEUE_NAME = LS_C3_WO_SUMMARY_QUEUE.split("/")[-1]
 
-FREQUENCE = "{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='frequence') }}"
-YEAR_FILTER = "{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='year_filter') }}"
+FREQUENCE = (
+    "{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='frequence') }}"
+)
+YEAR_FILTER = (
+    "{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='year_filter') }}"
+)
 DB_NAME = "{{ task_instance.xcom_pull(task_ids='parse_job_args_task', key='output_db_filename') }}"
 
 CACHE_AND_UPLOADING_BASH_COMMAND = [
-    f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCE} {YEAR_FILTER} {DB_NAME} && ls -lh && " \
+    f"odc-stats save-tasks {PRODUCT_NAME} --grid au-30 --frequency {FREQUENCE} {YEAR_FILTER} {DB_NAME} && ls -lh && "
     f"aws s3 cp {DB_NAME} s3://dea-dev-stats-processing/dbs/airflow_test/{DB_NAME}",
 ]
 
@@ -139,35 +144,44 @@ dag = DAG(
     params={"labels": {"env": "dev"}},
 )
 
-dag.trigger_arguments = {"FREQUENCY": "string", "YEAR": "string"} # these are the arguments we would like to passed manually
+dag.trigger_arguments = {
+    "FREQUENCY": "string",
+    "YEAR": "string",
+}  # these are the arguments we would like to passed manually
+
 
 def parse_job_args_fn(**kwargs):
     """
     This method aims to parse the input from manually trigger, use default value if input is empty, then post parsed result to XCome.
     """
-    dag_run_conf = kwargs["dag_run"].conf #  here we get the parameters we specify when triggering
+    dag_run_conf = kwargs[
+        "dag_run"
+    ].conf  #  here we get the parameters we specify when triggering
 
     frequence = dag_run_conf["FREQUENCY"] if "FREQUENCY" in dag_run_conf else "annual"
     year = dag_run_conf["YEAR"] if "YEAR" in dag_run_conf else "2009"
-    year_filter = "--year=" + year if year.lower() != "all" else "" # if use pass 'all' as the year value, then do not pass any year value as filter
-    
+    year_filter = (
+        "--year=" + year if year.lower() != "all" else ""
+    )  # if use pass 'all' as the year value, then do not pass any year value as filter
+
     # the expected name pattern is: ga_ls_wo_3_annual_2009 or ga_ls_wo_3_annual_all
     output_db_filename = f"ga_ls_wo_3_{frequence}_{year}.db"
 
     # push it as an airflow xcom, can be used directly in K8s Pod operator
-    kwargs["ti"].xcom_push(key="frequence", value=frequence) 
-    kwargs["ti"].xcom_push(key="year_filter", value=year_filter) 
+    kwargs["ti"].xcom_push(key="frequence", value=frequence)
+    kwargs["ti"].xcom_push(key="year_filter", value=year_filter)
     kwargs["ti"].xcom_push(key="output_db_filename", value=output_db_filename)
+
 
 with dag:
 
     START = DummyOperator(task_id="start-stats-submit-tasks")
 
-    PARSE_INPUT = PythonOperator(  
+    PARSE_INPUT = PythonOperator(
         task_id="parse_job_args_task",
         python_callable=parse_job_args_fn,
-        provide_context=True, # if not default this, the callback method cannot access the context
-        dag=dag
+        provide_context=True,  # if not default this, the callback method cannot access the context
+        dag=dag,
     )
 
     CACHEING = KubernetesPodOperator(
@@ -197,7 +211,7 @@ with dag:
         affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
     )
-    
+
     COMPLETE = DummyOperator(task_id="complete-stats-submit-tasks")
 
     START >> PARSE_INPUT >> CACHEING >> SUBMITTING >> COMPLETE

@@ -3,7 +3,6 @@ Utilities for reporting db queries and inserts
 """
 
 import logging
-import re
 
 from psycopg2.errors import UniqueViolation  # pylint: disable-msg=E0611
 from airflow.providers.postgres.hooks.postgres import PostgresHook
