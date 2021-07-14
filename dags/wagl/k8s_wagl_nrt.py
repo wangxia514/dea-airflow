@@ -3,8 +3,7 @@ Run wagl NRT pipeline in Airflow.
 """
 import logging
 from datetime import datetime, timedelta
-import random
-from urllib.parse import urlencode, quote_plus, urlparse
+from urllib.parse import urlparse
 import json
 
 import yaml
@@ -12,20 +11,13 @@ import yaml
 from airflow import DAG
 
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
-from airflow.contrib.operators.kubernetes_pod_operator import Resources
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 from airflow.contrib.hooks.aws_sns_hook import AwsSnsHook
-from airflow.contrib.hooks.aws_sqs_hook import SQSHook
 from airflow.contrib.hooks.aws_hook import AwsHook
-from airflow.contrib.sensors.aws_sqs_sensor import SQSSensor
 from airflow.kubernetes.secret import Secret
 from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
-from airflow.hooks.S3_hook import S3Hook
-from airflow.utils.trigger_rule import TriggerRule
-
-import kubernetes.client.models as k8s
 
 from infra.pools import WAGL_TASK_POOL
 from infra.images import WAGL_IMAGE, S3_TO_RDS_IMAGE

@@ -29,7 +29,6 @@ from infra.variables import (
     DB_HOSTNAME,
     AWS_DEFAULT_REGION,
 )
-from webapp_update.update_list import EXPLORER_UPDATE_LIST
 
 DAG_NAME = "utility_explorer-refresh-stats"
 

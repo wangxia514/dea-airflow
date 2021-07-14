@@ -6,7 +6,7 @@ running [Explorer](https://github.com/opendatacube/datacube-explorer)
 and [Resto](https://github.com/jjrom/resto).
 
 [Waits for S3Key](https://gist.github.com/nehiljain/6dace5faccb680653f7ea4d5d5273946)
-for a day's backup to be available via 
+for a day's backup to be available via
 [S3KeySensor](https://airflow.apache.org/docs/stable/_api/airflow/sensors/s3_key_sensor/index.html)
 and excutes downstream task including verifying backup
 integrity using md5sum
@@ -16,9 +16,6 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.sensors.s3_key_sensor import S3KeySensor
-from airflow.contrib.operators.ssh_operator import SSHOperator
-from airflow.operators.bash_operator import BashOperator
-from airflow.operators.python_operator import PythonOperator
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator

@@ -2,7 +2,7 @@
 This script conducts unit tests on the rep_nrt_usgs_completeness.py
 """
 
-from datetime import datetime as dt, timezone, tzinfo
+from datetime import datetime as dt, timezone
 import unittest
 import pathlib
 import os

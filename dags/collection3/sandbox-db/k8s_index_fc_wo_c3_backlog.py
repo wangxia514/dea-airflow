@@ -6,7 +6,6 @@ DAG to index Sentinel-2 backlog data.
 """
 from datetime import datetime, timedelta
 
-import kubernetes.client.models as k8s
 from airflow import DAG
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret

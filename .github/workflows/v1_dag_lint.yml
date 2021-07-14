@@ -1,18 +1,26 @@
-name: Airflow Lint DAGs
+---
+name:  v1.10.15 airflow Lint DAGs
 
 on:
   push:
     paths:
       - 'dags/**'
       - 'scripts/**'
+      - 'tests/**'
+      - 'plugins/**'
       - '.github/workflows/**'
+      - 'requirements.txt'
+      - 'constraints.txt'
   pull_request:
+    types: [opened, reopened]
     branches:
       - master
       - develop
     paths:
       - 'dags/**'
       - 'scripts/**'
+      - 'tests/**'
+      - 'plugins/**'
       - '.github/workflows/**'
       - 'requirements.txt'
       - 'constraints.txt'
@@ -23,7 +31,8 @@ jobs:
     strategy:
       matrix:
         python-version: [3.6]
-    name: Airflow ${{ matrix.python-version }}
+        airflow-version: [1.10.15]
+    name: Airflow ${{ matrix.airflow-version }}
     steps:
       - uses: actions/checkout@v2
       - name: Install Airflow and Lint
@@ -40,23 +49,42 @@ jobs:
         run: |
           pip install apache-airflow[aws,kubernetes,postgres,redis,ssh,celery]==1.10.15 -c constraints.txt
           pip install pylint pylint-airflow
-          pip install -r requirements.txt
+          pip install -r requirements.txt -c constraints.txt
           pylint --load-plugins=pylint_airflow --disable=C,W --disable=similarities dags
-      - name: setup airflow and run list_dags
+      - name: setup airflow and check dags list
         run: |
           export AIRFLOW__CORE__LOAD_EXAMPLES="False"
           export AIRFLOW__CORE__PLUGINS_FOLDER="/home/runner/work/dea-airflow/dea-airflow/plugins"
           export AIRFLOW__CORE__DAGS_FOLDER="/home/runner/work/dea-airflow/dea-airflow/dags"
-          airflow initdb
+
+          airflow db init
           airflow connections --add --conn_id aws_nci_db_backup --conn_type aws --conn_login AWSKEY --conn_password AWS_PASS
           airflow connections --add --conn_id lpgs_gadi --conn_type ssh --conn_login USERNAME --conn_password PASS
           airflow info
-          airflow list_dags
+          airflow dags list
 
           # check if list_dags has error if yes exit CI
-          daglist=`airflow list_dags`
+          daglist=`airflow dags list`
           errorstring="Error"
           if [[ $daglist == *"$errorstring"* ]]; then
               echo "error in dags"
               exit 1
           fi
+
+  flake8:
+    name: flake8
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - run: python -m pip install flake8
+      - name: flake8 cleanup imported but unused
+        uses: liskin/gh-problem-matcher-wrap@v1
+        with:
+          linters: flake8
+          run: |
+            flake8 . --exclude Dockerfile --ignore=E501 --select=F401

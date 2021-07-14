@@ -1,0 +1,66 @@
+---
+name: v1.10.15 airflow DAGs unit tests
+
+on:
+  push:
+    paths:
+      - 'dags/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'plugins/**'
+      - '.github/workflows/**'
+      - 'requirements.txt'
+      - 'constraints.txt'
+  pull_request:
+    types: [opened, reopened]
+    branches:
+      - master
+      - develop
+    paths:
+      - 'dags/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'plugins/**'
+      - '.github/workflows/**'
+      - 'requirements.txt'
+      - 'constraints.txt'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6]
+        airflow-version: [1.10.15]
+    name: Airflow ${{ matrix.airflow-version }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Airflow and Lint
+        uses: s-weigand/setup-conda@v1
+        with:
+          update-conda: true
+          python-version: ${{ matrix.python-version }}
+          conda-channels: anaconda, conda-forge
+      - name: Check conda version
+        run: conda --version
+      - name: Check python
+        run: which python
+      - name: Install airflow
+        run: |
+          pip install apache-airflow[aws,kubernetes,postgres,redis,ssh,celery]==1.10.15 -c constraints.txt
+          pip install pylint pylint-airflow
+          pip install -r requirements.txt -c constraints.txt
+          pip freeze
+      - name: setup airflow and check dags list
+        run: |
+          export AIRFLOW__CORE__LOAD_EXAMPLES="False"
+          export AIRFLOW__CORE__PLUGINS_FOLDER="/home/runner/work/dea-airflow/dea-airflow/plugins"
+          export AIRFLOW__CORE__DAGS_FOLDER="/home/runner/work/dea-airflow/dea-airflow/dags"
+
+          airflow db init
+
+      - name: run tests on dags
+        run: |
+          export PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}${PWD}/dags"
+          pip install pylint==2.7.2 pytest==6.2.2 pylint-airflow
+          pytest tests/dag_structure

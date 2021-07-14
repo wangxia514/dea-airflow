@@ -12,7 +12,6 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
-from airflow.operators.dummy_operator import DummyOperator
 from infra.sqs_queues import SENTINEL_2_ARD_INDEXING_SQS_QUEUE_NAME_ODC_DB
 from infra.variables import (
     DB_DATABASE,

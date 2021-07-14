@@ -7,7 +7,6 @@ from datetime import datetime
 import pendulum
 from airflow import DAG
 from airflow.contrib.operators.ssh_operator import SSHOperator
-from airflow.operators.email_operator import EmailOperator
 
 local_tz = pendulum.timezone("Australia/Canberra")
 
@@ -43,7 +42,7 @@ with dag:
 
         module load python3/3.7.4
         pip3 install --user pyyaml jinja2
-        
+
         rm -rf /g/data/v10/public/modules/dea/unstable/
         ./build_environment_module.py dea_unstable/modulespec.yaml
         """,
