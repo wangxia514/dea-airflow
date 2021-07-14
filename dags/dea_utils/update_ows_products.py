@@ -5,11 +5,11 @@ from collections.abc import Sequence
 from textwrap import dedent
 
 import kubernetes.client.models as k8s
-from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
-from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
-
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from infra.images import OWS_CONFIG_IMAGE, OWS_IMAGE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.variables import SECRET_OWS_WRITER_NAME
@@ -30,13 +30,16 @@ OWS_SECRETS = [
 
 # MOUNT OWS_CFG via init_container
 # for main container mount
-ows_cfg_mount = VolumeMount(
-    "ows-config-volume", mount_path=OWS_CFG_MOUNT_PATH, sub_path=None, read_only=False
+ows_cfg_mount = k8s.V1VolumeMount(
+    name="ows-config-volume",
+    mount_path=OWS_CFG_MOUNT_PATH,
+    sub_path=None,
+    read_only=False,
 )
 
-ows_cfg_volume_config = {}
 
-ows_cfg_volume = Volume(name="ows-config-volume", configs=ows_cfg_volume_config)
+ows_cfg_volume = k8s.V1Volume(name="ows-config-volume")
+
 
 # for init container mount
 cfg_image_mount = k8s.V1VolumeMount(
