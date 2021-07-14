@@ -23,7 +23,6 @@ class testClass(unittest.TestCase):
     def test_ows_utility_dag(self):
         self.assertDagDictEqual(
             {
-                "parse_dagrun_conf": ["ows-update-range"],
                 "ows-update-range": [],
             },
             ows_utility_dag,
@@ -32,7 +31,6 @@ class testClass(unittest.TestCase):
     def test_explorer_utility_dag(self):
         self.assertDagDictEqual(
             {
-                "parse_dagrun_conf": ["explorer-summary-task"],
                 "explorer-summary-task": [],
             },
             explorer_utility_dag,
@@ -41,8 +39,7 @@ class testClass(unittest.TestCase):
     def test_annual_utility_dag(self):
         self.assertDagDictEqual(
             {
-                "batch-indexing-task": ["parse_dagrun_conf"],
-                "parse_dagrun_conf": [
+                "batch-indexing-task": [
                     "explorer-summary-task",
                     "ows-update-range",
                 ],
@@ -66,7 +63,6 @@ class testClass(unittest.TestCase):
                 "check_dagrun_config": ["add-product-task", "batch-indexing-task"],
                 "add-product-task": ["batch-indexing-task"],
                 "batch-indexing-task": ["explorer-summary-task"],
-                "parse_dagrun_conf": ["explorer-summary-task"],
                 "explorer-summary-task": [],
             },
             add_product_index_utility_dag,
