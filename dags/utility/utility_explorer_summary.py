@@ -60,4 +60,4 @@ with DAG(
     catchup=False,
     tags=["k8s", "explorer"],
 ) as dag:
-    EXPLORER_SUMMARY = explorer_refresh_operator("{{ dag_run.conf.product }}")
+    EXPLORER_SUMMARY = explorer_refresh_operator("{{ dag_run.conf.products }}")
