@@ -115,6 +115,7 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval=None,  # triggered only
     catchup=False,
+    concurrency=128,
     tags=["k8s", "landsat", "waterbodies"],
 )
 
