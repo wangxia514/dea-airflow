@@ -15,7 +15,7 @@ from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
-from infra.images import EXPLORER_UNSTABLE_IMAGE, EXPLORER_IMAGE
+from infra.images import EXPLORER_IMAGE
 from infra.variables import DB_HOSTNAME, DB_PORT, SECRET_EXPLORER_NCI_WRITER_NAME
 from infra.variables import AWS_DEFAULT_REGION
 

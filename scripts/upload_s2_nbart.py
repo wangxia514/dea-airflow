@@ -7,26 +7,22 @@ import datetime
 import json
 import logging
 import os
-import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures._base import as_completed
 from pathlib import Path
 
 import boto3
-import botocore
 import click
-import rasterio
 import yaml
-from rasterio import DatasetReader
 from shapely.geometry.polygon import Polygon
 from tqdm import tqdm
 
-from eodatasets3 import DatasetAssembler, documents, images, serialise, validate
-from eodatasets3.model import AccessoryDoc, DatasetDoc, Location, ProductDoc
+from eodatasets3 import DatasetAssembler, serialise
+from eodatasets3.model import AccessoryDoc, DatasetDoc, ProductDoc
 from eodatasets3.scripts.tostac import json_fallback
 from eodatasets3.stac import to_stac_item
-from odc.aws import s3_client, s3_dump
+from odc.aws import s3_dump
 
 from c3_to_s3_rolling import (
     check_granule_exists,
@@ -157,14 +153,14 @@ def upload_metadata(granule_id):
     )
     stac["properties"]["odc:product"] = product
     stac_dump = json.dumps(stac, default=json_fallback, indent=4)
-    
+
     eo3 = serialise.to_doc(eo3)
     eo3['lineage']['ard'][0] = str(eo3['lineage']['ard'][0])
     eo3["label"] = eo3["label"].replace(eo3["product"]["name"], product)
     eo3["product"]["name"] = product
     s3_dump(
-        yaml.safe_dump(eo3, default_flow_style=False), 
-        s3_eo3_path, 
+        yaml.safe_dump(eo3, default_flow_style=False),
+        s3_eo3_path,
         ACL="bucket-owner-full-control",
         ContentType="text/vnd.yaml"
     )
@@ -248,7 +244,7 @@ def create_eo3(granule_dir, granule_id):
 
     assembler.product_family = "ard"
     if "S2A" in str(granule_dir):
-        platform = "SENTINEL_2A"        
+        platform = "SENTINEL_2A"
     else:
         platform = "SENTINEL_2B"
 
@@ -258,7 +254,7 @@ def create_eo3(granule_dir, granule_id):
     add_to_eo3(assembler, granule_dir, "NBART", lambda x: code_to_band[x.split('_')[-1]], expand_valid_data)
     add_to_eo3(assembler, granule_dir, "SUPPLEMENTARY", lambda x: x[3:].lower(), expand_valid_data)
     add_to_eo3(assembler, granule_dir, "QA", lambda x: x[3:].lower().replace('combined_', ''), expand_valid_data)
-    
+
     thumbnail_fn = next(fn for fn in os.listdir(granule_dir / "NBART") if "NBART_THUMBNAIL" in fn)
     assembler.add_accessory_file("thumbnail:nbart", f"NBART/{thumbnail_fn}")
     assembler.note_source_datasets("ard", metadata["id"])
@@ -284,7 +280,7 @@ def create_eo3(granule_dir, granule_id):
     assembler.properties["eo:gsd"] = 10
 
     assembler.properties["dea:dataset_maturity"] = "final"
-    
+
     assembler.properties["sentinel:datatake_start_datetime"] = granule_id.split("_")[-4]
     assembler.properties["sentinel:utm_zone"] = metadata["provider"]["reference_code"][:2]
     assembler.properties["sentinel:latitude_band"] = metadata["provider"]["reference_code"][2]

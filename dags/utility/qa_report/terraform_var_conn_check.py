@@ -1,12 +1,9 @@
 """
 Check all terraform variables are provided by checking if VARIABLE has been injected to env.
 """
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
-from textwrap import dedent
-
-from airflow.utils.dates import days_ago
 
 DAG_NAME = "utility_qa_terraform_variables_listing"
 

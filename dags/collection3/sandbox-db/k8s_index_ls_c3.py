@@ -25,7 +25,6 @@ from infra.variables import (
     DB_SANDBOX_DATABASE,
     DB_SANDBOX_USER_SECRET,
     DB_HOSTNAME,
-    C3_ALCHEMIST_SECRET,
 )
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 

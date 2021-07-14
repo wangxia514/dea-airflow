@@ -12,7 +12,6 @@ from textwrap import dedent
 from infra.images import INDEXER_IMAGE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.variables import DB_HOSTNAME, DB_PORT, SECRET_EXPLORER_NCI_ADMIN_NAME
-from infra.variables import AWS_DEFAULT_REGION
 
 # Templated DAG arguments
 DEFAULT_ARGS = {

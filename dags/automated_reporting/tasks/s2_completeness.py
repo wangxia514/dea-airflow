@@ -3,9 +3,6 @@ Task for s2 completeness calculations
 """
 import logging
 
-from airflow.hooks.S3_hook import S3Hook
-
-import infra.connections as connections
 from automated_reporting.utilities import helpers
 from automated_reporting.utilities import copernicus_api
 from automated_reporting.databases import odc_db, reporting_db
