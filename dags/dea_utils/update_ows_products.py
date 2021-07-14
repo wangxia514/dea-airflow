@@ -6,7 +6,6 @@ from textwrap import dedent
 
 import kubernetes.client.models as k8s
 from airflow.kubernetes.secret import Secret
-from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
