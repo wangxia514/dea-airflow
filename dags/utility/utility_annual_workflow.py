@@ -1,6 +1,6 @@
 """
 ## Utility Tool (Self Serve)
-For indexing more dataset from s3 to an existing established product and ows layers.
+For indexing datasets from s3 into an existing product and OWS layer/s.
 
 #### Utility customisation
 The DAG can be parameterized with run time configuration `product` and `s3_glob`
@@ -15,23 +15,22 @@ dag_run.conf format:
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.operators.python_operator import PythonOperator
-from airflow.kubernetes.secret import Secret
-from subdags.subdag_ows_views import ows_update_operator
-from subdags.subdag_explorer_summary import explorer_refresh_operator
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+from airflow.kubernetes.secret import Secret
 
-from infra.images import INDEXER_IMAGE
+from dea_utils.update_explorer_summaries import explorer_refresh_operator
+from dea_utils.update_ows_products import ows_update_operator
 from infra.iam_roles import INDEXING_ROLE
+from infra.images import INDEXER_IMAGE
+from infra.podconfig import (
+    ONDEMAND_NODE_AFFINITY,
+)
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
     DB_PORT,
     AWS_DEFAULT_REGION,
-)
-from infra.podconfig import (
-    ONDEMAND_NODE_AFFINITY,
 )
 
 DAG_NAME = "utility_indexing_annual_ows_explorer_update"
@@ -60,28 +59,15 @@ DEFAULT_ARGS = {
     ],
 }
 
-
 # THE DAG
-dag = DAG(
+with DAG(
     dag_id=DAG_NAME,
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
     tags=["k8s", "annual", "batch-indexing", "self-service"],
-)
-
-
-def parse_dagrun_conf(product, **kwargs):
-    """
-    parse config
-    """
-    return product
-
-
-SET_REFRESH_PRODUCT_TASK_NAME = "parse_dagrun_conf"
-
-with dag:
+) as dag:
     INDEXING = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
@@ -105,21 +91,11 @@ with dag:
         is_delete_operator_pod=True,
     )
 
-    SET_PRODUCTS = PythonOperator(
-        task_id=SET_REFRESH_PRODUCT_TASK_NAME,
-        python_callable=parse_dagrun_conf,
-        op_args=["{{ dag_run.conf.product }}"],
-        # provide_context=True,
-    )
-
-    EXPLORER_SUMMARY = explorer_refresh_operator(
-        xcom_task_id=SET_REFRESH_PRODUCT_TASK_NAME,
-    )
+    EXPLORER_SUMMARY = explorer_refresh_operator("{{ dag_run.conf.product }}")
 
     OWS_UPDATE_EXTENTS = ows_update_operator(
-        xcom_task_id=SET_REFRESH_PRODUCT_TASK_NAME, dag=dag
+        products="{{ dag_run.conf.product }}", dag=dag
     )
 
-    INDEXING >> SET_PRODUCTS
-    SET_PRODUCTS >> EXPLORER_SUMMARY
-    SET_PRODUCTS >> OWS_UPDATE_EXTENTS
+    INDEXING >> EXPLORER_SUMMARY
+    INDEXING >> OWS_UPDATE_EXTENTS

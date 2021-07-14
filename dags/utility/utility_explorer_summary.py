@@ -19,21 +19,17 @@ dag_run.conf format:
     "products": "s2a_nrt_granule s2b_nrt_granule"
 """
 
-from airflow import DAG
 from datetime import datetime, timedelta
-from airflow.operators.python_operator import PythonOperator
 
-from airflow.kubernetes.secret import Secret
-from subdags.subdag_explorer_summary import explorer_refresh_operator
+from airflow import DAG
 
+from dea_utils.update_explorer_summaries import explorer_refresh_operator
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     AWS_DEFAULT_REGION,
 )
-from webapp_update.update_list import (
-    EXPLORER_UPDATE_LIST,
-)
+from webapp_update.update_list import EXPLORER_UPDATE_LIST
 
 DAG_NAME = "utility_explorer-refresh-stats"
 
@@ -55,38 +51,13 @@ DEFAULT_ARGS = {
     },
 }
 
-
 # THE DAG
-dag = DAG(
+with DAG(
     dag_id=DAG_NAME,
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
     tags=["k8s", "explorer"],
-)
-
-
-def parse_dagrun_conf(products, **kwargs):
-    if products:
-        return products
-    else:
-        return " ".join(EXPLORER_UPDATE_LIST)
-
-
-SET_REFRESH_PRODUCT_TASK_NAME = "parse_dagrun_conf"
-
-with dag:
-
-    SET_PRODUCTS = PythonOperator(
-        task_id=SET_REFRESH_PRODUCT_TASK_NAME,
-        python_callable=parse_dagrun_conf,
-        op_args=["{{ dag_run.conf.products }}"],
-        # provide_context=True,
-    )
-
-    EXPLORER_SUMMARY = explorer_refresh_operator(
-        xcom_task_id=SET_REFRESH_PRODUCT_TASK_NAME,
-    )
-
-    SET_PRODUCTS >> EXPLORER_SUMMARY
+) as dag:
+    EXPLORER_SUMMARY = explorer_refresh_operator("{{ dag_run.conf.product }}")

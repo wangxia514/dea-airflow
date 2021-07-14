@@ -1,5 +1,8 @@
-# ows layer product to be updated
-UPDATE_EXTENT_PRODUCTS = (
+"""
+Lists of default products to update in the OWS and Explorer Web Application
+"""
+# Default OWS product layers to be updated
+OWS_UPDATE_LIST = (
     "s2_nrt_granule_nbar_t",
     "wofs_albers",
     "fc_albers_combined",
@@ -12,6 +15,7 @@ UPDATE_EXTENT_PRODUCTS = (
     "ga_ls_ard_3",
 )
 
+# Default Datacube Explorer Products to Update
 EXPLORER_UPDATE_LIST = (
     "s2a_nrt_granule",
     "s2b_nrt_granule",

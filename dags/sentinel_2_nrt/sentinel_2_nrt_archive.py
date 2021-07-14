@@ -15,7 +15,7 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from textwrap import dedent
 
 from infra.images import INDEXER_IMAGE
-from subdags.subdag_ows_views import ows_update_operator
+from dea_utils.update_ows_products import ows_update_operator
 
 from infra.variables import (
     DB_DATABASE,
@@ -23,13 +23,13 @@ from infra.variables import (
     AWS_DEFAULT_REGION,
     SECRET_ODC_WRITER_NAME,
 )
-from subdags.subdag_explorer_summary import explorer_refresh_operator
+from dea_utils.update_explorer_summaries import explorer_refresh_operator
 from sentinel_2_nrt.env_cfg import (
     ARCHIVE_CONDITION,
     ARCHIVE_PRODUCTS,
 )
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
-
+from webapp_update.update_list import EXPLORER_UPDATE_LIST, OWS_UPDATE_LIST
 
 DAG_NAME = "sentinel_2_nrt_archive"
 
@@ -75,16 +75,14 @@ DEFAULT_ARGS = {
 }
 
 # THE DAG
-dag = DAG(
+with DAG(
     dag_id=DAG_NAME,
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval="0 1 * * *",  # daily at 1am
     catchup=False,
     tags=["k8s", "sentinel-2", "archive"],
-)
-
-with dag:
+) as dag:
 
     ARCHIVE_EXTRANEOUS_DS = KubernetesPodOperator(
         namespace="processing",
@@ -98,9 +96,9 @@ with dag:
         is_delete_operator_pod=True,
     )
 
-    OWS_UPDATE_EXTENTS = ows_update_operator(dag=dag)
+    OWS_UPDATE_EXTENTS = ows_update_operator(products=OWS_UPDATE_LIST, dag=dag)
 
-    EXPLORER_SUMMARY = explorer_refresh_operator()
+    EXPLORER_SUMMARY = explorer_refresh_operator(products=EXPLORER_UPDATE_LIST)
 
     ARCHIVE_EXTRANEOUS_DS >> OWS_UPDATE_EXTENTS
     ARCHIVE_EXTRANEOUS_DS >> EXPLORER_SUMMARY
