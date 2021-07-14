@@ -4,7 +4,9 @@ Daily DAG for AWS NCI datacube db maintenance operations
 """
 
 from airflow import DAG
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
@@ -12,7 +14,6 @@ from textwrap import dedent
 from infra.images import INDEXER_IMAGE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.variables import DB_HOSTNAME, DB_PORT, SECRET_EXPLORER_NCI_ADMIN_NAME
-from infra.variables import AWS_DEFAULT_REGION
 
 # Templated DAG arguments
 DEFAULT_ARGS = {
@@ -32,8 +33,12 @@ DEFAULT_ARGS = {
     # Lift secrets into environment variables for datacube database connectivity
     "secrets": [
         Secret("env", "DB_DATABASE", SECRET_EXPLORER_NCI_ADMIN_NAME, "database-name"),
-        Secret("env", "DB_ADMIN_USER", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-username"),
-        Secret("env", "PGPASSWORD", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-password"),
+        Secret(
+            "env", "DB_ADMIN_USER", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-username"
+        ),
+        Secret(
+            "env", "PGPASSWORD", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-password"
+        ),
     ],
 }
 

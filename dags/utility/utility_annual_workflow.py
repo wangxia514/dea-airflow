@@ -21,7 +21,6 @@ dag_run.conf format:
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.operators.python_operator import PythonOperator
 from airflow.kubernetes.secret import Secret
 from dea_utils.update_explorer_summaries import explorer_refresh_operator
 from dea_utils.update_ows_products import ows_update_operator

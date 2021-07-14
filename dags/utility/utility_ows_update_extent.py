@@ -32,19 +32,13 @@ dag_run.conf format:
 """
 
 from airflow import DAG
-from datetime import datetime, timedelta
-from airflow.operators.python_operator import PythonOperator
-
-from airflow.kubernetes.secret import Secret
 from dea_utils.update_ows_products import ows_update_operator
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     AWS_DEFAULT_REGION,
 )
-from webapp_update.update_list import (
-    UPDATE_EXTENT_PRODUCTS,
-)
+from datetime import datetime, timedelta
 
 DAG_NAME = "utility_ows-update-extent"
 

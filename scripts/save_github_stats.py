@@ -9,7 +9,6 @@ import boto3
 import psycopg2
 from psycopg2.extras import Json
 
-import elasticsearch_dsl
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 from elasticsearch_dsl import Search
 from requests_aws4auth import AWS4Auth

@@ -14,7 +14,6 @@ from datetime import timedelta, timezone
 
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
-from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 import infra.connections as connections
 

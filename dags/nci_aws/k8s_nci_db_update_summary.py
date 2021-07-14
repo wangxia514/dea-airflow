@@ -14,12 +14,14 @@ database. Check `k8s_nci_db_incremental_update_summary` DAG instead.
 
 import pendulum
 from airflow import DAG
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
-from infra.images import EXPLORER_UNSTABLE_IMAGE, EXPLORER_IMAGE
+from infra.images import EXPLORER_IMAGE
 
 local_tz = pendulum.timezone("Australia/Canberra")
 
@@ -58,7 +60,7 @@ dag = DAG(
     concurrency=1,
     max_active_runs=1,
     tags=["k8s", "nci-explorer"],
-    schedule_interval=None,    # Fully manual run
+    schedule_interval=None,  # Fully manual run
 )
 
 affinity = ONDEMAND_NODE_AFFINITY
@@ -83,7 +85,6 @@ with dag:
 
     # Task complete
     COMPLETE = DummyOperator(task_id="done")
-
 
     START >> UPDATE_SUMMARY
     UPDATE_SUMMARY >> COMPLETE

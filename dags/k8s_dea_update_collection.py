@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-### DEA Access update collection 
+### DEA Access update collection
 
 The collection updater is a manual run to trigger RESTO API collection update.
 
@@ -9,13 +9,13 @@ This should be done after any changes to the collections.csv in dea-config. e.g.
 
 #### Docker image notes
 
-`UPDATE_COLLECTION_IMAGE` image is built through github action workflow and published to ECR. The Dockerfile is located at `components/update-collectionr/Dockerfile` and part of a private repo `jjrom/dea-access` at this time.  
+`UPDATE_COLLECTION_IMAGE` image is built through github action workflow and published to ECR. The Dockerfile is located at `components/update-collectionr/Dockerfile` and part of a private repo `jjrom/dea-access` at this time.
 
 #### Airflow dependencies
 
 * A secret is used for the collection pods. This must exist under the namespace `processing`. The creation is currently controlled with the `datakube` repo. (*see core team for access*)
 
-Environment variables for update-collection image are fed from the secrets 
+Environment variables for update-collection image are fed from the secrets
 
 """
 from datetime import datetime, timedelta
@@ -26,11 +26,11 @@ from airflow import DAG
 from airflow.kubernetes.secret import Secret
 
 # Operators; we need this to operate!
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
-from airflow.operators.dummy_operator import DummyOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from infra.variables import DEA_ACCESS_RESTO_API_ADMIN_SECRET
-import requests
-import csv
+
 # [END import_module]
 
 # [START default_args]
@@ -46,14 +46,21 @@ default_args = {
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "secrets": [
-         Secret("env", "API_ADMIN_USERID", DEA_ACCESS_RESTO_API_ADMIN_SECRET, "API_ADMIN_USERID"),
-         Secret("env", "JWT_PASSPHRASE", DEA_ACCESS_RESTO_API_ADMIN_SECRET, "JWT_PASSPHRASE"),
-     ],
+        Secret(
+            "env",
+            "API_ADMIN_USERID",
+            DEA_ACCESS_RESTO_API_ADMIN_SECRET,
+            "API_ADMIN_USERID",
+        ),
+        Secret(
+            "env", "JWT_PASSPHRASE", DEA_ACCESS_RESTO_API_ADMIN_SECRET, "JWT_PASSPHRASE"
+        ),
+    ],
 }
 # [END default_args]
 
 # Docker images
-UPDATE_COLLECTION_IMAGE= "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dea-access/update-collection:latest"
+UPDATE_COLLECTION_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dea-access/update-collection:latest"
 
 SECRET_ENV_API_USERID = Secret(
     deploy_type="env",
@@ -68,7 +75,7 @@ SECRET_ENV_API_USERID = Secret(
 SECRET_ENV_JWT_PASSPHRASE = Secret(
     deploy_type="env",
     # The name of the environment variable
-    deploy_target="JWT_PASSPHRASE", # Name of the Kubernetes Secret
+    deploy_target="JWT_PASSPHRASE",  # Name of the Kubernetes Secret
     secret=DEA_ACCESS_RESTO_API_ADMIN_SECRET,
     # Key of a secret stored in this Secret object
     key="JWT_PASSPHRASE",
@@ -95,24 +102,24 @@ pipeline = DAG(
 with pipeline:
 
     task_collection_updater = KubernetesPodOperator(
-         namespace="processing",
-         name="dea-access-collection-updater",
-         task_id="task_collection_updater",  # task_0_0_fc_percentile_albers_annual
-         image_pull_policy="Always",
-         image=UPDATE_COLLECTION_IMAGE,
-         is_delete_operator_pod=True,  # clean pod
-         labels={"runner": "airflow"},
-         env_vars={
-              "DEFAULT_TIMEOUT": "{{ params.DEFAULT_TIMEOUT }}",
-              "RESTO_URL": "{{ params.RESTO_URL }}",
-         },
-         secrets=[SECRET_ENV_API_USERID,SECRET_ENV_JWT_PASSPHRASE],
-         reattach_on_restart=True,
-         resources={
-               "request_cpu": "250m",
-               "request_memory": "512Mi",
-               "limit_cpu": "500m",
-               "limit_memory": "1024Mi",
-                   },
-               get_logs=True,
-       )
+        namespace="processing",
+        name="dea-access-collection-updater",
+        task_id="task_collection_updater",  # task_0_0_fc_percentile_albers_annual
+        image_pull_policy="Always",
+        image=UPDATE_COLLECTION_IMAGE,
+        is_delete_operator_pod=True,  # clean pod
+        labels={"runner": "airflow"},
+        env_vars={
+            "DEFAULT_TIMEOUT": "{{ params.DEFAULT_TIMEOUT }}",
+            "RESTO_URL": "{{ params.RESTO_URL }}",
+        },
+        secrets=[SECRET_ENV_API_USERID, SECRET_ENV_JWT_PASSPHRASE],
+        reattach_on_restart=True,
+        resources={
+            "request_cpu": "250m",
+            "request_memory": "512Mi",
+            "limit_cpu": "500m",
+            "limit_memory": "1024Mi",
+        },
+        get_logs=True,
+    )
