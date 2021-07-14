@@ -33,10 +33,8 @@ dag_run.conf format:
 
 from airflow import DAG
 from datetime import datetime, timedelta
-from airflow.operators.python_operator import PythonOperator
 
-from airflow.kubernetes.secret import Secret
-from subdags.subdag_explorer_summary import explorer_refresh_operator
+from dea_utils.update_explorer_summaries import explorer_refresh_operator
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
@@ -79,27 +77,6 @@ dag = DAG(
 )
 
 
-def parse_dagrun_conf(products, **kwargs):
-    """get dag run product"""
-    if products:
-        return products
-    else:
-        return " ".join(EXPLORER_UPDATE_LIST)
-
-
-SET_REFRESH_PRODUCT_TASK_NAME = "parse_dagrun_conf"
-
 with dag:
 
-    SET_PRODUCTS = PythonOperator(
-        task_id=SET_REFRESH_PRODUCT_TASK_NAME,
-        python_callable=parse_dagrun_conf,
-        op_args=["{{ dag_run.conf.products }}"],
-        # provide_context=True,
-    )
-
-    EXPLORER_SUMMARY = explorer_refresh_operator(
-        xcom_task_id=SET_REFRESH_PRODUCT_TASK_NAME,
-    )
-
-    SET_PRODUCTS >> EXPLORER_SUMMARY
+    EXPLORER_SUMMARY = explorer_refresh_operator("{{ dag_run.conf.product }}")

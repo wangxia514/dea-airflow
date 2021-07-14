@@ -3,7 +3,7 @@
 """
 
 # ows layer product to be updated
-UPDATE_EXTENT_PRODUCTS = (
+OWS_UPDATE_LIST = (
     "s2_nrt_granule_nbar_t",
     "wofs_albers",
     "fc_albers_combined",
