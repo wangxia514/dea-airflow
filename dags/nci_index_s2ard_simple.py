@@ -20,37 +20,39 @@ from textwrap import dedent
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.contrib.operators.ssh_operator import SSHOperator
+from airflow.providers.ssh.operators.ssh import SSHOperator
 
 default_args = {
-    'owner': 'Damien Ayers',
-    'depends_on_past': False,
-    'start_date': datetime(2020, 4, 1),
-    'email': ['damien.ayers@ga.gov.au'],
-    'email_on_failure': True,
-    'email_on_retry': False,
-    'retries': 1,
-    'retry_delay': timedelta(minutes=5),
-    'params': {
-        'project': 'v10',
-        'module': 'dea',
-        'queue': 'normal',
-    }
+    "owner": "Damien Ayers",
+    "depends_on_past": False,
+    "start_date": datetime(2020, 4, 1),
+    "email": ["damien.ayers@ga.gov.au"],
+    "email_on_failure": True,
+    "email_on_retry": False,
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5),
+    "params": {
+        "project": "v10",
+        "module": "dea",
+        "queue": "normal",
+    },
 }
 
-with DAG('nci_index_s2ard_simple',
-         default_args=default_args,
-         catchup=True,
-         schedule_interval=timedelta(days=1),
-         max_active_runs=2,
-         doc_md=__doc__,
-         tags=['nci', 'sentinel_2'],
-         ) as dag:
+with DAG(
+    "nci_index_s2ard_simple",
+    default_args=default_args,
+    catchup=True,
+    schedule_interval=timedelta(days=1),
+    max_active_runs=2,
+    doc_md=__doc__,
+    tags=["nci", "sentinel_2"],
+) as dag:
 
     index_datasets = SSHOperator(
-        task_id='index_datasets',
-        ssh_conn_id='lpgs_gadi',
-        command=dedent('''
+        task_id="index_datasets",
+        ssh_conn_id="lpgs_gadi",
+        command=dedent(
+            """
         set -eu
         module load {{ params.module }}
 
@@ -59,7 +61,7 @@ with DAG('nci_index_s2ard_simple',
         today=$(date -I)
 
         dates=()
-        for i in {0..120}; do 
+        for i in {0..120}; do
             new_date=$(date -I -d "$today -$i days")
             if [[ -d $new_date ]]; then
                 dates+=( $new_date )
@@ -84,6 +86,6 @@ with DAG('nci_index_s2ard_simple',
         echo Indexing datasets from ${dates[@]}
         find ${dates[@]} -maxdepth 1 -mindepth 1 | sed 's|$|/ARD-METADATA.yaml|' | xargs datacube dataset add
 
-        '''),
+        """
+        ),
     )
-

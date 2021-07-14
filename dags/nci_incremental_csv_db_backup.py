@@ -18,7 +18,7 @@ from textwrap import dedent
 
 from airflow import DAG
 from airflow.contrib.hooks.aws_hook import AwsHook
-from airflow.contrib.operators.ssh_operator import SSHOperator
+from airflow.providers.ssh.operators.ssh import SSHOperator
 
 from datetime import datetime, timedelta
 

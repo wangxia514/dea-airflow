@@ -8,21 +8,17 @@ TODO: And then try to push it upstream as it's useful functionality
 from select import select
 
 from airflow import AirflowException
-from airflow.contrib.hooks.ssh_hook import SSHHook
+from airflow.providers.ssh.hooks.ssh import SSHHook
 from airflow.utils.decorators import apply_defaults
 
 
 class SSHRunMixin:
     """Mixin class to use when defining a new Airflow Operator that operates over SSH"""
+
     @apply_defaults
-    def __init__(self,
-                 ssh_conn_id=None,
-                 ssh_hook=None,
-                 timeout=10,
-                 *args,
-                 **kwargs):
+    def __init__(self, ssh_conn_id=None, ssh_hook=None, timeout=10, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.log.info('Inside SSHRunMixin Init Function')
+        self.log.info("Inside SSHRunMixin Init Function")
         self.timeout = timeout
         self.ssh_hook = ssh_hook
         self.ssh_conn_id = ssh_conn_id
@@ -39,13 +35,18 @@ class SSHRunMixin:
                 if self.ssh_hook and isinstance(self.ssh_hook, SSHHook):
                     self.log.info("ssh_conn_id is ignored when ssh_hook is provided.")
                 else:
-                    self.log.info("ssh_hook is not provided or invalid. " +
-                                  "Trying ssh_conn_id to create SSHHook.")
-                    self.ssh_hook = SSHHook(ssh_conn_id=self.ssh_conn_id,
-                                            timeout=self.timeout)
+                    self.log.info(
+                        "ssh_hook is not provided or invalid. "
+                        + "Trying ssh_conn_id to create SSHHook."
+                    )
+                    self.ssh_hook = SSHHook(
+                        ssh_conn_id=self.ssh_conn_id, timeout=self.timeout
+                    )
 
             if not self.ssh_hook:
-                raise AirflowException("Cannot operate without ssh_hook or ssh_conn_id.")
+                raise AirflowException(
+                    "Cannot operate without ssh_hook or ssh_conn_id."
+                )
 
             if not command:
                 raise AirflowException("SSH command not specified. Aborting.")
@@ -54,10 +55,11 @@ class SSHRunMixin:
                 self.log.info("Running command: %s", command)
 
                 # set timeout taken as params
-                stdin, stdout, stderr = ssh_client.exec_command(command=command,
-                                                                get_pty=False,
-                                                                timeout=self.timeout,
-                                                                )
+                stdin, stdout, stderr = ssh_client.exec_command(
+                    command=command,
+                    get_pty=False,
+                    timeout=self.timeout,
+                )
                 # get channels
                 channel = stdout.channel
 
@@ -65,8 +67,8 @@ class SSHRunMixin:
                 stdin.close()
                 channel.shutdown_write()
 
-                agg_stdout = b''
-                agg_stderr = b''
+                agg_stdout = b""
+                agg_stderr = b""
 
                 # capture any initial output in case channel is closed already
                 stdout_buffer_length = len(stdout.channel.in_buffer)
@@ -75,24 +77,28 @@ class SSHRunMixin:
                     agg_stdout += stdout.channel.recv(stdout_buffer_length)
 
                 # read from both stdout and stderr
-                while not channel.closed or \
-                        channel.recv_ready() or \
-                        channel.recv_stderr_ready():
+                while (
+                    not channel.closed
+                    or channel.recv_ready()
+                    or channel.recv_stderr_ready()
+                ):
                     readq, _, _ = select([channel], [], [], self.timeout)
                     for c in readq:
                         if c.recv_ready():
                             line = stdout.channel.recv(len(c.in_buffer))
                             line = line
                             agg_stdout += line
-                            self.log.info(line.decode('utf-8').strip('\n'))
+                            self.log.info(line.decode("utf-8").strip("\n"))
                         if c.recv_stderr_ready():
                             line = stderr.channel.recv_stderr(len(c.in_stderr_buffer))
                             line = line
                             agg_stderr += line
-                            self.log.warning(line.decode('utf-8').strip('\n'))
-                    if stdout.channel.exit_status_ready() \
-                            and not stderr.channel.recv_stderr_ready() \
-                            and not stdout.channel.recv_ready():
+                            self.log.warning(line.decode("utf-8").strip("\n"))
+                    if (
+                        stdout.channel.exit_status_ready()
+                        and not stderr.channel.recv_stderr_ready()
+                        and not stdout.channel.recv_ready()
+                    ):
                         stdout.channel.shutdown_read()
                         stdout.channel.close()
                         break
@@ -102,8 +108,10 @@ class SSHRunMixin:
 
                 exit_status = stdout.channel.recv_exit_status()
 
-                return exit_status, agg_stdout.decode('utf-8')
+                return exit_status, agg_stdout.decode("utf-8")
         except EOFError:
             raise
         except Exception as e:
-            raise AirflowException("PBS Job Completion sensor error: {0}".format(str(e)))
+            raise AirflowException(
+                "PBS Job Completion sensor error: {0}".format(str(e))
+            )

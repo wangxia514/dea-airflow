@@ -9,7 +9,7 @@ The logs are written to NCI.
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.contrib.operators.ssh_operator import SSHOperator
+from airflow.providers.ssh.operators.ssh import SSHOperator
 from airflow.operators.dummy_operator import DummyOperator
 
 from sensors.pbs_job_complete_sensor import PBSJobSensor

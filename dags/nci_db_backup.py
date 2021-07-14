@@ -8,32 +8,34 @@ from textwrap import dedent
 import pendulum
 from airflow import DAG
 from airflow.contrib.hooks.aws_hook import AwsHook
-from airflow.contrib.operators.ssh_operator import SSHOperator
+from airflow.providers.ssh.operators.ssh import SSHOperator
 
 local_tz = pendulum.timezone("Australia/Canberra")
 
 default_args = {
-    'owner': 'Damien Ayers',
-    'depends_on_past': False,
-    'retries': 0,
-    'retry_delay': timedelta(minutes=5),
-    'start_date': datetime(2020, 5, 1, 1, tzinfo=local_tz),
-    'timeout': 60 * 60 * 2,  # For running SSH Commands
-    'ssh_conn_id': 'lpgs_gadi',
-    'remote_host': 'gadi-dm.nci.org.au',
-    'email_on_failure': True,
-    'email_on_retry': False,
-    'email': 'damien.ayers@ga.gov.au',
+    "owner": "Damien Ayers",
+    "depends_on_past": False,
+    "retries": 0,
+    "retry_delay": timedelta(minutes=5),
+    "start_date": datetime(2020, 5, 1, 1, tzinfo=local_tz),
+    "timeout": 60 * 60 * 2,  # For running SSH Commands
+    "ssh_conn_id": "lpgs_gadi",
+    "remote_host": "gadi-dm.nci.org.au",
+    "email_on_failure": True,
+    "email_on_retry": False,
+    "email": "damien.ayers@ga.gov.au",
 }
 
-with DAG('nci_db_backup',
-         default_args=default_args,
-         catchup=False,
-         schedule_interval="@daily",
-         max_active_runs=1,
-         tags=['nci'],
-         ) as dag:
-    COMMON = dedent('''
+with DAG(
+    "nci_db_backup",
+    default_args=default_args,
+    catchup=False,
+    schedule_interval="@daily",
+    max_active_runs=1,
+    tags=["nci"],
+) as dag:
+    COMMON = dedent(
+        """
         set -e
         # Load dea module to ensure that pg_dump version and the server version
         # matches, when the cronjob is run from an ec2 instance
@@ -45,11 +47,14 @@ with DAG('nci_db_backup',
         host=dea-db.nci.org.au
         datestring=$(date +%Y%m%d)
         file_prefix="${host}-${datestring}"
-    ''')
+    """
+    )
 
     run_backup = SSHOperator(
-        task_id='run_backup',
-        command=COMMON + dedent("""
+        task_id="run_backup",
+        command=COMMON
+        + dedent(
+            """
             args="-U agdc_backup -h ${host} -p 5432"
 
             set -x
@@ -68,29 +73,34 @@ with DAG('nci_db_backup',
             umask 066
             pg_dumpall ${args} --globals-only > "${file_prefix}-globals.sql"
 
-        """),
+        """
+        ),
     )
 
-    aws_conn = AwsHook(aws_conn_id='aws_nci_db_backup')
+    aws_conn = AwsHook(aws_conn_id="aws_nci_db_backup")
     upload_to_s3 = SSHOperator(
-        task_id='upload_to_s3',
+        task_id="upload_to_s3",
         params=dict(aws_conn=aws_conn),
-        command=COMMON + dedent('''
+        command=COMMON
+        + dedent(
+            """
             {% set aws_creds = params.aws_conn.get_credentials() -%}
-            
+
             export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
             export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
 
             s3_dump_file=s3://nci-db-dump/prod/"${file_prefix}-datacube.pgdump"
             aws s3 cp "${file_prefix}-datacube.pgdump" "${s3_dump_file}" --no-progress
 
-        ''')
-
+        """
+        ),
     )
 
     run_csv_dump = SSHOperator(
-        task_id='dump_tables_to_csv',
-        command=COMMON + dedent("""
+        task_id="dump_tables_to_csv",
+        command=COMMON
+        + dedent(
+            """
             set -euo pipefail
             IFS=$'\n\t'
 
@@ -112,15 +122,18 @@ with DAG('nci_db_backup',
 
             done
 
-        """)
+        """
+        ),
     )
 
     upload_csvs_to_s3 = SSHOperator(
-        task_id='upload_csvs_to_s3',
+        task_id="upload_csvs_to_s3",
         params=dict(aws_conn=aws_conn),
-        command=COMMON + dedent('''
+        command=COMMON
+        + dedent(
+            """
             {% set aws_creds = params.aws_conn.get_credentials() -%}
-            
+
             export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
             export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
 
@@ -138,8 +151,8 @@ with DAG('nci_db_backup',
             cd ..
             rm -rf ${output_dir}
 
-        ''')
-
+        """
+        ),
     )
 
     run_backup >> upload_to_s3

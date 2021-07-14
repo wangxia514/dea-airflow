@@ -9,7 +9,7 @@ from textwrap import dedent
 
 import pendulum
 from airflow import DAG
-from airflow.contrib.operators.ssh_operator import SSHOperator
+from airflow.providers.ssh.operators.ssh import SSHOperator
 
 local_tz = pendulum.timezone("Australia/Canberra")
 
@@ -22,18 +22,20 @@ dag = DAG(
     start_date=datetime(2021, 1, 20, tzinfo=local_tz),
     default_args=dict(
         do_xcom_push=False,
-        ssh_conn_id='lpgs_gadi',
-        email=['damien.ayers@ga.gov.au'],
+        ssh_conn_id="lpgs_gadi",
+        email=["damien.ayers@ga.gov.au"],
         email_on_failure=True,
         email_on_retry=False,
-        owner='Damien Ayers',
+        owner="Damien Ayers",
         retries=3,
-    )
+    ),
 )
 
-COMMON = dedent("""
+COMMON = dedent(
+    """
     set -eux
-""")
+"""
+)
 
 with dag:
 
@@ -44,8 +46,9 @@ with dag:
 
     setup = SSHOperator(
         task_id="setup",
-        command=dedent(COMMON +
-            """
+        command=dedent(
+            COMMON
+            + """
             mkdir -p /g/data/v10/work/c3_download_derivs/{{ ts_nodash }}
             """
         ),
@@ -60,8 +63,9 @@ with dag:
         remote_host="gadi-dm.nci.org.au",
         # There have been random READ failures when performing this download. So retry a few times.
         # Append to the log file so that we don't lose track of any downloaded files.
-        command=dedent(COMMON +
-            """
+        command=dedent(
+            COMMON
+            + """
             cd /g/data/jw04/ga/ga_ls_wo_3
             time ~/bin/s5cmd --stat cp --if-size-differ 's3://dea-public-data/derivative/ga_ls_wo_3/*' . >> /g/data/v10/work/c3_download_derivs/{{ts_nodash}}/ga_ls_wo_3.download.log
             """
@@ -72,8 +76,9 @@ with dag:
     sync_fc = SSHOperator(
         task_id="sync_fc",
         remote_host="gadi-dm.nci.org.au",
-        command=dedent(COMMON +
-            """
+        command=dedent(
+            COMMON
+            + """
             cd /g/data/jw04/ga/ga_ls_fc_3
             time ~/bin/s5cmd --stat cp --if-size-differ 's3://dea-public-data/derivative/ga_ls_fc_3/*' . >> /g/data/v10/work/c3_download_derivs/{{ts_nodash}}/ga_ls_fc_3.download.log
             """
@@ -82,8 +87,9 @@ with dag:
 
     index_wofs = SSHOperator(
         task_id="index_wofs",
-        command=dedent(COMMON +
-            """
+        command=dedent(
+            COMMON
+            + """
             module load dea
             cd /g/data/v10/work/c3_download_derivs/{{ts_nodash}}
 
@@ -99,8 +105,9 @@ with dag:
 
     index_fc = SSHOperator(
         task_id="index_fc",
-        command=dedent(COMMON +
-            """
+        command=dedent(
+            COMMON
+            + """
             module load dea
             cd /g/data/v10/work/c3_download_derivs/{{ts_nodash}}
 

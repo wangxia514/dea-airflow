@@ -6,8 +6,8 @@ import os.path
 from io import StringIO
 
 from airflow import AirflowException
-from airflow.contrib.hooks.ssh_hook import SSHHook
-from airflow.contrib.operators.sftp_operator import _make_intermediate_dirs
+from airflow.providers.ssh.hooks.ssh import SSHHook
+from airflow.providers.sftp.operators.sftp import _make_intermediate_dirs
 from airflow.models import BaseOperator, SkipMixin
 from airflow.utils.decorators import apply_defaults
 
@@ -21,12 +21,11 @@ class ShortCircuitSSHOperator(SSHRunMixin, BaseOperator, SkipMixin):
     The condition is determined by the return value of running `command`
     on the provided SSH host..
     """
-    template_fields = ('command',)
+
+    template_fields = ("command",)
 
     @apply_defaults
-    def __init__(self,
-                 command: str = None,
-                 *args, **kwargs):
+    def __init__(self, command: str = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.command = command
 
@@ -35,16 +34,18 @@ class ShortCircuitSSHOperator(SSHRunMixin, BaseOperator, SkipMixin):
         self.log.info("SSH command return value is %s", ret_val)
 
         if ret_val == 0:
-            self.log.info('Proceeding with downstream tasks...')
+            self.log.info("Proceeding with downstream tasks...")
             return
 
-        self.log.info('Skipping downstream tasks...')
+        self.log.info("Skipping downstream tasks...")
 
-        downstream_tasks = context['task'].get_flat_relatives(upstream=False)
+        downstream_tasks = context["task"].get_flat_relatives(upstream=False)
         self.log.debug("Downstream task_ids %s", downstream_tasks)
 
         if downstream_tasks:
-            self.skip(context['dag_run'], context['ti'].execution_date, downstream_tasks)
+            self.skip(
+                context["dag_run"], context["ti"].execution_date, downstream_tasks
+            )
 
         self.log.info("Done.")
 
@@ -62,19 +63,22 @@ class TemplateToSFTPOperator(BaseOperator):
     :param file_contents: contents to upload into the file (templated)
     :param remote_filepath: remote file path to get or put. (templated)
     """
-    template_fields = ('file_contents', 'remote_filepath')
-    template_ext = ('jinja2',)
+
+    template_fields = ("file_contents", "remote_filepath")
+    template_ext = ("jinja2",)
 
     @apply_defaults
-    def __init__(self,
-                 ssh_conn_id=None,
-                 ssh_hook=None,
-                 file_mode=None,
-                 file_contents='',
-                 remote_filepath=None,
-                 create_intermediate_dirs=True,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        ssh_conn_id=None,
+        ssh_hook=None,
+        file_mode=None,
+        file_contents="",
+        remote_filepath=None,
+        create_intermediate_dirs=True,
+        *args,
+        **kwargs
+    ):
         super().__init__(*args, **kwargs)
         self.ssh_hook = ssh_hook
         self.ssh_conn_id = ssh_conn_id
@@ -89,12 +93,16 @@ class TemplateToSFTPOperator(BaseOperator):
                 if self.ssh_hook and isinstance(self.ssh_hook, SSHHook):
                     self.log.info("ssh_conn_id is ignored when ssh_hook is provided.")
                 else:
-                    self.log.info("ssh_hook is not provided or invalid. " +
-                                  "Trying ssh_conn_id to create SSHHook.")
+                    self.log.info(
+                        "ssh_hook is not provided or invalid. "
+                        + "Trying ssh_conn_id to create SSHHook."
+                    )
                     self.ssh_hook = SSHHook(ssh_conn_id=self.ssh_conn_id)
 
             if not self.ssh_hook:
-                raise AirflowException("Cannot operate without ssh_hook or ssh_conn_id.")
+                raise AirflowException(
+                    "Cannot operate without ssh_hook or ssh_conn_id."
+                )
 
             with self.ssh_hook.get_conn() as ssh_client:
                 sftp_client = ssh_client.open_sftp()
@@ -113,7 +121,10 @@ class TemplateToSFTPOperator(BaseOperator):
                 if self.file_mode is not None:
                     sftp_client.chmod(self.remote_filepath, self.file_mode)
         except Exception as e:
-            raise AirflowException("Error while uploading to {0}, error: {1}"
-                                   .format(self.remote_filepath, str(e)))
+            raise AirflowException(
+                "Error while uploading to {0}, error: {1}".format(
+                    self.remote_filepath, str(e)
+                )
+            )
 
         return self.remote_filepath

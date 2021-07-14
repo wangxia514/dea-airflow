@@ -11,67 +11,77 @@
 from textwrap import dedent
 
 from airflow import DAG
-from airflow.contrib.operators.ssh_operator import SSHOperator
+from airflow.providers.ssh.operators.ssh import SSHOperator
 from airflow.sensors.external_task_sensor import ExternalTaskSensor
 from nci_common import c2_default_args, c2_schedule_interval, HOURS, MINUTES, DAYS
 from operators.ssh_operators import ShortCircuitSSHOperator
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
 dag = DAG(
-    'nci_wofs',
+    "nci_wofs",
     doc_md=__doc__,
     default_args=c2_default_args,
     catchup=False,
     schedule_interval=c2_schedule_interval,
-    tags=['nci', 'landsat_c2'],
+    tags=["nci", "landsat_c2"],
     default_view="tree",
 )
 with dag:
-    COMMON = dedent("""
+    COMMON = dedent(
+        """
           {% set work_dir = '/g/data/v10/work/wofs_albers/' + ts_nodash %}
           module use /g/data/v10/public/modules/modulefiles;
           module load {{ params.module }};
 
           set -eux
           APP_CONFIG=/g/data/v10/public/modules/$(module info-loaded dea)/wofs/config/wofs_albers.yaml
-    """)
+    """
+    )
 
     ingest_completed = ExternalTaskSensor(
-        task_id='ingest_completed',
-        external_dag_id='nci_dataset_ingest',
-        mode='reschedule',
+        task_id="ingest_completed",
+        external_dag_id="nci_dataset_ingest",
+        mode="reschedule",
         timeout=1 * DAYS,
     )
     generate_wofs_tasks = SSHOperator(
-        task_id='generate_wofs_tasks',
-        command=COMMON + dedent("""
+        task_id="generate_wofs_tasks",
+        command=COMMON
+        + dedent(
+            """
 
             mkdir -p {{work_dir}}
             cd {{work_dir}}
             datacube --version
             datacube-wofs --version
             datacube-wofs generate -vv --app-config=${APP_CONFIG} --year {{params.year}} --output-filename tasks.pickle
-        """),
+        """
+        ),
         timeout=2 * HOURS,
     )
 
     test_wofs_tasks = ShortCircuitSSHOperator(
-        task_id='test_wofs_tasks',
-        command=COMMON + dedent("""
+        task_id="test_wofs_tasks",
+        command=COMMON
+        + dedent(
+            """
             cd {{work_dir}}
             datacube-wofs inspect-taskfile tasks.pickle
             datacube-wofs check-existing --input-filename tasks.pickle
-        """),
+        """
+        ),
         timeout=20 * MINUTES,
     )
     # TODO Should probably use an intermediate task here to calculate job size
     # based on number of tasks.
     # Although, if we run regularaly, it should be pretty consistent.
     # Last time I checked, WOfS takes about 15s per tile (task).
-    submit_task_id = 'submit_wofs_albers'
+    submit_task_id = "submit_wofs_albers"
     submit_wofs_job = SSHOperator(
         task_id=submit_task_id,
-        command=COMMON + dedent("""
+        command=COMMON
+        + dedent(
+            """
 
           cd {{work_dir}}
 
@@ -90,18 +100,21 @@ with dag:
               module load {{ params.module }}; \
               module load openmpi; \
               mpirun datacube-wofs run-mpi -v --input-filename {{work_dir}}/tasks.pickle"
-        """),
+        """
+        ),
         do_xcom_push=True,
         timeout=5 * MINUTES,
     )
     wait_for_wofs_albers = PBSJobSensor(
-        task_id='wait_for_wofs_albers',
+        task_id="wait_for_wofs_albers",
         pbs_job_id="{{ ti.xcom_pull(task_ids='%s') }}" % submit_task_id,
         timeout=1 * DAYS,
     )
     check_for_errors = SSHOperator(
-        task_id='check_for_errors',
-        command=COMMON + dedent("""
+        task_id="check_for_errors",
+        command=COMMON
+        + dedent(
+            """
         error_dir={{ ti.xcom_pull(task_ids='wait_for_wofs_albers')['Error_Path'].split(':')[1] }}
         echo error_dir: ${error_dir}
 
@@ -119,7 +132,8 @@ with dag:
         # TODO: I would like to match on 'ERROR' too, but there are spurious redis related errors
         # TODO: There's also a json-lines output file we can check.
 
-        """),
+        """
+        ),
         timeout=20 * MINUTES,
     )
 
