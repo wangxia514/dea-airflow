@@ -84,8 +84,8 @@ def ows_update_operator(products, dag=None):
         "-c",
         dedent(
             f"""
-            # datacube-ows-update --version
-            datacube-ows-update --views
+            datacube-ows-update --version
+            # datacube-ows-update --views
             for product in {products}; do
                 if [ $product == "--all" ]; then
                     datacube-ows-update
