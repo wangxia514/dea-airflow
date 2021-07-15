@@ -67,18 +67,15 @@ def ows_update_operator(products, dag=None):
     if isinstance(products, Sequence) and not isinstance(products, str):
         products = " ".join(products)
     # append ows specific env_vars to default env_vars
+    ows_env_vars = {
+        "WMS_CONFIG_PATH": OWS_CFG_PATH,
+        "DATACUBE_OWS_CFG": OWS_DATACUBE_CFG,
+        "PYTHONPATH": OWS_PYTHON_PATH,
+    }
     if dag:
-        env_vars = dag.default_args.get("env_vars", {}).copy()
+        env_vars = dag.default_args.get("env_vars", {}).update(ows_env_vars)
     else:
-        env_vars = {}
-
-    env_vars.update(
-        {
-            "WMS_CONFIG_PATH": OWS_CFG_PATH,
-            "DATACUBE_OWS_CFG": OWS_DATACUBE_CFG,
-            "PYTHONPATH": OWS_PYTHON_PATH,
-        }
-    )
+        env_vars = {}.update(ows_env_vars)
 
     OWS_BASH_COMMAND = [
         "bash",
