@@ -38,6 +38,59 @@ schedule_interval = "0 10 * * *"
 # means I can easily test by adding some test code here
 # without modifying the code below.
 
+# #/* The sed command below will remove this block of test code
+# sed '/#\/\*/,/#\*\// d' nci_ard.py > ../../nci_ard.py
+# sed '/#\/\*/,/#\*\// d' dags/nci_ard.py > ../nci_ard.py
+# mv ../nci_ard.py dags/nci_ard.py
+# params[""] =
+
+params["index_arg"] = ""  # No indexing
+
+use_test_db = False
+if use_test_db:
+    params[
+        "index_arg"
+    ] = "--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/index-test-odc.env"
+
+    params[
+        "config_arg"
+    ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf"
+    params["products_arg"] = """--products '["usgs_ls7e_level1_1"]'"""
+
+# params["days_to_exclude_arg"] = ""
+#  if you use it it looks like """--days-to-exclude '["2020-06-26:2020-06-26"]'"""
+params["run_ard_arg"] = ""
+
+aws_develop = True
+if aws_develop:
+    # run this from airflow dev
+    ssh_conn_id = "lpgs_gadi"
+    # schedule_interval = "15 08 * * *"
+    schedule_interval = None
+
+    small_prod_run = False  # small_prod_run or small_non_prod
+    if small_prod_run:
+        params["index_arg"] = "--index-datacube-env "
+        params["pkgdir_arg"] = params["base_dir"]
+        params["scene_limit"] = "--scene-limit 1"
+    else:
+        params["pkgdir_arg"] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test/"
+        params["run_ard_arg"] = ""
+
+    # A fail safe
+    #params["scene_limit"] = "--scene-limit 1"
+    #
+else:
+    # run this from local dev
+    # Add the storage for u46 back
+    # -l storage=gdata/v10+scratch/v10+gdata/if87+gdata/fj7+scratch/fj7+scratch/u46+gdata/u46 \
+
+    ssh_conn_id = "dsg547"
+    params["project"] = "u46"
+    params["pkgdir_arg"] = "/g/data/u46/users/dsg547/results_airflow/"
+    schedule_interval = None
+params["base_dir"] = params["pkgdir_arg"]
+# #*/ The end of the sed removed block of code
 
 default_args = {
     "owner": "Duncan Gray",
