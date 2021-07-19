@@ -74,7 +74,7 @@ with dag:
                     "s3-to-dc",
                     "--skip-lineage",
                     "--allow-unsafe",
-                    "--update",
+                    "--update-if-exists",
                     "--skip-check",
                     "--no-sign-request",
                     f"s3://dea-public-data/baseline/s2[ab]_ard_granule/{year}-{quarter}-*/*/eo3-ARD-METADATA.odc-metadata.yaml",
