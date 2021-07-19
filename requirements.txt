@@ -9,3 +9,4 @@ apache-airflow-backport-providers-amazon
 apache-airflow-backport-providers-email
 apache-airflow-backport-providers-ssh
 apache-airflow-backport-providers-sftp
+apache-airflow-backport-providers-http
