@@ -75,7 +75,7 @@ with dag:
                     "--update-if-exists",
                     "--skip-check",
                     "--no-sign-request",
-                    f"s3://dea-public-data/baseline/s2[ab]_ard_granule/{year}-{quarter}-*/*/eo3-ARD-METADATA.yaml",
+                    f"s3://dea-public-data/baseline/s2[ab]_ard_granule/{year}-{quarter}-*/*/eo3-ARD-METADATA.odc-product.yaml",
                     dag.default_args["products"],
                 ],
                 labels={"step": "s3-dc-indexing"},
