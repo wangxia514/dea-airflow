@@ -23,7 +23,7 @@ import psycopg2
 import requests
 from airflow import DAG
 from airflow.secrets.base_secrets.BaseSecretsBackend import get_connections
-from airflow import secrets
+# from airflow import secrets
 from airflow.providers.ssh.hooks.ssh import SSHHook
 from airflow.operators.python_operator import PythonOperator
 
