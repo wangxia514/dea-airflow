@@ -22,8 +22,7 @@ from psycopg2.extras import Json
 import psycopg2
 import requests
 from airflow import DAG
-from airflow.secrets.base_secrets.BaseSecretsBackend import get_connections
-# from airflow import secrets
+from airflow import secrets
 from airflow.providers.ssh.hooks.ssh import SSHHook
 from airflow.operators.python_operator import PythonOperator
 
@@ -49,8 +48,8 @@ def log(text):
 def _record_statistics(ts, postgres_conn_id, ssh_conn_id, **context):
     # Can't use PostgresHook because our TCP port is likely to be dynamic
     # because we are connecting through an SSH Tunnel
-    (pg_secret,) = get_connections(postgres_conn_id)
-    (gh_token,) = get_connections("github_metrics_token")
+    (pg_secret,) = secrets.get_connections(postgres_conn_id)
+    (gh_token,) = secrets.get_connections("github_metrics_token")
 
     ssh_conn = SSHHook(ssh_conn_id=ssh_conn_id)
     tunnel = ssh_conn.get_tunnel(remote_port=pg_secret.port, remote_host=pg_secret.host)
