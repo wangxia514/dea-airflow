@@ -19,6 +19,7 @@ from infra.variables import (
     LANDSAT_C3_AWS_USER_SECRET,
 )
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
+from infra.images import INDEXER_IMAGE
 
 DEFAULT_ARGS = {
     "owner": "Alex Leith",
@@ -76,7 +77,6 @@ DEFAULT_ARGS = {
     ],
 }
 
-from infra.images import INDEXER_IMAGE
 
 dag = DAG(
     "k8s_index_ls_c3",

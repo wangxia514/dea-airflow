@@ -16,8 +16,10 @@ from automated_reporting.tasks.s2_completeness import (
     filter_expected_to_sensor,
 )
 
-## Structure and Integration tests
+
+# Structure and Integration tests
 class TestCompletenessDAGStructure(unittest.TestCase):
+
     @classmethod
     def setUpClass(cls):
         base_folder = pathlib.Path(__file__).parent.parent.parent.absolute()
@@ -38,7 +40,7 @@ class TestCompletenessDAGStructure(unittest.TestCase):
         # task.execute(context=context)
 
 
-## Unit Tests
+# Unit Tests
 class TestCompletenessDagUnits(unittest.TestCase):
 
     BT = dt(2021, 4, 21, 2, 15, 23, 345, tzinfo=tz.utc)
