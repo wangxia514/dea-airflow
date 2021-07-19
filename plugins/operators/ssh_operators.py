@@ -33,7 +33,7 @@ class SecretHandlingSSHOperator(SSHRunMixin, BaseOperator):
         command = self.command
         if self.secret_command:
             # This works on gadi but fails with GitHub Actions + pytest + mockssh
-#            command = '. /dev/stdin; ' + self.command
+            # command = '. /dev/stdin; ' + self.command
             command = 'eval "$(cat -)"; ' + self.command
 
         exit_status, output = self.run_ssh_command_and_return_output(command, self.secret_command)

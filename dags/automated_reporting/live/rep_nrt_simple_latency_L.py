@@ -17,11 +17,10 @@ from airflow.operators.python_operator import PythonOperator
 
 import infra.connections as connections
 
-log = logging.getLogger("airflow.task")
-
 from automated_reporting.databases import schemas
 from automated_reporting.tasks import check_db_task, simple_latency_task
 
+log = logging.getLogger("airflow.task")
 
 default_args = {
     "owner": "Tom McAdam",
@@ -44,7 +43,7 @@ dag = DAG(
 
 with dag:
 
-    ## Tasks
+    # Tasks
     schema = schemas.LATENCY_SCHEMA
 
     check_db_kwargs = {

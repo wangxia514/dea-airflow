@@ -62,6 +62,7 @@ def test_secret_handling_ssh_operator(server: mockssh.Server):
 
 def test_short_circuit_ssh_operator(server, monkeypatch):
     skipped = False
+
     def mock_skip(dagrun, execution_date, downstream_tasks):
         nonlocal skipped
         skipped = True
@@ -69,6 +70,7 @@ def test_short_circuit_ssh_operator(server, monkeypatch):
     class MockTask:
         def get_flat_relatives(self, upstream=False):
             return ['hello']
+
     class MockTaskInstance:
         execution_date = None
 

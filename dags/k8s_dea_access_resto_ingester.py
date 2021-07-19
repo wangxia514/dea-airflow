@@ -73,9 +73,9 @@ default_args = {
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "secrets": [
-         Secret("env", "API_ADMIN_USERID", DEA_ACCESS_RESTO_API_ADMIN_SECRET, "API_ADMIN_USERID"),
-         Secret("env", "JWT_PASSPHRASE", DEA_ACCESS_RESTO_API_ADMIN_SECRET, "JWT_PASSPHRASE"),
-     ],
+        Secret("env", "API_ADMIN_USERID", DEA_ACCESS_RESTO_API_ADMIN_SECRET, "API_ADMIN_USERID"),
+        Secret("env", "JWT_PASSPHRASE", DEA_ACCESS_RESTO_API_ADMIN_SECRET, "JWT_PASSPHRASE"),
+    ],
 }
 # [END default_args]
 
@@ -107,7 +107,7 @@ SECRET_ENV_API_USERID = Secret(
 SECRET_ENV_JWT_PASSPHRASE = Secret(
     deploy_type="env",
     # The name of the environment variable
-    deploy_target="JWT_PASSPHRASE", # Name of the Kubernetes Secret
+    deploy_target="JWT_PASSPHRASE",  # Name of the Kubernetes Secret
     secret=DEA_ACCESS_RESTO_API_ADMIN_SECRET,
     # Key of a secret stored in this Secret object
     key="JWT_PASSPHRASE",
@@ -116,17 +116,17 @@ SECRET_ENV_JWT_PASSPHRASE = Secret(
 # Collection items to be loaded into resto service from explorer.dea.ga.gov.au/collections
 # TODO: Investigate if this can be fetched from a google doc and loaded with XCom (maybe),
 #       OPS could then just update a google doc and start the pipeline.
-#read from github dea-config the latest csv file
+# read from github dea-config the latest csv file
 url = 'https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/master/workspaces/collections.csv'
 r = requests.get(url, allow_redirects=True)
 
-#read the name and the count columns
+# read the name and the count columns
 open('collections.csv', 'wb').write(r.content)
 with open('collections.csv', 'rt') as csvfile:
     # get number of columns
     for line in csvfile.readlines():
-       array = line.split(',')
-    
+        array = line.split(',')
+
     num_columns = len(array)
     csvfile.seek(0)
     reader = csv.reader(csvfile, delimiter=',')
@@ -134,8 +134,8 @@ with open('collections.csv', 'rt') as csvfile:
     included_cols = [5]
     COLLECTIONS_LIST = []
     for row in reader:
-       if row[5] != 'None':
-          COLLECTIONS_LIST.append(row[5])
+        if row[5] != 'None':
+            COLLECTIONS_LIST.append(row[5])
 
 # [START instantiate_dag]
 pipeline = DAG(
@@ -240,7 +240,7 @@ with pipeline:
                         "RESTO_URL": "{{ params.RESTO_URL }}",
                         "COLLECTION_LIST": collection,
                     },
-                    secrets=[SECRET_ENV,SECRET_ENV_API_USERID,SECRET_ENV_JWT_PASSPHRASE],
+                    secrets=[SECRET_ENV, SECRET_ENV_API_USERID, SECRET_ENV_JWT_PASSPHRASE],
                     reattach_on_restart=True,
                     resources={
                         "request_cpu": "250m",

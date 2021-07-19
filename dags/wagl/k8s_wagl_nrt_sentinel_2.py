@@ -243,6 +243,7 @@ def receive_task(**context):
 
         return f"dea-s2-wagl-nrt-copy-scene-{index}"
 
+
 class NoDatesSafeLoader(SafeLoader):  # pylint: disable=too-many-ancestors
     @classmethod
     def remove_implicit_resolver(cls, tag_to_remove):
@@ -261,7 +262,9 @@ class NoDatesSafeLoader(SafeLoader):  # pylint: disable=too-many-ancestors
                                                          for tag, regexp in mappings
                                                          if tag != tag_to_remove]
 
+
 NoDatesSafeLoader.remove_implicit_resolver('tag:yaml.org,2002:timestamp')
+
 
 def finish_up(**context):
     """ Delete the SQS message to mark completion, broadcast to SNS. """

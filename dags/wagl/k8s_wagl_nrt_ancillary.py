@@ -92,7 +92,7 @@ SYNC_JOBS = [
     "echo synching brdf",
     *[
         sync(
-            f"",
+            "",
             f"s3://ga-sentinel/ancillary/BRDF/brdf-jl/data/{doy}/",
             f"/ancillary/brdf-jl/{doy}/",
         )
@@ -111,7 +111,7 @@ SYNC_JOBS = [
     "echo synching brdf fallback",
     *[
         sync(
-            f"",
+            "",
             f"s3://ga-sentinel/ancillary/BRDF/fallback/MCD43A1.006/{doy}/",
             f"/ancillary/brdf/fallback/{doy}/",
         )
