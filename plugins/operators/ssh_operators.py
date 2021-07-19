@@ -7,7 +7,8 @@ from base64 import b64encode
 
 from io import StringIO
 
-from airflow import AirflowException, conf
+from airflow import AirflowException
+from airflow.configuration import conf
 from airflow.providers.ssh.hooks.ssh import SSHHook
 from airflow.providers.sftp.operators.sftp import _make_intermediate_dirs
 from airflow.models import BaseOperator, SkipMixin
