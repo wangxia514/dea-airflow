@@ -9,9 +9,6 @@ on:
       - 'tests/**'
       - 'plugins/**'
       - '.github/workflows/**'
-      - 'requirements-dev.txt'
-      - 'requirements.txt'
-      - 'constraints.txt'
   pull_request:
     types: [opened, reopened]
     branches:
@@ -23,9 +20,6 @@ on:
       - 'tests/**'
       - 'plugins/**'
       - '.github/workflows/**'
-      - 'requirements-dev.txt'
-      - 'requirements.txt'
-      - 'constraints.txt'
 
 jobs:
   flake8:
