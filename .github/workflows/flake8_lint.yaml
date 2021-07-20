@@ -1,31 +1,13 @@
-  ---
-name:  Flake8 Lint
+---
+name: Flake8 Lint
 
 on:
   push:
-    paths:
-      - 'dags/**'
-      - 'scripts/**'
-      - 'tests/**'
-      - 'plugins/**'
-      - '.github/workflows/**'
-      - 'requirements-dev.txt'
-      - 'requirements.txt'
-      - 'constraints.txt'
   pull_request:
     types: [opened, reopened]
     branches:
       - master
       - develop
-    paths:
-      - 'dags/**'
-      - 'scripts/**'
-      - 'tests/**'
-      - 'plugins/**'
-      - '.github/workflows/**'
-      - 'requirements-dev.txt'
-      - 'requirements.txt'
-      - 'constraints.txt'
 
 jobs:
   flake8:
@@ -44,4 +26,4 @@ jobs:
         with:
           linters: flake8
           run: |
-            flake8 . --exclude Dockerfile --ignore=E501 --select=F401
+            flake8 . --exclude Dockerfile --ignore=E501,W503,W605,F811,F841,E722,E711,E131,E203
