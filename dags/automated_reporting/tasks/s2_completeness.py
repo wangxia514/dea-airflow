@@ -1,7 +1,11 @@
 """
 Task for s2 completeness calculations
 """
+import os
 import logging
+from pathlib import Path
+
+from airflow.configuration import conf
 
 from automated_reporting.utilities import helpers
 from automated_reporting.utilities import copernicus_api
@@ -252,8 +256,12 @@ def swap_in_parent(product_list):
 
 
 def get_aoi_list():
+    """
+    Get optimised aoi list from file
+    """
     file_path = "dags/automated_reporting/aux_data/sentinel2_aoi_list.txt"
-    with open(file_path) as f:
+    root = Path(conf.get("core", "dags_folder")).parent
+    with open(os.path.join(root, file_path)) as f:
         return f.read().splitlines()
 
 
