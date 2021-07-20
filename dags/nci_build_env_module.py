@@ -25,7 +25,7 @@ dag = DAG(
 
 with dag:
     build_env_task = SSHOperator(
-        task_id=f"build_dea_env_module",
+        task_id="build_dea_env_module",
         ssh_conn_id="lpgs_gadi",
         command="""
         set -eux

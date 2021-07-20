@@ -44,7 +44,7 @@ def query(execution_date, days):
         )
     )
 
-    ### Helper functions
+    # Helper functions
     def get(url):
         """
         Perform a GET to copernicus api for paged inventory data

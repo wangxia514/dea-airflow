@@ -24,9 +24,9 @@ dag = DAG(
 
 with dag:
     build_env_task = SSHOperator(
-        task_id=f"build_dea_module",
+        task_id="build_dea_module",
         ssh_conn_id="lpgs_gadi",
-        command=f"""
+        command="""
         rm -r /g/data/v10/public/modules/dea/$(date +%Y%m%d)
         set -eux
 

@@ -143,7 +143,7 @@ def upload_metadata(granule_id):
     s3_eo3_path = f"{s3_path}eo3-ARD-METADATA.odc-metadata.yaml"
     s3_stac_path = f"{s3_path}stac-ARD-METADATA.json"
 
-    product = "s2b_ard_granule" if "S2B" in granule_id  else "s2a_ard_granule"
+    product = "s2b_ard_granule" if "S2B" in granule_id else "s2a_ard_granule"
     eo3 = create_eo3(local_path, granule_id)
     stac = to_stac_item(
         eo3,
@@ -238,8 +238,8 @@ def create_eo3(granule_dir, granule_id):
         expand_valid_data = True
 
     assembler = DatasetAssembler(
-            dataset_location=granule_dir,
-            metadata_path=granule_dir / "dummy",
+        dataset_location=granule_dir,
+        metadata_path=granule_dir / "dummy",
     )
 
     assembler.product_family = "ard"
@@ -269,7 +269,7 @@ def create_eo3(granule_dir, granule_id):
 
     assembler.properties["gqa:cep90"] = metadata["gqa"]["residual"]["cep90"]
     assembler.properties["gqa:error_message"] = metadata["gqa"]["error_message"]
-    assembler.properties["gqa:final_gcp_count"] =metadata["gqa"]["final_gcp_count"]
+    assembler.properties["gqa:final_gcp_count"] = metadata["gqa"]["final_gcp_count"]
     assembler.properties["gqa:ref_source"] = metadata["gqa"]["ref_source"]
 
     assembler.properties["eo:platform"] = platform

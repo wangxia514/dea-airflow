@@ -8,6 +8,7 @@ from automated_reporting.databases import odc_db, reporting_db
 
 log = logging.getLogger("airflow.task")
 
+
 # Task callable
 def task(connection_id, execution_date, product_name, **kwargs):
     """

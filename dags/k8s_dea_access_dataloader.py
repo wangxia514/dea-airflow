@@ -90,7 +90,7 @@ with pipeline:
         poke_interval=2,
         # Extra options for the ‘requests’ library, see the ‘requests’ documentation (options to modify timeout, ssl, etc.)
         extra_options={
-          'verify': False,
+            'verify': False,
         },
     )
 
@@ -104,7 +104,7 @@ with pipeline:
         is_delete_operator_pod=True,
         arguments=["--verbose", "http://{{ params.egg_svc_name }}:9200"],
         labels={
-          'runner': 'airflow',
+            'runner': 'airflow',
         },
         get_logs=True,
     )
@@ -118,14 +118,14 @@ with pipeline:
         image=EGGLOADER_SVC_IMAGE,
         is_delete_operator_pod=True,
         labels={
-          'runner': 'airflow',
+            'runner': 'airflow',
         },
         env_vars={
-          'DATA_DIR': '{{ params.egg_svc_data_dir }}',
-          'ELASTIC_SCHEME': 'http',
-          'ELASTIC_HOST': '{{ params.egg_svc_name }}',
-          'ELASTIC_PORT': '9200',
-          'GEONAMES_SRC': 'https://download.geonames.org/{{ params.geonames_endpoint }}',
+            'DATA_DIR': '{{ params.egg_svc_data_dir }}',
+            'ELASTIC_SCHEME': 'http',
+            'ELASTIC_HOST': '{{ params.egg_svc_name }}',
+            'ELASTIC_PORT': '9200',
+            'GEONAMES_SRC': 'https://download.geonames.org/{{ params.geonames_endpoint }}',
         },
         get_logs=True,
     )
