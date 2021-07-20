@@ -1,5 +1,5 @@
   ---
-name:  Flake8 Lint
+name: Flake8 Lint
 
 on:
   push:
