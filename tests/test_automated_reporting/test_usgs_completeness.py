@@ -21,8 +21,10 @@ import usgs_completeness_sample_data as sample_data
 
 logger = logging.getLogger("airflow.task")
 
-## Structure and Integration tests
+
+# Structure and Integration tests
 class TestUSGSCompletenessDAGStructure(unittest.TestCase):
+
     @classmethod
     def setUpClass(cls):
         root = pathlib.Path(conf.get("core", "dags_folder")).parent

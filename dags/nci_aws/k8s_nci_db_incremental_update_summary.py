@@ -80,6 +80,5 @@ with dag:
     # Task complete
     COMPLETE = DummyOperator(task_id="done")
 
-
     START >> UPDATE_SUMMARY
     UPDATE_SUMMARY >> COMPLETE

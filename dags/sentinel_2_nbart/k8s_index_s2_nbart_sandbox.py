@@ -20,6 +20,8 @@ from infra.variables import (
     SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET,
 )
 
+from infra.images import INDEXER_IMAGE
+
 DEFAULT_ARGS = {
     "owner": "Kieran Ricardo",
     "depends_on_past": False,
@@ -69,8 +71,6 @@ DEFAULT_ARGS = {
         ),
     ],
 }
-
-from infra.images import INDEXER_IMAGE
 
 dag = DAG(
     "k8s_index_s2_nbart_sandbox",

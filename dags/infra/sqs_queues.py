@@ -9,28 +9,28 @@ from airflow.models import Variable
 # AWS SQS
 NEWDEADATA_SQS_QUEUE_NAME = Variable.get(
     "newdeadata_sqs_queue_name_odc_db", "dea-sandbox-eks-ows-dag"
-) #qa
+)  # qa
 C3_ARCHIVAL_SQS_QUEUE_NAME = Variable.get(
     "landsat_c3_archival_sqs_queue_name_odc_db",
     "dea-sandbox-eks-landsat-3-archiving-odc-db",
-) #qa
+)  # qa
 C3_INDEXING_SQS_QUEUE_NAME = Variable.get(
     "landsat_c3_indexing_sqs_queue_name_odc_db",
     "dea-sandbox-eks-landsat-3-indexing-odc-db",
-) #qa
+)  # qa
 C3_FC_SQS_QUEUE_NAME = Variable.get(
     "landsat_c3_fc_indexing_sqs_queue_name_odc_db",
     "dea-sandbox-eks-alchemist-fc-indexing-wo-odc-db",
-) #qa
+)  # qa
 C3_WO_SQS_QUEUE_NAME = Variable.get(
     "landsat_c3_wo_indexing_sqs_queue_name_odc_db",
     "dea-sandbox-eks-alchemist-c3-indexing-wo-odc-db",
-) #qa
+)  # qa
 SENTINEL_2_ARD_INDEXING_SQS_QUEUE_NAME_SANDBOX_DB = Variable.get(
     "sentinel_2_ard_indexing_sqs_queue_name_sandbox_db",
     "dea-sandbox-eks-sentinel-2-ard-indexing-sandbox-db",
-) #qa
+)  # qa
 SENTINEL_2_ARD_INDEXING_SQS_QUEUE_NAME_ODC_DB = Variable.get(
     "sentinel_2_ard_indexing_sqs_queue_name_odc_db",
     "dea-sandbox-eks-sentinel-2-ard-indexing-odc-db",
-) #qa
+)  # qa

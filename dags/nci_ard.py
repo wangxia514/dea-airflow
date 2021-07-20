@@ -69,7 +69,7 @@ with dag:
         {% set work_ext = ts_nodash + '/workdir' %}
         """
 
-    submit_task_id = f"submit_ard"
+    submit_task_id = "submit_ard"
     submit_ard = SSHOperator(
         task_id=submit_task_id,
         command=COMMON
@@ -106,7 +106,7 @@ with dag:
     )
 
     wait_for_completion = PBSJobSensor(
-        task_id=f"wait_for_completion",
+        task_id="wait_for_completion",
         pbs_job_id="{{ ti.xcom_pull(task_ids='%s') }}" % submit_task_id,
         timeout=60 * 60 * 24 * 7,
     )

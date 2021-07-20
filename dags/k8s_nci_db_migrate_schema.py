@@ -14,6 +14,7 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
+from infra.images import EXPLORER_UNSTABLE_IMAGE
 
 local_tz = pendulum.timezone("Australia/Canberra")
 
@@ -43,8 +44,6 @@ DEFAULT_ARGS = {
         Secret("env", "DB_PASSWORD", "explorer-nci-admin", "postgres-password"),
     ],
 }
-
-from infra.images import EXPLORER_UNSTABLE_IMAGE
 
 dag = DAG(
     "k8s_nci_db_migrate_schema",
@@ -93,7 +92,6 @@ with dag:
 
     # Task complete
     COMPLETE = DummyOperator(task_id="done")
-
 
     START >> UPDATE_SCHEMA
     UPDATE_SCHEMA >> COMPLETE
