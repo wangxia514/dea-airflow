@@ -15,7 +15,7 @@ services:
         max-size: 10m
         max-file: "3"
   setup-airflow:
-    image: &image apache/airflow:2.1.1
+    image: &image apache/airflow:2.1.2
     #    image: &image apache/airflow:v1-10-test-python3.8-ci
     depends_on:
       - postgres
