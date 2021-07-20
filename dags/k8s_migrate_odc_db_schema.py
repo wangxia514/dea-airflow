@@ -93,6 +93,5 @@ with dag:
     # Task complete
     COMPLETE = DummyOperator(task_id="done")
 
-
     START >> UPDATE_SCHEMA
     UPDATE_SCHEMA >> COMPLETE

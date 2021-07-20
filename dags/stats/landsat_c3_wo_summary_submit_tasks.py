@@ -156,7 +156,7 @@ def parse_job_args_fn(**kwargs):
     """
     dag_run_conf = kwargs[
         "dag_run"
-    ].conf  #  here we get the parameters we specify when triggering
+    ].conf  # here we get the parameters we specify when triggering
 
     frequence = dag_run_conf["FREQUENCY"] if "FREQUENCY" in dag_run_conf else "annual"
     year = dag_run_conf["YEAR"] if "YEAR" in dag_run_conf else "2009"

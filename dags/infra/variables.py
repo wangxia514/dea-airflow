@@ -62,7 +62,7 @@ WATERBODIES_DEV_USER_SECRET = Variable.get(
     "waterbodies_dev_user_secret", "waterbodies-dev-user-creds"
 )
 
-# stats 
+# stats
 PROCESSING_STATS_USER_SECRET = Variable.get(
     "processing_stats_user_secret", "processing-aws-creds-stats"
 )

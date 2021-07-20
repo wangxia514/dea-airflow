@@ -15,7 +15,7 @@ services:
         max-size: 10m
         max-file: "3"
   setup-airflow:
-    image: &image apache/airflow:1.10.15-python3.8
+    image: &image apache/airflow:2.1.1
     #    image: &image apache/airflow:v1-10-test-python3.8-ci
     depends_on:
       - postgres
@@ -34,7 +34,7 @@ services:
       - AIRFLOW_CONN_AWS_NCI_DB_BACKUP=s3://foo:bar@dea-db-backups/
       - HOST_USER_ID=${UID}
       - HOST_GROUP_ID=${GID}
-    command: bash -c 'airflow upgradedb; airflow users create -e airflow@localhost -f Airflow -l None -p airflow -r Admin -u airflow'
+    command: bash -c 'airflow db upgrade; airflow users create -e airflow@localhost -f Airflow -l None -p airflow -r Admin -u airflow'
   webserver:
     image: *image
     restart: always

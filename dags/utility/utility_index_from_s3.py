@@ -177,7 +177,7 @@ dag = DAG(
 )
 
 with dag:
-    TASK_NAME = f"index-from-s3"
+    TASK_NAME = "index-from-s3"
     PARSE_TASK_NAME = f"{TASK_NAME}_PARSE_CONFIG"
 
     op_args = [

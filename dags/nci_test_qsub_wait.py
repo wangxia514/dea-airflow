@@ -27,7 +27,7 @@ with DAG(
     doc_md=__doc__,
 ) as dag:
     submit_pbs_job = SSHOperator(
-        task_id=f"submit_foo_pbs_job",
+        task_id="submit_foo_pbs_job",
         ssh_conn_id="lpgs_gadi",
         command="""
           {% set work_dir = '~/airflow_testing/' -%}
