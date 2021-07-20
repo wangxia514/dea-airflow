@@ -3,23 +3,11 @@ name: Flake8 Lint
 
 on:
   push:
-    paths:
-      - 'dags/**'
-      - 'scripts/**'
-      - 'tests/**'
-      - 'plugins/**'
-      - '.github/workflows/**'
   pull_request:
     types: [opened, reopened]
     branches:
       - master
       - develop
-    paths:
-      - 'dags/**'
-      - 'scripts/**'
-      - 'tests/**'
-      - 'plugins/**'
-      - '.github/workflows/**'
 
 jobs:
   flake8:
