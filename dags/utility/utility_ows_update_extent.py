@@ -69,9 +69,6 @@ dag = DAG(
     schedule_interval=None,
     catchup=False,
     tags=["k8s", "ows", "self-service"],
-    access_control={
-        "utilityuser": {"can_dag_read", "can_dag_edit"},
-    },
 )
 
 with dag:
