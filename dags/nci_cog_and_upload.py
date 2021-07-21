@@ -29,7 +29,7 @@ from airflow import DAG, AirflowException
 from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.providers.ssh.operators.ssh import SSHOperator
 from airflow.operators.python_operator import ShortCircuitOperator
-from airflow.operators.sensors import ExternalTaskSensor
+from airflow.sensors.external_task import ExternalTaskSensor
 
 from nci_common import c2_default_args, c2_schedule_interval, HOURS, MINUTES, DAYS
 from sensors.pbs_job_complete_sensor import PBSJobSensor
