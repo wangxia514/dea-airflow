@@ -1,5 +1,7 @@
 """
-Check dead queues for entries and alert Alex if any are found.
+Check whether our SQS dead-letter queues are empty.
+
+If they're not, send email notifications that there have been processing failures.
 
 Todo: create specific creds.
 """
@@ -14,9 +16,9 @@ from airflow.operators.python_operator import PythonOperator
 from infra.connections import AWS_DEAD_LETTER_QUEUE_CHECKER_CONN
 
 default_args = {
-    "owner": "Alex Leith",
+    "owner": "Damien Ayers",
     "start_date": datetime(2020, 6, 15),
-    "email": ["kieran.ricardo@ga.gov.au"],
+    "email": ["kieran.ricardo@ga.gov.au", "damien.ayers@ga.gov.au"],
     "email_on_failure": True,
 }
 
@@ -42,7 +44,8 @@ DEAD_QUEUES = [
 ]
 
 
-def _check_queues(aws_conn):
+def check_deadletter_queues(aws_conn):
+    """Ensure all releant dead-letter queues are empty or raise an Exception"""
     print(f"Connecting using {aws_conn}")
     sqs_hook = SQSHook(aws_conn)
     sqs = sqs_hook.get_resource_type("sqs")
@@ -65,17 +68,17 @@ def _check_queues(aws_conn):
     bad_queues_str = "\n".join(f" * {q.name}" for q in bad_queues)
     message = dedent(
         f"""
-Found {len(bad_queues)} dead queues that have messages on them.
-These are the culprits:
-{bad_queues_str}
-"""
+        Found {len(bad_queues)} dead queues that have messages on them.
+        These are the culprits:
+        {bad_queues_str}
+        """
     )
 
     if len(bad_queues) > 0:
         raise AirflowException(message)
 
 
-dag = DAG(
+with DAG(
     dag_id="aws_check_dead_queues",
     catchup=False,
     default_args=default_args,
@@ -83,11 +86,9 @@ dag = DAG(
     default_view="graph",
     tags=["aws", "landsat_c3"],
     doc_md=__doc__,
-)
-
-with dag:
+) as dag:
     CHECK_QUEUES = PythonOperator(
         task_id="check_queues",
-        python_callable=_check_queues,
+        python_callable=check_deadletter_queues,
         op_kwargs=dict(aws_conn=AWS_DEAD_LETTER_QUEUE_CHECKER_CONN),
     )
