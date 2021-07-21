@@ -31,8 +31,6 @@ DEFAULT_ARGS = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
-    "index_sqs_queue": SENTINEL_2_ARD_INDEXING_SQS_QUEUE_NAME_ODC_DB,
-    "products": "s2a_ard_granule s2b_ard_granule",
     "env_vars": {
         "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
@@ -72,15 +70,13 @@ DEFAULT_ARGS = {
     ],
 }
 
-dag = DAG(
+with DAG(
     "k8s_index_s2_nbart",
     default_args=DEFAULT_ARGS,
     schedule_interval="0 */1 * * *",
     catchup=False,
     tags=["k8s", "s2_nbart"],
-)
-
-with dag:
+) as dag:
 
     INDEXING = KubernetesPodOperator(
         namespace="processing",
@@ -91,8 +87,8 @@ with dag:
             "--stac",
             "--skip-lineage",
             "--absolute",
-            dag.default_args["index_sqs_queue"],
-            dag.default_args["products"],
+            SENTINEL_2_ARD_INDEXING_SQS_QUEUE_NAME_ODC_DB,
+            "s2a_ard_granule s2b_ard_granule",
         ],
         labels={"step": "sqs-dc-indexing"},
         name="datacube-index",
