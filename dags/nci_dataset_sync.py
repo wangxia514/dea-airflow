@@ -65,7 +65,7 @@ SYNC_COMMAND = dedent(
       "source $HOME/.bashrc; \
       module use /g/data/v10/public/modules/modulefiles/; \
       module load {{ params.module }}; \
-      dea-sync -vvv --cache-folder {{sync_cache_dir}} -j 8 --update-locations --index-missing {{ sync_path }}"
+      dea-sync -vvv --cache-folder {{sync_cache_dir}} -j 12 --update-locations --index-missing {{ sync_path }}"
 """
 )
 
