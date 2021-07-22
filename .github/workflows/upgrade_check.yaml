@@ -14,6 +14,7 @@ jobs:
   upgrade-checks:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - name: Dockerized upgrade_check
         run: |
           docker-compose up -d
