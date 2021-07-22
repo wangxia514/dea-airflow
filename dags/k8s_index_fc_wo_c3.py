@@ -90,6 +90,12 @@ DEFAULT_ARGS = {
             ALCHEMIST_C3_USER_SECRET,
             "S2_NRT_WO_SQS_INDEXING_QUEUE",
         ),
+        Secret(
+            "env",
+            "S2_WO_SQS_INDEXING_QUEUE",
+            ALCHEMIST_C3_USER_SECRET,
+            "S2_WO_SQS_INDEXING_QUEUE",
+        ),
     ],
 }
 
@@ -103,14 +109,15 @@ dag = DAG(
     tags=["k8s", "landsat_c3"],
 )
 
-product_to_queue = {
-    "ga_ls_wo_3": "WO_SQS_INDEXING_QUEUE",
-    "ga_ls_fc_3": "FC_SQS_INDEXING_QUEUE",
-    "ga_s2_wo_3": "S2_NRT_WO_SQS_INDEXING_QUEUE",
+queue_to_product = {
+    "WO_SQS_INDEXING_QUEUE": "ga_ls_wo_3",
+    "FC_SQS_INDEXING_QUEUE": "ga_ls_fc_3",
+    "S2_NRT_WO_SQS_INDEXING_QUEUE": "ga_s2_wo_3",
+    "S2_WO_SQS_INDEXING_QUEUE": "ga_s2_wo_3",
 }
 
 with dag:
-    for product, queue in product_to_queue.items():
+    for queue, product in queue_to_product.items():
         slug = product.replace("_", "-")
         INDEXING = KubernetesPodOperator(
             namespace="processing",
@@ -119,7 +126,8 @@ with dag:
             arguments=[
                 "bash",
                 "-c",
-                f"sqs-to-dc --stac --update-if-exists --allow-unsafe ${queue} {product}",
+                "sqs-to-dc --stac"  # continue
+                f"--update-if-exists --allow-unsafe ${queue} {product}",
             ],
             labels={"step": "sqs-dc-indexing"},
             name=f"datacube-index-{slug}",
