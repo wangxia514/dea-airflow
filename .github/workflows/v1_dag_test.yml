@@ -64,6 +64,8 @@ jobs:
           export PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}${PWD}/dags"
           pip install pylint==2.7.2 pytest==6.2.2 pylint-airflow
           pytest tests/dag_structure
+
       - name: run upgrade_check
+        run: |
           pip install apache-airflow-upgrade-check
           airflow upgrade_check
