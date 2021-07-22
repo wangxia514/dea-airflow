@@ -126,7 +126,7 @@ with dag:
             arguments=[
                 "bash",
                 "-c",
-                "sqs-to-dc --stac"  # continue
+                "sqs-to-dc --stac "  # continue
                 f"--update-if-exists --allow-unsafe ${queue} {product}",
             ],
             labels={"step": "sqs-dc-indexing"},
