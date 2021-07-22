@@ -1,0 +1,21 @@
+---
+name: Upgrade Checks
+
+on:
+  pull_request:
+    branches:
+      - 'master'
+
+  push:
+    branches:
+      - 'master'
+
+jobs:
+  upgrade-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dockerized upgrade_check
+        run: |
+          docker-compose up -d
+          docker-compose exec -T airflow-scheduler /bin/sh -c "pip install apache-airflow-upgrade-check; airflow upgrade_check"
+          docker-compose down

@@ -7,13 +7,14 @@ import csv
 from pathlib import Path
 
 from airflow import DAG
-from airflow import configuration
+# from airflow import configuration
+from airflow.configuration import conf as configuration
 
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.operators.subdag_operator import SubDagOperator
-from airflow.contrib.sensors.aws_sqs_sensor import SQSSensor
-from airflow.contrib.hooks.aws_sqs_hook import SQSHook
+from airflow.providers.amazon.aws.sensors.sqs import SQSSensor
+from airflow.providers.amazon.aws.sensors.sqs import SQSHook
 
 from infra.pools import WAGL_TASK_POOL
 

@@ -17,7 +17,7 @@ This DAG should be idempotent, ie. running repeatedly is safe.
 from textwrap import dedent
 
 from airflow import DAG
-from airflow.contrib.hooks.aws_hook import AwsHook
+from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
 from airflow.providers.ssh.operators.ssh import SSHOperator
 
 from datetime import datetime, timedelta

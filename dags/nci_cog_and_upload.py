@@ -26,7 +26,7 @@ from datetime import timedelta
 from textwrap import dedent
 
 from airflow import DAG, AirflowException
-from airflow.contrib.hooks.aws_hook import AwsHook
+from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
 from airflow.providers.ssh.operators.ssh import SSHOperator
 from airflow.operators.python_operator import ShortCircuitOperator
 

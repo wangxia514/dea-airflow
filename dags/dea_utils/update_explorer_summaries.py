@@ -3,7 +3,7 @@ A reusable Task for refreshing datacube explorer instances
 """
 from collections.abc import Sequence
 
-from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 
 from infra.images import EXPLORER_IMAGE

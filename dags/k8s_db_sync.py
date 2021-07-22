@@ -15,8 +15,8 @@ integrity using md5sum
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.sensors.s3_key_sensor import S3KeySensor
-from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+from airflow.providers.amazon.aws.sensors.s3_key import S3KeySensor
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod.KubernetesPodOperator import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 
