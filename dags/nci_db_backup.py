@@ -31,7 +31,7 @@ with DAG(
     default_args=default_args,
     catchup=False,
     schedule_interval="@daily",
-    max_active_runs=1,
+    max_active_runs=3,
     tags=["nci"],
 ) as dag:
     COMMON = dedent(
