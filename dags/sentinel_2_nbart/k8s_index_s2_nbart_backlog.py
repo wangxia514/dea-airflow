@@ -65,7 +65,8 @@ dag = DAG(
 with dag:
     for year in range(2015, 2022):
         for i, quarter in enumerate(["0[123]", "0[456]", "0[789]", "1[012]"]):
-
+            cmd = f"s3://dea-public-data/baseline/s2[ab]_ard_granule/{year}-{quarter}-*/*/eo3-ARD-METADATA.odc-metadata.yaml "
+            cmd += dag.default_args["products"] 
             INDEXING = KubernetesPodOperator(
                 namespace="processing",
                 image=INDEXER_IMAGE,
@@ -77,8 +78,7 @@ with dag:
                     "--update-if-exists",
                     "--skip-check",
                     "--no-sign-request",
-                    f"s3://dea-public-data/baseline/s2[ab]_ard_granule/{year}-{quarter}-*/*/eo3-ARD-METADATA.odc-metadata.yaml ",
-                    dag.default_args["products"],
+                    cmd,
                 ],
                 labels={"step": "s3-dc-indexing"},
                 name="datacube-index",
