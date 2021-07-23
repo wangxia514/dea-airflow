@@ -72,7 +72,7 @@ with dag:
                 namespace="processing",
                 image=INDEXER_IMAGE,
                 image_pull_policy="Always",
-                arguments=["bash", "-c", cmd_template.format(uri)],
+                arguments=[cmd_template.format(uri)],
                 labels={"step": "s3-dc-indexing"},
                 name="datacube-index",
                 task_id=f"indexing-task-{year}-Q{i+1}",
