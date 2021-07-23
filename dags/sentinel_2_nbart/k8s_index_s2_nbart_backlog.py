@@ -62,24 +62,17 @@ dag = DAG(
     tags=["k8s", "s2_nbart"],
 )
 
+cmd_template = "s3-to-dc --skip-lineage --allow-unsafe --update-if-exists --skip-check --no-sign-request {} " + dag.default_args["products"] 
+
 with dag:
     for year in range(2015, 2022):
         for i, quarter in enumerate(["0[123]", "0[456]", "0[789]", "1[012]"]):
-            cmd = f"s3://dea-public-data/baseline/s2[ab]_ard_granule/{year}-{quarter}-*/*/eo3-ARD-METADATA.odc-metadata.yaml "
-            cmd += dag.default_args["products"] 
+            uri = f"s3://dea-public-data/baseline/s2[ab]_ard_granule/{year}-{quarter}-*/*/eo3-ARD-METADATA.odc-metadata.yaml "
             INDEXING = KubernetesPodOperator(
                 namespace="processing",
                 image=INDEXER_IMAGE,
                 image_pull_policy="Always",
-                arguments=[
-                    "s3-to-dc",
-                    "--skip-lineage",
-                    "--allow-unsafe",
-                    "--update-if-exists",
-                    "--skip-check",
-                    "--no-sign-request",
-                    cmd,
-                ],
+                cmds=[cmd_template.format(uri)],
                 labels={"step": "s3-dc-indexing"},
                 name="datacube-index",
                 task_id=f"indexing-task-{year}-Q{i+1}",
