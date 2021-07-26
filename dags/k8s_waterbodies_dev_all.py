@@ -221,7 +221,7 @@ with dag:
         # TODO(MatthewJA): Use the name/ID of this DAG
         # to make sure that we don't double-up if we're
         # running two DAGs simultaneously.
-        queue_name = f'waterbodies-{branch}-sqs'
+        queue_name = f'waterbodies_{branch}_sqs'
         makequeue_cmd = [
             "bash",
             "-c",
@@ -259,7 +259,7 @@ with dag:
         # TODO(MatthewJA): Use the name/ID of this DAG
         # to make sure that we don't double-up if we're
         # running two DAGs simultaneously.
-        queue_name = f'waterbodies-{branch}-sqs'
+        queue_name = f'waterbodies_{branch}_sqs'
         delqueue_cmd = [
             "bash",
             "-c",
