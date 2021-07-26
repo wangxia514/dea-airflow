@@ -228,7 +228,7 @@ with dag:
             dedent(
                 """
                 echo "Using dea-waterbodies image {image}"
-                python -m dea_waterbodies.queue make {name}
+                python -m dea_waterbodies.queues make {name}
                 """.format(
                     image=WATERBODIES_UNSTABLE_IMAGE, name=queue_name,
                 )
@@ -266,7 +266,7 @@ with dag:
             dedent(
                 """
                 echo "Using dea-waterbodies image {image}"
-                python -m dea_waterbodies.queue delete {name}
+                python -m dea_waterbodies.queues delete {name}
                 """.format(
                     image=WATERBODIES_UNSTABLE_IMAGE, name=queue_name,
                 )
