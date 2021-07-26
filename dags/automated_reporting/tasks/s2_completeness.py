@@ -186,11 +186,8 @@ def log_results(sensor, summary, output):
     #         log.info("    Missing:{}".format(scene_id))
 
 
-def generate_db_writes(sensor, summary, output, execution_date):
+def generate_db_writes(product_id, summary, output, execution_date):
     """Generate a list of db writes from a results list"""
-
-    # format a GA standard product_id
-    product_id = "ga_{}_msi_ard_c3".format(sensor)
 
     execution_date = helpers.python_dt(execution_date)
 
@@ -307,9 +304,12 @@ def task_wo(execution_date, days, connection_id, **kwargs):
     # write results to Airflow logs
     log_results(sensor, summary, output)
 
+    # format a GA standard product_id
+    product_id = sensor
+
     # generate the list of database writes for sensor/platform
     db_completeness_writes += generate_db_writes(
-        sensor, summary, output, execution_date
+        product_id, summary, output, execution_date
     )
 
     # write records to reporting database
@@ -365,9 +365,12 @@ def task_ard(execution_date, days, connection_id, **kwargs):
         # write results to Airflow logs
         log_results(sensor, summary, output)
 
+        # format a GA standard product_id
+        product_id = "ga_{}_msi_ard_c3".format(sensor)
+
         # generate the list of database writes for sensor/platform
         db_completeness_writes += generate_db_writes(
-            sensor, summary, output, execution_date
+            product_id, summary, output, execution_date
         )
 
     # write records to reporting database
