@@ -18,16 +18,14 @@ DEFAULT_ARGS = {
     "retry_delay": timedelta(minutes=5),
 }
 
-dag = DAG(
+with DAG(
     dag_id=DAG_NAME,
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval="@weekly",  # weekly
     catchup=False,
     tags=["k8s", "developer_support", "rds", "s3", "db"],
-)
-
-with dag:
+) as dag:
 
     ENV_SET_VARIABLES_CHECK = BashOperator(
         task_id="env-set-variables-check",
@@ -42,6 +40,3 @@ with dag:
         "env | grep -o 'AIRFLOW_CONN_[^.]*=' | wc -l;"
         "env | grep -o 'AIRFLOW_CONN_[^.]*=' | awk -F= '{print $1}' | cut -d'_' -f3- | tr '[:upper:]' '[:lower:]';",
     )
-
-    ENV_SET_VARIABLES_CHECK
-    ENV_SET_CONNECTIONS_CHECK

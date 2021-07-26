@@ -19,8 +19,8 @@ from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.providers.sftp.operators.sftp import SFTPOperator, SFTPOperation
 from airflow.providers.ssh.operators.ssh import SSHOperator
 
-from nci_common import HOURS, MINUTES
-
+HOURS = 60 * 60
+MINUTES = 60
 local_tz = pendulum.timezone("Australia/Canberra")
 
 # language="Shell Script"
@@ -54,7 +54,7 @@ default_args = {
     "aws_conn_id": "dea_public_data_upload",
 }
 
-dag = DAG(
+with DAG(
     "nci_s2_upload_s3_v2",
     doc_md=__doc__,
     default_args=default_args,
@@ -63,9 +63,7 @@ dag = DAG(
     max_active_runs=4,
     default_view="tree",
     tags=["nci", "sentinel_2"],
-)
-
-with dag:
+) as dag:
     # Uploading s2_to_s3_rolling.py script to NCI
     upload_uploader_script = SFTPOperator(
         task_id="upload_uploader_script",
