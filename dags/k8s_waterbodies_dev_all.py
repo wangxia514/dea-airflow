@@ -120,87 +120,59 @@ dag = DAG(
 )
 
 
-def branch_mem(part, **kwargs):
-    """
-    method docstring
-    """
-    chunk_path_json = kwargs["ti"].xcom_pull(
-        task_ids="waterbodies-all-getchunks", key="return_value"
-    )
-    chunks_path = chunk_path_json["chunks_path"]
-    split = chunks_path.split("/")
-    bucket = split[2]
-    path = "/".join(split[3:])
-    s3 = boto3.resource("s3")
-    s3.meta.client.meta.events.register("choose-signer.s3.*", disable_signing)
-    # Download the JSON
-    print("Downloading", path, "from bucket", bucket)
-    s3.Bucket(bucket).download_file(path, "chunks.json")
-    with open("chunks.json") as f:
-        chunk_json = json.load(f)
-    assert 0 <= part < len(chunk_json["chunks"])
-    part_details = chunk_json["chunks"][part]
-    max_mem = float(part_details["max_mem_Mi"])
-    print(f"Part {part} wants {max_mem}")
-    for name, val in MEM_BRANCHES.items():
-        if max_mem < val:
-            return f"process-{part}-{name}"
-    raise NotImplementedError("No branch with sufficient resources.")
+# def k8s_pod_task(mem, part, name):
+#     """
+#     method docstring
+#     """
+#     cmd = [
+#         "bash",
+#         "-c",
+#         dedent(
+#             """
+#             echo "Using dea-waterbodies image {image}"
+#             wget {conf} -O config.ini
+#             cat config.ini
 
+#             # Download xcom path to the IDs file.
+#             echo "Downloading {{{{ ti.xcom_pull(task_ids='waterbodies-all-getchunks')['chunks_path'] }}}}"
+#             aws s3 cp {{{{ ti.xcom_pull(task_ids='waterbodies-all-getchunks')['chunks_path'] }}}} ids.json
 
-def k8s_pod_task(mem, part, name):
-    """
-    method docstring
-    """
-    cmd = [
-        "bash",
-        "-c",
-        dedent(
-            """
-            echo "Using dea-waterbodies image {image}"
-            wget {conf} -O config.ini
-            cat config.ini
+#             # Write xcom data to a TXT file.
+#             python - << EOF
+#             import json
+#             with open('ids.json') as f:
+#                 ids = json.load(f)
+#             with open('ids.txt', 'w') as f:
+#                 f.write('\\n'.join(ids['chunks'][{part}]['ids']))
+#             EOF
 
-            # Download xcom path to the IDs file.
-            echo "Downloading {{{{ ti.xcom_pull(task_ids='waterbodies-all-getchunks')['chunks_path'] }}}}"
-            aws s3 cp {{{{ ti.xcom_pull(task_ids='waterbodies-all-getchunks')['chunks_path'] }}}} ids.json
-
-            # Write xcom data to a TXT file.
-            python - << EOF
-            import json
-            with open('ids.json') as f:
-                ids = json.load(f)
-            with open('ids.txt', 'w') as f:
-                f.write('\\n'.join(ids['chunks'][{part}]['ids']))
-            EOF
-
-            # Execute waterbodies on the IDs.
-            echo "Processing:"
-            cat ids.txt
-            cat ids.txt | python -m dea_waterbodies.make_time_series --config config.ini
-            """.format(
-                image=WATERBODIES_UNSTABLE_IMAGE, conf=config_path, part=part
-            )
-        ),
-    ]
-    req_mem = "{}Mi".format(int(mem))
-    return KubernetesPodOperator(
-        image=WATERBODIES_UNSTABLE_IMAGE,
-        name="waterbodies-all",
-        arguments=cmd,
-        image_pull_policy="IfNotPresent",
-        labels={"step": "waterbodies-" + name},
-        get_logs=True,
-        affinity=affinity,
-        is_delete_operator_pod=True,
-        resources={
-            "request_cpu": "1000m",
-            "request_memory": req_mem,
-        },
-        namespace="processing",
-        tolerations=tolerations,
-        task_id=name,
-    )
+#             # Execute waterbodies on the IDs.
+#             echo "Processing:"
+#             cat ids.txt
+#             cat ids.txt | python -m dea_waterbodies.make_time_series --config config.ini
+#             """.format(
+#                 image=WATERBODIES_UNSTABLE_IMAGE, conf=config_path, part=part
+#             )
+#         ),
+#     ]
+#     req_mem = "{}Mi".format(int(mem))
+#     return KubernetesPodOperator(
+#         image=WATERBODIES_UNSTABLE_IMAGE,
+#         name="waterbodies-all",
+#         arguments=cmd,
+#         image_pull_policy="IfNotPresent",
+#         labels={"step": "waterbodies-" + name},
+#         get_logs=True,
+#         affinity=affinity,
+#         is_delete_operator_pod=True,
+#         resources={
+#             "request_cpu": "1000m",
+#             "request_memory": req_mem,
+#         },
+#         namespace="processing",
+#         tolerations=tolerations,
+#         task_id=name,
+#     )
 
 
 with dag:
@@ -216,6 +188,7 @@ with dag:
         dedent(
             """
             echo "Using dea-waterbodies image {image}"
+            echo "Writing to /airflow/xcom/return.json"
             python -m dea_waterbodies.make_chunks {conf} {n_chunks} > /airflow/xcom/return.json
             """.format(
                 image=WATERBODIES_UNSTABLE_IMAGE, conf=config_path, n_chunks=n_chunks
@@ -264,7 +237,7 @@ with dag:
         makequeue = KubernetesPodOperator(
             image=WATERBODIES_UNSTABLE_IMAGE,
             name=f"waterbodies-all-makequeue-{branch}",
-            arguments=getchunks_cmd,
+            arguments=makequeue_cmd,
             image_pull_policy="IfNotPresent",
             labels={"step": "waterbodies-dev-all-makequeue"},
             get_logs=True,
@@ -302,7 +275,7 @@ with dag:
         delqueue = KubernetesPodOperator(
             image=WATERBODIES_UNSTABLE_IMAGE,
             name=f"waterbodies-all-delqueue-{branch}",
-            arguments=getchunks_cmd,
+            arguments=delqueue_cmd,
             image_pull_policy="IfNotPresent",
             labels={"step": "waterbodies-dev-all-delqueue"},
             get_logs=True,
@@ -317,21 +290,3 @@ with dag:
             task_id=f"waterbodies-all-delqueue-{branch}",
         )
         queues[branch] >> delqueue
-
-""" 
-    for part in range(n_chunks):
-        # Set up the branching.
-        branch = BranchPythonOperator(
-            task_id=f"branch-mem-{part}",
-            python_callable=branch_mem,
-            provide_context=True,
-            dag=dag,
-            op_kwargs={"part": part},
-        )
-        getchunks >> branch
-
-        # Then create the branch target operators.
-        for name, val in MEM_BRANCHES.items():
-            op = k8s_pod_task(val, part, f"process-{part}-{name}")
-            branch >> op
- """
