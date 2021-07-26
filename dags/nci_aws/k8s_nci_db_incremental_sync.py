@@ -50,10 +50,10 @@ S3_KEY = f"s3://{S3_BUCKET}/{S3_PREFIX}/md5sums"
 BACKUP_PATH = "/scripts/backup"
 
 DEFAULT_ARGS = {
-    "owner": "Nikita Gandhi",
+    "owner": "Damien Ayers",
     "depends_on_past": False,
     "start_date": datetime(2020, 10, 8, tzinfo=local_tz),
-    "email": ["nikita.gandhi@ga.gov.au"],
+    "email": ["damien.ayers@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 1,
@@ -74,11 +74,13 @@ DEFAULT_ARGS = {
 SECRET_RESTORE_INCREMENTAL_SYNC = [
     Secret("env", "DB_DATABASE", SECRET_EXPLORER_NCI_ADMIN_NAME, "database-name"),
     Secret("env", "DB_ADMIN_USER", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-username"),
-    Secret("env", "DB_ADMIN_PASSWORD", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-password"),
+    Secret(
+        "env", "DB_ADMIN_PASSWORD", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-password"
+    ),
 ]
 
 SECRET_INDEXER = [
-    Secret("env", "DB_DATABASE", SECRET_EXPLORER_NCI_ADMIN_NAME , "database-name"),
+    Secret("env", "DB_DATABASE", SECRET_EXPLORER_NCI_ADMIN_NAME, "database-name"),
     Secret("env", "DB_USERNAME", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-username"),
     Secret("env", "DB_PASSWORD", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-password"),
 ]

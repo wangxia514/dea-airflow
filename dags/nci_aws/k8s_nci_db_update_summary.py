@@ -29,10 +29,10 @@ local_tz = pendulum.timezone("Australia/Canberra")
 DB_HOSTNAME = "db-writer"
 
 DEFAULT_ARGS = {
-    "owner": "Nikita Gandhi",
+    "owner": "Damien Ayers",
     "depends_on_past": False,
     "start_date": datetime(2020, 10, 8, tzinfo=local_tz),
-    "email": ["nikita.gandhi@ga.gov.au"],
+    "email": ["damien.ayers@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
