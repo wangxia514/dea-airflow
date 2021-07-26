@@ -207,7 +207,7 @@ with dag:
     config_name = '{{ dag_run.conf.get("config_name", "config_moree_test_aws") }}'
     config_path = f"https://raw.githubusercontent.com/GeoscienceAustralia/dea-waterbodies/stable/ts_configs/{config_name}"
 
-    # Now we need to download the DBF and do the chunking.
+    # We need to download the DBF and do the chunking.
     # We will do this within a Kubernetes pod.
     n_chunks = 128
     getchunks_cmd = [
@@ -242,6 +242,84 @@ with dag:
         task_id="waterbodies-all-getchunks",
     )
 
+    # Next we need to spawn a queue for each memory branch.
+    queues = {}
+    for branch in MEM_BRANCHES:
+        # TODO(MatthewJA): Use the name/ID of this DAG
+        # to make sure that we don't double-up if we're
+        # running two DAGs simultaneously.
+        queue_name = f'waterbodies-{branch}-sqs'
+        makequeue_cmd = [
+            "bash",
+            "-c",
+            dedent(
+                """
+                echo "Using dea-waterbodies image {image}"
+                python -m dea_waterbodies.queue make {name}
+                """.format(
+                    image=WATERBODIES_UNSTABLE_IMAGE, name=queue_name,
+                )
+            ),
+        ]
+        makequeue = KubernetesPodOperator(
+            image=WATERBODIES_UNSTABLE_IMAGE,
+            name=f"waterbodies-all-makequeue-{branch}",
+            arguments=getchunks_cmd,
+            image_pull_policy="IfNotPresent",
+            labels={"step": "waterbodies-dev-all-makequeue"},
+            get_logs=True,
+            affinity=affinity,
+            is_delete_operator_pod=True,
+            resources={
+                "request_cpu": "1000m",
+                "request_memory": "512Mi",
+            },
+            namespace="processing",
+            tolerations=tolerations,
+            task_id=f"waterbodies-all-makequeue-{branch}",
+        )
+        getchunks >> makequeue
+        queues[branch] = makequeue
+    )
+
+    # Now delete them.
+    for branch in MEM_BRANCHES:
+        # TODO(MatthewJA): Use the name/ID of this DAG
+        # to make sure that we don't double-up if we're
+        # running two DAGs simultaneously.
+        queue_name = f'waterbodies-{branch}-sqs'
+        delqueue_cmd = [
+            "bash",
+            "-c",
+            dedent(
+                """
+                echo "Using dea-waterbodies image {image}"
+                python -m dea_waterbodies.queue delete {name}
+                """.format(
+                    image=WATERBODIES_UNSTABLE_IMAGE, name=queue_name,
+                )
+            ),
+        ]
+        delqueue = KubernetesPodOperator(
+            image=WATERBODIES_UNSTABLE_IMAGE,
+            name=f"waterbodies-all-delqueue-{branch}",
+            arguments=getchunks_cmd,
+            image_pull_policy="IfNotPresent",
+            labels={"step": "waterbodies-dev-all-delqueue"},
+            get_logs=True,
+            affinity=affinity,
+            is_delete_operator_pod=True,
+            resources={
+                "request_cpu": "1000m",
+                "request_memory": "512Mi",
+            },
+            namespace="processing",
+            tolerations=tolerations,
+            task_id=f"waterbodies-all-delqueue-{branch}",
+        )
+        queues[branch] >> delqueue
+
+""" 
     for part in range(n_chunks):
         # Set up the branching.
         branch = BranchPythonOperator(
@@ -257,3 +335,4 @@ with dag:
         for name, val in MEM_BRANCHES.items():
             op = k8s_pod_task(val, part, f"process-{part}-{name}")
             branch >> op
+ """
