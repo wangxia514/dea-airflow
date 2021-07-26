@@ -77,7 +77,7 @@ with DAG(
         ),
     )
 
-    aws_conn = AwsHook(aws_conn_id="aws_nci_db_backup")
+    aws_conn = AwsHook(aws_conn_id="aws_nci_db_backup", client_type="s3")
     upload_to_s3 = SSHOperator(
         task_id="upload_to_s3",
         params=dict(aws_conn=aws_conn),

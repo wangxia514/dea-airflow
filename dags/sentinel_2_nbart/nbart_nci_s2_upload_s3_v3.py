@@ -122,7 +122,7 @@ with dag:
     )
 
     # Execute script to upload sentinel-2 data to s3 bucket
-    aws_hook = AwsHook(aws_conn_id=dag.default_args["aws_conn_id"])
+    aws_hook = AwsHook(aws_conn_id=dag.default_args["aws_conn_id"], client_type="s3")
 
     execute_upload = SSHOperator(
         task_id="execute_upload",

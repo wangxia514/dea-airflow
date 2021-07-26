@@ -104,7 +104,7 @@ with DAG(
     )
 
     # Grab credentials from an Airflow Connection
-    aws_conn = AwsHook(aws_conn_id="aws_nci_db_backup")
+    aws_conn = AwsHook(aws_conn_id="aws_nci_db_backup", client_type="s3")
 
     upload_change_csvs_to_s3 = SSHOperator(
         task_id="upload_change_csvs_to_s3",
