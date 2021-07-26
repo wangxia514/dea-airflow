@@ -280,7 +280,6 @@ with dag:
         )
         getchunks >> makequeue
         queues[branch] = makequeue
-    )
 
     # Now delete them.
     for branch in MEM_BRANCHES:
