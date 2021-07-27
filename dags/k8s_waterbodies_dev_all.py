@@ -126,48 +126,73 @@ dag = DAG(
 )
 
 
-def python_queueread(dag, branch):
-    """Python operator for reading out the queue, for testing/dev use."""
+def k8s_queueread(dag, branch):
+    """K8s operator for reading out the queue, for testing/dev use."""
+    cmd = [
+        "bash",
+        "-c",
+        dedent(
+            """
+            echo "Using dea-waterbodies image {image}"
 
-    def print_from_queue():
-        sqs = boto3.resource('sqs')
-        name = f'waterbodies_{branch}_sqs'
-        queue = sqs.get_queue_by_name(QueueName=name)
-        queue_url = sqs.get_queue_url(
-            QueueName=name)['QueueUrl']
+            # Do everything in Python.
+            python - << EOF
+            import boto3
+            sqs = boto3.resource('sqs')
+            name = '{queue}'
+            queue = sqs.get_queue_by_name(QueueName=name)
+            queue_url = sqs.get_queue_url(
+                QueueName=name)['QueueUrl']
+            
+            while True:
+                messages = queue.receive_messages(
+                    AttributeNames=['All'],
+                    MaxNumberOfMessages=1,
+                )
+                if len(messages) == 0:
+                    break
+
+                entries = [
+                    {'Id': msg.message_id,
+                    'ReceiptHandle': msg.receipt_handle}
+                    for msg in messages
+                ]
+
+                print([msg.body for msg in messages])
         
-        while True:
-            messages = queue.receive_messages(
-                AttributeNames=['All'],
-                MaxNumberOfMessages=1,
+                resp = queue.delete_messages(
+                        QueueUrl=queue_url, Entries=entries,
+                    )
+
+                if len(resp['Successful']) != len(entries):
+                    raise RuntimeError(
+                        f"Failed to delete messages: {entries}"
+                    )
+            EOF
+            """.format(
+                image=WATERBODIES_UNSTABLE_IMAGE,
+                queue=f'waterbodies_{branch}_sqs',
             )
-            if len(messages) == 0:
-                break
-
-            entries = [
-                {'Id': msg.message_id,
-                 'ReceiptHandle': msg.receipt_handle}
-                for msg in messages
-            ]
-
-            print([msg.body for msg in messages])
-    
-            resp = queue.delete_messages(
-                    QueueUrl=queue_url, Entries=entries,
-                )
-
-            if len(resp['Successful']) != len(entries):
-                raise RuntimeError(
-                    f"Failed to delete messages: {entries}"
-                )
-        
-        return 'ok'
-
-    queueread = PythonOperator(
-        task_id=f'print-from-queue-{branch}',
-        python_callable=print_from_queue,
+        ),
+    ]
+    return KubernetesPodOperator(
+        image=WATERBODIES_UNSTABLE_IMAGE,
+        dag=dag,
+        name=f"waterbodies-all-queueread-{branch}",
+        arguments=cmd,
+        image_pull_policy="IfNotPresent",
+        labels={"step": "waterbodies-all-queueread"},
+        get_logs=True,
+        affinity=affinity,
+        is_delete_operator_pod=True,
+        resources={
+            "request_cpu": "1000m",
+            "request_memory": '512Mi',
+        },
+        namespace="processing",
+        tolerations=tolerations,
+        task_id=f'waterbodies-all-queueread-{branch}',
     )
-    return queueread
 
 
 def k8s_job_task(dag, branch):
@@ -407,7 +432,7 @@ with dag:
         # Populate the queues.
         push = k8s_queue_push(dag, branch)
         # Now we'll do the main task.
-        queueread = python_queueread(dag, branch)
+        queueread = k8s_queueread(dag, branch)
         # task = k8s_job_task(dag, branch)
         # Finally delete the queue.
         delqueue = k8s_delqueue(dag, branch)
