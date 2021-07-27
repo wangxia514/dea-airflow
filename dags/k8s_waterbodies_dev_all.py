@@ -441,4 +441,4 @@ with dag:
         delqueue = k8s_delqueue(dag, branch)
         branch_ops.append(makequeue >> push >> queueread >> delqueue)
     
-    get_chunks >> branch_ops >> done
+getchunks >> branch_ops >> done
