@@ -154,7 +154,7 @@ def k8s_queueread(dag, branch):
                 ]
 
                 print([msg.body for msg in messages])
-        
+
                 resp = queue.delete_messages(
                         QueueUrl=queue_url, Entries=entries,
                     )
