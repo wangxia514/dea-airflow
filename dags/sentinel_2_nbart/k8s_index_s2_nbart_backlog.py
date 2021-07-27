@@ -62,7 +62,7 @@ dag = DAG(
     tags=["k8s", "s2_nbart"],
 )
 
-cmd_template = "s3-to-dc --skip-lineage --allow-unsafe --update-if-exists --skip-check --no-sign-request {} " + dag.default_args["products"] 
+cmd_template = "s3-to-dc --skip-lineage --allow-unsafe --update-if-exists --skip-check --no-sign-request {} " + dag.default_args["products"]
 
 with dag:
     for year in range(2015, 2022):
