@@ -402,7 +402,7 @@ with dag:
     getchunks = k8s_getchunks(dag, n_chunks, config_path)
 
     # Dummy task to tie everything together at the end.
-    done = DummyOperator()
+    done = DummyOperator(task_id='waterbodies-all-tidy')
 
     for branch in MEM_BRANCHES:
         # Next we need to spawn a queue for each memory branch.
