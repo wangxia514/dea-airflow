@@ -164,7 +164,7 @@ def python_queueread(dag, branch):
         return 'ok'
 
     queueread = PythonOperator(
-        task_id='print-from-queue',
+        task_id=f'print-from-queue-{branch}',
         python_callable=print_from_queue,
     )
     return queueread
