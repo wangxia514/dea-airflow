@@ -1,14 +1,16 @@
 """
-## Utility Tool
-### Index some data from S3
-
+# Index datasets from S3 Utility Tool (Self Serve)
 This is a tool to index arbitrary files from S3 split by prefix.
 
-#### Utility customisation
+## Note
+All list of utility dags here: https://github.com/GeoscienceAustralia/dea-airflow/tree/develop/dags/utility, see Readme
+
+## customisation
 
 The DAG can be parameterized with run time configuration.
 
-#### example conf in json format
+## example conf in json format
+
     {
         "product": "ga_ls_wo_3",
         "path_template": "s3://dea-public-data/derived/ga_ls_wo_3/{path:03d}/**/*.json",
@@ -17,6 +19,7 @@ The DAG can be parameterized with run time configuration.
         "key_name": "path",
         "key_range": [88, 89]
     }
+
 """
 
 import json

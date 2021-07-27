@@ -1,23 +1,19 @@
 """
-## Utility Tool
-### explore refresh stats
+# refresh Explorer Utility Tool (Self Serve)
+
 This is utility is to provide administrators the easy accessiblity to run ad-hoc --refresh-stats
 
 ## Note
 All list of utility dags here: https://github.com/GeoscienceAustralia/dea-airflow/tree/develop/dags/utility, see Readme
 
-#### default run
-    `cubedash-gen --no-init-database --refresh-stats --force-refresh s2a_nrt_granule`
-    `cubedash-gen --no-init-database --refresh-stats --force-refresh s2b_nrt_granule`
-
-#### Utility customisation
+## Customisation
 The DAG can be parameterized with run time configuration `products`
 
 To run with all, set `dag_run.conf.products` to `--all`
 otherwise provide products to be refreshed seperated by space, i.e. `s2a_nrt_granule s2b_nrt_granule`
 dag_run.conf format:
 
-#### example conf in json format
+### Sample configuration in json format
 
     {
         "products": "--all"

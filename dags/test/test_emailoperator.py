@@ -1,5 +1,10 @@
 """
-SMTP infra setup testing dag
+# Debugging Tool (Admin use)
+## Test emailoperator
+Testing for smtp server connectivity and email sending and receiving.
+
+## Life span
+Forever.
 """
 from datetime import datetime
 from airflow import DAG

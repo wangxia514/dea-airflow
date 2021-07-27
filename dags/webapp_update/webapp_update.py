@@ -1,7 +1,39 @@
 """
-# Sentinel-2_nrt update views automation
-This DAG uses k8s executors and in cluster with relevant tooling
-and configuration installed.
+# Update Explorer and OWS
+This DAG runs every 6 hours to update for fresh index datasets
+The current product list is available from https://github.com/GeoscienceAustralia/dea-airflow/blob/develop/dags/webapp_update/update_list.py
+
+The list as at the time this docstring is created is:
+
+```python
+    OWS_UPDATE_LIST = (
+        "s2_nrt_granule_nbar_t",
+        "wofs_albers",
+        "fc_albers_combined",
+        "s2_ard_granule_nbar_t",
+        "ga_ls_wo_3",
+        "ga_s2_wo_3",
+        "ga_ls_fc_3",
+        "ga_ls_ard_3",
+    )
+
+    EXPLORER_UPDATE_LIST = (
+        "s2a_nrt_granule",
+        "s2b_nrt_granule",
+        "s2a_ard_granule",
+        "s2b_ard_granule",
+        "wofs_albers",
+        "ls5_fc_albers",
+        "ls7_fc_albers",
+        "ls8_fc_albers",
+        "ga_ls_wo_3",
+        "ga_s2_wo_3",
+        "ga_ls_fc_3",
+        "ga_ls5t_ard_3",
+        "ga_ls7e_ard_3",
+        "ga_ls8c_ard_3",
+    )
+```
 """
 
 from datetime import datetime, timedelta

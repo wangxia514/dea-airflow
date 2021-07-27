@@ -1,5 +1,10 @@
 """
-Test ssh operators
+# Debugging Tool (Admin use)
+## Test ssh operators
+During airflow v2 upgrade, sshoperator issue was raised this dag was created for testing v1 airflow and v2 airflow ssh operator.
+
+## Life span
+Can be deleted after v2 upgrade is completed.
 """
 from datetime import datetime, timedelta
 from textwrap import dedent
@@ -7,13 +12,9 @@ from textwrap import dedent
 import pendulum
 from airflow import DAG
 
-# from airflow.contrib.hooks.aws_hook import AwsHook
-# from airflow.contrib.operators.sftp_operator import SFTPOperator, SFTPOperation
 from airflow.contrib.operators.ssh_operator import SSHOperator as v1_SSHOperator
 from infra.connections import AWS_DEA_PUBLIC_DATA_UPLOAD_CONN
 
-# from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
-# from airflow.providers.sftp.operators.sftp import SFTPOperator, SFTPOperation
 from airflow.providers.ssh.operators.ssh import SSHOperator as v2_SSHOperator
 from airflow.providers.ssh.hooks.ssh import SSHHook as v2_SSHHook  # noqa: F401
 

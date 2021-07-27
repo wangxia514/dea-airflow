@@ -25,7 +25,7 @@ The commands which are executed are:
 3. update explorer
 
 
-## Sample Configuration
+### Sample Configuration
 
     {
         "product_definition_uri": "https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/master/products/lccs/lc_ls_c2.odc-product.yaml",
