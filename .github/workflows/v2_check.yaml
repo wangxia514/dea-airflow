@@ -62,7 +62,6 @@ jobs:
           airflow db init
 
           export AIRFLOW__CORE__LOAD_EXAMPLES="False"
-          # export AIRFLOW__CORE__UNIT_TEST_MODE="True"
           export AIRFLOW__CORE__PLUGINS_FOLDER="/home/runner/work/dea-airflow/dea-airflow/plugins"
           export AIRFLOW__CORE__DAGS_FOLDER="/home/runner/work/dea-airflow/dea-airflow/dags"
 
@@ -80,6 +79,7 @@ jobs:
 
       - name: run tests on dags
         run: |
+          # export AIRFLOW__CORE__UNIT_TEST_MODE="True"
           export PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}${PWD}/dags"
           pip install pylint==2.7.2 pytest==6.2.2 pylint-airflow
           pytest tests/dag_structure
