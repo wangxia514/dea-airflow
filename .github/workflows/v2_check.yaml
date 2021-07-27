@@ -69,10 +69,10 @@ jobs:
           airflow connections add 'aws_nci_db_backup' --conn-type 'aws' --conn-login 'AWSKEY' --conn-password 'AWS_PASS'
           airflow connections add 'lpgs_gadi' --conn-type 'ssh' --conn-login 'USERNAME' --conn-password 'PASS'
           airflow info
-          airflow dags list
+          airflow dags list -v
 
           # check if list_dags has error if yes exit CI
-          daglist=`airflow dags list`
+          daglist=`airflow dags list -v`
           errorstring="Error"
           if [[ $daglist == *"$errorstring"* ]]; then
               echo "error in dags"

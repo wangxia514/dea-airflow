@@ -20,7 +20,7 @@ default_args = {
 }
 
 dag = DAG(
-    "test_awsbasehook",
+    dag_id="test_awsbasehook",
     doc_md=__doc__,
     default_args=default_args,
     catchup=False,
