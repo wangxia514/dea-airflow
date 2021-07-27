@@ -10,7 +10,9 @@ and [Resto](https://github.com/jjrom/resto).
 
 import pendulum
 from airflow import DAG
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
@@ -22,10 +24,10 @@ from infra.variables import AWS_DEFAULT_REGION
 local_tz = pendulum.timezone("Australia/Canberra")
 
 DEFAULT_ARGS = {
-    "owner": "Nikita Gandhi",
+    "owner": "Damien Ayers",
     "depends_on_past": False,
     "start_date": datetime(2021, 3, 30, tzinfo=local_tz),
-    "email": ["nikita.gandhi@ga.gov.au"],
+    "email": ["damien.ayers@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 1,
@@ -40,8 +42,12 @@ DEFAULT_ARGS = {
     # Use this db-users to run cubedash update-summary
     "secrets": [
         Secret("env", "DB_DATABASE", SECRET_EXPLORER_NCI_WRITER_NAME, "database-name"),
-        Secret("env", "DB_USERNAME", SECRET_EXPLORER_NCI_WRITER_NAME, "postgres-username"),
-        Secret("env", "DB_PASSWORD", SECRET_EXPLORER_NCI_WRITER_NAME, "postgres-password"),
+        Secret(
+            "env", "DB_USERNAME", SECRET_EXPLORER_NCI_WRITER_NAME, "postgres-username"
+        ),
+        Secret(
+            "env", "DB_PASSWORD", SECRET_EXPLORER_NCI_WRITER_NAME, "postgres-password"
+        ),
     ],
 }
 
@@ -53,7 +59,7 @@ dag = DAG(
     concurrency=1,
     max_active_runs=1,
     tags=["k8s", "nci-explorer"],
-    schedule_interval="45 1 * * *",    # every day 1:45AM
+    schedule_interval="45 1 * * *",  # every day 1:45AM
 )
 
 affinity = ONDEMAND_NODE_AFFINITY
@@ -67,7 +73,14 @@ with dag:
         image=EXPLORER_IMAGE,
         # Run `cubedash-gen --help` for explanations of each option+usage
         cmds=["cubedash-gen"],
-        arguments=["-v", "--no-init-database", "--refresh-stats", "--minimum-scan-window", "4d", "--all"],
+        arguments=[
+            "-v",
+            "--no-init-database",
+            "--refresh-stats",
+            "--minimum-scan-window",
+            "4d",
+            "--all",
+        ],
         labels={"step": "nci-db-incremental-update-summary"},
         name="nci-db-incremental-update-summary",
         task_id="nci-db-incremental-update-summary",

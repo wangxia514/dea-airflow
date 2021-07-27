@@ -1,16 +1,21 @@
-# -*- coding: utf-8 -*-
-
 """
-### DEA ODC prod database - migrate schema
+### DEA ODC prod database - Run Explorer Schema Migration
 
-DAG to manually migrate schema for ODC DB when new version of explorer is
-deployed.
+This is a Utility DAG, to be run manually to execute a Datacube Explorer Schema Migration.
+
+It should be run whenever a new release of Datacube Explorer requires a database schema update.
+
+*Note:* There was one of these DAGs for each Explorer instance, but I think we should move to a more
+general purpose DAG. This may require switching to a parameterised `pod_template_file` instead of the
+current Secrets configuration.
 
 """
 
 import pendulum
 from airflow import DAG
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
@@ -22,10 +27,9 @@ local_tz = pendulum.timezone("Australia/Canberra")
 DB_HOSTNAME = "db-writer"
 
 DEFAULT_ARGS = {
-    "owner": "Tisham Dhar",
+    "owner": "Damien Ayers",
     "depends_on_past": False,
     "start_date": datetime(2020, 10, 3, tzinfo=local_tz),
-    "email": ["tisham.dhar@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
@@ -52,22 +56,26 @@ dag = DAG(
     catchup=False,
     concurrency=1,
     max_active_runs=1,
-    tags=["k8s"],
-    schedule_interval=None,    # Fully manual migrations
+    tags=["k8s", "utility"],
+    schedule_interval=None,  # Fully manual migrations
 )
 
 affinity = {
     "nodeAffinity": {
         "requiredDuringSchedulingIgnoredDuringExecution": {
-            "nodeSelectorTerms": [{
-                "matchExpressions": [{
-                    "key": "nodetype",
-                    "operator": "In",
-                    "values": [
-                        "ondemand",
+            "nodeSelectorTerms": [
+                {
+                    "matchExpressions": [
+                        {
+                            "key": "nodetype",
+                            "operator": "In",
+                            "values": [
+                                "ondemand",
+                            ],
+                        }
                     ]
-                }]
-            }]
+                }
+            ]
         }
     }
 }

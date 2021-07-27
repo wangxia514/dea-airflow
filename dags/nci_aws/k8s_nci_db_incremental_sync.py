@@ -26,7 +26,9 @@ import kubernetes.client.models as k8s
 import pendulum
 from airflow import DAG
 from airflow.providers.amazon.aws.sensors.s3_key import S3KeySensor
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
@@ -50,10 +52,10 @@ S3_KEY = f"s3://{S3_BUCKET}/{S3_PREFIX}/md5sums"
 BACKUP_PATH = "/scripts/backup"
 
 DEFAULT_ARGS = {
-    "owner": "Nikita Gandhi",
+    "owner": "Damien Ayers",
     "depends_on_past": False,
     "start_date": datetime(2020, 10, 8, tzinfo=local_tz),
-    "email": ["nikita.gandhi@ga.gov.au"],
+    "email": ["damien.ayers@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 1,
@@ -74,11 +76,13 @@ DEFAULT_ARGS = {
 SECRET_RESTORE_INCREMENTAL_SYNC = [
     Secret("env", "DB_DATABASE", SECRET_EXPLORER_NCI_ADMIN_NAME, "database-name"),
     Secret("env", "DB_ADMIN_USER", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-username"),
-    Secret("env", "DB_ADMIN_PASSWORD", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-password"),
+    Secret(
+        "env", "DB_ADMIN_PASSWORD", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-password"
+    ),
 ]
 
 SECRET_INDEXER = [
-    Secret("env", "DB_DATABASE", SECRET_EXPLORER_NCI_ADMIN_NAME , "database-name"),
+    Secret("env", "DB_DATABASE", SECRET_EXPLORER_NCI_ADMIN_NAME, "database-name"),
     Secret("env", "DB_USERNAME", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-username"),
     Secret("env", "DB_PASSWORD", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-password"),
 ]
@@ -101,10 +105,12 @@ s3_backup_volume_mount = k8s.V1VolumeMount(
     name="s3-backup-volume", mount_path=BACKUP_PATH, sub_path=None, read_only=False
 )
 
-s3_backup_volume = k8s.V1Volume(name="s3-backup-volume",
-                                persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(
-                                    claim_name="s3-backup-volume"
-                                ))
+s3_backup_volume = k8s.V1Volume(
+    name="s3-backup-volume",
+    persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(
+        claim_name="s3-backup-volume"
+    ),
+)
 
 with dag:
     START = DummyOperator(task_id="start")

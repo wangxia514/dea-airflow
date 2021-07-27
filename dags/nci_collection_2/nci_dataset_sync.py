@@ -12,7 +12,7 @@ from airflow import DAG
 from airflow.providers.ssh.operators.ssh import SSHOperator
 from airflow.operators.dummy_operator import DummyOperator
 from sensors.pbs_job_complete_sensor import PBSJobSensor
-from nci_common import c2_default_args, c2_schedule_interval, MINUTES
+from nci_collection_2.nci_common import c2_default_args, c2_schedule_interval, MINUTES
 
 SYNCED_PRODUCTS = [
     "ls8_nbar_scene",

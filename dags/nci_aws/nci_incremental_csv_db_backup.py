@@ -24,7 +24,7 @@ from datetime import datetime, timedelta
 
 import pendulum
 
-from nci_common import HOURS
+from nci_collection_2.nci_common import HOURS
 
 local_tz = pendulum.timezone("Australia/Canberra")
 

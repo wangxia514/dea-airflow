@@ -4,7 +4,9 @@ Daily DAG for AWS NCI datacube db maintenance operations
 """
 
 from airflow import DAG
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
@@ -15,10 +17,10 @@ from infra.variables import DB_HOSTNAME, DB_PORT, SECRET_EXPLORER_NCI_ADMIN_NAME
 
 # Templated DAG arguments
 DEFAULT_ARGS = {
-    "owner": "Nikita Gandhi",
+    "owner": "Damien Ayers",
     "depends_on_past": False,
     "start_date": datetime(2021, 4, 1),
-    "email": ["nikita.gandhi@ga.gov.au"],
+    "email": ["damien.ayers@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 1,
@@ -31,8 +33,12 @@ DEFAULT_ARGS = {
     # Lift secrets into environment variables for datacube database connectivity
     "secrets": [
         Secret("env", "DB_DATABASE", SECRET_EXPLORER_NCI_ADMIN_NAME, "database-name"),
-        Secret("env", "DB_ADMIN_USER", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-username"),
-        Secret("env", "PGPASSWORD", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-password"),
+        Secret(
+            "env", "DB_ADMIN_USER", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-username"
+        ),
+        Secret(
+            "env", "PGPASSWORD", SECRET_EXPLORER_NCI_ADMIN_NAME, "postgres-password"
+        ),
     ],
 }
 

@@ -35,7 +35,13 @@ try:  # TODO: clean this up after v2.1 upgrade
 except ImportError:
     from airflow.sensors.external_task import ExternalTaskSensor
 
-from nci_common import c2_default_args, c2_schedule_interval, HOURS, MINUTES, DAYS
+from nci_collection_2.nci_common import (
+    c2_default_args,
+    c2_schedule_interval,
+    HOURS,
+    MINUTES,
+    DAYS,
+)
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
 UPLOAD_DESTINATION = os.environ.get("COG_OUTPUT_DESTINATION", "s3://dea-public-data/")

@@ -17,7 +17,9 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.providers.amazon.aws.sensors.s3_key import S3KeySensor
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from airflow.kubernetes.secret import Secret
 from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
@@ -50,7 +52,7 @@ DEFAULT_ARGS = {
         "DB_DATABASE": DB_DATABASE,
         "DB_PORT": "5432",
         "BACKUP_PATH": BACKUP_PATH,
-        "DATESTRING": DATESTRING
+        "DATESTRING": DATESTRING,
     },
     # Use K8S secrets to send DB Creds
     # Lift secrets into environment variables for datacube database connectivity
@@ -74,17 +76,11 @@ dag = DAG(
 
 affinity = ONDEMAND_NODE_AFFINITY
 
-s3_backup_volume_mount = VolumeMount(name="s3-backup-volume",
-                                     mount_path=BACKUP_PATH,
-                                     sub_path=None,
-                                     read_only=False)
+s3_backup_volume_mount = VolumeMount(
+    name="s3-backup-volume", mount_path=BACKUP_PATH, sub_path=None, read_only=False
+)
 
-s3_backup_volume_config = {
-    "persistentVolumeClaim":
-        {
-            "claimName": "s3-backup-volume"
-        }
-}
+s3_backup_volume_config = {"persistentVolumeClaim": {"claimName": "s3-backup-volume"}}
 
 s3_backup_volume = Volume(name="s3-backup-volume", configs=s3_backup_volume_config)
 

@@ -16,7 +16,9 @@ from datetime import datetime, timedelta
 
 import pendulum
 from airflow import DAG
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 
