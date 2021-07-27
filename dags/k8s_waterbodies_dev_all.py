@@ -108,7 +108,7 @@ MEM_BRANCHES = OrderedDict(
 )
 
 lower_mem_branches = {'tiny': 0}
-for branch_low, branch_high in zip(MEM_BRANCHES, list(MEM_BRANCHES[1:])):
+for branch_low, branch_high in zip(MEM_BRANCHES, list(MEM_BRANCHES)[1:]):
     lower_mem_branches[branch_high] = MEM_BRANCHES[branch_low]
 
 # This is the original waterbodies command:
