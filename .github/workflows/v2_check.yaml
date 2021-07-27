@@ -59,7 +59,7 @@ jobs:
           airflow db init
 
           export AIRFLOW__CORE__LOAD_EXAMPLES="False"
-          export AIRFLOW__CORE__UNIT_TEST_MODE="True"
+          # export AIRFLOW__CORE__UNIT_TEST_MODE="True"
           export AIRFLOW__CORE__PLUGINS_FOLDER="/home/runner/work/dea-airflow/dea-airflow/plugins"
           export AIRFLOW__CORE__DAGS_FOLDER="/home/runner/work/dea-airflow/dea-airflow/dags"
 
