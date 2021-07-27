@@ -5,16 +5,15 @@ DAG to run the "all" workflow of DEA Waterbodies.
 """
 from collections import OrderedDict
 from datetime import datetime, timedelta
-import json
+# import json
 
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.operators.python_operator import BranchPythonOperator
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-import boto3
-from botocore.handlers import disable_signing
+# import boto3
+# from botocore.handlers import disable_signing
 
 from textwrap import dedent
 
