@@ -25,13 +25,16 @@ and executes downstream task
 
 from datetime import datetime, timedelta
 
-import kubernetes.client.models as k8s
+from kubernetes.client.models import V1Volume, V1VolumeMount
+from kubernetes.client import models as k8s
 import pendulum
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.providers.amazon.aws.sensors.s3_key import S3KeySensor
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 
 from infra.connections import AWS_NCI_DB_BACKUP_CONN
 from infra.iam_roles import NCI_DBSYNC_ROLE
@@ -101,14 +104,16 @@ dag = DAG(
 
 affinity = ONDEMAND_NODE_AFFINITY
 
-s3_backup_volume_mount = k8s.V1VolumeMount(
+s3_backup_volume_mount = V1VolumeMount(
     name="s3-backup-volume", mount_path=BACKUP_PATH, sub_path=None, read_only=False
 )
 
-s3_backup_volume = k8s.V1Volume(name="s3-backup-volume",
-                                persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(
-                                    claim_name="s3-backup-volume"
-                                ))
+s3_backup_volume = V1Volume(
+    name="s3-backup-volume",
+    persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(
+        claim_name="s3-backup-volume"
+    ),
+)
 
 with dag:
     START = DummyOperator(task_id="start")

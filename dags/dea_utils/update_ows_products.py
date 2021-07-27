@@ -4,7 +4,8 @@ Tool for creating a Kubernetes Pod Operator for Updating Datacube OWS
 from collections.abc import Sequence
 from textwrap import dedent
 
-import kubernetes.client.models as k8s
+from kubernetes.client.models import V1Volume, V1VolumeMount
+from kubernetes.client import models as k8s
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
@@ -29,7 +30,7 @@ OWS_SECRETS = [
 
 # MOUNT OWS_CFG via init_container
 # for main container mount
-ows_cfg_mount = k8s.V1VolumeMount(
+ows_cfg_mount = V1VolumeMount(
     name="ows-config-volume",
     mount_path=OWS_CFG_MOUNT_PATH,
     sub_path=None,
@@ -37,11 +38,11 @@ ows_cfg_mount = k8s.V1VolumeMount(
 )
 
 
-ows_cfg_volume = k8s.V1Volume(name="ows-config-volume")
+ows_cfg_volume = V1Volume(name="ows-config-volume")
 
 
 # for init container mount
-cfg_image_mount = k8s.V1VolumeMount(
+cfg_image_mount = V1VolumeMount(
     mount_path=OWS_CFG_MOUNT_PATH,
     name="ows-config-volume",
     sub_path=None,
