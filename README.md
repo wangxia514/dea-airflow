@@ -17,23 +17,23 @@ accident, but haven't come up with anything yet.
 ## Development Using Docker
 
 If you have Docker available, by far the easiest development setup is to use
-Docker Compose.
+Docker Compose. Full instruction is available from here: https://airflow.apache.org/docs/apache-airflow/stable/start/docker.html
 
 First, initialise some environment variables:
 
 ``` bash
-python -c 'from cryptography.fernet import Fernet; print("FERNET_KEY=" + Fernet.generate_key().decode())' > .env
-echo UID=`id -u` >> .env
-echo GID=`id -g` >> .env
+mkdir ./dags ./logs ./plugins # you will notice plugins and dags folder already exist
+echo -e "AIRFLOW_UID=$(id -u)\nAIRFLOW_GID=0" >> .env
 ```
 
 Then start up `docker-compose`:
 
 ``` bash
+docker-compose up airflow-init
 docker-compose up
 ```
 
-Connect to the [Local Airflow Webserver](http://localhost:8080/) in your browser, and login with Username: `airflow`, 
+Connect to the [Local Airflow Webserver](http://localhost:8080/) in your browser, and login with Username: `airflow`,
 Password: `airflow`.
 
 ## Local Editing of DAG's
