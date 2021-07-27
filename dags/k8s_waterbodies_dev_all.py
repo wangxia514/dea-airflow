@@ -153,8 +153,8 @@ def k8s_queueread(dag, branch):
                     break
 
                 entries = [
-                    {'Id': msg.message_id,
-                    'ReceiptHandle': msg.receipt_handle}
+                    {{'Id': msg.message_id,
+                    'ReceiptHandle': msg.receipt_handle}}
                     for msg in messages
                 ]
 
@@ -166,7 +166,7 @@ def k8s_queueread(dag, branch):
 
                 if len(resp['Successful']) != len(entries):
                     raise RuntimeError(
-                        f"Failed to delete messages: {entries}"
+                        f"Failed to delete messages: {{entries}}"
                     )
             EOF
             """.format(
