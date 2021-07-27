@@ -72,11 +72,10 @@ jobs:
           airflow dags list -v
 
           # check if list_dags has error if yes exit CI
-          daglist=`airflow dags list -v`
-          errorstring="Error"
-          if [[ $daglist == *"$errorstring"* ]]; then
-              echo "error in dags"
-              exit 1
+          airflow dags list -v > dag_list.txt
+          if grep -rniw './dag_list.txt' -e 'Error'; then
+            echo "error found"
+            exit 1
           fi
 
       - name: run tests on dags
