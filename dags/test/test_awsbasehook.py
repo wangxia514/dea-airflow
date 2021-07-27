@@ -5,10 +5,10 @@ from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
 
 from infra.connections import AWS_DEA_PUBLIC_DATA_LANDSAT_3_SYNC_CONN
 
-aws_hook = AwsHook(
+AwsHook(
     aws_conn_id=AWS_DEA_PUBLIC_DATA_LANDSAT_3_SYNC_CONN, client_type="s3"
 )
 
-aws_hook_without_client_type = AwsHook(
+AwsHook(
     aws_conn_id=AWS_DEA_PUBLIC_DATA_LANDSAT_3_SYNC_CONN
 )
