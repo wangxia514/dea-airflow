@@ -8,11 +8,14 @@ from datetime import datetime, timedelta
 # import json
 
 from airflow import DAG
+from airflow_kubernetes_job_operator.kubernetes_job_operator import KubernetesJobOperator
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-# import boto3
+from airflow.operators.dummy import DummyOperator
+from airflow.operators.python import PythonOperator
+import boto3
 # from botocore.handlers import disable_signing
 
 from textwrap import dedent
@@ -104,6 +107,10 @@ MEM_BRANCHES = OrderedDict(
     ]
 )
 
+lower_mem_branches = {'tiny': 0}
+for branch_low, branch_high in zip(MEM_BRANCHES, list(MEM_BRANCHES[1:])):
+    lower_mem_branches[branch_high] = MEM_BRANCHES[branch_low]
+
 # This is the original waterbodies command:
 # parallel --delay 5 --retries 3 --load 100%  --colsep ',' python -m dea_waterbodies.make_time_series ::: $CONFIG,--part,{1..24},--chunks,$NCHUNKS
 
@@ -119,68 +126,164 @@ dag = DAG(
 )
 
 
-# def k8s_pod_task(mem, part, name):
-#     """
-#     method docstring
-#     """
-#     cmd = [
-#         "bash",
-#         "-c",
-#         dedent(
-#             """
-#             echo "Using dea-waterbodies image {image}"
-#             wget {conf} -O config.ini
-#             cat config.ini
+def python_queueread(dag, branch):
+    """Python operator for reading out the queue, for testing/dev use."""
 
-#             # Download xcom path to the IDs file.
-#             echo "Downloading {{{{ ti.xcom_pull(task_ids='waterbodies-all-getchunks')['chunks_path'] }}}}"
-#             aws s3 cp {{{{ ti.xcom_pull(task_ids='waterbodies-all-getchunks')['chunks_path'] }}}} ids.json
+    def print_from_queue():
+        sqs = boto3.resource('sqs')
+        name = f'waterbodies_{branch}_sqs'
+        queue = sqs.get_queue_by_name(QueueName=name)
+        queue_url = sqs.get_queue_url(
+            QueueName=name)['QueueUrl']
+        
+        while True:
+            messages = queue.receive_messages(
+                AttributeNames=['All'],
+                MaxNumberOfMessages=1,
+            )
+            if len(messages) == 0:
+                break
 
-#             # Write xcom data to a TXT file.
-#             python - << EOF
-#             import json
-#             with open('ids.json') as f:
-#                 ids = json.load(f)
-#             with open('ids.txt', 'w') as f:
-#                 f.write('\\n'.join(ids['chunks'][{part}]['ids']))
-#             EOF
+            entries = [
+                {'Id': msg.message_id,
+                 'ReceiptHandle': msg.receipt_handle}
+                for msg in messages
+            ]
 
-#             # Execute waterbodies on the IDs.
-#             echo "Processing:"
-#             cat ids.txt
-#             cat ids.txt | python -m dea_waterbodies.make_time_series --config config.ini
-#             """.format(
-#                 image=WATERBODIES_UNSTABLE_IMAGE, conf=config_path, part=part
-#             )
-#         ),
-#     ]
-#     req_mem = "{}Mi".format(int(mem))
-#     return KubernetesPodOperator(
-#         image=WATERBODIES_UNSTABLE_IMAGE,
-#         name="waterbodies-all",
-#         arguments=cmd,
-#         image_pull_policy="IfNotPresent",
-#         labels={"step": "waterbodies-" + name},
-#         get_logs=True,
-#         affinity=affinity,
-#         is_delete_operator_pod=True,
-#         resources={
-#             "request_cpu": "1000m",
-#             "request_memory": req_mem,
-#         },
-#         namespace="processing",
-#         tolerations=tolerations,
-#         task_id=name,
-#     )
+            print([msg.body for msg in messages])
+    
+            resp = queue.delete_messages(
+                    QueueUrl=queue_url, Entries=entries,
+                )
+
+            if len(resp['Successful']) != len(entries):
+                raise RuntimeError(
+                    f"Failed to delete messages: {entries}"
+                )
+        
+        return 'ok'
+
+    queueread = PythonOperator(
+        task_id='print-from-queue',
+        python_callable=print_from_queue,
+    )
+    return queueread
 
 
-with dag:
-    config_name = '{{ dag_run.conf.get("config_name", "config_moree_test_aws") }}'
-    config_path = f"https://raw.githubusercontent.com/GeoscienceAustralia/dea-waterbodies/stable/ts_configs/{config_name}"
+def k8s_job_task(dag, branch):
+    cmd = [
+        "bash",
+        "-c",
+        dedent(
+            """
+            echo "Using dea-waterbodies image {image}"
+            wget {conf} -O config.ini
+            cat config.ini
 
-    # We need to download the DBF and do the chunking.
-    # We will do this within a Kubernetes pod.
-    n_chunks = 128
+            # Download xcom path to the IDs file.
+            echo "Downloading {{{{ ti.xcom_pull(task_ids='waterbodies-all-getchunks')['chunks_path'] }}}}"
+            aws s3 cp {{{{ ti.xcom_pull(task_ids='waterbodies-all-getchunks')['chunks_path'] }}}} ids.json
+
+            # Write xcom data to a TXT file.
+            python - << EOF
+            import json
+            with open('ids.json') as f:
+                ids = json.load(f)
+            with open('ids.txt', 'w') as f:
+                f.write('\\n'.join(ids['chunks'][{part}]['ids']))
+            EOF
+
+            # Execute waterbodies on the IDs.
+            echo "Processing:"
+            cat ids.txt
+            cat ids.txt | python -m dea_waterbodies.make_time_series --config config.ini
+            """.format(
+                image=WATERBODIES_UNSTABLE_IMAGE, conf=config_path, part=part
+            )
+        ),
+    ]
+    req_mem = "{}Mi".format(int(mem))
+    return KubernetesPodOperator(
+        image=WATERBODIES_UNSTABLE_IMAGE,
+    )
+    job_task = KubernetesJobOperator(
+        dag=dag,
+        name="waterbodies-all",
+        arguments=cmd,
+        image_pull_policy="IfNotPresent",
+        labels={"step": "waterbodies-" + name},
+        get_logs=True,
+        affinity=affinity,
+        is_delete_operator_pod=True,
+        resources={
+            "request_cpu": "1000m",
+            "request_memory": req_mem,
+        },
+        namespace="processing",
+        tolerations=tolerations,
+        task_id=name,
+    )
+    return job_task
+
+
+def k8s_queue_push(dag, branch):
+    cmd = [
+        "bash",
+        "-c",
+        dedent(
+            """
+            echo "Using dea-waterbodies image {image}"
+
+            # Download the IDs file from xcom.
+            echo "Downloading {{{{ ti.xcom_pull(task_ids='waterbodies-all-getchunks')['chunks_path'] }}}}"
+            aws s3 cp {{{{ ti.xcom_pull(task_ids='waterbodies-all-getchunks')['chunks_path'] }}}} ids.json
+
+            # Write xcom data to a TXT file.
+            python - << EOF
+            import json
+            with open('ids.json') as f:
+                ids = json.load(f)
+            all_ids = []
+            for part in ids['chunks']:
+                if {low} <= part['max_mem_Mi'] < {high}:
+                    all_ids.extend(part['ids'])
+            with open('ids.txt', 'w') as f:
+                f.write('\\n'.join(all_ids))
+            EOF
+
+            # Push the IDs to the queue.
+            aws sqs get-queue-url --queue-name {queue} > queue.json
+            cat ids.txt | xargs -L1 -I{{}} aws sqs send-message --cli-input-json queue.json --message-body {{}}
+            """.format(
+                image=WATERBODIES_UNSTABLE_IMAGE,
+                low=lower_mem_branches[branch],
+                high=MEM_BRANCHES[branch],
+                queue=f'waterbodies_{branch}_sqs',
+            )
+        ),
+    ]
+    return KubernetesPodOperator(
+        image=WATERBODIES_UNSTABLE_IMAGE,
+        dag=dag,
+        name=f"waterbodies-all-push-{branch}",
+        arguments=cmd,
+        image_pull_policy="IfNotPresent",
+        labels={"step": "waterbodies-push"},
+        get_logs=True,
+        affinity=affinity,
+        is_delete_operator_pod=True,
+        resources={
+            "request_cpu": "1000m",
+            "request_memory": '512Mi',
+        },
+        namespace="processing",
+        tolerations=tolerations,
+        task_id=f'waterbodies-all-push-{branch}',
+    )
+
+
+def k8s_getchunks(dag, n_chunks, config_path):
+    """K8s pod operator to get chunks."""
     getchunks_cmd = [
         "bash",
         "-c",
@@ -213,79 +316,102 @@ with dag:
         tolerations=tolerations,
         task_id="waterbodies-all-getchunks",
     )
+    return getchunks
 
-    # Next we need to spawn a queue for each memory branch.
-    queues = {}
-    for branch in MEM_BRANCHES:
-        # TODO(MatthewJA): Use the name/ID of this DAG
-        # to make sure that we don't double-up if we're
-        # running two DAGs simultaneously.
-        queue_name = f'waterbodies_{branch}_sqs'
-        makequeue_cmd = [
-            "bash",
-            "-c",
-            dedent(
-                """
-                echo "Using dea-waterbodies image {image}"
-                python -m dea_waterbodies.queues make {name}
-                """.format(
-                    image=WATERBODIES_UNSTABLE_IMAGE, name=queue_name,
-                )
-            ),
-        ]
-        makequeue = KubernetesPodOperator(
-            image=WATERBODIES_UNSTABLE_IMAGE,
-            name=f"waterbodies-all-makequeue-{branch}",
-            arguments=makequeue_cmd,
-            image_pull_policy="IfNotPresent",
-            labels={"step": "waterbodies-dev-all-makequeue"},
-            get_logs=True,
-            affinity=affinity,
-            is_delete_operator_pod=True,
-            resources={
-                "request_cpu": "1000m",
-                "request_memory": "512Mi",
-            },
-            namespace="processing",
-            tolerations=tolerations,
-            task_id=f"waterbodies-all-makequeue-{branch}",
-        )
-        getchunks >> makequeue
-        queues[branch] = makequeue
 
-    # Now delete them.
+def k8s_makequeue(dag, branch):
+    # TODO(MatthewJA): Use the name/ID of this DAG
+    # to make sure that we don't double-up if we're
+    # running two DAGs simultaneously.
+    queue_name = f'waterbodies_{branch}_sqs'
+    makequeue_cmd = [
+        "bash",
+        "-c",
+        dedent(
+            """
+            echo "Using dea-waterbodies image {image}"
+            python -m dea_waterbodies.queues make {name}
+            """.format(
+                image=WATERBODIES_UNSTABLE_IMAGE, name=queue_name,
+            )
+        ),
+    ]
+    makequeue = KubernetesPodOperator(
+        image=WATERBODIES_UNSTABLE_IMAGE,
+        name=f"waterbodies-all-makequeue-{branch}",
+        arguments=makequeue_cmd,
+        image_pull_policy="IfNotPresent",
+        labels={"step": "waterbodies-dev-all-makequeue"},
+        get_logs=True,
+        affinity=affinity,
+        is_delete_operator_pod=True,
+        resources={
+            "request_cpu": "1000m",
+            "request_memory": "512Mi",
+        },
+        namespace="processing",
+        tolerations=tolerations,
+        task_id=f"waterbodies-all-makequeue-{branch}",
+    )
+    return makequeue
+
+
+def k8s_delqueue(dag, branch):
+    # TODO(MatthewJA): Use the name/ID of this DAG
+    # to make sure that we don't double-up if we're
+    # running two DAGs simultaneously.
+    queue_name = f'waterbodies_{branch}_sqs'
+    delqueue_cmd = [
+        "bash",
+        "-c",
+        dedent(
+            """
+            echo "Using dea-waterbodies image {image}"
+            python -m dea_waterbodies.queues delete {name}
+            """.format(
+                image=WATERBODIES_UNSTABLE_IMAGE, name=queue_name,
+            )
+        ),
+    ]
+    delqueue = KubernetesPodOperator(
+        image=WATERBODIES_UNSTABLE_IMAGE,
+        name=f"waterbodies-all-delqueue-{branch}",
+        arguments=delqueue_cmd,
+        image_pull_policy="IfNotPresent",
+        labels={"step": "waterbodies-dev-all-delqueue"},
+        get_logs=True,
+        affinity=affinity,
+        is_delete_operator_pod=True,
+        resources={
+            "request_cpu": "1000m",
+            "request_memory": "512Mi",
+        },
+        namespace="processing",
+        tolerations=tolerations,
+        task_id=f"waterbodies-all-delqueue-{branch}",
+    )
+    return delqueue
+
+
+with dag:
+    config_name = '{{ dag_run.conf.get("config_name", "config_moree_test_aws") }}'
+    config_path = f"https://raw.githubusercontent.com/GeoscienceAustralia/dea-waterbodies/stable/ts_configs/{config_name}"
+
+    # Download the DBF and do the chunking.
+    n_chunks = 128
+    getchunks = k8s_getchunks(dag, n_chunks, config_path)
+
+    # Dummy task to tie everything together at the end.
+    done = DummyOperator()
+
     for branch in MEM_BRANCHES:
-        # TODO(MatthewJA): Use the name/ID of this DAG
-        # to make sure that we don't double-up if we're
-        # running two DAGs simultaneously.
-        queue_name = f'waterbodies_{branch}_sqs'
-        delqueue_cmd = [
-            "bash",
-            "-c",
-            dedent(
-                """
-                echo "Using dea-waterbodies image {image}"
-                python -m dea_waterbodies.queues delete {name}
-                """.format(
-                    image=WATERBODIES_UNSTABLE_IMAGE, name=queue_name,
-                )
-            ),
-        ]
-        delqueue = KubernetesPodOperator(
-            image=WATERBODIES_UNSTABLE_IMAGE,
-            name=f"waterbodies-all-delqueue-{branch}",
-            arguments=delqueue_cmd,
-            image_pull_policy="IfNotPresent",
-            labels={"step": "waterbodies-dev-all-delqueue"},
-            get_logs=True,
-            affinity=affinity,
-            is_delete_operator_pod=True,
-            resources={
-                "request_cpu": "1000m",
-                "request_memory": "512Mi",
-            },
-            namespace="processing",
-            tolerations=tolerations,
-            task_id=f"waterbodies-all-delqueue-{branch}",
-        )
-        queues[branch] >> delqueue
+        # Next we need to spawn a queue for each memory branch.
+        makequeue = k8s_makequeue(dag, branch)
+        # Populate the queues.
+        push = k8s_queue_push(dag, branch)
+        # Now we'll do the main task.
+        queueread = python_queueread(dag, branch)
+        # task = k8s_job_task(dag, branch)
+        # Finally delete the queue.
+        delqueue = k8s_delqueue(dag, branch)
+        getchunks >> makequeue >> push >> queueread >> delqueue >> done
