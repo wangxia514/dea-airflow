@@ -13,7 +13,7 @@ from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-from airflow.operators.dummy import DummyOperator
+# from airflow.operators.dummy import DummyOperator
 from airflow.operators.python import PythonOperator
 import boto3
 # from botocore.handlers import disable_signing
