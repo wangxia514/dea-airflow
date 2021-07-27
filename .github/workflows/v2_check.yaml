@@ -36,7 +36,10 @@ jobs:
         airflow-version: [2.1.2]
     name: Airflow ${{ matrix.airflow-version }}
     steps:
-      - uses: actions/checkout@v2
+      - name: checkout git
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Install Airflow and Lint
         uses: s-weigand/setup-conda@v1
         with:
