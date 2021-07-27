@@ -6,7 +6,7 @@ import logging
 from datetime import datetime, timedelta
 from urllib.parse import urlparse
 
-import kubernetes.client.models as k8s
+from kubernetes.client.models import V1Volume, V1VolumeMount
 import yaml
 
 from airflow import DAG
@@ -85,14 +85,14 @@ tolerations = [
     {"key": "dedicated", "operator": "Equal", "value": "wagl", "effect": "NoSchedule"}
 ]
 
-ancillary_volume_mount = k8s.V1VolumeMount(
+ancillary_volume_mount = V1VolumeMount(
     name="wagl-nrt-ancillary-volume",
     mount_path="/ancillary",
     sub_path=None,
     read_only=False,
 )
 
-ancillary_volume = k8s.V1Volume(
+ancillary_volume = V1Volume(
     name="wagl-nrt-ancillary-volume",
     persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(
         claim_name="wagl-nrt-ancillary-volume"
