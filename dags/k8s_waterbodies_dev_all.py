@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 # import json
 
 from airflow import DAG
-from airflow_kubernetes_job_operator.kubernetes_job_operator import KubernetesJobOperator
+# from airflow_kubernetes_job_operator.kubernetes_job_operator import KubernetesJobOperator
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
