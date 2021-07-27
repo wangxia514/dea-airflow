@@ -13,7 +13,6 @@ from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-from airflow.operators.dummy import DummyOperator
 from airflow.operators.python import PythonOperator
 import boto3
 # from botocore.handlers import disable_signing
@@ -425,10 +424,6 @@ with dag:
     n_chunks = 128
     getchunks = k8s_getchunks(dag, n_chunks, config_path)
 
-    # Dummy operator to tidy.
-    done = DummyOperator(task_id='waterbodies-all-done')
-
-    branch_ops = []
     for branch in MEM_BRANCHES:
         # Next we need to spawn a queue for each memory branch.
         makequeue = k8s_makequeue(dag, branch)
@@ -439,6 +434,4 @@ with dag:
         # task = k8s_job_task(dag, branch)
         # Finally delete the queue.
         delqueue = k8s_delqueue(dag, branch)
-        branch_ops.append(makequeue >> push >> queueread >> delqueue)
-    
-    getchunks >> branch_ops >> done
+        getchunks >> makequeue >> push >> queueread >> delqueue
