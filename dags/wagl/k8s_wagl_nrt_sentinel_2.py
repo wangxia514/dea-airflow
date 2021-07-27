@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from urllib.parse import urlparse
 
 from kubernetes.client.models import V1Volume, V1VolumeMount
+from kubernetes.client import models as k8s
 import yaml
 
 from airflow import DAG
@@ -16,7 +17,9 @@ from airflow.operators.python_operator import PythonOperator, BranchPythonOperat
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from airflow.providers.amazon.aws.hooks.sns import AwsSnsHook
 from airflow.providers.amazon.aws.hooks.sqs import SQSHook
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 
 from infra.connections import AWS_WAGL_NRT_CONN
 from infra.images import WAGL_IMAGE_POC, S3_TO_RDS_IMAGE
@@ -96,7 +99,7 @@ ancillary_volume = V1Volume(
     name="wagl-nrt-ancillary-volume",
     persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(
         claim_name="wagl-nrt-ancillary-volume"
-    )
+    ),
 )
 
 
@@ -245,6 +248,10 @@ def receive_task(**context):
 
 
 class NoDatesSafeLoader(SafeLoader):  # pylint: disable=too-many-ancestors
+    """
+    class doc string
+    """
+
     @classmethod
     def remove_implicit_resolver(cls, tag_to_remove):
         """
@@ -254,16 +261,16 @@ class NoDatesSafeLoader(SafeLoader):  # pylint: disable=too-many-ancestors
         serialise as json which doesn't have the advanced types of
         yaml, and leads to slightly different objects down the track.
         """
-        if 'yaml_implicit_resolvers' not in cls.__dict__:
+        if "yaml_implicit_resolvers" not in cls.__dict__:
             cls.yaml_implicit_resolvers = cls.yaml_implicit_resolvers.copy()
 
         for first_letter, mappings in cls.yaml_implicit_resolvers.items():
-            cls.yaml_implicit_resolvers[first_letter] = [(tag, regexp)
-                                                         for tag, regexp in mappings
-                                                         if tag != tag_to_remove]
+            cls.yaml_implicit_resolvers[first_letter] = [
+                (tag, regexp) for tag, regexp in mappings if tag != tag_to_remove
+            ]
 
 
-NoDatesSafeLoader.remove_implicit_resolver('tag:yaml.org,2002:timestamp')
+NoDatesSafeLoader.remove_implicit_resolver("tag:yaml.org,2002:timestamp")
 
 
 def finish_up(**context):
@@ -393,14 +400,14 @@ with pipeline:
                 MODTRAN_DATA="/ancillary/MODTRAN6.0.2.3G/DATA",
                 bucket_region=BUCKET_REGION,
                 datastrip_url="{{ task_instance.xcom_pull(task_ids='receive_task_"
-                              + str(index)
-                              + "', key='args')['datastrip_url'] }}",
+                + str(index)
+                + "', key='args')['datastrip_url'] }}",
                 granule_url="{{ task_instance.xcom_pull(task_ids='receive_task_"
-                            + str(index)
-                            + "', key='args')['granule_url'] }}",
+                + str(index)
+                + "', key='args')['granule_url'] }}",
                 granule_id="{{ task_instance.xcom_pull(task_ids='receive_task_"
-                           + str(index)
-                           + "', key='args')['granule_id'] }}",
+                + str(index)
+                + "', key='args')['granule_id'] }}",
                 s3_prefix=S3_PREFIX,
             ),
             get_logs=True,

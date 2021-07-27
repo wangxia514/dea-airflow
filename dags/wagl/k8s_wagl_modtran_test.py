@@ -4,10 +4,13 @@ MODTRAN6 image test.
 from datetime import datetime
 
 from kubernetes.client.models import V1Volume, V1VolumeMount
+from kubernetes.client import models as k8s
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 
 MOD6_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/mod6:test-20210311"
 
@@ -22,7 +25,7 @@ ancillary_volume = V1Volume(
     name="wagl-nrt-ancillary-volume",
     persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(
         claim_name="wagl-nrt-ancillary-volume"
-    )
+    ),
 )
 
 default_args = {
