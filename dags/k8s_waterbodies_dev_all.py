@@ -277,7 +277,8 @@ def k8s_queue_push(dag, branch):
             # Push the IDs to the queue.
             aws sqs get-queue-url --queue-name {queue} --output text > queue.txt
             cat queue.txt
-            cat ids.txt | xargs -L1 -I{{}} aws sqs send-message --cli-input-json queue.json --message-body {{}}
+            queue_url=$(<queue.txt)
+            cat ids.txt | xargs -L1 -I{{}} aws sqs send-message --queue-url $queue_url --message-body {{}}
             """.format(
                 image=WATERBODIES_UNSTABLE_IMAGE,
                 low=lower_mem_branches[branch],
