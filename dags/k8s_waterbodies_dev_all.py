@@ -141,9 +141,8 @@ def k8s_queueread(dag, branch):
             sqs = boto3.resource('sqs')
             name = '{queue}'
             queue = sqs.get_queue_by_name(QueueName=name)
-            queue_url = sqs.get_queue_url(
-                QueueName=name)['QueueUrl']
-            
+            queue_url = queue.url
+
             while True:
                 messages = queue.receive_messages(
                     AttributeNames=['All'],
