@@ -1,14 +1,13 @@
 """
-## Utility Tool
+# DB Backup Utility Tool (Self Serve)
 ## odc database in RDS backup and store to s3
+This DAG backup ODC database data weekly and stores in S3 bucket.
 
 ## Note
 All list of utility dags here: https://github.com/GeoscienceAustralia/dea-airflow/tree/develop/dags/utility, see Readme
 
-DAG to periodically backup ODC database data.
-
-This DAG uses k8s executors and in cluster with relevant tooling
-and configuration installed.
+## Customisation
+This dag does not take `dag_run.conf.` values.
 """
 from datetime import date, datetime, timedelta
 
@@ -90,7 +89,7 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval="@weekly",  # weekly
     catchup=False,
-    tags=["k8s", "developer_support", "rds", "s3", "db"],
+    tags=["k8s", "developer_support", "rds", "s3", "db", "self-service"],
 )
 
 with dag:

@@ -1,13 +1,17 @@
 """
-## Testing branching operator behavior
+# Debugging Tool (Admin use)
+## Test branchoperator
+During branchoperator behaviours.
 
-condition: pass three dag_run.conf parameters
+## Life span
+May be altered to test advanced logics.
 
-```
-    "a": "",
-    "b": "",
-    "c": ""
-```
+## Customisation
+    {
+        "a": "",
+        "b": "",
+        "c": ""
+    }
 """
 
 from datetime import datetime, timedelta

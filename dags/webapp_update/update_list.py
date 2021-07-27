@@ -1,5 +1,7 @@
 """
 # list of product names for webapplication to update
+here is the complete list of OWS product: https://github.com/GeoscienceAustralia/dea-config/blob/master/dev/services/wms/inventory.json
+complete list of Explorer products can be found here: https://explorer.dev.dea.ga.gov.au/products
 """
 
 # ows layer product to be updated
