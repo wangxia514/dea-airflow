@@ -9,49 +9,49 @@ from airflow.models import Variable
 
 # secrets name available in processing namespace
 INDEXING_USER_SECRET = Variable.get(
-    "processing_user_secret", "indexing-aws-creds-sandbox"
+    "processing_user_secret", default_var="indexing-aws-creds-sandbox"
 )  # qa
 
 # DB Users / Roles
 SECRET_EXPLORER_WRITER_NAME = Variable.get(
-    "db_explorer_writer_secret", "explorer-writer"
+    "db_explorer_writer_secret", default_var="explorer-writer"
 )  # qa
-SECRET_OWS_WRITER_NAME = Variable.get("db_ows_writer_secret", "ows-writer")  # qa
-SECRET_ODC_WRITER_NAME = Variable.get("db_odc_writer_secret", "odc-writer")  # qa
-SECRET_ODC_READER_NAME = Variable.get("db_odc_reader_secret", "odc-reader")  # qa
-SECRET_DBA_ADMIN_NAME = Variable.get("db_dba_admin_secret", "dba_admin")  # qa
+SECRET_OWS_WRITER_NAME = Variable.get("db_ows_writer_secret", default_var="ows-writer")  # qa
+SECRET_ODC_WRITER_NAME = Variable.get("db_odc_writer_secret", default_var="odc-writer")  # qa
+SECRET_ODC_READER_NAME = Variable.get("db_odc_reader_secret", default_var="odc-reader")  # qa
+SECRET_DBA_ADMIN_NAME = Variable.get("db_dba_admin_secret", default_var="dba_admin")  # qa
 
 SECRET_EXPLORER_NCI_ADMIN_NAME = Variable.get(
-    "db_explorer_nci_admin_secret", "explorer-nci-admin"
+    "db_explorer_nci_admin_secret", default_var="explorer-nci-admin"
 )  # qa
 SECRET_EXPLORER_NCI_WRITER_NAME = Variable.get(
-    "db_explorer_nci_writer_secret", "explorer-nci-writer"
+    "db_explorer_nci_writer_secret", default_var="explorer-nci-writer"
 )  # qa
 
 # DB config
-DB_DATABASE = Variable.get("db_database", "odc")  # qa
-DB_HOSTNAME = Variable.get("db_hostname", "db-writer")  # qa
-DB_READER_HOSTNAME = Variable.get("db_reader_hostname", "db-reader")
-DB_PORT = Variable.get("db_port", "5432")  # qa
+DB_DATABASE = Variable.get("db_database", default_var="odc")  # qa
+DB_HOSTNAME = Variable.get("db_hostname", default_var="db-writer")  # qa
+DB_READER_HOSTNAME = Variable.get("db_reader_hostname", default_var="db-reader")
+DB_PORT = Variable.get("db_port", default_var="5432")  # qa
 
-AWS_DEFAULT_REGION = Variable.get("region", "ap-southeast-2")  # qa
+AWS_DEFAULT_REGION = Variable.get("region", default_var="ap-southeast-2")  # qa
 
 # dea-access
 DEA_ACCESS_RESTO_API_ADMIN_SECRET = Variable.get(
-    "dea_access_resto_api_admin_secret", "dea-access-resto-api-admin"
+    "dea_access_resto_api_admin_secret", default_var="dea-access-resto-api-admin"
 )  # qa
 
 # c3 alchemist deriveritves
 ALCHEMIST_C3_USER_SECRET = Variable.get(
-    "alchemist_c3_user_secret", "alchemist-c3-user-creds"
+    "alchemist_c3_user_secret", default_var="alchemist-c3-user-creds"
 )
 
 LANDSAT_C3_AWS_USER_SECRET = Variable.get(
-    "landsat_c3_aws_user_secret", "processing-landsat-3-aws-creds"
+    "landsat_c3_aws_user_secret", default_var="processing-landsat-3-aws-creds"
 )
 
 SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET = Variable.get(
-    "sentinel_2_ard_indexing_aws_user_secret", "sentinel-2-ard-indexing-creds"
+    "sentinel_2_ard_indexing_aws_user_secret", default_var="sentinel-2-ard-indexing-creds"
 )
 
 S2_NRT_AWS_CREDS = "wagl-nrt-aws-creds"
@@ -59,10 +59,10 @@ S2_NRT_AWS_CREDS = "wagl-nrt-aws-creds"
 COP_API_REP_CREDS = "copernicus_api_password"
 
 WATERBODIES_DEV_USER_SECRET = Variable.get(
-    "waterbodies_dev_user_secret", "waterbodies-dev-user-creds"
+    "waterbodies_dev_user_secret", default_var="waterbodies-dev-user-creds"
 )
 
 # stats
 PROCESSING_STATS_USER_SECRET = Variable.get(
-    "processing_stats_user_secret", "processing-aws-creds-stats"
+    "processing_stats_user_secret", default_var="processing-aws-creds-stats"
 )

@@ -39,7 +39,7 @@ default_args = {
     "aws_conn_id": AWS_DEA_PUBLIC_DATA_UPLOAD_CONN,
 }
 dag = DAG(
-    "test_ssh_operators",
+    dag_id="test_ssh_operators",
     doc_md=__doc__,
     default_args=default_args,
     catchup=False,
