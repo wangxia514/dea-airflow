@@ -8,14 +8,11 @@ from datetime import datetime, timedelta
 # import json
 
 from airflow import DAG
-# from airflow_kubernetes_job_operator.kubernetes_job_operator import KubernetesJobOperator
+# from airflow_kubernetes_job_operator.kubernetes_job_operator import KubernetesJobOperator  # noqa: E501
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-from airflow.operators.python import PythonOperator
-import boto3
-# from botocore.handlers import disable_signing
 
 from textwrap import dedent
 
@@ -194,59 +191,60 @@ def k8s_queueread(dag, branch):
 
 
 def k8s_job_task(dag, branch):
-    cmd = [
-        "bash",
-        "-c",
-        dedent(
-            """
-            echo "Using dea-waterbodies image {image}"
-            wget {conf} -O config.ini
-            cat config.ini
+    # cmd = [
+    #     "bash",
+    #     "-c",
+    #     dedent(
+    #         """
+    #         echo "Using dea-waterbodies image {image}"
+    #         wget {conf} -O config.ini
+    #         cat config.ini
 
-            # Download xcom path to the IDs file.
-            echo "Downloading {{{{ ti.xcom_pull(task_ids='waterbodies-all-getchunks')['chunks_path'] }}}}"
-            aws s3 cp {{{{ ti.xcom_pull(task_ids='waterbodies-all-getchunks')['chunks_path'] }}}} ids.json
+    #         # Download xcom path to the IDs file.
+    #         echo "Downloading {{{{ ti.xcom_pull(task_ids='waterbodies-all-getchunks')['chunks_path'] }}}}"
+    #         aws s3 cp {{{{ ti.xcom_pull(task_ids='waterbodies-all-getchunks')['chunks_path'] }}}} ids.json
 
-            # Write xcom data to a TXT file.
-            python - << EOF
-            import json
-            with open('ids.json') as f:
-                ids = json.load(f)
-            with open('ids.txt', 'w') as f:
-                f.write('\\n'.join(ids['chunks'][{part}]['ids']))
-            EOF
+    #         # Write xcom data to a TXT file.
+    #         python - << EOF
+    #         import json
+    #         with open('ids.json') as f:
+    #             ids = json.load(f)
+    #         with open('ids.txt', 'w') as f:
+    #             f.write('\\n'.join(ids['chunks'][{part}]['ids']))
+    #         EOF
 
-            # Execute waterbodies on the IDs.
-            echo "Processing:"
-            cat ids.txt
-            cat ids.txt | python -m dea_waterbodies.make_time_series --config config.ini
-            """.format(
-                image=WATERBODIES_UNSTABLE_IMAGE, conf=config_path, part=part
-            )
-        ),
-    ]
-    req_mem = "{}Mi".format(int(mem))
-    return KubernetesPodOperator(
-        image=WATERBODIES_UNSTABLE_IMAGE,
-    )
-    job_task = KubernetesJobOperator(
-        dag=dag,
-        name="waterbodies-all",
-        arguments=cmd,
-        image_pull_policy="IfNotPresent",
-        labels={"step": "waterbodies-" + name},
-        get_logs=True,
-        affinity=affinity,
-        is_delete_operator_pod=True,
-        resources={
-            "request_cpu": "1000m",
-            "request_memory": req_mem,
-        },
-        namespace="processing",
-        tolerations=tolerations,
-        task_id=name,
-    )
-    return job_task
+    #         # Execute waterbodies on the IDs.
+    #         echo "Processing:"
+    #         cat ids.txt
+    #         cat ids.txt | python -m dea_waterbodies.make_time_series --config config.ini
+    #         """.format(
+    #             image=WATERBODIES_UNSTABLE_IMAGE, conf=config_path, part=part
+    #         )
+    #     ),
+    # ]
+    # req_mem = "{}Mi".format(int(mem))
+    # return KubernetesPodOperator(
+    #     image=WATERBODIES_UNSTABLE_IMAGE,
+    # )
+    # job_task = KubernetesJobOperator(
+    #     dag=dag,
+    #     name="waterbodies-all",
+    #     arguments=cmd,
+    #     image_pull_policy="IfNotPresent",
+    #     labels={"step": "waterbodies-" + name},
+    #     get_logs=True,
+    #     affinity=affinity,
+    #     is_delete_operator_pod=True,
+    #     resources={
+    #         "request_cpu": "1000m",
+    #         "request_memory": req_mem,
+    #     },
+    #     namespace="processing",
+    #     tolerations=tolerations,
+    #     task_id=name,
+    # )
+    # return job_task
+    pass
 
 
 def k8s_queue_push(dag, branch):
