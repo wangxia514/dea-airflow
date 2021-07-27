@@ -32,9 +32,20 @@ Then start up `docker-compose`:
 docker-compose up airflow-init
 docker-compose up
 ```
-
 Connect to the [Local Airflow Webserver](http://localhost:8080/) in your browser, and login with Username: `airflow`,
 Password: `airflow`.
+
+#### Troubleshooting
+if you are experiencing issues with the docker-compose file, please ensure to check your docker-compose version, it is confirmed to work
+with version `1.29.2`
+
+``` bash
+ubuntu@:~/dea-airflow$ docker-compose version
+docker-compose version 1.29.2, build 5becea4c
+docker-py version: 5.0.0
+CPython version: 3.7.10
+OpenSSL version: OpenSSL 1.1.0l  10 Sep 2019
+```
 
 ## Local Editing of DAG's
 
