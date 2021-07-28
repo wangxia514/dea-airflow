@@ -15,8 +15,8 @@ from airflow_kubernetes_job_operator.kubernetes_legacy_job_operator import Kuber
 from airflow.utils.dates import days_ago
 from infra.images import INDEXER_IMAGE
 
-default_args = {"owner": "tester", "start_date": days_ago(2), "retries": 0}
-dag = DAG("job-tester", default_args=default_args, description="Test base job operator", schedule_interval=None)
+default_args = {"owner": "Pin Jin", "start_date": days_ago(2), "retries": 0}
+dag = DAG("test_k8sjoboperator", default_args=default_args, description="Test base job operator", schedule_interval=None)
 
 job_task = KubernetesJobOperator(
     task_id="from-image",
