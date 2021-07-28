@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 # import json
 
 from airflow import DAG
-# from airflow_kubernetes_job_operator.kubernetes_job_operator import KubernetesJobOperator  # noqa: E501
+from airflow_kubernetes_job_operator.kubernetes_job_operator import KubernetesJobOperator  # noqa: E501
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
@@ -190,61 +190,68 @@ def k8s_queueread(dag, branch):
     )
 
 
-def k8s_job_task(dag, branch):
-    # cmd = [
-    #     "bash",
-    #     "-c",
-    #     dedent(
-    #         """
-    #         echo "Using dea-waterbodies image {image}"
-    #         wget {conf} -O config.ini
-    #         cat config.ini
+def k8s_job_task(dag, branch, config_path):
+    mem = MEM_BRANCHES[branch]
+    req_mem = "{}Mi".format(int(mem))
+    lim_mem = "{}Mi".format(int(mem) * 2 if branch != 'jumbo' else int(mem))
+    yaml = {
+        'apiVersion': 'batch/v1',
+        'kind': 'Job',
+        'metadata': {
+            'name': 'waterbodies-all-job',
+            'namespace': 'processing'},
+        'spec': {
+            'parallelism': 64,  # TODO(MatthewJA): Make dynamic?
+            'backoffLimit': 3,
+            'template': {
+                'spec': {
+                    'restartPolicy': 'OnFailure',
+                    'tolerations': tolerations,
+                    'affinity': affinity,
+                    'containers': [{
+                        'name': 'waterbodies',
+                        'image': WATERBODIES_UNSTABLE_IMAGE,
+                        'imagePullPolicy': 'IfNotPresent',
+                        'resources': {
+                                "requests": {
+                                    'cpu': "1000m",
+                                    'memory': req_mem,
+                                },
+                                "limits": {
+                                    'cpu': "2000m",
+                                    'memory': lim_mem,
+                                },
+                            },
+                        'command': ['/bin/bash'],
+                        'args': [
+                            '-c',
+                            dedent(
+                                """
+                                echo "Retrieving $config_path"
+                                wget {config} -O config.ini
+                                cat config.ini
 
-    #         # Download xcom path to the IDs file.
-    #         echo "Downloading {{{{ ti.xcom_pull(task_ids='waterbodies-all-getchunks')['chunks_path'] }}}}"
-    #         aws s3 cp {{{{ ti.xcom_pull(task_ids='waterbodies-all-getchunks')['chunks_path'] }}}} ids.json
+                                # Execute waterbodies on the IDs.
+                                python -m dea_waterbodies.make_time_series --config config.ini --from-queue {queue}
+                                """.format(queue=f'waterbodies_{branch}_sqs',
+                                           config=config_path)
+                            )
+                        ]},
+                    ],
+                },
+            },
+        },
+    }
 
-    #         # Write xcom data to a TXT file.
-    #         python - << EOF
-    #         import json
-    #         with open('ids.json') as f:
-    #             ids = json.load(f)
-    #         with open('ids.txt', 'w') as f:
-    #             f.write('\\n'.join(ids['chunks'][{part}]['ids']))
-    #         EOF
-
-    #         # Execute waterbodies on the IDs.
-    #         echo "Processing:"
-    #         cat ids.txt
-    #         cat ids.txt | python -m dea_waterbodies.make_time_series --config config.ini
-    #         """.format(
-    #             image=WATERBODIES_UNSTABLE_IMAGE, conf=config_path, part=part
-    #         )
-    #     ),
-    # ]
-    # req_mem = "{}Mi".format(int(mem))
-    # return KubernetesPodOperator(
-    #     image=WATERBODIES_UNSTABLE_IMAGE,
-    # )
-    # job_task = KubernetesJobOperator(
-    #     dag=dag,
-    #     name="waterbodies-all",
-    #     arguments=cmd,
-    #     image_pull_policy="IfNotPresent",
-    #     labels={"step": "waterbodies-" + name},
-    #     get_logs=True,
-    #     affinity=affinity,
-    #     is_delete_operator_pod=True,
-    #     resources={
-    #         "request_cpu": "1000m",
-    #         "request_memory": req_mem,
-    #     },
-    #     namespace="processing",
-    #     tolerations=tolerations,
-    #     task_id=name,
-    # )
-    # return job_task
-    pass
+    job_task = KubernetesJobOperator(
+        image=WATERBODIES_UNSTABLE_IMAGE,
+        dag=dag,
+        name=f"waterbodies-all-{branch}-run",
+        task_id=f"waterbodies-all-{branch}-run",
+        get_logs=True,
+        body=yaml,
+    )
+    return job_task
 
 
 def k8s_queue_push(dag, branch):
@@ -430,8 +437,7 @@ with dag:
         # Populate the queues.
         push = k8s_queue_push(dag, branch)
         # Now we'll do the main task.
-        queueread = k8s_queueread(dag, branch)
-        # task = k8s_job_task(dag, branch)
+        task = k8s_job_task(dag, branch, config_path)
         # Finally delete the queue.
         delqueue = k8s_delqueue(dag, branch)
-        getchunks >> makequeue >> push >> queueread >> delqueue
+        getchunks >> makequeue >> push >> task >> delqueue
