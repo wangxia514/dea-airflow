@@ -246,7 +246,6 @@ def k8s_job_task(dag, branch, config_path):
     job_task = KubernetesJobOperator(
         image=WATERBODIES_UNSTABLE_IMAGE,
         dag=dag,
-        name=f"waterbodies-all-{branch}-run",
         task_id=f"waterbodies-all-{branch}-run",
         get_logs=True,
         body=yaml,
