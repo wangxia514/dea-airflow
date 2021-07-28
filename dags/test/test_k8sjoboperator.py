@@ -28,8 +28,8 @@ job_task = KubernetesJobOperator(
 body = {"kind": "Pod"}  # The body or a yaml string (must be valid)
 job_task_from_body = KubernetesJobOperator(dag=dag, task_id="from-body", body=body)
 
-body_filepath = "./my_yaml_file.yaml"  # Can be relative to this file, or abs path.
-job_task_from_yaml = KubernetesJobOperator(dag=dag, task_id="from-yaml", body_filepath=body_filepath)
+# body_filepath = "./my_yaml_file.yaml"  # Can be relative to this file, or abs path.
+# job_task_from_yaml = KubernetesJobOperator(dag=dag, task_id="from-yaml", body_filepath=body_filepath)
 
 # Legacy compatibility to KubernetesPodOperator
 legacy_job_task = KubernetesLegacyJobOperator(
