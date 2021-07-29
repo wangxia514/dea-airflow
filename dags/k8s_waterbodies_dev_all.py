@@ -213,15 +213,15 @@ def k8s_job_task(dag, branch, config_path):
                         'image': WATERBODIES_UNSTABLE_IMAGE,
                         'imagePullPolicy': 'IfNotPresent',
                         'resources': {
-                                "requests": {
-                                    'cpu': "1000m",
-                                    'memory': req_mem,
-                                },
-                                "limits": {
-                                    'cpu': "2000m",
-                                    'memory': lim_mem,
-                                },
+                            "requests": {
+                                'cpu': "1000m",
+                                'memory': req_mem,
                             },
+                            "limits": {
+                                'cpu': "2000m",
+                                'memory': lim_mem,
+                            },
+                        },
                         'command': ['/bin/bash'],
                         'args': [
                             '-c',
