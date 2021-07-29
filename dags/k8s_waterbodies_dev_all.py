@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 # import json
 
 from airflow import DAG
-from airflow_kubernetes_job_operator.kubernetes_legacy_job_operator import KubernetesLegacyJobOperator  # noqa: E501
+from airflow_kubernetes_job_operator.kubernetes_job_operator import KubernetesJobOperator  # noqa: E501
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
@@ -250,6 +250,36 @@ def k8s_job_task(dag, branch, config_path):
                                 """.format(queue=f'waterbodies_{branch}_sqs',
                                            config=config_path)
                             )
+                        ],
+                        'env': [
+                            {'name': 'DB_HOSTNAME', 'value': DB_READER_HOSTNAME},
+                            {'name': 'DB_DATABASE', 'value': DB_DATABASE},
+                            {'name': 'DB_PORT', 'value': DB_PORT},
+                            {'name': 'AWS_DEFAULT_REGION', 'value': AWS_DEFAULT_REGION},
+                            {'name': 'DB_USERNAME', 'valueFrom': {
+                                'secretKeyRef': {
+                                    'name': SECRET_ODC_READER_NAME,
+                                    'value': 'postgres-username',
+                                },
+                            }},
+                            {'name': 'DB_PASSWORD', 'valueFrom': {
+                                'secretKeyRef': {
+                                    'name': SECRET_ODC_READER_NAME,
+                                    'value': 'postgres-password',
+                                },
+                            }},
+                            {'name': 'AWS_ACCESS_KEY_ID', 'valueFrom': {
+                                'secretKeyRef': {
+                                    'name': WATERBODIES_DEV_USER_SECRET,
+                                    'value': 'AWS_ACCESS_KEY_ID',
+                                },
+                            }},
+                            {'name': 'AWS_SECRET_ACCESS_KEY', 'valueFrom': {
+                                'secretKeyRef': {
+                                    'name': WATERBODIES_DEV_USER_SECRET,
+                                    'value': 'AWS_SECRET_ACCESS_KEY',
+                                },
+                            }},
                         ]},
                     ],
                 },
@@ -257,13 +287,12 @@ def k8s_job_task(dag, branch, config_path):
         },
     }
 
-    job_task = KubernetesLegacyJobOperator(
+    job_task = KubernetesJobOperator(
         image=WATERBODIES_UNSTABLE_IMAGE,
         dag=dag,
         task_id=f"waterbodies-all-{branch}-run",
         get_logs=True,
         body=yaml,
-        **SECRETS,
     )
     return job_task
 
