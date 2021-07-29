@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 # import json
 
 from airflow import DAG
-from airflow_kubernetes_job_operator.kubernetes_job_operator import KubernetesJobOperator  # noqa: E501
+from airflow_kubernetes_job_operator.kubernetes_legacy_job_operator import KubernetesLegacyJobOperator  # noqa: E501
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
@@ -28,16 +28,7 @@ from infra.variables import (
 )
 
 # DAG CONFIGURATION
-DEFAULT_ARGS = {
-    "owner": "Matthew Alger",
-    "depends_on_past": False,
-    "start_date": datetime(2021, 6, 2),
-    "email": ["matthew.alger@ga.gov.au"],
-    "email_on_failure": False,
-    "email_on_retry": False,
-    "retries": 1,
-    "retry_delay": timedelta(minutes=5),
-    "startup_timeout_seconds": 5 * 60,
+SECRETS = {
     "env_vars": {
         "DB_HOSTNAME": DB_READER_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
@@ -61,6 +52,18 @@ DEFAULT_ARGS = {
             "AWS_SECRET_ACCESS_KEY",
         ),
     ],
+}
+DEFAULT_ARGS = {
+    "owner": "Matthew Alger",
+    "depends_on_past": False,
+    "start_date": datetime(2021, 6, 2),
+    "email": ["matthew.alger@ga.gov.au"],
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5),
+    "startup_timeout_seconds": 5 * 60,
+    **SECRETS,
 }
 
 # Kubernetes autoscaling group affinity
@@ -100,6 +103,16 @@ MEM_BRANCHES = OrderedDict(
         ("large", 8 * 1024),
         ("huge", 64 * 1024),
         ("jumbo", 128 * 1024),
+    ]
+)
+
+JOBS_BRANCHES = OrderedDict(
+    [
+        ("tiny", 64),
+        ("small", 32),
+        ("large", 16),
+        ("huge", 4),
+        ("jumbo", 1),
     ]
 )
 
@@ -194,6 +207,7 @@ def k8s_job_task(dag, branch, config_path):
     mem = MEM_BRANCHES[branch]
     req_mem = "{}Mi".format(int(mem))
     lim_mem = "{}Mi".format(int(mem) * 2 if branch != 'jumbo' else int(mem))
+    parallelism = JOBS_BRANCHES[branch]
     yaml = {
         'apiVersion': 'batch/v1',
         'kind': 'Job',
@@ -201,7 +215,7 @@ def k8s_job_task(dag, branch, config_path):
             'name': 'waterbodies-all-job',
             'namespace': 'processing'},
         'spec': {
-            'parallelism': 64,  # TODO(MatthewJA): Make dynamic?
+            'parallelism': parallelism,
             'backoffLimit': 3,
             'template': {
                 'spec': {
@@ -243,12 +257,13 @@ def k8s_job_task(dag, branch, config_path):
         },
     }
 
-    job_task = KubernetesJobOperator(
+    job_task = KubernetesLegacyJobOperator(
         image=WATERBODIES_UNSTABLE_IMAGE,
         dag=dag,
         task_id=f"waterbodies-all-{branch}-run",
         get_logs=True,
         body=yaml,
+        **SECRETS,
     )
     return job_task
 
