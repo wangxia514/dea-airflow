@@ -259,25 +259,25 @@ def k8s_job_task(dag, branch, config_path):
                             {'name': 'DB_USERNAME', 'valueFrom': {
                                 'secretKeyRef': {
                                     'name': SECRET_ODC_READER_NAME,
-                                    'value': 'postgres-username',
+                                    'key': 'postgres-username',
                                 },
                             }},
                             {'name': 'DB_PASSWORD', 'valueFrom': {
                                 'secretKeyRef': {
                                     'name': SECRET_ODC_READER_NAME,
-                                    'value': 'postgres-password',
+                                    'key': 'postgres-password',
                                 },
                             }},
                             {'name': 'AWS_ACCESS_KEY_ID', 'valueFrom': {
                                 'secretKeyRef': {
                                     'name': WATERBODIES_DEV_USER_SECRET,
-                                    'value': 'AWS_ACCESS_KEY_ID',
+                                    'key': 'AWS_ACCESS_KEY_ID',
                                 },
                             }},
                             {'name': 'AWS_SECRET_ACCESS_KEY', 'valueFrom': {
                                 'secretKeyRef': {
                                     'name': WATERBODIES_DEV_USER_SECRET,
-                                    'value': 'AWS_SECRET_ACCESS_KEY',
+                                    'key': 'AWS_SECRET_ACCESS_KEY',
                                 },
                             }},
                         ]},
