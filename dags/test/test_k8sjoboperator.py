@@ -38,13 +38,6 @@ dag = DAG(
     doc_md=__doc__,
 )
 
-job_task = KubernetesJobOperator(
-    task_id="from-image",
-    dag=dag,
-    image=INDEXER_IMAGE,
-    command=["bash", "-c", 'echo "all ok"'],
-)
-
 body = {
     "kind": "Pod",
     "metadata": {"name": "k8sjoboperator-pod", "namespace": "processing"},
@@ -115,16 +108,30 @@ body = {
         ]
     },
 }  # The body or a yaml string (must be valid)
-job_task_from_body = KubernetesJobOperator(dag=dag, task_id="from-body", body=body)
 
-# body_filepath = "./my_yaml_file.yaml"  # Can be relative to this file, or abs path.
-# job_task_from_yaml = KubernetesJobOperator(dag=dag, task_id="from-yaml", body_filepath=body_filepath)
-
-# Legacy compatibility to KubernetesPodOperator
-legacy_job_task = KubernetesLegacyJobOperator(
-    task_id="legacy-image-job",
-    image=INDEXER_IMAGE,
-    cmds=["bash", "-c", 'echo "all ok"'],
-    dag=dag,
-    is_delete_operator_pod=True,
+body_filepath = (
+    "./k8sjoboperator_test_file.yaml"  # Can be relative to this file, or abs path.
 )
+
+
+with dag:
+
+    job_task = KubernetesJobOperator(
+        task_id="from-image",
+        image=INDEXER_IMAGE,
+        command=["bash", "-c", 'echo "all ok"'],
+    )
+
+    job_task_from_body = KubernetesJobOperator(task_id="from-body", body=body)
+
+    job_task_from_yaml = KubernetesJobOperator(
+        task_id="from-yaml", body_filepath=body_filepath
+    )
+
+    # Legacy compatibility to KubernetesPodOperator
+    legacy_job_task = KubernetesLegacyJobOperator(
+        task_id="legacy-image-job",
+        image=INDEXER_IMAGE,
+        cmds=["bash", "-c", 'echo "all ok"'],
+        is_delete_operator_pod=True,
+    )
