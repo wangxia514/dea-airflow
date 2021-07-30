@@ -14,7 +14,7 @@ May be altered to test advanced logics.
     }
 """
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
