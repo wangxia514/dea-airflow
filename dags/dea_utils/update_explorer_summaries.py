@@ -41,7 +41,7 @@ def explorer_refresh_operator(products):
         image=EXPLORER_IMAGE,
         arguments=EXPLORER_BASH_COMMAND,
         secrets=EXPLORER_SECRETS,
-        labels={"step": "explorer-refresh-stats"},
+        labels={"app": "explorer-refresh-stats"},
         name="explorer-summary",
         task_id="explorer-summary-task",
         get_logs=True,

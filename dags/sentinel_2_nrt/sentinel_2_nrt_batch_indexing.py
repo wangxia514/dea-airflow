@@ -90,7 +90,7 @@ with dag:
         image=INDEXER_IMAGE,
         image_pull_policy="IfNotPresent",
         arguments=INDEXING_BASH_COMMAND,
-        labels={"step": "s3-to-rds"},
+        labels={"app": "dag_s2_nrt_batch"},
         name="datacube-index",
         task_id="batch-indexing-task",
         get_logs=True,

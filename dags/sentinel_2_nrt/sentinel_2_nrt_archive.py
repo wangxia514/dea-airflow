@@ -89,7 +89,7 @@ with dag:
         namespace="processing",
         image=INDEXER_IMAGE,
         arguments=ARCHIVE_BASH_COMMAND,
-        labels={"step": "ds-arch"},
+        labels={"app": "dag_s2_nrt_archive"},
         name="datacube-dataset-archive",
         task_id="archive-nrt-datasets",
         pool=DEA_NEWDATA_PROCESSING_POOL,
