@@ -119,7 +119,7 @@ with dag:
     job_task = KubernetesJobOperator(
         task_id="from-image",
         image=INDEXER_IMAGE,
-        command=["bash", "-c", 'echo "all ok"'],
+        command=["bash", "-c", 'datacube product list'],
     )
 
     job_task_from_body = KubernetesJobOperator(task_id="from-body", body=body)
@@ -135,3 +135,5 @@ with dag:
         cmds=["bash", "-c", 'echo "all ok"'],
         is_delete_operator_pod=True,
     )
+
+    job_task_from_body >> job_task_from_yaml
