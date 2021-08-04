@@ -117,7 +117,7 @@ body_filepath = (
 with dag:
 
     job_task = KubernetesJobOperator(
-        task_id="from-image",
+        task_id="failing-testcase",
         image=INDEXER_IMAGE,
         command=["bash", "-c", 'datacube product list'],
     )
