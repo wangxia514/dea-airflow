@@ -86,7 +86,7 @@ with dag:
         image_pull_policy="IfNotPresent",
         annotations={"iam.amazonaws.com/role": INDEXING_ROLE},
         arguments=INDEXING_BASH_COMMAND,
-        labels={"step": "sqs-to-rds"},
+        labels={"app": "dag_s2_nrt_streamline"},
         name="datacube-index",
         task_id="streamline-indexing-task",
         get_logs=True,
