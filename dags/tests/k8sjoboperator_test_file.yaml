@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: k8sjoboperator-test-file-pod
+  namespace: processing
+  labels:
+    app: odc
+spec:
+  containers:
+  - name: odc-admin
+    image: 538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/datacube-index:latest
+    command: ["/bin/sh", "-ec", "datacube product list"]
+    env:
+      - name: DB_HOSTNAME
+        value: db-writer
+      - name: DB_DATABASE
+        valueFrom:
+          secretKeyRef:
+            name: odc-admin
+            key: database-name
+      - name: DB_USERNAME
+        valueFrom:
+          secretKeyRef:
+            name: odc-admin
+            key: postgres-username
+      - name: DB_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: odc-admin
+            key: postgres-password
+      - name: AWS_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            name: processing-landsat-3-aws-creds
+            key: AWS_ACCESS_KEY_ID
+      - name: AWS_SECRET_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            name: processing-landsat-3-aws-creds
+            key: AWS_SECRET_ACCESS_KEY
+      - name: AWS_DEFAULT_REGION
+        valueFrom:
+          secretKeyRef:
+            name: processing-landsat-3-aws-creds
+            key: AWS_DEFAULT_REGION
