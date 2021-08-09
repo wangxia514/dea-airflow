@@ -7,7 +7,7 @@ from textwrap import dedent
 
 import pendulum
 from airflow import DAG
-from airflow.contrib.hooks.aws_hook import AwsHook
+from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
 from airflow.providers.ssh.operators.ssh import SSHOperator
 
 local_tz = pendulum.timezone("Australia/Canberra")
@@ -77,7 +77,7 @@ with DAG(
         ),
     )
 
-    aws_conn = AwsHook(aws_conn_id="aws_nci_db_backup")
+    aws_conn = AwsHook(aws_conn_id="aws_nci_db_backup", client_type="s3")
     upload_to_s3 = SSHOperator(
         task_id="upload_to_s3",
         params=dict(aws_conn=aws_conn),

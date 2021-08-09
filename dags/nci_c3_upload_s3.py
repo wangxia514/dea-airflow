@@ -26,7 +26,7 @@ from textwrap import dedent
 
 import pendulum
 from airflow import DAG, configuration
-from airflow.contrib.hooks.aws_hook import AwsHook
+from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
 from airflow.providers.sftp.operators.sftp import SFTPOperator, SFTPOperation
 from airflow.providers.ssh.operators.ssh import SSHOperator
 
@@ -164,7 +164,7 @@ with dag:
             create_intermediate_dirs=True,
         )
         # Execute script to upload Landsat collection 3 data to s3 bucket
-        aws_hook = AwsHook(aws_conn_id=dag.default_args["aws_conn_id"])
+        aws_hook = AwsHook(aws_conn_id=dag.default_args["aws_conn_id"], client_type="s3")
         execute_c3_to_s3_script = SSHOperator(
             task_id=f"execute_c3_to_s3_script_{product}",
             command=COMMON + RUN_UPLOAD_SCRIPT,

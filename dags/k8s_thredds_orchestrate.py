@@ -1,26 +1,30 @@
 """
-# S3 to Datacube Indexing
+# Thredds to Datacube Indexing
 
 DAG to periodically/one-shot update explorer and ows schemas in RDS
-after a given Dataset has been indexed from S3.
+after a given Dataset has been indexed from Thredds
 
 - Run Explorer summaries
-- Run ows update ranges for NRT products
-- Run ows update ranges for NRT multi-products
+- Run ows update ranges for ARD products
+- Run ows update ranges for ARD multi-products
 
-This DAG uses k8s executors and pre-existing pods in cluster with relevant tooling
+This DAG uses k8s executors and fresh pods in cluster with relevant tooling
 and configuration installed.
 
-The DAG has to be parameterized with S3_Glob and Target product as below.
+The DAG has to be parameterized with Thredds catalog root and Target products as below.
+The lineage indexing strategy also has to be passed in.
 
-    "s3_glob": "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
-    "product": "cemp_insar_alos_displacement"
+    "params" : "--auto-add-lineage",
+    "thredds_catalog": "http://dapds00.nci.org.au/thredds/catalog/if87/2018-11-29/",
+    "products": "s2a_ard_granule s2a_level1c_granule s2b_ard_granule s2b_level1c_granule"
 
 """
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 
@@ -35,7 +39,6 @@ DEFAULT_ARGS = {
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "env_vars": {
-        "AWS_DEFAULT_REGION": "ap-southeast-2",
         # TODO: Pass these via templated params in DAG Run
         "DB_HOSTNAME": "db-writer",
         "DB_DATABASE": "ows-index",
@@ -53,17 +56,17 @@ OWS_IMAGE = "opendatacube/ows:1.8.0"
 EXPLORER_IMAGE = "opendatacube/explorer:2.1.9"
 
 dag = DAG(
-    "k8s_s3_orchestrate",
+    "k8s_thredds_orchestrate",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
-    tags=["k8s"]
+    tags=["k8s"],
 )
 
 
 with dag:
-    START = DummyOperator(task_id="s3_index_publish")
+    START = DummyOperator(task_id="thredds_index_publish")
 
     # TODO: Bootstrap if targeting a Blank DB
     # TODO: Initialize Datacube
@@ -72,29 +75,31 @@ with dag:
     BOOTSTRAP = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
-        cmds=["datacube", "product", "list"],
+        cmds=["datacube", "system", "check"],
         labels={"step": "bootstrap"},
         name="odc-bootstrap",
         task_id="bootstrap-task",
         get_logs=True,
     )
 
+    """
+    {
+        "params" : "--auto-add-lineage",
+        "thredds_catalog": "http://dapds00.nci.org.au/thredds/catalog/if87/2018-11-29/",
+        "products": "s2a_ard_granule s2a_level1c_granule s2b_ard_granule s2b_level1c_granule"
+    }
+    """
     INDEXING = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
-        cmds=["s3-to-dc"],
-        # Assume kube2iam role via annotations
-        # TODO: Pass this via DAG parameters
-        annotations={"iam.amazonaws.com/role": "dea-dev-eks-ows"},
+        cmds=["thredds-to-dc"],
         # TODO: Collect form JSON used to trigger DAG
         arguments=[
-            # "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
-            # "cemp_insar_alos_displacement",
-            # Jinja templates for arguments
-            "{{ dag_run.conf.s3_glob }}",
-            "{{ dag_run.conf.product }}"
+            "{{ dag_run.conf.params}}",
+            "{{ dag_run.conf.thredds_catalog }}",
+            "{{ dag_run.conf.products }}",
         ],
-        labels={"step": "s3-to-rds"},
+        labels={"step": "thredds-to-rds"},
         name="datacube-index",
         task_id="indexing-task",
         get_logs=True,

@@ -35,8 +35,8 @@ from datetime import datetime, timedelta
 from airflow import DAG
 
 # Operators; we need this to operate!
-from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
-from airflow.operators.sensors import HttpSensor
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.http.sensors.http import HttpSensor
 
 # [END import_module]
 

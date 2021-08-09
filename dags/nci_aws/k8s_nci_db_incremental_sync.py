@@ -22,16 +22,18 @@ for a day's backup to be available via
 [S3KeySensor](https://airflow.apache.org/docs/stable/_api/airflow/sensors/s3_key_sensor/index.html)
 and executes downstream task
 """
-
+import kubernetes.client.models as k8s
 import pendulum
 from airflow import DAG
-from airflow.sensors.s3_key_sensor import S3KeySensor
-from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+from airflow.providers.amazon.aws.sensors.s3_key import S3KeySensor
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
+
 from airflow.kubernetes.secret import Secret
-from airflow.kubernetes.volume import Volume
-from airflow.kubernetes.volume_mount import VolumeMount
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
+
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.images import S3_TO_RDS_IMAGE, INDEXER_IMAGE
 from infra.iam_roles import NCI_DBSYNC_ROLE
@@ -99,13 +101,16 @@ dag = DAG(
 
 affinity = ONDEMAND_NODE_AFFINITY
 
-s3_backup_volume_mount = VolumeMount(
+s3_backup_volume_mount = k8s.V1VolumeMount(
     name="s3-backup-volume", mount_path=BACKUP_PATH, sub_path=None, read_only=False
 )
 
-s3_backup_volume_config = {"persistentVolumeClaim": {"claimName": "s3-backup-volume"}}
-
-s3_backup_volume = Volume(name="s3-backup-volume", configs=s3_backup_volume_config)
+s3_backup_volume = k8s.V1Volume(
+    name="s3-backup-volume",
+    persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(
+        claim_name="s3-backup-volume"
+    ),
+)
 
 with dag:
     START = DummyOperator(task_id="start")

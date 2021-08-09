@@ -10,11 +10,11 @@ import yaml
 
 from airflow import DAG
 
-from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
-from airflow.contrib.hooks.aws_sns_hook import AwsSnsHook
-from airflow.contrib.hooks.aws_hook import AwsHook
+from airflow.providers.amazon.aws.hooks.sns import AwsSnsHook
+from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
 from airflow.kubernetes.secret import Secret
 from airflow.kubernetes.volume import Volume
 from airflow.kubernetes.volume_mount import VolumeMount
@@ -195,12 +195,12 @@ def tile_args(tile_info):
 
 def get_sqs():
     """ SQS client. """
-    return AwsHook(aws_conn_id=AWS_CONN_ID).get_session().client("sqs")
+    return AwsHook(aws_conn_id=AWS_CONN_ID, client_type="sqs").get_session().client("sqs")
 
 
 def get_s3():
     """ S3 client. """
-    return AwsHook(aws_conn_id=AWS_CONN_ID).get_session().client("s3")
+    return AwsHook(aws_conn_id=AWS_CONN_ID, client_type="s3").get_session().client("s3")
 
 
 def get_message(sqs, url):

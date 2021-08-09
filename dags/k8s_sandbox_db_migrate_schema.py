@@ -1,13 +1,10 @@
+# -*- coding: utf-8 -*-
+
 """
-### DEA ODC prod database - Run Explorer Schema Migration
+### DEA Sandbox prod database - migrate schema
 
-This is a Utility DAG, to be run manually to execute a Datacube Explorer Schema Migration.
-
-It should be run whenever a new release of Datacube Explorer requires a database schema update.
-
-*Note:* There was one of these DAGs for each Explorer instance, but I think we should move to a more
-general purpose DAG. This may require switching to a parameterised `pod_template_file` instead of the
-current Secrets configuration.
+DAG to manually migrate schema for Sandbox DB when new version of explorer is
+deployed.
 
 """
 
@@ -19,6 +16,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
+
 from infra.images import EXPLORER_UNSTABLE_IMAGE
 
 local_tz = pendulum.timezone("Australia/Canberra")
@@ -27,9 +25,10 @@ local_tz = pendulum.timezone("Australia/Canberra")
 DB_HOSTNAME = "db-writer"
 
 DEFAULT_ARGS = {
-    "owner": "Damien Ayers",
+    "owner": "Tisham Dhar",
     "depends_on_past": False,
     "start_date": datetime(2020, 10, 3, tzinfo=local_tz),
+    "email": ["tisham.dhar@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
@@ -43,20 +42,20 @@ DEFAULT_ARGS = {
     # Lift secrets into environment variables for datacube database connectivity
     # Use this db-users to run cubedash update-summary
     "secrets": [
-        Secret("env", "DB_DATABASE", "explorer-admin", "database-name"),
-        Secret("env", "DB_USERNAME", "explorer-admin", "postgres-username"),
-        Secret("env", "DB_PASSWORD", "explorer-admin", "postgres-password"),
+        Secret("env", "DB_DATABASE", "explorer-db", "database-name"),
+        Secret("env", "DB_USERNAME", "explorer-db", "postgres-username"),
+        Secret("env", "DB_PASSWORD", "explorer-db", "postgres-password"),
     ],
 }
 
 dag = DAG(
-    "k8s_odc_db_migrate_schema",
+    "k8s_sandbox_db_migrate_schema",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     catchup=False,
     concurrency=1,
     max_active_runs=1,
-    tags=["k8s", "utility"],
+    tags=["k8s"],
     schedule_interval=None,  # Fully manual migrations
 )
 
@@ -81,7 +80,7 @@ affinity = {
 }
 
 with dag:
-    START = DummyOperator(task_id="odc-db-update-schema")
+    START = DummyOperator(task_id="sandbox-db-update-schema")
 
     # Run update summary
     UPDATE_SCHEMA = KubernetesPodOperator(

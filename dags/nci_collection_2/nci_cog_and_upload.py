@@ -26,10 +26,14 @@ from datetime import timedelta
 from textwrap import dedent
 
 from airflow import DAG, AirflowException
-from airflow.contrib.hooks.aws_hook import AwsHook
+from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
 from airflow.providers.ssh.operators.ssh import SSHOperator
 from airflow.operators.python_operator import ShortCircuitOperator
-from airflow.operators.sensors import ExternalTaskSensor
+
+try:  # TODO: clean this up after v2.1 upgrade
+    from airflow.operators.sensors import ExternalTaskSensor
+except ImportError:
+    from airflow.sensors.external_task import ExternalTaskSensor
 
 from nci_collection_2.nci_common import (
     c2_default_args,
@@ -252,7 +256,7 @@ with dag:
             timeout=1 * DAYS,
         )
 
-        aws_connection = AwsHook(aws_conn_id="dea_public_data_upload")
+        aws_connection = AwsHook(aws_conn_id="dea_public_data_upload", client_type="s3")
         upload_to_s3 = SSHOperator(
             task_id=f"upload_to_s3_{product}",
             command=COMMON

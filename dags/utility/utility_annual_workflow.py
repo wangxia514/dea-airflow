@@ -15,11 +15,12 @@ dag_run.conf format:
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from airflow.kubernetes.secret import Secret
 
 from dea_utils.update_explorer_summaries import explorer_refresh_operator
 from dea_utils.update_ows_products import ows_update_operator
+
 from infra.iam_roles import INDEXING_ROLE
 from infra.images import INDEXER_IMAGE
 from infra.podconfig import (

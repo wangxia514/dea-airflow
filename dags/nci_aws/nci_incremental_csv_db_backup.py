@@ -17,7 +17,7 @@ This DAG should be idempotent, ie. running repeatedly is safe.
 from textwrap import dedent
 
 from airflow import DAG
-from airflow.contrib.hooks.aws_hook import AwsHook
+from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
 from airflow.providers.ssh.operators.ssh import SSHOperator
 
 from datetime import datetime, timedelta
@@ -104,7 +104,7 @@ with DAG(
     )
 
     # Grab credentials from an Airflow Connection
-    aws_conn = AwsHook(aws_conn_id="aws_nci_db_backup")
+    aws_conn = AwsHook(aws_conn_id="aws_nci_db_backup", client_type="s3")
 
     upload_change_csvs_to_s3 = SSHOperator(
         task_id="upload_change_csvs_to_s3",

@@ -11,7 +11,7 @@ from datetime import datetime
 from textwrap import dedent
 
 from airflow import DAG, AirflowException
-from airflow.contrib.sensors.aws_sqs_sensor import SQSHook
+from airflow.providers.amazon.aws.hooks.sqs import SQSHook
 from airflow.operators.python_operator import PythonOperator
 from infra.connections import AWS_DEAD_LETTER_QUEUE_CHECKER_CONN
 
