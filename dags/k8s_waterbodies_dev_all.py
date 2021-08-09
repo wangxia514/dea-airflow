@@ -101,8 +101,8 @@ MEM_BRANCHES = OrderedDict(
         ("tiny", 512),
         ("small", 1024),
         ("large", 8 * 1024),
-        ("huge", 64 * 1024),
-        ("jumbo", 128 * 1024),
+        ("huge", 62 * 1024),
+        ("jumbo", 124 * 1024),
     ]
 )
 
@@ -232,7 +232,7 @@ def k8s_job_task(dag, branch, config_path):
                                 'memory': req_mem,
                             },
                             "limits": {
-                                'cpu': "2000m",
+                                'cpu': "1000m",
                                 'memory': lim_mem,
                             },
                         },
