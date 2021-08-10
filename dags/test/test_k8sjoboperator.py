@@ -16,6 +16,10 @@ from airflow_kubernetes_job_operator.kubernetes_job_operator import (
 from airflow_kubernetes_job_operator.kubernetes_legacy_job_operator import (
     KubernetesLegacyJobOperator,
 )
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
+from textwrap import dedent
 from airflow.utils.dates import days_ago
 from infra.images import INDEXER_IMAGE, WATERBODIES_UNSTABLE_IMAGE
 
@@ -119,18 +123,20 @@ with dag:
     job_task = KubernetesJobOperator(
         task_id="failing-testcase",
         image=INDEXER_IMAGE,
-        command=["bash", "-c", 'datacube product list'],
+        command=["bash", "-c", "datacube product list"],
         namespace="processing",
     )
 
-    job_task_from_body = KubernetesJobOperator(task_id="from-body", body=body,
-            namespace="processing",
+    job_task_from_body = KubernetesJobOperator(
+        task_id="from-body",
+        body=body,
+        namespace="processing",
     )
 
     job_task_from_yaml = KubernetesJobOperator(
-        task_id="from-yaml", body_filepath=body_filepath,
+        task_id="from-yaml",
+        body_filepath=body_filepath,
         namespace="processing",
-
     )
 
     # Legacy compatibility to KubernetesPodOperator
