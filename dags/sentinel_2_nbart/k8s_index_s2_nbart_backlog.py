@@ -15,7 +15,8 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from infra.variables import DB_HOSTNAME, SECRET_ODC_WRITER_NAME
-from infra.images import INDEXER_IMAGE
+
+INDEXER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/datacube-index:0.0.20"
 
 DEFAULT_ARGS = {
     "owner": "Kieran Ricardo",
@@ -62,17 +63,23 @@ dag = DAG(
     tags=["k8s", "s2_nbart"],
 )
 
-cmd_template = "s3-to-dc --skip-lineage --allow-unsafe --update-if-exists --skip-check --no-sign-request {} " + dag.default_args["products"]
-
 with dag:
     for year in range(2015, 2022):
         for i, quarter in enumerate(["0[123]", "0[456]", "0[789]", "1[012]"]):
-            uri = f"'s3://dea-public-data/baseline/s2[ab]_ard_granule/{year}-{quarter}-*/*/eo3-ARD-METADATA.odc-metadata.yaml'"
+
             INDEXING = KubernetesPodOperator(
                 namespace="processing",
                 image=INDEXER_IMAGE,
                 image_pull_policy="Always",
-                arguments=["-c", cmd_template.format(uri)],
+                arguments=[
+                    "s3-to-dc",
+                    "--skip-lineage",
+                    "--allow-unsafe",
+                    "--skip-check",
+                    "--no-sign-request",
+                    f"s3://dea-public-data/baseline/s2[ab]_ard_granule/{year}-{quarter}-*/*/eo3-ARD-METADATA.odc-metadata.yaml",
+                    dag.default_args["products"],
+                ],
                 labels={"step": "s3-dc-indexing"},
                 name="datacube-index",
                 task_id=f"indexing-task-{year}-Q{i+1}",
