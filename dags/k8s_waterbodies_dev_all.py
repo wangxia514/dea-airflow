@@ -355,7 +355,7 @@ def k8s_queue_push(dag, branch):
     )
 
 
-def k8s_getchunks(dag, n_chunks, config_path):    
+def k8s_getchunks(dag, n_chunks, config_path):
     """K8s pod operator to get chunks."""
     getchunks_cmd = [
         "bash",
@@ -392,7 +392,7 @@ def k8s_getchunks(dag, n_chunks, config_path):
     return getchunks
 
 
-def k8s_pythonhello(dag, n_chunks, config_path):    
+def k8s_pythonhello(dag, n_chunks, config_path):
     """K8s pod operator that says hello."""
     cmd = [
         "bash",
