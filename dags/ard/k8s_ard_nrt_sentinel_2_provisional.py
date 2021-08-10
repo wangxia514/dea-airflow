@@ -310,16 +310,16 @@ def finish_up(**context):
 
 
 pipeline = DAG(
-    "k8s_wagl_nrt_sentinel_2",
+    "k8s_ard_nrt_sentinel_2_provisional",
     doc_md=__doc__,
     default_args=default_args,
-    description="DEA Sentinel-2 NRT processing",
+    description="DEA Sentinel-2 ARD NRT processing (provisional)",
     concurrency=MAX_ACTIVE_RUNS * NUM_PARALLEL_PIPELINE,
     max_active_runs=MAX_ACTIVE_RUNS,
     catchup=False,
     params={},
     schedule_interval=None,
-    tags=["k8s", "dea", "psc", "wagl", "nrt"],
+    tags=["k8s", "dea", "psc", "ard", "wagl", "nrt"],
 )
 
 with pipeline:
