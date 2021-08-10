@@ -170,20 +170,39 @@ with dag:
         ),
     ]
 
-    pod_hello = KubernetesPodOperator(
+    pod_hello_w = KubernetesPodOperator(
         image=WATERBODIES_UNSTABLE_IMAGE,
-        name="testing-python-logging-hello-pod",
+        name="testing-python-logging-hello-pod-waterbodies-image",
         arguments=logging_cmd,
         image_pull_policy="IfNotPresent",
         labels={"app": "test-python-logging"},
         get_logs=True,
         is_delete_operator_pod=True,
         namespace="processing",
-        task_id="test-python-logging",
+        task_id="test-python-logging-pod-waterbodies-image",
     )
 
-    job_hello = KubernetesJobOperator(
-        task_id="testing-python-logging-hello-job",
+    job_hello_w = KubernetesJobOperator(
+        task_id="testing-python-logging-hello-job-waterbodies-image",
+        image=WATERBODIES_UNSTABLE_IMAGE,
+        command=logging_cmd,
+        namespace="processing",
+    )
+
+    pod_hello_indexer_image = KubernetesPodOperator(
+        image=INDEXER_IMAGE,
+        name="testing-python-logging-hello-pod-indexer-image",
+        arguments=logging_cmd,
+        image_pull_policy="IfNotPresent",
+        labels={"app": "test-python-logging"},
+        get_logs=True,
+        is_delete_operator_pod=True,
+        namespace="processing",
+        task_id="test-python-logging-pod-indexer-image",
+    )
+
+    job_hello_indexer_image = KubernetesJobOperator(
+        task_id="testing-python-logging-hello-job-indexer-image",
         image=INDEXER_IMAGE,
         command=logging_cmd,
         namespace="processing",
