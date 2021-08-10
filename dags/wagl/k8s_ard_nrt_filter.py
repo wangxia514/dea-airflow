@@ -99,7 +99,7 @@ def filter_scenes(**context):
 def filter_subdag():
     """ Subdag to contain parallel pipeline of filtering. """
     result = DAG(
-        dag_id="k8s_wagl_nrt_filter.filter_subdag",
+        dag_id="k8s_ard_nrt_filter.filter_subdag",
         default_args=default_args,
         concurrency=NUM_PARALLEL_PIPELINE,
         schedule_interval=None,
