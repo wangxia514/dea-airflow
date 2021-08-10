@@ -412,12 +412,12 @@ def k8s_pythonhello(dag, n_chunks, config_path):
         ),
     ]
 
-    getchunks = KubernetesPodOperator(
+    hello = KubernetesPodOperator(
         image=WATERBODIES_UNSTABLE_IMAGE,
-        name="waterbodies-all-getchunks",
-        arguments=getchunks_cmd,
+        name="waterbodies-all-hello",
+        arguments=cmd,
         image_pull_policy="IfNotPresent",
-        labels={"app": "waterbodies-dev-all-getchunks"},
+        labels={"app": "waterbodies-dev-all-hello"},
         get_logs=True,
         affinity=affinity,
         is_delete_operator_pod=True,
@@ -428,9 +428,9 @@ def k8s_pythonhello(dag, n_chunks, config_path):
         do_xcom_push=True,
         namespace="processing",
         tolerations=tolerations,
-        task_id="waterbodies-all-getchunks",
+        task_id="waterbodies-all-hello",
     )
-    return getchunks
+    return hello
 
 
 def k8s_makequeue(dag, branch):
