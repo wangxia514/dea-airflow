@@ -16,12 +16,8 @@ from airflow_kubernetes_job_operator.kubernetes_job_operator import (
 from airflow_kubernetes_job_operator.kubernetes_legacy_job_operator import (
     KubernetesLegacyJobOperator,
 )
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
-    KubernetesPodOperator,
-)
-from textwrap import dedent
 from airflow.utils.dates import days_ago
-from infra.images import INDEXER_IMAGE, WATERBODIES_UNSTABLE_IMAGE
+from infra.images import INDEXER_IMAGE
 
 default_args = {
     "owner": "Pin Jin",
@@ -149,60 +145,3 @@ with dag:
     )
 
     job_task_from_body >> job_task_from_yaml
-
-    """K8s pod operator that says hello."""
-    logging_cmd = [
-        "bash",
-        "-c",
-        dedent(
-            """
-            echo "echo from bash"
-            python - << EOF
-            import logging
-            logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
-            logging.info('hello from Python')
-            logging.debug('debug log from Python')
-            logging.warning('warning from Python')
-            print('Print from Python')
-            EOF
-            """
-        ),
-    ]
-
-    pod_hello_w = KubernetesPodOperator(
-        image=WATERBODIES_UNSTABLE_IMAGE,
-        name="testing-python-logging-hello-pod-waterbodies-image",
-        arguments=logging_cmd,
-        image_pull_policy="IfNotPresent",
-        labels={"app": "test-python-logging"},
-        get_logs=True,
-        is_delete_operator_pod=True,
-        namespace="processing",
-        task_id="test-python-logging-pod-waterbodies-image",
-    )
-
-    job_hello_w = KubernetesJobOperator(
-        task_id="testing-python-logging-hello-job-waterbodies-image",
-        image=WATERBODIES_UNSTABLE_IMAGE,
-        command=logging_cmd,
-        namespace="processing",
-    )
-
-    pod_hello_indexer_image = KubernetesPodOperator(
-        image=INDEXER_IMAGE,
-        name="testing-python-logging-hello-pod-indexer-image",
-        arguments=logging_cmd,
-        image_pull_policy="IfNotPresent",
-        labels={"app": "test-python-logging"},
-        get_logs=True,
-        is_delete_operator_pod=True,
-        namespace="processing",
-        task_id="test-python-logging-pod-indexer-image",
-    )
-
-    job_hello_indexer_image = KubernetesJobOperator(
-        task_id="testing-python-logging-hello-job-indexer-image",
-        image=INDEXER_IMAGE,
-        command=logging_cmd,
-        namespace="processing",
-    )
