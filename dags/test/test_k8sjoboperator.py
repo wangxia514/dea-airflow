@@ -188,5 +188,3 @@ with dag:
         command=logging_cmd,
         namespace="processing",
     )
-
-    job_hello >> pod_hello

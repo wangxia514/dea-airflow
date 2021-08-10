@@ -5,10 +5,13 @@ DAG to run the "all" workflow of DEA Waterbodies.
 """
 from collections import OrderedDict
 from datetime import datetime, timedelta
+
 # import json
 
 from airflow import DAG
-from airflow_kubernetes_job_operator.kubernetes_job_operator import KubernetesJobOperator  # noqa: E501
+from airflow_kubernetes_job_operator.kubernetes_job_operator import (
+    KubernetesJobOperator,
+)  # noqa: E501
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
@@ -116,7 +119,7 @@ JOBS_BRANCHES = OrderedDict(
     ]
 )
 
-lower_mem_branches = {'tiny': 0}
+lower_mem_branches = {"tiny": 0}
 for branch_low, branch_high in zip(MEM_BRANCHES, list(MEM_BRANCHES)[1:]):
     lower_mem_branches[branch_high] = MEM_BRANCHES[branch_low]
 
@@ -179,7 +182,7 @@ def k8s_queueread(dag, branch):
             EOF
             """.format(
                 image=WATERBODIES_UNSTABLE_IMAGE,
-                queue=f'waterbodies_{branch}_sqs',
+                queue=f"waterbodies_{branch}_sqs",
             )
         ),
     ]
@@ -195,92 +198,109 @@ def k8s_queueread(dag, branch):
         is_delete_operator_pod=True,
         resources={
             "request_cpu": "1000m",
-            "request_memory": '512Mi',
+            "request_memory": "512Mi",
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id=f'waterbodies-all-queueread-{branch}',
+        task_id=f"waterbodies-all-queueread-{branch}",
     )
 
 
 def k8s_job_task(dag, branch, config_path):
     mem = MEM_BRANCHES[branch]
     req_mem = "{}Mi".format(int(mem))
-    lim_mem = "{}Mi".format(int(mem) * 2 if branch != 'jumbo' else int(mem))
+    lim_mem = "{}Mi".format(int(mem) * 2 if branch != "jumbo" else int(mem))
     parallelism = JOBS_BRANCHES[branch]
     yaml = {
-        'apiVersion': 'batch/v1',
-        'kind': 'Job',
-        'metadata': {
-            'name': 'waterbodies-all-job',
-            'namespace': 'processing'},
-        'spec': {
-            'parallelism': parallelism,
-            'backoffLimit': 3,
-            'template': {
-                'spec': {
-                    'restartPolicy': 'OnFailure',
-                    'tolerations': tolerations,
-                    'affinity': affinity,
-                    'containers': [{
-                        'name': 'waterbodies',
-                        'image': WATERBODIES_UNSTABLE_IMAGE,
-                        'imagePullPolicy': 'IfNotPresent',
-                        'resources': {
-                            "requests": {
-                                'cpu': "1000m",
-                                'memory': req_mem,
+        "apiVersion": "batch/v1",
+        "kind": "Job",
+        "metadata": {"name": "waterbodies-all-job", "namespace": "processing"},
+        "spec": {
+            "parallelism": parallelism,
+            "backoffLimit": 3,
+            "template": {
+                "spec": {
+                    "restartPolicy": "OnFailure",
+                    "tolerations": tolerations,
+                    "affinity": affinity,
+                    "containers": [
+                        {
+                            "name": "waterbodies",
+                            "image": WATERBODIES_UNSTABLE_IMAGE,
+                            "imagePullPolicy": "IfNotPresent",
+                            "resources": {
+                                "requests": {
+                                    "cpu": "1000m",
+                                    "memory": req_mem,
+                                },
+                                "limits": {
+                                    "cpu": "1000m",
+                                    "memory": lim_mem,
+                                },
                             },
-                            "limits": {
-                                'cpu': "1000m",
-                                'memory': lim_mem,
-                            },
-                        },
-                        'command': ['/bin/bash'],
-                        'args': [
-                            '-c',
-                            dedent(
-                                """
+                            "command": ["/bin/bash"],
+                            "args": [
+                                "-c",
+                                dedent(
+                                    """
                                 echo "Retrieving $config_path"
                                 wget {config} -O config.ini
                                 cat config.ini
 
                                 # Execute waterbodies on the IDs.
                                 python -m dea_waterbodies.make_time_series --config config.ini --from-queue {queue}
-                                """.format(queue=f'waterbodies_{branch}_sqs',
-                                           config=config_path)
-                            )
-                        ],
-                        'env': [
-                            {'name': 'DB_HOSTNAME', 'value': DB_READER_HOSTNAME},
-                            {'name': 'DB_DATABASE', 'value': DB_DATABASE},
-                            {'name': 'DB_PORT', 'value': DB_PORT},
-                            {'name': 'AWS_DEFAULT_REGION', 'value': AWS_DEFAULT_REGION},
-                            {'name': 'DB_USERNAME', 'valueFrom': {
-                                'secretKeyRef': {
-                                    'name': SECRET_ODC_READER_NAME,
-                                    'key': 'postgres-username',
+                                """.format(
+                                        queue=f"waterbodies_{branch}_sqs",
+                                        config=config_path,
+                                    )
+                                ),
+                            ],
+                            "env": [
+                                {"name": "DB_HOSTNAME", "value": DB_READER_HOSTNAME},
+                                {"name": "DB_DATABASE", "value": DB_DATABASE},
+                                {"name": "DB_PORT", "value": DB_PORT},
+                                {
+                                    "name": "AWS_DEFAULT_REGION",
+                                    "value": AWS_DEFAULT_REGION,
                                 },
-                            }},
-                            {'name': 'DB_PASSWORD', 'valueFrom': {
-                                'secretKeyRef': {
-                                    'name': SECRET_ODC_READER_NAME,
-                                    'key': 'postgres-password',
+                                {
+                                    "name": "DB_USERNAME",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": SECRET_ODC_READER_NAME,
+                                            "key": "postgres-username",
+                                        },
+                                    },
                                 },
-                            }},
-                            {'name': 'AWS_ACCESS_KEY_ID', 'valueFrom': {
-                                'secretKeyRef': {
-                                    'name': WATERBODIES_DEV_USER_SECRET,
-                                    'key': 'AWS_ACCESS_KEY_ID',
+                                {
+                                    "name": "DB_PASSWORD",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": SECRET_ODC_READER_NAME,
+                                            "key": "postgres-password",
+                                        },
+                                    },
                                 },
-                            }},
-                            {'name': 'AWS_SECRET_ACCESS_KEY', 'valueFrom': {
-                                'secretKeyRef': {
-                                    'name': WATERBODIES_DEV_USER_SECRET,
-                                    'key': 'AWS_SECRET_ACCESS_KEY',
+                                {
+                                    "name": "AWS_ACCESS_KEY_ID",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": WATERBODIES_DEV_USER_SECRET,
+                                            "key": "AWS_ACCESS_KEY_ID",
+                                        },
+                                    },
                                 },
-                            }},
-                        ]},
+                                {
+                                    "name": "AWS_SECRET_ACCESS_KEY",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": WATERBODIES_DEV_USER_SECRET,
+                                            "key": "AWS_SECRET_ACCESS_KEY",
+                                        },
+                                    },
+                                },
+                            ],
+                        },
                     ],
                 },
             },
@@ -331,7 +351,7 @@ def k8s_queue_push(dag, branch):
                 image=WATERBODIES_UNSTABLE_IMAGE,
                 low=lower_mem_branches[branch],
                 high=MEM_BRANCHES[branch],
-                queue=f'waterbodies_{branch}_sqs',
+                queue=f"waterbodies_{branch}_sqs",
             )
         ),
     ]
@@ -347,11 +367,11 @@ def k8s_queue_push(dag, branch):
         is_delete_operator_pod=True,
         resources={
             "request_cpu": "1000m",
-            "request_memory": '512Mi',
+            "request_memory": "512Mi",
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id=f'waterbodies-all-push-{branch}',
+        task_id=f"waterbodies-all-push-{branch}",
     )
 
 
@@ -437,7 +457,7 @@ def k8s_makequeue(dag, branch):
     # TODO(MatthewJA): Use the name/ID of this DAG
     # to make sure that we don't double-up if we're
     # running two DAGs simultaneously.
-    queue_name = f'waterbodies_{branch}_sqs'
+    queue_name = f"waterbodies_{branch}_sqs"
     makequeue_cmd = [
         "bash",
         "-c",
@@ -446,7 +466,8 @@ def k8s_makequeue(dag, branch):
             echo "Using dea-waterbodies image {image}"
             python -m dea_waterbodies.queues make {name}
             """.format(
-                image=WATERBODIES_UNSTABLE_IMAGE, name=queue_name,
+                image=WATERBODIES_UNSTABLE_IMAGE,
+                name=queue_name,
             )
         ),
     ]
@@ -474,7 +495,7 @@ def k8s_delqueue(dag, branch):
     # TODO(MatthewJA): Use the name/ID of this DAG
     # to make sure that we don't double-up if we're
     # running two DAGs simultaneously.
-    queue_name = f'waterbodies_{branch}_sqs'
+    queue_name = f"waterbodies_{branch}_sqs"
     delqueue_cmd = [
         "bash",
         "-c",
@@ -483,7 +504,8 @@ def k8s_delqueue(dag, branch):
             echo "Using dea-waterbodies image {image}"
             python -m dea_waterbodies.queues delete {name}
             """.format(
-                image=WATERBODIES_UNSTABLE_IMAGE, name=queue_name,
+                image=WATERBODIES_UNSTABLE_IMAGE,
+                name=queue_name,
             )
         ),
     ]
