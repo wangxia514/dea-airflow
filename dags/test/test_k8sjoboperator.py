@@ -17,7 +17,7 @@ from airflow_kubernetes_job_operator.kubernetes_legacy_job_operator import (
     KubernetesLegacyJobOperator,
 )
 from airflow.utils.dates import days_ago
-from infra.images import INDEXER_IMAGE
+from infra.images import INDEXER_IMAGE, WATERBODIES_UNSTABLE_IMAGE
 
 default_args = {
     "owner": "Pin Jin",
@@ -120,12 +120,17 @@ with dag:
         task_id="failing-testcase",
         image=INDEXER_IMAGE,
         command=["bash", "-c", 'datacube product list'],
+        namespace="processing",
     )
 
-    job_task_from_body = KubernetesJobOperator(task_id="from-body", body=body)
+    job_task_from_body = KubernetesJobOperator(task_id="from-body", body=body,
+            namespace="processing",
+    )
 
     job_task_from_yaml = KubernetesJobOperator(
-        task_id="from-yaml", body_filepath=body_filepath
+        task_id="from-yaml", body_filepath=body_filepath,
+        namespace="processing",
+
     )
 
     # Legacy compatibility to KubernetesPodOperator
@@ -134,6 +139,48 @@ with dag:
         image=INDEXER_IMAGE,
         cmds=["bash", "-c", 'echo "all ok"'],
         is_delete_operator_pod=True,
+        namespace="processing",
     )
 
     job_task_from_body >> job_task_from_yaml
+
+    """K8s pod operator that says hello."""
+    logging_cmd = [
+        "bash",
+        "-c",
+        dedent(
+            """
+            echo "echo from bash"
+            python - << EOF
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.setLevel(logging.DEBUG)
+            logger.info('hello from Python')
+            logger.debug('debug log from Python')
+            logger.warning('warning from Python')
+            print('Print from Python')
+            EOF
+            """
+        ),
+    ]
+
+    pod_hello = KubernetesPodOperator(
+        image=WATERBODIES_UNSTABLE_IMAGE,
+        name="testing-python-logging-hello-pod",
+        arguments=logging_cmd,
+        image_pull_policy="IfNotPresent",
+        labels={"app": "test-python-logging"},
+        get_logs=True,
+        is_delete_operator_pod=True,
+        namespace="processing",
+        task_id="test-python-logging",
+    )
+
+    job_hello = KubernetesJobOperator(
+        task_id="testing-python-logging-hello-job",
+        image=INDEXER_IMAGE,
+        command=logging_cmd,
+        namespace="processing",
+    )
+
+    job_hello >> pod_hello
