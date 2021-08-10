@@ -14,9 +14,8 @@ from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-from infra.variables import DB_HOSTNAME, SECRET_ODC_WRITER_NAME
-
-INDEXER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/datacube-index:0.0.20"
+from infra.variables import DB_HOSTNAME, SECRET_ODC_WRITER_NAME, I
+from infra.images import INDEXER_IMAGE
 
 DEFAULT_ARGS = {
     "owner": "Kieran Ricardo",
@@ -75,6 +74,7 @@ with dag:
                     "--skip-lineage",
                     "--allow-unsafe",
                     "--skip-check",
+                    "--update-if-exists",
                     "--no-sign-request",
                     "{% raw %}s3://dea-public-data/baseline/s2[ab]_ard_granule/{% endraw %}" + f"{year}-{quarter}" + "{% raw %}-*/*/eo3-ARD-METADATA.odc-metadata.yaml{% endraw %}",
                     dag.default_args["products"],
