@@ -93,4 +93,5 @@ with dag:
         pool=DEA_NEWDATA_PROCESSING_POOL,
         affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
+        log_events_on_failure=True,
     )

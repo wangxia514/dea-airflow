@@ -96,6 +96,7 @@ with dag:
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
+        log_events_on_failure=True,
     )
 
     OWS_UPDATE_EXTENTS = ows_update_operator(products=OWS_UPDATE_LIST, dag=dag)

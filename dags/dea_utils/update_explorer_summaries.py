@@ -47,4 +47,5 @@ def explorer_refresh_operator(products):
         get_logs=True,
         is_delete_operator_pod=True,
         affinity=ONDEMAND_NODE_AFFINITY,
+        log_events_on_failure=True,
     )

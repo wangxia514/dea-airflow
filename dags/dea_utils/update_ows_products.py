@@ -113,4 +113,5 @@ def ows_update_operator(products, dag=None):
         is_delete_operator_pod=True,
         affinity=ONDEMAND_NODE_AFFINITY,
         params=dict(default_products=OWS_UPDATE_LIST),
+        log_events_on_failure=True,
     )
