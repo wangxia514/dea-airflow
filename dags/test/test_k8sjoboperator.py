@@ -159,11 +159,10 @@ with dag:
             echo "echo from bash"
             python - << EOF
             import logging
-            logger = logging.getLogger(__name__)
-            logger.setLevel(logging.DEBUG)
-            logger.info('hello from Python')
-            logger.debug('debug log from Python')
-            logger.warning('warning from Python')
+            logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+            logging.info('hello from Python')
+            logging.debug('debug log from Python')
+            logging.warning('warning from Python')
             print('Print from Python')
             EOF
             """
