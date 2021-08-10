@@ -355,7 +355,7 @@ def k8s_queue_push(dag, branch):
     )
 
 
-def k8s_getchunks(dag, n_chunks, config_path):
+def k8s_getchunks(dag, n_chunks, config_path):    
     """K8s pod operator to get chunks."""
     getchunks_cmd = [
         "bash",
@@ -368,6 +368,47 @@ def k8s_getchunks(dag, n_chunks, config_path):
             """.format(
                 image=WATERBODIES_UNSTABLE_IMAGE, conf=config_path, n_chunks=n_chunks
             )
+        ),
+    ]
+
+    getchunks = KubernetesPodOperator(
+        image=WATERBODIES_UNSTABLE_IMAGE,
+        name="waterbodies-all-getchunks",
+        arguments=getchunks_cmd,
+        image_pull_policy="IfNotPresent",
+        labels={"app": "waterbodies-dev-all-getchunks"},
+        get_logs=True,
+        affinity=affinity,
+        is_delete_operator_pod=True,
+        resources={
+            "request_cpu": "1000m",
+            "request_memory": "512Mi",
+        },
+        do_xcom_push=True,
+        namespace="processing",
+        tolerations=tolerations,
+        task_id="waterbodies-all-getchunks",
+    )
+    return getchunks
+
+
+def k8s_pythonhello(dag, n_chunks, config_path):    
+    """K8s pod operator that says hello."""
+    cmd = [
+        "bash",
+        "-c",
+        dedent(
+            """
+            python - << EOF
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.setLevel(logging.DEBUG)
+            logger.info('hello from Python')
+            logger.debug('debug log from Python')
+            logger.warning('warning from Python')
+            print('Print from Python')
+            EOF
+            """
         ),
     ]
 
