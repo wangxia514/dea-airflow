@@ -26,4 +26,4 @@ jobs:
         with:
           linters: flake8
           run: |
-            flake8 . --exclude Dockerfile --ignore=E501,W503,W605,F811,F841,E722,E711,E131,E203
+            flake8 . --exclude Dockerfile --ignore=E501,W503,W605,F811,F841,E722,E711,E131,E203,W292
