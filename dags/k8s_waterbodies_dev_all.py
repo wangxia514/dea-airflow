@@ -513,10 +513,7 @@ with dag:
 
     # Download the DBF and do the chunking.
     n_chunks = 128
-    hello = k8s_pythonhello(dag, n_chunks, config_path)
     getchunks = k8s_getchunks(dag, n_chunks, config_path)
-
-    hello >> getchunks
 
     for branch in MEM_BRANCHES:
         # Next we need to spawn a queue for each memory branch.
