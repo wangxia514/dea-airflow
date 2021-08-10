@@ -14,7 +14,7 @@ from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-from infra.variables import DB_HOSTNAME, SECRET_ODC_WRITER_NAME, I
+from infra.variables import DB_HOSTNAME, SECRET_ODC_WRITER_NAME
 from infra.images import INDEXER_IMAGE
 
 DEFAULT_ARGS = {
