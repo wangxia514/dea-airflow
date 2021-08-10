@@ -7,7 +7,9 @@ import kubernetes.client.models as k8s
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 
 from infra.pools import WAGL_TASK_POOL
 
@@ -84,7 +86,7 @@ SYNC_JOBS = [
         )
         # if first week of year, fetch last year as well
         for year in [NOW.year]
-                    + ([NOW.year - 1] if NOW.month == 1 and NOW.day < 7 else [])
+        + ([NOW.year - 1] if NOW.month == 1 and NOW.day < 7 else [])
     ],
     "echo removing existing brdf",
     "mkdir -p /ancillary/brdf-jl/",
@@ -201,20 +203,20 @@ ancillary_volume = k8s.V1Volume(
     name="wagl-nrt-ancillary-volume",
     persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(
         claim_name="wagl-nrt-ancillary-volume"
-    )
+    ),
 )
 
 pipeline = DAG(
-    "k8s_wagl_nrt_ancillary",
+    "k8s_ard_nrt_ancillary",
     doc_md=__doc__,
     default_args=default_args,
-    description="DEA Sentinel-2 NRT fetch ancillary",
+    description="DEA ARD NRT fetch ancillary",
     concurrency=1,
     max_active_runs=1,
     catchup=False,
     params={},
     schedule_interval="5 0 * * *",
-    tags=["k8s", "dea", "psc", "wagl", "nrt"],
+    tags=["k8s", "dea", "psc", "ard", "wagl", "nrt"],
 )
 
 with pipeline:

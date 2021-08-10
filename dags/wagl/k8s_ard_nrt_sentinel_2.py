@@ -1,5 +1,5 @@
 """
-Run wagl NRT pipeline in Airflow.
+Run Sentinel-2 NRT pipeline in Airflow.
 """
 import json
 import logging
@@ -13,7 +13,9 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
 from airflow.providers.amazon.aws.hooks.sns import AwsSnsHook
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from kubernetes.client import models as k8s
 
 from infra.connections import AWS_WAGL_NRT_CONN
@@ -85,7 +87,8 @@ ancillary_volume_mount = k8s.V1VolumeMount(
 ancillary_volume = k8s.V1Volume(
     name="wagl-nrt-ancillary-volume",
     persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(
-        claim_name="wagl-nrt-ancillary-volume")
+        claim_name="wagl-nrt-ancillary-volume"
+    ),
 )
 
 
@@ -268,7 +271,7 @@ def finish_up(**context):
 
 
 pipeline = DAG(
-    "k8s_wagl_nrt",
+    "k8s_ard_nrt_sentinel_2",
     doc_md=__doc__,
     default_args=default_args,
     description="DEA Sentinel-2 NRT processing",
@@ -277,7 +280,7 @@ pipeline = DAG(
     catchup=False,
     params={},
     schedule_interval=timedelta(minutes=5),
-    tags=["k8s", "dea", "psc", "wagl", "nrt"],
+    tags=["k8s", "dea", "psc", "ard", "wagl", "nrt"],
 )
 
 with pipeline:
@@ -355,14 +358,14 @@ with pipeline:
             env_vars=dict(
                 bucket_region=BUCKET_REGION,
                 datastrip_url="{{ task_instance.xcom_pull(task_ids='receive_task_"
-                              + str(index)
-                              + "', key='args')['datastrip_url'] }}",
+                + str(index)
+                + "', key='args')['datastrip_url'] }}",
                 granule_url="{{ task_instance.xcom_pull(task_ids='receive_task_"
-                            + str(index)
-                            + "', key='args')['granule_url'] }}",
+                + str(index)
+                + "', key='args')['granule_url'] }}",
                 granule_id="{{ task_instance.xcom_pull(task_ids='receive_task_"
-                           + str(index)
-                           + "', key='args')['granule_id'] }}",
+                + str(index)
+                + "', key='args')['granule_id'] }}",
                 s3_prefix=S3_PREFIX,
             ),
             get_logs=True,

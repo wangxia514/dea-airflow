@@ -127,16 +127,16 @@ def filter_subdag():
 
 
 pipeline = DAG(
-    "k8s_wagl_nrt_filter",
+    "k8s_ard_nrt_filter",
     doc_md=__doc__,
     default_args=default_args,
-    description="DEA Sentinel-2 NRT scene filter",
+    description="DEA Sentinel-2 ARD NRT scene filter",
     concurrency=NUM_PARALLEL_PIPELINE,
     max_active_runs=1,
     catchup=False,
     params={},
     schedule_interval=timedelta(minutes=15),
-    tags=["k8s", "dea", "psc", "wagl", "nrt"],
+    tags=["k8s", "dea", "psc", "ard", "wagl", "nrt"],
 )
 
 
