@@ -399,6 +399,7 @@ def k8s_pythonhello(dag, n_chunks, config_path):
         "-c",
         dedent(
             """
+            echo "echo from bash"
             python - << EOF
             import logging
             logger = logging.getLogger(__name__)
@@ -425,7 +426,6 @@ def k8s_pythonhello(dag, n_chunks, config_path):
             "request_cpu": "1000m",
             "request_memory": "512Mi",
         },
-        do_xcom_push=True,
         namespace="processing",
         tolerations=tolerations,
         task_id="waterbodies-all-hello",
