@@ -55,7 +55,7 @@ DEFAULT_ARGS = {
 dag = DAG(
     "k8s_index_s2_nbart_sandbox_backlog",
     default_args=DEFAULT_ARGS,
-    schedule_interval=None,
+    schedule_interval="@weekly",
     catchup=False,
     tags=["k8s", "s2_nbart"],
 )
