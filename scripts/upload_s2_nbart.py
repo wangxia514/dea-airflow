@@ -141,7 +141,7 @@ def upload_metadata(granule_id):
 
     s3_path = f"s3://{S3_BUCKET}/{granule_s3_path}/"
     s3_eo3_path = f"{s3_path}eo3-ARD-METADATA.odc-metadata.yaml"
-    s3_stac_path = f"{s3_path}stac-ARD-METADATA.json"
+    s3_stac_path = f"{s3_path}stac-ARD-METADATA.stac-item.json"
 
     product = "s2b_ard_granule" if "S2B" in granule_id else "s2a_ard_granule"
     eo3 = create_eo3(local_path, granule_id)
@@ -151,11 +151,11 @@ def upload_metadata(granule_id):
         odc_dataset_metadata_url=s3_eo3_path,
         dataset_location=s3_path,
     )
+    stac["properties"]["title"] = stac["properties"]["title"].replace(stac["properties"]["odc:product"], product)
     stac["properties"]["odc:product"] = product
     stac_dump = json.dumps(stac, default=json_fallback, indent=4)
 
     eo3 = serialise.to_doc(eo3)
-    eo3['lineage']['ard'][0] = str(eo3['lineage']['ard'][0])
     eo3["label"] = eo3["label"].replace(eo3["product"]["name"], product)
     eo3["product"]["name"] = product
     s3_dump(
