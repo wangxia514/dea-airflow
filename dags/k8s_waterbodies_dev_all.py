@@ -259,7 +259,7 @@ def k8s_job_task(dag, branch, config_path):
                                 EOF
 
                                 # Execute waterbodies on the IDs.
-                                python -m dea_waterbodies.make_time_series --config config.ini --from-queue {queue}
+                                python -m dea_waterbodies.make_time_series -vv --config config.ini --from-queue {queue}
                                 """.format(
                                         queue=f"waterbodies_{branch}_sqs",
                                         config=config_path,
