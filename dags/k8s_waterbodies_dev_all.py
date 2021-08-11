@@ -247,6 +247,17 @@ def k8s_job_task(dag, branch, config_path):
                                 wget {config} -O config.ini
                                 cat config.ini
 
+                                echo "Confirming log levels"
+                                python - << EOF
+                                import logging
+                                logger = logging.getLogger(__name__)
+                                logger.setLevel(logging.DEBUG)
+                                logger.info('hello from Python')
+                                logger.debug('debug log from Python')
+                                logger.warning('warning from Python')
+                                print('Print from Python')
+                                EOF
+
                                 # Execute waterbodies on the IDs.
                                 python -m dea_waterbodies.make_time_series --config config.ini --from-queue {queue}
                                 """.format(
