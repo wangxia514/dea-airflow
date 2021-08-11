@@ -14,7 +14,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 )
 from textwrap import dedent
 from airflow.utils.dates import days_ago
-from infra.images import WATERBODIES_UNSTABLE_IMAGE
+from infra.images import INDEXER_IMAGE
 
 default_args = {
     "owner": "Pin Jin",
@@ -57,20 +57,20 @@ with dag:
     ]
 
     pod_hello_w = KubernetesPodOperator(
-        image=WATERBODIES_UNSTABLE_IMAGE,
-        name="test-python-logging-pod-waterbodies-image",
+        image=INDEXER_IMAGE,
+        name="test-python-logging-pod",
         arguments=logging_cmd,
         image_pull_policy="IfNotPresent",
         labels={"app": "test-python-logging"},
         get_logs=True,
         is_delete_operator_pod=True,
         namespace="processing",
-        task_id="test-python-logging-pod-waterbodies-image",
+        task_id="test-python-logging-pod",
     )
 
     job_hello_w = KubernetesJobOperator(
-        task_id="test-python-logging-job-waterbodies-image",
-        image=WATERBODIES_UNSTABLE_IMAGE,
+        task_id="test-python-logging-job",
+        image=INDEXER_IMAGE,
         command=logging_cmd,
         namespace="processing",
     )
