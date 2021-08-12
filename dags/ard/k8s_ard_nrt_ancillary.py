@@ -190,7 +190,7 @@ default_args = {
     "retries": 1,
     "retry_delay": timedelta(minutes=30),
     "pool": WAGL_TASK_POOL,
-    "secrets": [Secret("env", None, "wagl-nrt-aws-creds")],
+    "secrets": [Secret("env", None, "ard-nrt-ancillary-aws-creds")],
 }
 
 ancillary_volume_mount = k8s.V1VolumeMount(
