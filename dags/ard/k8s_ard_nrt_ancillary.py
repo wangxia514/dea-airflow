@@ -48,6 +48,7 @@ def brdf_doys(doy):
 
 SYNC_JOBS = [
     "date",
+    "aws sts get-caller-identity",
     "echo synching ozone",
     sync("s3://ga-sentinel/ancillary/lookup_tables/ozone/", "/ancillary/ozone"),
     "echo synching dsm",
