@@ -16,10 +16,18 @@ INDEXING_USER_SECRET = Variable.get(
 SECRET_EXPLORER_WRITER_NAME = Variable.get(
     "db_explorer_writer_secret", default_var="explorer-writer"
 )  # qa
-SECRET_OWS_WRITER_NAME = Variable.get("db_ows_writer_secret", default_var="ows-writer")  # qa
-SECRET_ODC_WRITER_NAME = Variable.get("db_odc_writer_secret", default_var="odc-writer")  # qa
-SECRET_ODC_READER_NAME = Variable.get("db_odc_reader_secret", default_var="odc-reader")  # qa
-SECRET_DBA_ADMIN_NAME = Variable.get("db_dba_admin_secret", default_var="dba_admin")  # qa
+SECRET_OWS_WRITER_NAME = Variable.get(
+    "db_ows_writer_secret", default_var="ows-writer"
+)  # qa
+SECRET_ODC_WRITER_NAME = Variable.get(
+    "db_odc_writer_secret", default_var="odc-writer"
+)  # qa
+SECRET_ODC_READER_NAME = Variable.get(
+    "db_odc_reader_secret", default_var="odc-reader"
+)  # qa
+SECRET_DBA_ADMIN_NAME = Variable.get(
+    "db_dba_admin_secret", default_var="dba_admin"
+)  # qa
 
 SECRET_EXPLORER_NCI_ADMIN_NAME = Variable.get(
     "db_explorer_nci_admin_secret", default_var="explorer-nci-admin"
@@ -51,10 +59,12 @@ LANDSAT_C3_AWS_USER_SECRET = Variable.get(
 )
 
 SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET = Variable.get(
-    "sentinel_2_ard_indexing_aws_user_secret", default_var="sentinel-2-ard-indexing-creds"
+    "sentinel_2_ard_indexing_aws_user_secret",
+    default_var="sentinel-2-ard-indexing-creds",
 )
 
 S2_NRT_AWS_CREDS = "wagl-nrt-aws-creds"
+ARD_NRT_LS_CREDS = "ard-nrt-ls-aws-creds"
 
 COP_API_REP_CREDS = "copernicus_api_password"
 
