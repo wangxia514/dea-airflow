@@ -1,12 +1,11 @@
 """
-Fetch wagl NRT ancillary.
+Fetch ARD NRT ancillary.
 """
 from datetime import datetime, timedelta
 
 import kubernetes.client.models as k8s
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.operators.dummy_operator import DummyOperator
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
@@ -48,7 +47,6 @@ def brdf_doys(doy):
 
 SYNC_JOBS = [
     "date",
-    "aws sts get-caller-identity | grep svc",
     "echo synching ozone",
     sync("s3://ga-sentinel/ancillary/lookup_tables/ozone/", "/ancillary/ozone"),
     "echo synching dsm",
@@ -188,7 +186,7 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
-    "retry_delay": timedelta(minutes=30),
+    "retry_delay": timedelta(minutes=1),
     "pool": WAGL_TASK_POOL,
     "secrets": [Secret("env", None, "ard-nrt-ancillary-aws-creds")],
 }
@@ -221,8 +219,6 @@ pipeline = DAG(
 )
 
 with pipeline:
-    START = DummyOperator(task_id="start")
-
     SYNC = KubernetesPodOperator(
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
@@ -245,7 +241,3 @@ with pipeline:
         },
         is_delete_operator_pod=True,
     )
-
-    END = DummyOperator(task_id="end")
-
-    START >> SYNC >> END
