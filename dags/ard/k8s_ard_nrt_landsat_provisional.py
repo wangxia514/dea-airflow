@@ -25,7 +25,7 @@ from infra.connections import AWS_WAGL_NRT_CONN
 from infra.images import WAGL_IMAGE_POC, S3_TO_RDS_IMAGE
 from infra.pools import WAGL_TASK_POOL
 from infra.s3_buckets import S2_NRT_SOURCE_BUCKET, S2_NRT_TRANSFER_BUCKET
-from infra.sns_notifications import PUBLISH_S2_NRT_SNS
+from infra.sns_notifications import PUBLISH_ARD_NRT_LS_SNS
 from infra.sqs_queues import ARD_NRT_LS_PROCESS_SCENE_QUEUE
 from infra.variables import ARD_NRT_LS_CREDS
 
@@ -131,7 +131,12 @@ with pipeline:
             # this is the wagl_nrt user in the wagl container
             # security_context=dict(runAsUser=10015, runAsGroup=10015, fsGroup=10015),
             cmds=["/scripts/aws-process-scene-landsat.sh"],
-            arguments=["CMD1", "CMD2", "CMD3", "CMD4"],
+            arguments=[
+                ARD_NRT_LS_PROCESS_SCENE_QUEUE,
+                "SOURCE_BUCKET",
+                S3_PREFIX,
+                "PUBLISH_ARD_NRT_LS_SNS",
+            ],
             labels={
                 "runner": "airflow",
                 "product": "Landsat",
