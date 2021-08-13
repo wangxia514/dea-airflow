@@ -6,11 +6,12 @@ import logging
 import uuid
 import psycopg2
 from psycopg2.errors import UniqueViolation  # pylint: disable-msg=E0611
+from psycopg2.extras import register_uuid, Json
 
 from automated_reporting.databases import sql
 
 log = logging.getLogger("airflow.task")
-psycopg2.extras.register_uuid()
+register_uuid()
 
 
 def insert_usgs_l0(connection_parameters, usgs_l0_list):
@@ -32,7 +33,7 @@ def insert_usgs_l0(connection_parameters, usgs_l0_list):
                         timestamp=record["acq_time"],
                         source_id=record["id"],
                         region_code=record["wrs2"],
-                        extra=psycopg2.extras.Json(
+                        extra=Json(
                             dict(cloud_cover=round(float(record["cloud_cover"])))
                         ),
                         status="Complete",
