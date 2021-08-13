@@ -23,7 +23,7 @@ from infra.images import WAGL_IMAGE, S3_TO_RDS_IMAGE
 from infra.pools import WAGL_TASK_POOL
 from infra.s3_buckets import S2_NRT_SOURCE_BUCKET, S2_NRT_TRANSFER_BUCKET
 from infra.sns_notifications import PUBLISH_S2_NRT_SNS
-from infra.sqs_queues import S2_NRT_PROCESS_SCENE_QUEUE
+from infra.sqs_queues import ARD_NRT_S2_PROCESS_SCENE_QUEUE
 from infra.variables import S2_NRT_AWS_CREDS
 
 _LOG = logging.getLogger()
@@ -216,7 +216,7 @@ def receive_task(**context):
     index = context["index"]
 
     sqs = get_sqs()
-    message = get_message(sqs, S2_NRT_PROCESS_SCENE_QUEUE)
+    message = get_message(sqs, ARD_NRT_S2_PROCESS_SCENE_QUEUE)
 
     if message is None:
         _LOG.info("no messages")
@@ -246,7 +246,7 @@ def finish_up(**context):
 
     _LOG.info("deleting %s", message["ReceiptHandle"])
     sqs.delete_message(
-        QueueUrl=S2_NRT_PROCESS_SCENE_QUEUE, ReceiptHandle=message["ReceiptHandle"]
+        QueueUrl=ARD_NRT_S2_PROCESS_SCENE_QUEUE, ReceiptHandle=message["ReceiptHandle"]
     )
 
     msg = task_instance.xcom_pull(
