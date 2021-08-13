@@ -135,7 +135,7 @@ with pipeline:
                 ARD_NRT_LS_PROCESS_SCENE_QUEUE,
                 "SOURCE_BUCKET",
                 S3_PREFIX,
-                "PUBLISH_ARD_NRT_LS_SNS",
+                PUBLISH_ARD_NRT_LS_SNS,
             ],
             labels={
                 "runner": "airflow",
