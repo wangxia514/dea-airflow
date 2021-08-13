@@ -1,5 +1,5 @@
 """
-Run wagl NRT pipeline in Airflow.
+Run ARD NRT pipeline for Sentinel-2 (provisional) in Airflow.
 """
 import json
 import logging
@@ -37,10 +37,10 @@ except ImportError:
 _LOG = logging.getLogger()
 
 default_args = {
-    "owner": "Joshua Ellis",
+    "owner": "Imam Alam",
     "depends_on_past": False,
     "start_date": datetime(2021, 6, 1),
-    "email": ["joshua.ellis@ga.gov.au"],
+    "email": ["imam.alam@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
@@ -57,6 +57,7 @@ ESTIMATED_COMPLETION_TIME = 3 * 60 * 60
 BUCKET_REGION = "ap-southeast-2"
 S3_PREFIX = "s3://dea-public-data-dev/L2/sentinel-2-nrt/S2MSIARD/"
 
+# a bit unsure about this and the frequency
 NUM_PARALLEL_PIPELINE = 1
 MAX_ACTIVE_RUNS = 12
 
@@ -399,17 +400,6 @@ with pipeline:
             },
             env_vars=dict(
                 MODTRAN_DATA="/ancillary/MODTRAN6.0.2.3G/DATA",
-                bucket_region=BUCKET_REGION,
-                datastrip_url="{{ task_instance.xcom_pull(task_ids='receive_task_"
-                + str(index)
-                + "', key='args')['datastrip_url'] }}",
-                granule_url="{{ task_instance.xcom_pull(task_ids='receive_task_"
-                + str(index)
-                + "', key='args')['granule_url'] }}",
-                granule_id="{{ task_instance.xcom_pull(task_ids='receive_task_"
-                + str(index)
-                + "', key='args')['granule_id'] }}",
-                s3_prefix=S3_PREFIX,
             ),
             get_logs=True,
             resources={

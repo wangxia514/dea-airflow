@@ -6,17 +6,20 @@ import logging
 from datetime import datetime, timedelta
 from urllib.parse import urlparse
 
+from kubernetes.client.models import V1Volume, V1VolumeMount
+from kubernetes.client import models as k8s
 import yaml
+
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
-from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
+from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from airflow.providers.amazon.aws.hooks.sns import AwsSnsHook
+from airflow.providers.amazon.aws.hooks.sqs import SQSHook
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-from kubernetes.client import models as k8s
 
 from infra.connections import AWS_WAGL_NRT_CONN
 from infra.images import WAGL_IMAGE, S3_TO_RDS_IMAGE
@@ -77,14 +80,14 @@ tolerations = [
     {"key": "dedicated", "operator": "Equal", "value": "wagl", "effect": "NoSchedule"}
 ]
 
-ancillary_volume_mount = k8s.V1VolumeMount(
+ancillary_volume_mount = V1VolumeMount(
     name="wagl-nrt-ancillary-volume",
     mount_path="/ancillary",
     sub_path=None,
     read_only=False,
 )
 
-ancillary_volume = k8s.V1Volume(
+ancillary_volume = V1Volume(
     name="wagl-nrt-ancillary-volume",
     persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(
         claim_name="wagl-nrt-ancillary-volume"
@@ -185,12 +188,12 @@ def tile_args(tile_info):
 
 def get_sqs():
     """SQS client."""
-    return AwsHook(aws_conn_id=AWS_WAGL_NRT_CONN).get_session().client("sqs")
+    return SQSHook(aws_conn_id=AWS_WAGL_NRT_CONN).get_conn()
 
 
 def get_s3():
     """S3 client."""
-    return AwsHook(aws_conn_id=AWS_WAGL_NRT_CONN).get_session().client("s3")
+    return S3Hook(aws_conn_id=AWS_WAGL_NRT_CONN).get_conn()
 
 
 def get_message(sqs, url):
@@ -279,7 +282,8 @@ pipeline = DAG(
     max_active_runs=MAX_ACTIVE_RUNS,
     catchup=False,
     params={},
-    schedule_interval=timedelta(minutes=5),
+    # schedule_interval=timedelta(minutes=5),
+    schedule_interval=None,
     tags=["k8s", "dea", "psc", "ard", "wagl", "nrt", "sentinel-2"],
 )
 
