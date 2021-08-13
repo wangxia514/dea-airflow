@@ -17,11 +17,14 @@ from airflow.providers.amazon.aws.hooks.sqs import SQSHook
 
 from infra.pools import WAGL_TASK_POOL
 from infra.connections import AWS_WAGL_NRT_CONN
+from infra.sqs_queues import (
+    ARD_NRT_S2_PROCESS_SCENE_QUEUE,
+    ARD_NRT_S2_PROVISIONAL_PROCESS_SCENE_QUEUE,
+    ARD_NRT_S2_FILTER_SCENE_QUEUE,
+)
 
 AWS_CONN_ID = AWS_WAGL_NRT_CONN
 
-FILTER_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-filter-scene"
-PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-s2-nrt-process-scene"
 
 # unfortunately this is the max
 NUM_MESSAGES_TO_POLL = 10
@@ -93,7 +96,8 @@ def filter_scenes(**context):
 
     for message in messages:
         message_body = json.dumps(decode(message))
-        sqs_hook.send_message(PROCESS_SCENE_QUEUE, message_body)
+        sqs_hook.send_message(ARD_NRT_S2_PROCESS_SCENE_QUEUE, message_body)
+        sqs_hook.send_message(ARD_NRT_S2_PROVISIONAL_PROCESS_SCENE_QUEUE, message_body)
 
 
 def filter_subdag():
@@ -109,7 +113,7 @@ def filter_subdag():
         for index in range(NUM_PARALLEL_PIPELINE):
             SENSOR = SQSSensor(
                 task_id=f"filter_scene_queue_sensor_{index}",
-                sqs_queue=FILTER_SCENE_QUEUE,
+                sqs_queue=ARD_NRT_S2_FILTER_SCENE_QUEUE,
                 aws_conn_id=AWS_CONN_ID,
                 max_messages=NUM_MESSAGES_TO_POLL,
             )
