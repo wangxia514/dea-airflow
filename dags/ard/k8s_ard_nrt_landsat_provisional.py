@@ -154,6 +154,5 @@ with pipeline:
             volumes=[ancillary_volume],
             volume_mounts=[ancillary_volume_mount],
             execution_timeout=timedelta(minutes=180),
-            do_xcom_push=True,
             is_delete_operator_pod=True,
         )
