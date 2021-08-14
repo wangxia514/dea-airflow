@@ -75,7 +75,7 @@ SYNC_JOBS = [
     "chown -R root:10015 /ancillary/Land_Sea_Rasters/",
     "echo removing existing water vapour",
     "mkdir -p /ancillary/water_vapour/",
-    "find /ancillary/water_vapour/ -type f -exec rm {} \;",
+    "find /ancillary/water_vapour/ -type f -exec rm {} \\;",
     "echo synching water vapour",
     *[
         sync(
@@ -89,7 +89,7 @@ SYNC_JOBS = [
     ],
     "echo removing existing brdf",
     "mkdir -p /ancillary/brdf-jl/",
-    "find /ancillary/brdf-jl/ -type f -exec rm {} \;",
+    "find /ancillary/brdf-jl/ -type f -exec rm {} \\;",
     "echo synching brdf",
     *[
         sync(
@@ -108,7 +108,7 @@ SYNC_JOBS = [
     ),
     "echo removing existing fallback brdf",
     "mkdir -p /ancillary/brdf/fallback/",
-    "find /ancillary/brdf/fallback/ -type f -exec rm {} \;",
+    "find /ancillary/brdf/fallback/ -type f -exec rm {} \\;",
     "echo synching brdf fallback",
     *[
         sync(

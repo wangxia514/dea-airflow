@@ -1,38 +1,23 @@
 """
 Run ARD NRT pipeline for Landsat in Airflow.
 """
-import json
 import logging
 from datetime import datetime, timedelta
-from urllib.parse import urlparse
 
 from kubernetes.client.models import V1Volume, V1VolumeMount
 from kubernetes.client import models as k8s
-import yaml
 
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
-from airflow.providers.amazon.aws.hooks.s3 import S3Hook
-from airflow.providers.amazon.aws.hooks.sns import AwsSnsHook
-from airflow.providers.amazon.aws.hooks.sqs import SQSHook
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 
-from infra.connections import AWS_WAGL_NRT_CONN
-from infra.images import WAGL_IMAGE_POC, S3_TO_RDS_IMAGE
+from infra.images import WAGL_IMAGE_POC
 from infra.pools import WAGL_TASK_POOL
-from infra.s3_buckets import S2_NRT_SOURCE_BUCKET, S2_NRT_TRANSFER_BUCKET
 from infra.sns_notifications import PUBLISH_ARD_NRT_LS_SNS
 from infra.sqs_queues import ARD_NRT_LS_PROCESS_SCENE_QUEUE
 from infra.variables import ARD_NRT_LS_CREDS
-
-try:
-    from yaml import CSafeLoader as SafeLoader  # type: ignore
-except ImportError:
-    from yaml import SafeLoader  # type: ignore
 
 _LOG = logging.getLogger()
 
