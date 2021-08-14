@@ -54,7 +54,6 @@ default_args = {
 
 ESTIMATED_COMPLETION_TIME = 3 * 60 * 60
 
-BUCKET_REGION = "ap-southeast-2"
 S3_PREFIX = "s3://dea-public-data-dev/L2/sentinel-2-nrt/S2MSIARD/"
 
 # a bit unsure about this and the frequency
@@ -389,7 +388,6 @@ with pipeline:
                 "{{ task_instance.xcom_pull(task_ids='receive_task_"
                 + str(index)
                 + "', key='args')['granule_id'] }}",
-                BUCKET_REGION,
                 S3_PREFIX,
             ],
             labels={
