@@ -15,7 +15,7 @@ MOD6_IMAGE = "uchchwhash/mod6:test"
 
 ancillary_volume_mount = V1VolumeMount(
     name="wagl-nrt-ancillary-volume",
-    mount_path="/modtran6",
+    mount_path="/ancillary",
     sub_path=None,
     read_only=False,
 )
