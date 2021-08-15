@@ -28,7 +28,7 @@ from textwrap import dedent
 from airflow import DAG, AirflowException
 from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
 from airflow.providers.ssh.operators.ssh import SSHOperator
-from airflow.operators.python_operator import ShortCircuitOperator
+from airflow.operators.python import ShortCircuitOperator
 
 try:  # TODO: clean this up after v2.1 upgrade
     from airflow.operators.sensors import ExternalTaskSensor
@@ -300,6 +300,17 @@ with dag:
         )
 
         processing_completed >> download_s3_inventory
-        download_s3_inventory >> generate_work_list >> count_num_tasks >> check_for_work >> submit_bulk_cog_convert
-        submit_bulk_cog_convert >> wait_for_cog_convert >> validate_cogs >> wait_for_validate_job
+        (
+            download_s3_inventory
+            >> generate_work_list
+            >> count_num_tasks
+            >> check_for_work
+            >> submit_bulk_cog_convert
+        )
+        (
+            submit_bulk_cog_convert
+            >> wait_for_cog_convert
+            >> validate_cogs
+            >> wait_for_validate_job
+        )
         wait_for_validate_job >> upload_to_s3 >> delete_nci_cogs

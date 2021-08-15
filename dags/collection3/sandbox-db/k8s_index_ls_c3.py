@@ -18,8 +18,10 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
-from airflow.operators.dummy_operator import DummyOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
+from airflow.operators.dummy import DummyOperator
 from infra.variables import (
     C3_INDEXING_USER_SECRET,
     DB_SANDBOX_DATABASE,

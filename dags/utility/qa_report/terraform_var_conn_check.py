@@ -3,7 +3,7 @@ Check all terraform variables are provided by checking if VARIABLE has been inje
 """
 from datetime import datetime, timedelta
 from airflow import DAG
-from airflow.operators.bash_operator import BashOperator
+from airflow.operators.bash import BashOperator
 
 DAG_NAME = "utility_qa_terraform_variables_listing"
 

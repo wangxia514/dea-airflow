@@ -12,7 +12,7 @@ from textwrap import dedent
 
 from airflow import DAG, AirflowException
 from airflow.providers.amazon.aws.hooks.sqs import SQSHook
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python import PythonOperator
 from infra.connections import AWS_DEAD_LETTER_QUEUE_CHECKER_CONN
 
 default_args = {

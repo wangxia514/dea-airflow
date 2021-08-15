@@ -7,7 +7,7 @@ from airflow import DAG
 from datetime import datetime
 
 from airflow.providers.ssh.operators.ssh import SSHOperator
-from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.dummy import DummyOperator
 from airflow.operators.email_operator import EmailOperator
 
 from operators.ssh_operators import ShortCircuitSSHOperator, TemplateToSFTPOperator

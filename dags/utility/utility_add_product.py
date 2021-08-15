@@ -42,7 +42,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from airflow.kubernetes.secret import Secret
-from airflow.operators.python_operator import BranchPythonOperator
+from airflow.operators.python import BranchPythonOperator
 from airflow.utils.trigger_rule import TriggerRule
 
 from infra.images import INDEXER_IMAGE

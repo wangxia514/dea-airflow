@@ -7,10 +7,12 @@ DAG to index Sentinel-2 backlog data.
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from airflow.kubernetes.secret import Secret
 from infra.images import INDEXER_IMAGE
-from airflow.operators.subdag_operator import SubDagOperator
+from airflow.operators.subdag import SubDagOperator
 from infra.variables import DB_HOSTNAME, DB_SANDBOX_USER_SECRET, DB_SANDBOX_DATABASE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 

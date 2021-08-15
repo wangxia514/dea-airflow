@@ -20,9 +20,11 @@ The DAG has to be parameterized with S3_Glob and Target product as below.
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from airflow.kubernetes.secret import Secret
-from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.dummy import DummyOperator
 
 
 DEFAULT_ARGS = {
@@ -58,7 +60,7 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
-    tags=["k8s"]
+    tags=["k8s"],
 )
 
 
@@ -92,7 +94,7 @@ with dag:
             # "cemp_insar_alos_displacement",
             # Jinja templates for arguments
             "{{ dag_run.conf.s3_glob }}",
-            "{{ dag_run.conf.product }}"
+            "{{ dag_run.conf.product }}",
         ],
         labels={"step": "s3-to-rds"},
         name="datacube-index",

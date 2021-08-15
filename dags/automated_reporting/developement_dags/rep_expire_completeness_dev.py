@@ -11,7 +11,7 @@ from datetime import datetime as dt
 from datetime import timedelta, timezone
 
 from airflow import DAG
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python import PythonOperator
 
 from automated_reporting import connections
 

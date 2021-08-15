@@ -14,7 +14,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from airflow.kubernetes.secret import Secret
-from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.dummy import DummyOperator
 from datetime import datetime, timedelta
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.images import EXPLORER_IMAGE

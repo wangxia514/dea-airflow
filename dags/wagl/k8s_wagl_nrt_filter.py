@@ -7,12 +7,13 @@ import csv
 from pathlib import Path
 
 from airflow import DAG
+
 # from airflow import configuration
 from airflow.configuration import conf as configuration
 
-from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators.python_operator import PythonOperator
-from airflow.operators.subdag_operator import SubDagOperator
+from airflow.operators.dummy import DummyOperator
+from airflow.operators.python import PythonOperator
+from airflow.operators.subdag import SubDagOperator
 from airflow.providers.amazon.aws.sensors.sqs import SQSSensor
 from airflow.providers.amazon.aws.sensors.sqs import SQSHook
 
@@ -47,7 +48,7 @@ default_args = {
 
 
 def australian_region_codes():
-    """ Set of region codes (MGRS tile IDs) we want to process. """
+    """Set of region codes (MGRS tile IDs) we want to process."""
     root = Path(configuration.get("core", "dags_folder")).parent
 
     with open(root / TILE_LIST) as fl:
@@ -56,14 +57,14 @@ def australian_region_codes():
 
 
 def decode(message):
-    """ De-stringify message JSON. """
+    """De-stringify message JSON."""
     body_dict = json.loads(message["Body"])
     msg_dict = json.loads(body_dict["Message"])
     return msg_dict
 
 
 def region_code(message):
-    """ Extract region code out of metadata. """
+    """Extract region code out of metadata."""
     msg_dict = decode(message)
     tiles = msg_dict["tiles"]
 
@@ -77,7 +78,7 @@ def region_code(message):
 
 
 def filter_scenes(**context):
-    """ Only select scenes that cover Australia. """
+    """Only select scenes that cover Australia."""
     task_instance = context["task_instance"]
     index = context["index"]
     all_messages = task_instance.xcom_pull(
@@ -98,7 +99,7 @@ def filter_scenes(**context):
 
 
 def filter_subdag():
-    """ Subdag to contain parallel pipeline of filtering. """
+    """Subdag to contain parallel pipeline of filtering."""
     result = DAG(
         dag_id="k8s_wagl_nrt_filter.filter_subdag",
         default_args=default_args,
