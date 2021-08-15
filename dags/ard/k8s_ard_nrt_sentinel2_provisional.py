@@ -54,7 +54,7 @@ default_args = {
 
 ESTIMATED_COMPLETION_TIME = 3 * 60 * 60
 
-S3_PREFIX = "s3://dea-public-data-dev/L2/sentinel-2-nrt/S2MSIARD/"
+S3_PREFIX = "s3://dea-public-data-dev/baseline/"
 
 # a bit unsure about this and the frequency
 NUM_PARALLEL_PIPELINE = 1
