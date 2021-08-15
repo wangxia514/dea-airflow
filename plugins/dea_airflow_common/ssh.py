@@ -9,13 +9,11 @@ from select import select
 
 from airflow import AirflowException
 from airflow.providers.ssh.hooks.ssh import SSHHook
-from airflow.utils.decorators import apply_defaults
 
 
 class SSHRunMixin:
     """Mixin class to use when defining a new Airflow Operator that operates over SSH"""
 
-    @apply_defaults
     def __init__(self, ssh_conn_id=None, ssh_hook=None, timeout=10, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.log.info("Inside SSHRunMixin Init Function")
