@@ -17,10 +17,12 @@ from airflow.operators.python_operator import PythonOperator
 
 from automated_reporting import connections
 from automated_reporting.databases import schemas
-from automated_reporting.tasks import (
-    usgs_completeness_task,
-    check_db_task,
-    latency_from_completeness_task,
+
+# Tasks
+from automated_reporting.tasks.check_db import task as check_db_task
+from automated_reporting.tasks.usgs_completeness import task as usgs_completeness_task
+from automated_reporting.tasks.latency_from_completeness import (
+    task as latency_from_completeness_task,
 )
 
 default_args = {

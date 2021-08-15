@@ -19,11 +19,13 @@ from airflow.operators.python import PythonOperator
 
 from automated_reporting import connections
 from automated_reporting.databases import schemas
-from automated_reporting.tasks import (
-    s2_completeness_ard_task,
-    s2_completeness_wo_task,
-    check_db_task,
+
+# Tasks
+from automated_reporting.tasks.check_db import task as check_db_task
+from automated_reporting.tasks.s2_completeness import (
+    task_ard as s2_completeness_ard_task,
 )
+from automated_reporting.tasks.s2_completeness import task_wo as s2_completeness_wo_task
 
 log = logging.getLogger("airflow.task")
 

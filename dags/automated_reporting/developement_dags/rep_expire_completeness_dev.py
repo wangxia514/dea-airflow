@@ -16,7 +16,12 @@ from airflow.operators.python import PythonOperator
 from automated_reporting import connections
 
 from automated_reporting.databases import schemas
-from automated_reporting.tasks import check_db_task, expire_completeness_task
+
+# Tasks
+from automated_reporting.tasks.check_db import task as check_db_task
+from automated_reporting.tasks.expire_completeness import (
+    task as expire_completeness_task,
+)
 
 log = logging.getLogger("airflow.task")
 
