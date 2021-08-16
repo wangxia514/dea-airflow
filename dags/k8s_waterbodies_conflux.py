@@ -150,7 +150,11 @@ def k8s_job_task(dag):
                                 "-c",
                                 dedent(
                                     """
-                                    python -m dea_conflux run-from-queue --plugin examples/waterbodies.conflux.py --from-queue {queue} --output s3://dea-public-data-dev/waterbodies/conflux/
+                                    python -m dea_conflux run-from-queue \
+                                            --plugin examples/waterbodies.conflux.py \
+                                            --queue {queue} \
+                                            --shapefile s3://dea-public-data/projects/WaterBodies/moree-test/AusWaterBodies_Moree.shp
+                                            --output s3://dea-public-data-dev/waterbodies/conflux/moree-test/
                                     """.format(queue=f"waterbodies_conflux_sqs")
                                     ),
                             ],
