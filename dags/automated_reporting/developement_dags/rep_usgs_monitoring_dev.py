@@ -34,7 +34,7 @@ from automated_reporting.tasks.usgs_insert_hg_l0 import task as usgs_insert_hg_l
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt(2021, 8, 16, tzinfo=timezone.utc),
+    "start_date": dt(2021, 8, 17, 0, 0, 5, tzinfo=timezone.utc),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
@@ -147,5 +147,11 @@ with dag:
         op_kwargs=completeness_kwargs,
     )
 
-    usgs_acquisitions >> check_db_completeness >> usgs_completeness >> check_db_latency >> usgs_latency
+    (
+        usgs_acquisitions
+        >> check_db_completeness
+        >> usgs_completeness
+        >> check_db_latency
+        >> usgs_latency
+    )
     usgs_acquisitions >> check_db_hg >> usgs_insert_hg_l0
