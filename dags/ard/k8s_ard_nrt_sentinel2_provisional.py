@@ -54,7 +54,7 @@ default_args = {
 
 ESTIMATED_COMPLETION_TIME = 3 * 60 * 60
 
-S3_PREFIX = "s3://dea-public-data-dev/baseline/"
+S3_PREFIX = "s3://dea-public-data/baseline/"
 
 # a bit unsure about this and the frequency
 NUM_PARALLEL_PIPELINE = 1

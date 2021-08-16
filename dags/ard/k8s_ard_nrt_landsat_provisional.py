@@ -40,7 +40,7 @@ default_args = {
 ESTIMATED_COMPLETION_TIME = 3 * 60 * 60
 
 BUCKET_REGION = "ap-southeast-2"
-S3_PREFIX = "s3://dea-public-data-dev/baseline/"
+S3_PREFIX = "s3://dea-public-data/baseline/"
 
 # TODO tune NUM_PARALLEL_PIPELINE according to need
 NUM_PARALLEL_PIPELINE = 1
