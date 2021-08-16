@@ -2,7 +2,6 @@
 Task for pulling acquisitions USGS L0/L1 from USGS from APIs and loading into
 'High Granlarity' schema of reporting database.
 """
-import os
 import logging
 
 from automated_reporting.databases import reporting_db_hg

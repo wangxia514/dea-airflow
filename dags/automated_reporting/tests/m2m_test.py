@@ -8,6 +8,8 @@ import logging
 import configparser
 from datetime import datetime as dt
 
+from automated_reporting.tasks import usgs_insert_hg_l0, usgs_aquisitions
+
 AR_FOLDER = os.path.dirname(os.path.dirname(__file__))
 
 config = configparser.ConfigParser()
@@ -25,8 +27,6 @@ log.addHandler(handler)
 ##########################
 
 product_ids = ["landsat_etm_c2_l1", "landsat_ot_c2_l1"]
-
-from automated_reporting.tasks import usgs_insert_hg_l0, usgs_aquisitions
 
 
 def main():
