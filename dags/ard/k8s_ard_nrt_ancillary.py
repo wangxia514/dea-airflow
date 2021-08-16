@@ -11,11 +11,10 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 )
 
 from infra.pools import WAGL_TASK_POOL
+from infra.images import S3_TO_RDS_IMAGE
 
 NOW = datetime.now()
 DOY = int(NOW.strftime("%j"))
-
-S3_TO_RDS_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/geoscienceaustralia/s3-to-rds:0.1.2"
 
 
 def sync(*args):
