@@ -328,7 +328,7 @@ def k8s_makequeue(dag):
     return makequeue
 
 
-def k8s_delqueue(dag, branch):
+def k8s_delqueue(dag):
     # TODO(MatthewJA): Use the name/ID of this DAG
     # to make sure that we don't double-up if we're
     # running two DAGs simultaneously.
