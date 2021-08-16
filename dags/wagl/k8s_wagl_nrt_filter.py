@@ -18,6 +18,7 @@ from airflow.providers.amazon.aws.sensors.sqs import SQSSensor
 from airflow.providers.amazon.aws.sensors.sqs import SQSHook
 
 from infra.pools import WAGL_TASK_POOL
+from infra.sqs_queues import ARD_NRT_S2_PROVISIONAL_PROCESS_SCENE_QUEUE
 
 
 AWS_CONN_ID = "wagl_nrt_manual"
@@ -96,6 +97,7 @@ def filter_scenes(**context):
     for message in messages:
         message_body = json.dumps(decode(message))
         sqs_hook.send_message(PROCESS_SCENE_QUEUE, message_body)
+        sqs_hook.send_message(ARD_NRT_S2_PROVISIONAL_PROCESS_SCENE_QUEUE, message_body)
 
 
 def filter_subdag():
