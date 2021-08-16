@@ -17,10 +17,12 @@ from airflow.operators.python_operator import PythonOperator
 
 from automated_reporting import connections
 from automated_reporting.databases import schemas
-from automated_reporting.tasks import (
-    usgs_completeness_task,
-    check_db_task,
-    latency_from_completeness_task,
+
+# Tasks
+from automated_reporting.tasks.check_db import task as check_db_task
+from automated_reporting.tasks.usgs_completeness import task as usgs_completeness_task
+from automated_reporting.tasks.latency_from_completeness import (
+    task as latency_from_completeness_task,
 )
 
 default_args = {
@@ -35,8 +37,8 @@ default_args = {
 }
 
 dag = DAG(
-    "rep_usgs_completeness_nrt_l1_dev",
-    description="DAG for completeness and latency metric on USGS L1 C2 nrt product",
+    "rep_usgs_completeness_nrt_l1_prod",
+    description="DAG for completeness and latency metric on USGS L1 C2 nrt product  in live reporting DB",
     tags=["reporting"],
     default_args=default_args,
     schedule_interval=timedelta(minutes=15),
@@ -47,7 +49,7 @@ with dag:
 
     check_db_kwargs_completeness = {
         "expected_schema": schemas.USGS_COMPLETENESS_SCHEMA,
-        "connection_id": connections.DB_REP_WRITER_CONN_DEV,
+        "connection_id": connections.DB_REP_WRITER_CONN_PROD,
     }
     check_db_completeness = PythonOperator(
         task_id="check_db_schema_completeness",
@@ -57,7 +59,7 @@ with dag:
 
     check_db_kwargs_latency = {
         "expected_schema": schemas.LATENCY_SCHEMA,
-        "connection_id": connections.DB_REP_WRITER_CONN_DEV,
+        "connection_id": connections.DB_REP_WRITER_CONN_PROD,
     }
     check_db_latency = PythonOperator(
         task_id="check_db_schema_latency",
@@ -65,7 +67,7 @@ with dag:
         op_kwargs=check_db_kwargs_latency,
     )
 
-    completeness_kwargs = {"connection_id": connections.DB_REP_WRITER_CONN_DEV}
+    completeness_kwargs = {"connection_id": connections.DB_REP_WRITER_CONN_PROD}
     usgs_completeness = PythonOperator(
         task_id="usgs_completeness",
         python_callable=usgs_completeness_task,
@@ -73,7 +75,7 @@ with dag:
         op_kwargs=completeness_kwargs,
     )
 
-    latency_kwargs = {"connection_id": connections.DB_REP_WRITER_CONN_DEV}
+    latency_kwargs = {"connection_id": connections.DB_REP_WRITER_CONN_PROD}
     usgs_latency = PythonOperator(
         task_id="latency",
         python_callable=latency_from_completeness_task,

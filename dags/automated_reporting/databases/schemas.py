@@ -111,3 +111,40 @@ USGS_COMPLETENESS_SCHEMA = {
         ],
     }
 }
+
+HIGH_GRANULARITY_SCHEMA = {
+    "database": {
+        "name": "reporting",
+        "schemas": [
+            {
+                "name": "high_granularity",
+                "tables": [
+                    {
+                        "name": "dataset",
+                        "columns": [
+                            {"name": "id"},
+                            {"name": "label"},
+                            {"name": "product_def_id"},
+                            {"name": "timestamp"},
+                            {"name": "source_id"},
+                            {"name": "region_id"},
+                            {"name": "extra"},
+                            {"name": "archived"},
+                            {"name": "status_id"},
+                            {"name": "created_at"},
+                            {"name": "updated_at"},
+                        ],
+                    },
+                    {
+                        "name": "association",
+                        "columns": [
+                            {"name": "id"},
+                            {"name": "upstream_id"},
+                            {"name": "downstream_id"},
+                        ],
+                    },
+                ],
+            }
+        ],
+    }
+}

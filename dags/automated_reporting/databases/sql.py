@@ -77,3 +77,39 @@ EXPIRE_COMPLETENESS = """
         INNER JOIN reporting.completeness rr
         ON rr.geo_ref = r.geo_ref AND rr.last_updated = r.last_updated
         AND rr.product_id = %(product_id)s);"""
+
+INSERT_DATASET = """
+    INSERT INTO high_granularity.dataset (
+        id,
+        label,
+        product_def_id,
+        timestamp,
+        source_id,
+        region_id,
+        extra,
+        status_id,
+        archived,
+        created_at,
+        updated_at
+    )
+    VALUES (
+        %(id)s,
+        %(label)s,
+        (select id from high_granularity.product_def where code = %(product_code)s),
+        %(timestamp)s,
+        %(source_id)s,
+        (select id from high_granularity.region where code = %(region_code)s),
+        %(extra)s,
+        (select id from high_granularity.status where name ilike %(status)s),
+        false,
+        NOW(),
+        NOW()
+    )
+    ON CONFLICT DO NOTHING;
+"""
+
+INSERT_ASSOCIATION = """
+    INSERT INTO high_granularity.association (upstream_id, downstream_id)
+    VALUES (%(upstream_id)s, %(downstream_id)s)
+    ON CONFLICT DO NOTHING;
+"""
