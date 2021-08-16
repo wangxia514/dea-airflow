@@ -29,6 +29,10 @@ SECRET_EXPLORER_NCI_WRITER_NAME = Variable.get(
     "db_explorer_nci_writer_secret", "explorer-nci-writer"
 )  # qa
 
+# ARD
+S2_NRT_AWS_CREDS = "wagl-nrt-aws-creds"
+ARD_NRT_LS_CREDS = "ard-nrt-ls-aws-creds"
+
 # DB config
 DB_DATABASE = Variable.get("db_database", "odc")  # qa
 DB_HOSTNAME = Variable.get("db_hostname", "db-writer")  # qa
