@@ -37,7 +37,7 @@ default_args = {
 }
 
 dag = DAG(
-    "rep_usgs_completeness_nrt_l1_prod",
+    "rep_usgs_monitoring_prod",
     description="DAG for completeness and latency metric on USGS L1 C2 nrt product  in live reporting DB",
     tags=["reporting"],
     default_args=default_args,
