@@ -198,30 +198,3 @@ def get(start_time, days, dataset, credentials):
     if len(results) < expected_results_len:
         raise USGSM2MError("Results count doesn't match expected results count")
     return results
-
-
-def get_matrix(start_time, days, dataset, credentials):
-    """
-    Modifies the resulst to match the format used by James Miller in USGS Completeness
-    Dag. Allow the use of the API in that Dag without modification.
-    """
-
-    # Run a regular get query
-    results = get(start_time, days, dataset, credentials)
-    if not results:
-        return list()
-
-    # Reformat the results to a matrix
-    matrix_output = list()
-    for item in results:
-        matrix_output.append(
-            [
-                item["id"],
-                item["wrs2"].split("_")[0],
-                item["wrs2"].split("_")[1],
-                item["collect_cat"],
-                item["collect_num"],
-                item["acq_time"],
-            ]
-        )
-    return matrix_output
