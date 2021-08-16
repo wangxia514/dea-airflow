@@ -10,15 +10,12 @@ from psycopg2.errors import UniqueViolation  # pylint: disable-msg=E0611
 from airflow.configuration import conf
 from airflow.hooks.postgres_hook import PostgresHook
 
-from automated_reporting.utilities import helpers, stac_api
+from automated_reporting.utilities import helpers
 
 logger = logging.getLogger("airflow.task")
 
 # Initiations for global variables
-missions = [
-    "LANDSAT_8",
-    # "LANDSAT_7"
-]
+missions = [("LANDSAT_8", "landsat_ot_c2_l1"), ("LANDSAT_7", "landsat_etm_c2_l1")]
 databaseCompTable = "reporting.completeness"
 databaseMissingTable = "reporting.completeness_missing"
 databaseStacTable = "landsat.usgs_l1_nrt_c2_stac_listing"
@@ -214,9 +211,9 @@ def gen_sql_completeness_path_row(
             satAcqTime,
             lastUpdated,
         )
-
+        print(params)
         last_id = execute_query_id(executionStr, params, cursor)
-
+        print("Last ID:", last_id)
         if last_id is not None:
             # Insert missing scenes for each row_path
             executionStr = """INSERT INTO reporting.completeness_missing (completeness_id, dataset_id, last_updated)
@@ -271,7 +268,7 @@ def gen_sql_completeness(
     return conn_commit(conn, cursor)
 
 
-def gen_stac_api_inserts(connection_id, stacApiMatrix):
+def gen_m2m_api_inserts(connection_id, stacApiMatrix):
     """
     Insert STAC API metadata into DB
     :param stacApiMatrix:
@@ -389,11 +386,36 @@ def data_select(connection_id, query, params):
     return cursor.fetchall()
 
 
-def task(execution_date, connection_id, **kwargs):
+def convert_m2m_to_matrix(acquisitions):
+    """
+    Modifies the results to of M2M API call
+    to a list of lists(matrix) for use in this task.
+    """
+
+    # Reformat the results to a matrix
+    matrix_output = list()
+    for item in acquisitions:
+        matrix_output.append(
+            [
+                item["id"],
+                item["wrs2"].split("_")[0],
+                item["wrs2"].split("_")[1],
+                item["collect_cat"],
+                item["collect_num"],
+                item["acq_time"],
+            ]
+        )
+    return matrix_output
+
+
+def task(execution_date, connection_id, task_instance, **kwargs):
     """
     Main function
     :return:
     """
+
+    # get the results for upstream call to USGS M2M Api
+    acquisitions = task_instance.xcom_pull(task_ids="usgs_acquisitions")
 
     # Set amount of days to look back to
     dayRange = 30
@@ -407,7 +429,6 @@ def task(execution_date, connection_id, **kwargs):
     endDate = end_time.strftime("%Y-%m-%d")
 
     logger.info("Starting reporting workflow for Landsat L1 NRT")
-    logger.info("Using service URL: {}".format(stac_api.serviceUrl))
 
     # Get path row list
     file_path = "dags/automated_reporting/aux_data/landsat_l1_path_row_list.txt"
@@ -415,37 +436,37 @@ def task(execution_date, connection_id, **kwargs):
     logger.info("Loaded Path Row Listing")
     latency_results = []
 
+    # convert m2m2 api to a matrix format
+    m2mApiMatrix = convert_m2m_to_matrix(acquisitions)
+    logger.debug(m2mApiMatrix)
+
+    logger.info(
+        "Inserting USGS inventory into DB: {} acquisitions".format(len(m2mApiMatrix))
+    )
+    gen_m2m_api_inserts(connection_id, m2mApiMatrix)
+
     for mission in missions:
-        logger.info("Checking Stac API {}".format(mission))
-        output = stac_api.landsat_search_stac(logger, mission, startDate, endDate)
-        stacApiMatrix = stac_api.collect_stac_api_results(output)
-        logger.debug(stacApiMatrix)
 
-        logger.info(
-            "Inserting Stac metadata into DB {}[{}]".format(mission, len(stacApiMatrix))
-        )
-        gen_stac_api_inserts(connection_id, stacApiMatrix)
-
-        logger.info("Get last 30 days Stac metadata from DB {}".format(mission))
+        logger.info("Get last 30 days USGS inventory from DB: {}".format(mission[0]))
         stacApiData = get_stac_metadata(connection_id, start_time, end_time)
 
-        if mission == "LANDSAT_8":
-            logger.info("Checking GA S3 Listing {}".format(mission))
+        if mission[0] == "LANDSAT_8":
+            logger.info("Checking GA S3 Listing: {}".format(mission[0]))
             s3List = get_s3_listing(connection_id, "L8C2", start_time, execution_date)
-            logger.debug("GA-S3 Listing: - {} - {}".format(mission, s3List))
+            logger.debug("GA-S3 Listing: {} - {}".format(mission[0], s3List))
             productId = "usgs_ls8c_level1_nrt_c2"
-        elif mission == "LANDSAT_7":
-            logger.info("Checking GA S3 Listing {}".format(mission))
+        elif mission[0] == "LANDSAT_7":
+            logger.info("Checking GA S3 Listing: {}".format(mission[0]))
             s3List = get_s3_listing(connection_id, "L7C2", start_time, execution_date)
-            logger.debug("GA-S3 Listing: - {} - {}".format(mission, s3List))
+            logger.debug("GA-S3 Listing: {} - {}".format(mission[0], s3List))
             productId = "usgs_ls7e_level1_nrt_c2"
 
-        logger.info("Filtering out data from outside AOI {}".format(mission))
+        logger.info("Filtering out data from outside AOI: {}".format(mission[0]))
         filteredStacApiData, filteredS3List = filter_aoi(
             wrsPathRowList, stacApiData, s3List
         )
 
-        logger.info("Running completeness metrics for {}".format(mission))
+        logger.info("Running completeness metrics for: {}".format(mission[0]))
         (
             successCounter,
             missingCounter,
@@ -485,7 +506,7 @@ def task(execution_date, connection_id, **kwargs):
                 "latest_processing_ts": None,
             }
         )
-        logger.info("***{} MISSION***".format(mission))
+        logger.info("***{} MISSION***".format(mission[0]))
         logger.info(
             "Completeness - {}%. Expected Count - {}. Actual Count - {}.".format(
                 completeness, expectedCount, gaCount
@@ -501,4 +522,4 @@ def task(execution_date, connection_id, **kwargs):
             execution_date,
         )
 
-        return latency_results
+    return latency_results
