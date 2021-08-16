@@ -150,7 +150,7 @@ def k8s_job_task(dag):
                                 "-c",
                                 dedent(
                                     """
-                                    python -m dea_conflux run-from-queue \
+                                    dea-conflux run-from-queue \
                                             --plugin examples/waterbodies.conflux.py \
                                             --queue {queue} \
                                             --shapefile s3://dea-public-data/projects/WaterBodies/moree-test/AusWaterBodies_Moree.shp
@@ -268,7 +268,7 @@ def k8s_getids(dag, cmd):
         dedent(
             """
             echo "Writing to /airflow/xcom/return.json"
-            python -m dea_conflux get-ids wofs_albers {cmd} --s3 > /airflow/xcom/return.json
+            dea-conflux get-ids wofs_albers {cmd} --s3 > /airflow/xcom/return.json
             """.format(cmd=cmd)
         ),
     ]
