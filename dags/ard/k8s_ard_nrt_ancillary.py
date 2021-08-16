@@ -1,30 +1,29 @@
 """
-Fetch wagl NRT ancillary.
+Fetch ARD NRT ancillary.
 """
 from datetime import datetime, timedelta
 
+import kubernetes.client.models as k8s
 from airflow import DAG
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
-from airflow.operators.dummy_operator import DummyOperator
 from airflow.kubernetes.secret import Secret
-from airflow.kubernetes.volume import Volume
-from airflow.kubernetes.volume_mount import VolumeMount
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 
 from infra.pools import WAGL_TASK_POOL
+from infra.images import S3_TO_RDS_IMAGE
 
 NOW = datetime.now()
 DOY = int(NOW.strftime("%j"))
 
-S3_TO_RDS_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/geoscienceaustralia/s3-to-rds:0.1.2"
-
 
 def sync(*args):
-    """ Sync from s3. """
+    """Sync from s3."""
     return "aws s3 sync --only-show-errors --no-follow-symlinks " + " ".join(args)
 
 
 def brdf_doys(doy):
-    """ Day-of-year set for BRDF. """
+    """Day-of-year set for BRDF."""
 
     def clip(doy):
         if doy < 1:
@@ -75,7 +74,7 @@ SYNC_JOBS = [
     "chown -R root:10015 /ancillary/Land_Sea_Rasters/",
     "echo removing existing water vapour",
     "mkdir -p /ancillary/water_vapour/",
-    "find /ancillary/water_vapour/ -type f -exec rm {} \;",
+    "find /ancillary/water_vapour/ -type f -exec rm {} \\;",
     "echo synching water vapour",
     *[
         sync(
@@ -89,7 +88,7 @@ SYNC_JOBS = [
     ],
     "echo removing existing brdf",
     "mkdir -p /ancillary/brdf-jl/",
-    "find /ancillary/brdf-jl/ -type f -exec rm {} \;",
+    "find /ancillary/brdf-jl/ -type f -exec rm {} \\;",
     "echo synching brdf",
     *[
         sync(
@@ -108,7 +107,7 @@ SYNC_JOBS = [
     ),
     "echo removing existing fallback brdf",
     "mkdir -p /ancillary/brdf/fallback/",
-    "find /ancillary/brdf/fallback/ -type f -exec rm {} \;",
+    "find /ancillary/brdf/fallback/ -type f -exec rm {} \\;",
     "echo synching brdf fallback",
     *[
         sync(
@@ -174,7 +173,6 @@ affinity = {
     }
 }
 
-
 tolerations = [
     {"key": "dedicated", "operator": "Equal", "value": "wagl", "effect": "NoSchedule"}
 ]
@@ -187,45 +185,43 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
-    "retry_delay": timedelta(minutes=30),
+    "retry_delay": timedelta(minutes=1),
     "pool": WAGL_TASK_POOL,
-    "secrets": [Secret("env", None, "wagl-nrt-aws-creds")],
+    "secrets": [Secret("env", None, "ard-nrt-ancillary-aws-creds")],
 }
 
-
-ancillary_volume_mount = VolumeMount(
+ancillary_volume_mount = k8s.V1VolumeMount(
     name="wagl-nrt-ancillary-volume",
     mount_path="/ancillary",
     sub_path=None,
     read_only=False,
 )
 
-ancillary_volume = Volume(
+ancillary_volume = k8s.V1Volume(
     name="wagl-nrt-ancillary-volume",
-    configs={"persistentVolumeClaim": {"claimName": "wagl-nrt-ancillary-volume"}},
+    persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(
+        claim_name="wagl-nrt-ancillary-volume"
+    ),
 )
 
-
 pipeline = DAG(
-    "k8s_wagl_nrt_ancillary",
+    "k8s_ard_nrt_ancillary",
     doc_md=__doc__,
     default_args=default_args,
-    description="DEA Sentinel-2 NRT fetch ancillary",
+    description="DEA ARD NRT fetch ancillary",
     concurrency=1,
     max_active_runs=1,
     catchup=False,
     params={},
     schedule_interval="5 0 * * *",
-    tags=["k8s", "dea", "psc", "wagl", "nrt"],
+    tags=["k8s", "dea", "psc", "ard", "wagl", "nrt"],
 )
 
 with pipeline:
-    START = DummyOperator(task_id="start")
-
     SYNC = KubernetesPodOperator(
         namespace="processing",
         image=S3_TO_RDS_IMAGE,
-        annotations={"iam.amazonaws.com/role": "svc-dea-sandbox-eks-wagl-nrt"},
+        annotations={"iam.amazonaws.com/role": "svc-dea-sandbox-eks-ard-nrt-ancillary"},
         cmds=["bash", "-c", " &&\n".join(SYNC_JOBS)],
         image_pull_policy="Always",
         name="sync_ancillaries",
@@ -244,7 +240,3 @@ with pipeline:
         },
         is_delete_operator_pod=True,
     )
-
-    END = DummyOperator(task_id="end")
-
-    START >> SYNC >> END
