@@ -33,7 +33,7 @@ class ShortCircuitSSHOperator(SSHRunMixin, BaseOperator, SkipMixin):
         *args,
         **kwargs
     ):
-        BaseOperator.__init__(self, timeout=timeout, *args, **kwargs)
+        BaseOperator.__init__(self, *args, **kwargs)
         self.command = command
         self.ssh_hook = ssh_hook
         self.ssh_conn_id = ssh_conn_id
