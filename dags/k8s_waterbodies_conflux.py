@@ -153,7 +153,7 @@ def k8s_job_task(dag):
                                     dea-conflux run-from-queue \
                                             --plugin examples/waterbodies.conflux.py \
                                             --queue {queue} \
-                                            --shapefile s3://dea-public-data/projects/WaterBodies/moree-test/AusWaterBodies_Moree.shp
+                                            --shapefile s3://dea-public-data/projects/WaterBodies/moree-test/AusWaterBodies_Moree.shp \
                                             --output s3://dea-public-data-dev/waterbodies/conflux/moree-test/
                                     """.format(queue=f"waterbodies_conflux_sqs")
                                     ),
