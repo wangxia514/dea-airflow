@@ -227,7 +227,7 @@ def k8s_queue_push(dag):
         dedent(
             """
             # Download the IDs file from xcom.
-            echo "Downloading {{{{ ti.xcom_pull(task_ids='waterbodies-conflux-getids')['chunks_path'] }}}}"
+            echo "Downloading {{{{ ti.xcom_pull(task_ids='waterbodies-conflux-getids')['ids_path'] }}}}"
             aws s3 cp {{{{ ti.xcom_pull(task_ids='waterbodies-conflux-getids')['ids_path'] }}}} ids.txt
 
             # Push the IDs to the queue.
