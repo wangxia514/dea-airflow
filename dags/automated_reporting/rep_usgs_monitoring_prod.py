@@ -34,7 +34,7 @@ from automated_reporting.tasks.usgs_insert_hg_l0 import task as usgs_insert_hg_l
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt(2021, 8, 17, 0, 0, 5, tzinfo=timezone.utc),
+    "start_date": dt(2021, 8, 16, tzinfo=timezone.utc),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
@@ -43,7 +43,7 @@ default_args = {
 }
 
 dag = DAG(
-    "rep_usgs_monitoring_dev",
+    "rep_usgs_monitoring_prod",
     description="DAG for completeness and latency metric on USGS L1 C2 nrt product",
     tags=["reporting"],
     default_args=default_args,
@@ -58,7 +58,7 @@ AUX_DATA_FOLDER = os.path.join(
 
 product_ids = ["landsat_etm_c2_l1", "landsat_ot_c2_l1"]
 
-rep_conn_obj = BaseHook.get_connection(connections.DB_REP_WRITER_CONN_DEV)
+rep_conn_obj = BaseHook.get_connection(connections.DB_REP_WRITER_CONN_PROD)
 rep_conn = dict(
     user=rep_conn_obj.login,
     password=rep_conn_obj.password,
@@ -94,7 +94,7 @@ with dag:
     # Completeness and Latency Metrics
     check_db_kwargs_completeness = {
         "expected_schema": schemas.USGS_COMPLETENESS_SCHEMA,
-        "connection_id": connections.DB_REP_WRITER_CONN_DEV,
+        "connection_id": connections.DB_REP_WRITER_CONN_PROD,
     }
     check_db_completeness = PythonOperator(
         task_id="check_db_schema_completeness",
@@ -102,7 +102,7 @@ with dag:
         op_kwargs=check_db_kwargs_completeness,
     )
 
-    completeness_kwargs = {"connection_id": connections.DB_REP_WRITER_CONN_DEV}
+    completeness_kwargs = {"connection_id": connections.DB_REP_WRITER_CONN_PROD}
     usgs_completeness = PythonOperator(
         task_id="usgs_completeness",
         python_callable=usgs_completeness_task,
@@ -112,7 +112,7 @@ with dag:
 
     check_db_kwargs_latency = {
         "expected_schema": schemas.LATENCY_SCHEMA,
-        "connection_id": connections.DB_REP_WRITER_CONN_DEV,
+        "connection_id": connections.DB_REP_WRITER_CONN_PROD,
     }
     check_db_latency = PythonOperator(
         task_id="check_db_schema_latency",
@@ -120,7 +120,7 @@ with dag:
         op_kwargs=check_db_kwargs_latency,
     )
 
-    latency_kwargs = {"connection_id": connections.DB_REP_WRITER_CONN_DEV}
+    latency_kwargs = {"connection_id": connections.DB_REP_WRITER_CONN_PROD}
     usgs_latency = PythonOperator(
         task_id="latency",
         python_callable=latency_from_completeness_task,
@@ -131,7 +131,7 @@ with dag:
     # High Granularity Flow
     check_db_kwargs_hg = {
         "expected_schema": schemas.HIGH_GRANULARITY_SCHEMA,
-        "connection_id": connections.DB_REP_WRITER_CONN_DEV,
+        "connection_id": connections.DB_REP_WRITER_CONN_PROD,
     }
     check_db_hg = PythonOperator(
         task_id="check_db_schema_hg",
