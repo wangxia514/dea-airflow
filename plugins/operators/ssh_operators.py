@@ -24,10 +24,21 @@ class ShortCircuitSSHOperator(SSHRunMixin, BaseOperator, SkipMixin):
 
     template_fields = ("command",)
 
-    @apply_defaults
-    def __init__(self, command: str = None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(
+        self,
+        command: str = None,
+        ssh_conn_id=None,
+        ssh_hook=None,
+        timeout=10,
+        *args,
+        **kwargs
+    ):
+        BaseOperator.__init__(self, timeout=timeout, *args, **kwargs)
         self.command = command
+        self.ssh_hook = ssh_hook
+        self.ssh_conn_id = ssh_conn_id
+
+        self.timeout = timeout
 
     def execute(self, context):
         ret_val, output = self.run_ssh_command_and_return_output(self.command)
