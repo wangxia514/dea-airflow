@@ -51,12 +51,18 @@ class PBSJobSensor(SSHRunMixin, BaseSensorOperator):
         poke_interval: int = 5 * 60,
         mode="reschedule",
         timeout: int = 24 * 60 * 60,
+        ssh_conn_id=None,
+        ssh_hook=None,
         *args,
         **kwargs,
     ):
-        super().__init__(
-            mode=mode, poke_interval=poke_interval, timeout=timeout, *args, **kwargs
-        )
+
+        BaseSensorOperator.__init__(self, mode=mode, poke_interval=poke_interval, timeout=timeout, *args, **kwargs)
+
+        self.timeout = timeout
+        self.ssh_hook = ssh_hook
+        self.ssh_conn_id = ssh_conn_id
+
         self.log.info("Inside PBSJobSensor Init Function")
 
         self.pbs_job_id = pbs_job_id
