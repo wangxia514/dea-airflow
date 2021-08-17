@@ -231,10 +231,7 @@ def k8s_queue_push(dag):
             aws s3 cp {{{{ ti.xcom_pull(task_ids='waterbodies-conflux-getids')['ids_path'] }}}} ids.txt
 
             # Push the IDs to the queue.
-            aws sqs get-queue-url --queue-name {queue} --output text > queue.txt
-            cat queue.txt
-            queue_url=$(<queue.txt)
-            cat ids.txt | xargs -L1 -I{{}} aws sqs send-message --queue-url $queue_url --message-body {{}}
+            dea-conflux push-to-queue --txt ids.txt --queue {queue}
             """.format(
                 queue=f"waterbodies_conflux_sqs",
             )
