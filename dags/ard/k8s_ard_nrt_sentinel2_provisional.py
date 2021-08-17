@@ -55,6 +55,7 @@ default_args = {
 ESTIMATED_COMPLETION_TIME = 3 * 60 * 60
 
 S3_PREFIX = "s3://dea-public-data-dev/baseline/"
+EXPLORER_URL = "https://explorer.dev.dea.ga.gov.au"
 
 # a bit unsure about this and the frequency
 NUM_PARALLEL_PIPELINE = 1
@@ -389,6 +390,7 @@ with pipeline:
                 + str(index)
                 + "', key='args')['granule_id'] }}",
                 S3_PREFIX,
+                EXPLORER_URL,
             ],
             labels={
                 "runner": "airflow",

@@ -41,6 +41,7 @@ ESTIMATED_COMPLETION_TIME = 3 * 60 * 60
 
 BUCKET_REGION = "ap-southeast-2"
 S3_PREFIX = "s3://dea-public-data-dev/baseline/"
+EXPLORER_URL = "https://explorer.dev.dea.ga.gov.au"
 
 # TODO tune NUM_PARALLEL_PIPELINE according to need
 NUM_PARALLEL_PIPELINE = 1
@@ -120,6 +121,7 @@ with pipeline:
                 ARD_NRT_LS_PROCESS_SCENE_QUEUE,
                 S3_PREFIX,
                 PUBLISH_ARD_NRT_LS_SNS,
+                EXPLORER_URL,
             ],
             labels={
                 "runner": "airflow",
