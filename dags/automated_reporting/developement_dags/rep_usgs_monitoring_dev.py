@@ -126,7 +126,7 @@ with dag:
     # High Granularity Flow
     check_db_kwargs_hg = {
         "expected_schema": schemas.HIGH_GRANULARITY_SCHEMA,
-        "connection_id": connections.DB_REP_WRITER_CONN_DEV,
+        "rep_conn": rep_conn,
     }
     check_db_hg = PythonOperator(
         task_id="check_db_schema_hg",
