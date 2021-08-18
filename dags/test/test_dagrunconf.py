@@ -62,7 +62,7 @@ def parse_dagrun_conf(a=False, b=False, c=False, **kwargs):
 
 def r_pythonoperator(a=None, b=None, c=None, task_name=""):
     """testing behaviour"""
-    if a == "True":
+    if a.lower() == "true":
         bash_command = "echo a"
     elif b:
         bash_command = "echo b"
@@ -71,7 +71,7 @@ def r_pythonoperator(a=None, b=None, c=None, task_name=""):
     elif not (a and b and c):
         bash_command = "echo not a b c"
     else:
-        bash_command = "echo else"
+        bash_command = "echo a " + a + " b " + b + " c " + c
 
     return BashOperator(
         task_id=task_name,
