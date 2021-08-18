@@ -24,7 +24,8 @@ Using the new way of structuring dags and their sub-dependencies it should be si
 
 From with automated_reporting venv:
 
-`python3.6 dags/automated_reporting/tests/test_completeness.py`
+  - `python3.6 dags/automated_reporting/tests/test_completeness.py`
+  - `python3.6 dags/automated_reporting/tests/test_usgs_completeness.py`
 
 ## ToDo
 

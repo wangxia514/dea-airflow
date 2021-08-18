@@ -1,6 +1,8 @@
-# ---------------------------------------
-# File that houses some test data to be used during test_usgs_completeness.py
-# ---------------------------------------
+"""
+---------------------------------------
+File that houses some test data to be used during test_usgs_completeness.py
+---------------------------------------
+"""
 
 landsat8List = [
     ("LC80930792021136LGN00",),
