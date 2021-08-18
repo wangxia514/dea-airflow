@@ -17,8 +17,8 @@ May be altered to test advanced logics.
 from datetime import timedelta
 
 from airflow import DAG
-from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
-from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.bash_operator import BashOperator
+
 from airflow.utils.dates import days_ago
 
 
@@ -60,18 +60,47 @@ def parse_dagrun_conf(a=False, b=False, c=False, **kwargs):
     return a, b, c
 
 
+def r_pythonoperator(a=False, b=False, c=False):
+    """testing behaviour"""
+    if a:
+        return BashOperator(
+            task_id="test_bash",
+            bash_command="echo a"
+            # provide_context=True,
+        )
+    if b:
+        return BashOperator(
+            task_id="test_bash",
+            bash_command="echo b"
+            # provide_context=True,
+        )
+    if c:
+        return BashOperator(
+            task_id="test_bash",
+            bash_command="echo c"
+            # provide_context=True,
+        )
+    if not (a and b and c):
+        return BashOperator(
+            task_id="test_bash",
+            bash_command="echo not a b c"
+            # provide_context=True,
+        )
+    else:
+        return BashOperator(
+            task_id="test_bash",
+            bash_command="echo else"
+            # provide_context=True,
+        )
+
+
 SET_REFRESH_PRODUCT_TASK_NAME = "parse_dagrun_conf"
 CHECK_DAGRUN_CONFIG = "check_dagrun_config"
 
 with dag:
 
-    SET_PRODUCTS = PythonOperator(
-        task_id=SET_REFRESH_PRODUCT_TASK_NAME,
-        python_callable=parse_dagrun_conf,
-        op_args=[
-            "{{ dag_run.conf.a }}",
-            "{{ dag_run.conf.b }}",
-            "{{ dag_run.conf.c }}",
-        ],
-        # provide_context=True,
+    r_pythonoperator(
+        "{{ dag_run.conf.a }}",
+        "{{ dag_run.conf.b }}",
+        "{{ dag_run.conf.c }}",
     )
