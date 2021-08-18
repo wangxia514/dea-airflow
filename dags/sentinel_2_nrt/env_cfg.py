@@ -16,6 +16,10 @@ INDEXING_PRODUCTS = [
     "ls5_fc_albers",
     "ls7_fc_albers",
     "ls8_fc_albers",
+    "ga_s2am_ard_provisional_3",
+    "ga_s2bm_ard_provisional_3",
+    "ga_ls8c_ard_provisional_3",
+    "ga_ls7e_ard_provisional_3",
 ]
 
 NRT_PRODUCTS = INDEXING_PRODUCTS
@@ -26,6 +30,10 @@ PRODUCT_RECORD_PATHS = (
     "WOfS/WOFLs/v2.1.5/combined/*/*/*/*/*/*.yaml",
     "fractional-cover/fc/v2.2.1/*/*/*/*/*/*/*.yaml",
     "L2/sentinel-2-nrt/S2MSIARD/*/*/ARD-METADATA.yaml",
+    "baseline/ga_s2am_ard_provisional_3/*/*/*/*/*/*/*.odc-metadata.yaml",
+    "baseline/ga_s2bm_ard_provisional_3/*/*/*/*/*/*/*.odc-metadata.yaml",
+    "baseline/ga_ls8c_ard_provisional_3/*/*/*/*/*/*.odc-metadata.yaml",
+    "baseline/ga_ls7e_ard_provisional_3/*/*/*/*/*/*.odc-metadata.yaml",
 )
 
 NRT_PATHS = PRODUCT_RECORD_PATHS
