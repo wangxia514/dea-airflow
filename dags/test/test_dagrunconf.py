@@ -73,7 +73,7 @@ def r_pythonoperator(a=None, b=None, c=None, task_name=""):
     else:
         bash_command = "echo a " + a + " b " + b + " c " + c
 
-    bash_command = "echo a " + a + " b " + b + " c " + c
+    bash_command = "echo a " + type(a) + " b " + b + " c " + c
 
     return BashOperator(
         task_id=task_name,
