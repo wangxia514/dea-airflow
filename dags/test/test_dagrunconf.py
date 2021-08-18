@@ -92,9 +92,14 @@ with dag:
         task_name="all_conf",
     )
 
-    only_a = r_pythonoperator(
+    only_a_via_dict = r_pythonoperator(
         a="{{ dag_run.conf['a'] }}",
-        task_name="only_a",
+        task_name="only_a_via_dict",
+    )
+
+    only_a_via_get = r_pythonoperator(
+        a="{{ dag_run.conf.a }}",
+        task_name="only_a_via_get",
     )
 
     no_conf = r_pythonoperator(
