@@ -38,18 +38,18 @@ def explorer_refresh_operator(products, dag=None):
     if isinstance(products, Sequence) and not isinstance(products, str):
         products = " ".join(products)
 
+    # EXPLORER_BASH_COMMAND = [
+    #     "bash",
+    #     "-c",
+    #     f"cubedash-gen -v --no-init-database --refresh-stats {products}",
+    # ]
+
+    # if forcerefresh:
     EXPLORER_BASH_COMMAND = [
         "bash",
         "-c",
-        f"cubedash-gen -v --no-init-database --refresh-stats {products}",
+        f"cubedash-gen -v --no-init-database --force-refresh {products}",
     ]
-
-    # if forcerefresh:
-    #     EXPLORER_BASH_COMMAND = [
-    #         "bash",
-    #         "-c",
-    #         f"cubedash-gen -v --no-init-database --force-refresh {products}",
-    #     ]
 
     # if sandboxdb:
     #     dag.default_args.get("env_vars", {}).update({"DB_DATABASE": "sandbox"})
