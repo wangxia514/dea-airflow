@@ -12,9 +12,10 @@ from datetime import timedelta, timezone
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from airflow.hooks.base_hook import BaseHook
 
 from automated_reporting import connections
-
+from automated_reporting.utilities import helpers
 from automated_reporting.databases import schemas
 
 # Tasks
@@ -44,13 +45,15 @@ dag = DAG(
     schedule_interval="10 */2 * * *",  # try and avoid completeness generation
 )
 
+rep_conn = helpers.parse_connection(
+    BaseHook.get_connection(connections.DB_REP_WRITER_CONN_PROD)
+)
+
 with dag:
 
-    schema = schemas.COMPLETENESS_SCHEMA
-
     check_db_kwargs = {
-        "expected_schema": schema,
-        "connection_id": connections.DB_REP_WRITER_CONN_PROD,
+        "expected_schema": schemas.COMPLETENESS_SCHEMA,
+        "rep_conn": rep_conn,
     }
     check_db = PythonOperator(
         task_id="check_db_schema",
@@ -70,7 +73,7 @@ with dag:
         Function to generate PythonOperator tasks with id based on `product_id`
         """
         expire_completeness_kwargs = {
-            "connection_id": connections.DB_REP_WRITER_CONN_PROD,
+            "rep_conn": rep_conn,
             "product_id": product_id,
         }
         return PythonOperator(

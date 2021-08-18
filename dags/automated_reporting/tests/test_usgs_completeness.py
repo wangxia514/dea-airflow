@@ -1,45 +1,25 @@
 """
 This script conducts unit tests on the rep_nrt_usgs_completeness.py
 """
+# pylint: skip-file
 
-from datetime import datetime as dt, timezone
-import unittest
-import pathlib
 import os
+import unittest
 import logging
-
-from airflow.models import DagBag
-from airflow.configuration import conf
+from datetime import datetime as dt, timezone
 
 from automated_reporting.tasks.usgs_completeness import (
     completeness_comparison_all,
-    landsat_path_row,
     filter_aoi,
 )
 from automated_reporting.utilities.stac_api import collect_stac_api_results
-import usgs_completeness_sample_data as sample_data
+from automated_reporting.tests.test_data import (
+    usgs_completeness_sample_data as sample_data,
+)
+from automated_reporting.utilities import helpers
 
 logger = logging.getLogger("airflow.task")
-
-
-# Structure and Integration tests
-class TestUSGSCompletenessDAGStructure(unittest.TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        root = pathlib.Path(conf.get("core", "dags_folder")).parent
-        dag_folder = os.path.join(root, "dags", "automated_reporting")
-        cls.dagbag = DagBag(dag_folder=dag_folder)
-
-    def test_dag_loaded(self):
-        dag = self.dagbag.get_dag(dag_id="rep_usgs_completeness_nrt_l1")
-        self.assertDictEqual(self.dagbag.import_errors, {})
-        self.assertIsNotNone(dag)
-        self.assertEqual(len(dag.tasks), 2)
-
-    def test_task(self):
-        dag = self.dagbag.get_dag(dag_id="rep_usgs_completeness_nrt_l1")
-        self.assertTrue(dag.has_task("usgs_completeness"))
+AR_FOLDER = os.path.dirname(os.path.dirname(__file__))
 
 
 class TestUSGSCompletenessDagUnits(unittest.TestCase):
@@ -73,9 +53,9 @@ class TestUSGSCompletenessDagUnits(unittest.TestCase):
             ],
         ]
         s3Listing = ["LC80682012021136LGN00", "LC80682002021136LGN00"]
-
-        file_path = "dags/automated_reporting/aux_data/landsat_l1_path_row_list.txt"
-        wrsPathRowList = landsat_path_row(file_path)
+        wrsPathRowList = helpers.get_aoi_list(
+            os.path.join(AR_FOLDER, "aux_data"), "landsat_l1_path_row_list.txt"
+        )
 
         (
             successCounter,
@@ -114,9 +94,9 @@ class TestUSGSCompletenessDagUnits(unittest.TestCase):
             ],
         ]
         s3Listing = ["LC80682012021136LGN00"]
-
-        file_path = "dags/automated_reporting/aux_data/landsat_l1_path_row_list.txt"
-        wrsPathRowList = landsat_path_row(file_path)
+        wrsPathRowList = helpers.get_aoi_list(
+            os.path.join(AR_FOLDER, "aux_data"), "landsat_l1_path_row_list.txt"
+        )
 
         (
             successCounter,
@@ -153,9 +133,9 @@ class TestUSGSCompletenessDagUnits(unittest.TestCase):
             ]
         ]
         s3Listing = ["LC80682012021136LGN00", "LC80682002021136LGN00"]
-
-        file_path = "dags/automated_reporting/aux_data/landsat_l1_path_row_list.txt"
-        wrsPathRowList = landsat_path_row(file_path)
+        wrsPathRowList = helpers.get_aoi_list(
+            os.path.join(AR_FOLDER, "aux_data"), "landsat_l1_path_row_list.txt"
+        )
 
         (
             successCounter,
@@ -175,8 +155,9 @@ class TestUSGSCompletenessDagUnits(unittest.TestCase):
         assert latestSatAcq == dt(2021, 5, 16, 22, 20, 39, 348258, tzinfo=timezone.utc)
 
     def test_aoi_filtering(self):
-        file_path = "dags/automated_reporting/aux_data/landsat_l1_path_row_list.txt"
-        wrsPathRowList = landsat_path_row(file_path)
+        wrsPathRowList = helpers.get_aoi_list(
+            os.path.join(AR_FOLDER, "aux_data"), "landsat_l1_path_row_list.txt"
+        )
         stacApi = sample_data.stacApi
         s3List = sample_data.landsat8List
 
@@ -197,8 +178,9 @@ class TestUSGSCompletenessDagUnits(unittest.TestCase):
 
         s3Listing = sample_data.landsat8List
 
-        file_path = "dags/automated_reporting/aux_data/landsat_l1_path_row_list.txt"
-        wrsPathRowList = landsat_path_row(file_path)
+        wrsPathRowList = helpers.get_aoi_list(
+            os.path.join(AR_FOLDER, "aux_data"), "landsat_l1_path_row_list.txt"
+        )
 
         filteredStacApiData, filteredS3List = filter_aoi(
             wrsPathRowList, stacApi, s3Listing
