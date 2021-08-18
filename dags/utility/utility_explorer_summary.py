@@ -12,6 +12,7 @@ otherwise provide products to be refreshed seperated by space, i.e. `s2a_nrt_gra
 dag_run.conf format:
 
 ### Sample configuration in json format
+
     {
         "products": "--all"
     }
@@ -23,6 +24,7 @@ dag_run.conf format:
 
 ## Advanced usage
 If there are datasets manually deleted, dag run can take a flag `forcerefresh` and this will run this command `f"cubedash-gen -v --no-init-database --force-refresh {products}"`
+
     {
         "products": "product_a product_b",
         "forcerefresh": "True"
@@ -30,6 +32,7 @@ If there are datasets manually deleted, dag run can take a flag `forcerefresh` a
 
 ## Special handling for sandbox db (Only usable for sandbox where two db exists)
 If this needs to run against sandbox db, set `sandboxdb` to `True`
+
     {
         "products": "product_a product_b",
         "forcerefresh": "True",
