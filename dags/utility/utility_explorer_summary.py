@@ -1,22 +1,41 @@
 """
-## Utility Tool
-### explore refresh stats
-This is utility is to provide administrators the easy accessiblity to run ad-hoc --refresh-stats
+# refresh Explorer Utility Tool (Self Serve)
+This is utility is to provide administrators the easy accessiblity to run ad-hoc `f"cubedash-gen -v --no-init-database --refresh-stats {products}"`
 
-#### default run
-    `cubedash-gen --no-init-database --refresh-stats --force-refresh s2a_nrt_granule`
-    `cubedash-gen --no-init-database --refresh-stats --force-refresh s2b_nrt_granule`
+## Note
+All list of utility dags here: https://github.com/GeoscienceAustralia/dea-airflow/tree/develop/dags/utility, see Readme
 
-#### Utility customisation
+## Customisation
 The DAG can be parameterized with run time configuration `products`
-
 To run with all, set `dag_run.conf.products` to `--all`
 otherwise provide products to be refreshed seperated by space, i.e. `s2a_nrt_granule s2b_nrt_granule`
 dag_run.conf format:
 
-#### example conf in json format
-    "products": "--all"
-    "products": "s2a_nrt_granule s2b_nrt_granule"
+### Sample configuration in json format
+    {
+        "products": "--all"
+    }
+    or
+    {
+        "products": "s2a_nrt_granule s2b_nrt_granule"
+    }
+
+
+## Advanced usage
+If there are datasets manually deleted, dag run can take a flag `forcerefresh` and this will run this command `f"cubedash-gen -v --no-init-database --force-refresh {products}"`
+    {
+        "products": "product_a product_b",
+        "forcerefresh": "True"
+    }
+
+## Special handling for sandbox db (Only usable for sandbox where two db exists)
+If this needs to run against sandbox db, set `sandboxdb` to `True`
+    {
+        "products": "product_a product_b",
+        "forcerefresh": "True",
+        "sandboxdb": "True"
+    }
+
 """
 
 from datetime import datetime, timedelta
@@ -51,12 +70,19 @@ DEFAULT_ARGS = {
 }
 
 # THE DAG
-with DAG(
+dag = DAG(
     dag_id=DAG_NAME,
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
-    tags=["k8s", "explorer"],
-) as dag:
-    EXPLORER_SUMMARY = explorer_refresh_operator("{{ dag_run.conf.products }}")
+    tags=["k8s", "explorer", "self-service"],
+)
+
+with dag:
+    EXPLORER_SUMMARY = explorer_refresh_operator(
+        "{{ dag_run.conf.products }}",
+        "{{ dag_run.conf.forcerefresh }}",
+        "{{ dag_run.conf.sandboxdb }}",
+        dag=dag,
+    )
