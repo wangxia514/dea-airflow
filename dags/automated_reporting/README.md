@@ -19,9 +19,15 @@ Basic steps:
 
 This should allow the running of tasks (not Dags) using python 3.6, in a very similar environment to how Airflow runs them.
 
+## Tests
+Using the new way of structuring dags and their sub-dependencies it should be simple to test everything apart from the dag.
+
+From with automated_reporting venv:
+
+`python3.6 dags/automated_reporting/tests/test_completeness.py`
+
 ## ToDo
 
-  - Refactor all existing dags to run locally using Python venv (New way)
   - Move to the VirtualenvPythonOpertor and install automated_reporting requirements.txt
     - We don't have any third-party dependencies that are not already included in Airflow (requests, pytz etc.), but an Airflow update or requirement version change could change that and break the automated reporting dags
   - Move all code (except the actual dags) to the automated reporting ETL repo and install into VirtualenvPythonOperator (which uses pip) using a private python package

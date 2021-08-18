@@ -1,10 +1,6 @@
+# pylint: skip-file
 import unittest
-import pendulum
-import pathlib
-import os
 from datetime import datetime as dt, timedelta as td, timezone as tz
-
-from airflow.models import DagBag
 
 from automated_reporting.tasks.s2_completeness import (
     filter_products_to_region,
@@ -15,29 +11,6 @@ from automated_reporting.tasks.s2_completeness import (
     calculate_summary_stats_for_aoi,
     filter_expected_to_sensor,
 )
-
-
-# Structure and Integration tests
-class TestCompletenessDAGStructure(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        base_folder = pathlib.Path(__file__).parent.parent.parent.absolute()
-        dag_folder = os.path.join(base_folder, "dags", "automated_reporting")
-        cls.dagbag = DagBag(dag_folder=dag_folder)
-
-    def test_dag_loaded(self):
-        dag = self.dagbag.get_dag(dag_id="rep_s2_completeness")
-        self.assertDictEqual(self.dagbag.import_errors, {})
-        self.assertIsNotNone(dag)
-        self.assertEqual(len(dag.tasks), 2)
-
-    def test_task(self):
-        dag = self.dagbag.get_dag(dag_id="rep_s2_completeness")
-        self.assertTrue(dag.has_task("compute_sentinel_completeness"))
-        task = dag.get_task("compute_sentinel_completeness")
-        context = {"execution_date": pendulum.now()}
-        # task.execute(context=context)
-
 
 # Unit Tests
 class TestCompletenessDagUnits(unittest.TestCase):
@@ -235,7 +208,7 @@ class TestCompletenessDagUnits(unittest.TestCase):
 
     def test_calculate_metrics_for_all_regions(self):
         result = calculate_metrics_for_all_regions(
-            "s2a", self.AOI_LIST, self.EXPECTED_PRODUCTS, self.ACTUAL_PRODUCTS
+            self.AOI_LIST, self.EXPECTED_PRODUCTS, self.ACTUAL_PRODUCTS
         )
         self.assertEqual(len(result), 3)
         self.assertTrue("54DFT" in [x["region_id"] for x in result])
@@ -257,11 +230,11 @@ class TestCompletenessDagUnits(unittest.TestCase):
     def test_calculate_summary_stats_for_aoi(self):
         """This is an edge case where no actual products match expected"""
         output = calculate_metrics_for_all_regions(
-            "s2a", self.AOI_LIST, self.EXPECTED_PRODUCTS, self.ACTUAL_PRODUCTS2
+            self.AOI_LIST, self.EXPECTED_PRODUCTS, self.ACTUAL_PRODUCTS2
         )
         result = calculate_summary_stats_for_aoi(output)
-        self.assertEqual(result["expected"], 6)
-        self.assertEqual(result["missing"], 6)
+        self.assertEqual(result["expected"], 7)
+        self.assertEqual(result["missing"], 7)
         self.assertEqual(result["actual"], 0)
         self.assertAlmostEqual(result["completeness"], 0)
         self.assertEqual(result["latest_sat_acq_ts"], None)

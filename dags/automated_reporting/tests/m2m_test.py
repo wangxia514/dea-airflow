@@ -1,6 +1,7 @@
 """
 Test M2M Api Tasks
 """
+# pylint: skip-file
 
 import os
 import sys
