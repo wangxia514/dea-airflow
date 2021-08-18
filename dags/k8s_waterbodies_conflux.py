@@ -151,7 +151,6 @@ def k8s_job_task(dag):
                                 dedent(
                                     """
                                     echo Default region $AWS_DEFAULT_REGION
-                                    yes > /dev/null
                                     dea-conflux run-from-queue -v \
                                             --plugin examples/waterbodies.conflux.py \
                                             --queue {queue} \
