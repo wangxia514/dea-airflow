@@ -14,16 +14,6 @@ from infra.variables import SECRET_EXPLORER_WRITER_NAME
 
 from infra.variables import SECRET_DBA_ADMIN_NAME
 
-EXPLORER_SANDBOX_SECRETS = [
-    Secret("env", "DB_USERNAME", SECRET_DBA_ADMIN_NAME, "postgres-username"),
-    Secret("env", "DB_PASSWORD", SECRET_DBA_ADMIN_NAME, "postgres-password"),
-]
-
-EXPLORER_SECRETS = [
-    Secret("env", "DB_USERNAME", SECRET_EXPLORER_WRITER_NAME, "postgres-username"),
-    Secret("env", "DB_PASSWORD", SECRET_EXPLORER_WRITER_NAME, "postgres-password"),
-]
-
 
 def explorer_refresh_operator(products, forcerefresh=False, sandboxdb=False, dag=None):
     """
@@ -35,6 +25,16 @@ def explorer_refresh_operator(products, forcerefresh=False, sandboxdb=False, dag
       For example: `{{ dag_run.conf.products }}` would allows manual execution, passing in a space separated string
       of products
     """
+    EXPLORER_SANDBOX_SECRETS = [
+        Secret("env", "DB_USERNAME", SECRET_DBA_ADMIN_NAME, "postgres-username"),
+        Secret("env", "DB_PASSWORD", SECRET_DBA_ADMIN_NAME, "postgres-password"),
+    ]
+
+    EXPLORER_SECRETS = [
+        Secret("env", "DB_USERNAME", SECRET_EXPLORER_WRITER_NAME, "postgres-username"),
+        Secret("env", "DB_PASSWORD", SECRET_EXPLORER_WRITER_NAME, "postgres-password"),
+    ]
+
     if isinstance(products, Sequence) and not isinstance(products, str):
         products = " ".join(products)
 
