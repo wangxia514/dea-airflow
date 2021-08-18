@@ -85,7 +85,7 @@ dag = DAG(
 with dag:
     EXPLORER_SUMMARY = explorer_refresh_operator(
         "{{ dag_run.conf.products }}",
-        "{{ dag_run.conf.forcerefresh }}",
-        "{{ dag_run.conf.sandboxdb }}",
+        "{{ dag_run.conf.forcerefresh if dag_run.conf['forcerefresh'] }}",
+        "{{ dag_run.conf.sandboxdb if dag_run.conf['sandboxdb'] }}",
         dag=dag,
     )
