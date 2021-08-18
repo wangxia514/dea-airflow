@@ -151,7 +151,7 @@ def k8s_job_task(dag):
                                 dedent(
                                     """
                                     echo Default region $AWS_DEFAULT_REGION
-                                    dea-conflux run-from-queue \
+                                    dea-conflux run-from-queue -v \
                                             --plugin examples/waterbodies.conflux.py \
                                             --queue {queue} \
                                             --shapefile s3://dea-public-data/projects/WaterBodies/moree-test/AusWaterBodies_Moree.shp \
