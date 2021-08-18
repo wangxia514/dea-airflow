@@ -29,7 +29,7 @@ dag_run.conf format:
 If there are datasets manually deleted, dag run can take a flag
 
     {
-        "products": "product_a product_b"
+        "products": "product_a product_b",
         "forcerefresh": "True"
     }
 
