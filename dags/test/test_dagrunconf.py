@@ -60,38 +60,24 @@ def parse_dagrun_conf(a=False, b=False, c=False, **kwargs):
     return a, b, c
 
 
-def r_pythonoperator(a=False, b=False, c=False):
+def r_pythonoperator(a=False, b=False, c=False, task_name=""):
     """testing behaviour"""
     if a:
-        return BashOperator(
-            task_id="test_bash",
-            bash_command="echo a"
-            # provide_context=True,
-        )
+        bash_command = "echo a"
     if b:
-        return BashOperator(
-            task_id="test_bash",
-            bash_command="echo b"
-            # provide_context=True,
-        )
+        bash_command = "echo b"
     if c:
-        return BashOperator(
-            task_id="test_bash",
-            bash_command="echo c"
-            # provide_context=True,
-        )
+        bash_command = "echo c"
     if not (a and b and c):
-        return BashOperator(
-            task_id="test_bash",
-            bash_command="echo not a b c"
-            # provide_context=True,
-        )
+        bash_command = "echo not a b c"
     else:
-        return BashOperator(
-            task_id="test_bash",
-            bash_command="echo else"
-            # provide_context=True,
-        )
+        bash_command = "echo else"
+
+    return BashOperator(
+        task_id=task_name,
+        bash_command=bash_command,
+        # provide_context=True,
+    )
 
 
 SET_REFRESH_PRODUCT_TASK_NAME = "parse_dagrun_conf"
@@ -103,10 +89,14 @@ with dag:
         a="{{ dag_run.conf['a'] }}",
         b="{{ dag_run.conf.b }}",
         c="{{ dag_run.conf.c }}",
+        task_name="all_conf",
     )
 
     only_a = r_pythonoperator(
         a="{{ dag_run.conf['a'] }}",
+        task_name="only_a",
     )
 
-    no_conf = r_pythonoperator()
+    no_conf = r_pythonoperator(
+        task_name="no_conf",
+    )
