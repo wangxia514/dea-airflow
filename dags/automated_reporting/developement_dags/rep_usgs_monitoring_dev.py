@@ -14,13 +14,14 @@ from datetime import datetime as dt, timedelta, timezone
 
 from airflow import DAG
 from airflow.configuration import conf
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python import PythonOperator
 from airflow.models import Variable
 from airflow.hooks.base_hook import BaseHook
 
 from automated_reporting.variables import M2M_API_REP_CREDS
 from automated_reporting import connections
 from automated_reporting.databases import schemas
+from automated_reporting.utilities import helpers
 
 # Tasks
 from automated_reporting.tasks.check_db import task as check_db_task
@@ -51,20 +52,14 @@ dag = DAG(
     concurrency=1,
 )
 
-AUX_DATA_FOLDER = os.path.join(
+aux_data_path = os.path.join(
     pathlib.Path(conf.get("core", "dags_folder")).parent,
     "dags/automated_reporting/aux_data",
 )
-
 product_ids = ["landsat_etm_c2_l1", "landsat_ot_c2_l1"]
-
-rep_conn_obj = BaseHook.get_connection(connections.DB_REP_WRITER_CONN_DEV)
-rep_conn = dict(
-    user=rep_conn_obj.login,
-    password=rep_conn_obj.password,
-    host=rep_conn_obj.host,
-    dbname=rep_conn_obj.schema,
-    port=rep_conn_obj.port,
+m2m_credentials = Variable.get(M2M_API_REP_CREDS, deserialize_json=True)
+rep_conn = helpers.parse_connection(
+    BaseHook.get_connection(connections.DB_REP_WRITER_CONN_DEV)
 )
 
 
@@ -81,8 +76,8 @@ with dag:
     # Acquisitions from M2M Api
     acquisitions_kwargs = {
         "product_ids": product_ids,
-        "m2m_credentials": Variable.get(M2M_API_REP_CREDS, deserialize_json=True),
-        "aux_data_path": AUX_DATA_FOLDER,
+        "m2m_credentials": m2m_credentials,
+        "aux_data_path": aux_data_path,
     }
     usgs_acquisitions = PythonOperator(
         task_id="usgs_acquisitions",
@@ -94,7 +89,7 @@ with dag:
     # Completeness and Latency Metrics
     check_db_kwargs_completeness = {
         "expected_schema": schemas.USGS_COMPLETENESS_SCHEMA,
-        "connection_id": connections.DB_REP_WRITER_CONN_DEV,
+        "rep_conn": rep_conn,
     }
     check_db_completeness = PythonOperator(
         task_id="check_db_schema_completeness",
@@ -102,7 +97,7 @@ with dag:
         op_kwargs=check_db_kwargs_completeness,
     )
 
-    completeness_kwargs = {"connection_id": connections.DB_REP_WRITER_CONN_DEV}
+    completeness_kwargs = {"rep_conn": rep_conn, "aux_data_path": aux_data_path}
     usgs_completeness = PythonOperator(
         task_id="usgs_completeness",
         python_callable=usgs_completeness_task,
@@ -112,7 +107,7 @@ with dag:
 
     check_db_kwargs_latency = {
         "expected_schema": schemas.LATENCY_SCHEMA,
-        "connection_id": connections.DB_REP_WRITER_CONN_DEV,
+        "rep_conn": rep_conn,
     }
     check_db_latency = PythonOperator(
         task_id="check_db_schema_latency",
@@ -120,7 +115,7 @@ with dag:
         op_kwargs=check_db_kwargs_latency,
     )
 
-    latency_kwargs = {"connection_id": connections.DB_REP_WRITER_CONN_DEV}
+    latency_kwargs = {"rep_conn": rep_conn}
     usgs_latency = PythonOperator(
         task_id="latency",
         python_callable=latency_from_completeness_task,

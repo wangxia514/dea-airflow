@@ -1,14 +1,10 @@
 """
 Task to calculate USGS NRT completeness using S3 listings and Stac API query
 """
-import os
-from pathlib import Path
 import logging
 from datetime import timedelta, timezone
-
+import psycopg2
 from psycopg2.errors import UniqueViolation  # pylint: disable-msg=E0611
-from airflow.configuration import conf
-from airflow.hooks.postgres_hook import PostgresHook
 
 from automated_reporting.utilities import helpers
 
@@ -117,25 +113,6 @@ def completeness_comparison_all(stacApi, s3Listing, wrsPathRowList, logger):
     )
 
 
-def landsat_path_row(filePath):
-    """
-    Get list of path rows from file
-    :param filePath: file path of path row list
-    :return: wrsPathRowList
-    """
-
-    root = Path(conf.get("core", "dags_folder")).parent
-    wrsPathRowList = []
-
-    with open(os.path.join(root, filePath)) as f:
-        reader = f.readlines()
-
-        for row in reader:
-            wrsPathRowList.append(row[0:7])
-
-    return wrsPathRowList
-
-
 def filter_aoi(wrsPathRowList, stacApiData, s3List):
     """
     Filter out those outside of AOI
@@ -164,7 +141,7 @@ def filter_aoi(wrsPathRowList, stacApiData, s3List):
 
 
 def gen_sql_completeness_path_row(
-    connection_id,
+    rep_conn,
     pathRowCounterMatrix,
     productId,
     satAcqTime,
@@ -180,7 +157,7 @@ def gen_sql_completeness_path_row(
     :param lastUpdated: Last updated time of query
     :return:
     """
-    conn, cursor = open_cursor(connection_id)
+    conn, cursor = open_cursor(rep_conn)
 
     for row in pathRowCounterMatrix:
         geoRef = row[0]
@@ -227,7 +204,7 @@ def gen_sql_completeness_path_row(
 
 
 def gen_sql_completeness(
-    connection_id,
+    rep_conn,
     geoRef,
     completeness,
     expectedCount,
@@ -249,7 +226,7 @@ def gen_sql_completeness(
     :param lastUpdated: the timestamp of this run
     :return: string to run query
     """
-    conn, cursor = open_cursor(connection_id)
+    conn, cursor = open_cursor(rep_conn)
 
     executionStr = """INSERT INTO reporting.completeness (geo_ref, completeness, expected_count, actual_count, product_id, sat_acq_time,
     processing_time, last_updated) VALUES (%s,%s,%s,%s,%s,%s,Null,%s) RETURNING id;"""
@@ -268,13 +245,13 @@ def gen_sql_completeness(
     return conn_commit(conn, cursor)
 
 
-def gen_m2m_api_inserts(connection_id, stacApiMatrix):
+def gen_m2m_api_inserts(rep_conn, stacApiMatrix):
     """
     Insert STAC API metadata into DB
     :param stacApiMatrix:
     :return:
     """
-    conn, cursor = open_cursor(connection_id)
+    conn, cursor = open_cursor(rep_conn)
     for row in stacApiMatrix:
         executionStr = """INSERT INTO landsat.usgs_l1_nrt_c2_stac_listing (scene_id, wrs_path, wrs_row,
         collection_category, collection_number, sat_acq) VALUES (%s,%s,%s,%s,%s,%s) ON CONFLICT DO NOTHING;"""
@@ -285,19 +262,19 @@ def gen_m2m_api_inserts(connection_id, stacApiMatrix):
     return conn_commit(conn, cursor)
 
 
-def get_stac_metadata(connection_id, start_time, end_time):
+def get_stac_metadata(rep_conn, mission, start_time, end_time):
     """
     Get last 30 days of stac metadata from DB
     :return: stacAPI data
     """
-    executionStr = """SELECT * FROM landsat.usgs_l1_nrt_c2_stac_listing WHERE sat_acq > %s AND sat_acq <= %s;"""
-    params = (start_time, end_time)
+    executionStr = """SELECT * FROM landsat.usgs_l1_nrt_c2_stac_listing WHERE scene_id like %s AND sat_acq > %s AND sat_acq <= %s;"""
+    params = (mission, start_time, end_time)
 
-    results = data_select(connection_id, executionStr, params)
+    results = data_select(rep_conn, executionStr, params)
     return results
 
 
-def get_s3_listing(connection_id, pipeline, start_time, end_time):
+def get_s3_listing(rep_conn, pipeline, start_time, end_time):
     """
     Get last 30 days of stac metadata from DB
     :param pipeline: Name of pipeline to get data from e.g. L7C2
@@ -306,17 +283,16 @@ def get_s3_listing(connection_id, pipeline, start_time, end_time):
     executionStr = """SELECT scene_id FROM landsat.ga_s3_level1_nrt_s3_listing
     WHERE last_updated > %s AND last_updated <= %s AND pipeline = %s;"""
     params = (start_time, end_time, pipeline)
-    return data_select(connection_id, executionStr, params)
+    return data_select(rep_conn, executionStr, params)
 
 
 # Open database connection
-def open_cursor(connection_id):
+def open_cursor(connection_parameters):
     """
     Open database connection
     :return: conn, cursor
     """
-    rep_pg_hook = PostgresHook(postgres_conn_id=connection_id)
-    conn = rep_pg_hook.get_conn()
+    conn = psycopg2.connect(**connection_parameters)
     cursor = conn.cursor()
     return conn, cursor
 
@@ -375,13 +351,13 @@ def conn_commit(conn, cursor):
         return
 
 
-def data_select(connection_id, query, params):
+def data_select(rep_conn, query, params):
     """
     Get selected data
     :param query:
     :return:
     """
-    conn, cursor = open_cursor(connection_id)
+    conn, cursor = open_cursor(rep_conn)
     cursor.execute(query, params)
     return cursor.fetchall()
 
@@ -408,7 +384,7 @@ def convert_m2m_to_matrix(acquisitions):
     return matrix_output
 
 
-def task(execution_date, connection_id, task_instance, **kwargs):
+def task(execution_date, rep_conn, task_instance, aux_data_path, **kwargs):
     """
     Main function
     :return:
@@ -431,8 +407,7 @@ def task(execution_date, connection_id, task_instance, **kwargs):
     logger.info("Starting reporting workflow for Landsat L1 NRT")
 
     # Get path row list
-    file_path = "dags/automated_reporting/aux_data/landsat_l1_path_row_list.txt"
-    wrsPathRowList = landsat_path_row(file_path)
+    wrsPathRowList = helpers.get_aoi_list(aux_data_path, "landsat_l1_path_row_list.txt")
     logger.info("Loaded Path Row Listing")
     latency_results = []
 
@@ -443,21 +418,21 @@ def task(execution_date, connection_id, task_instance, **kwargs):
     logger.info(
         "Inserting USGS inventory into DB: {} acquisitions".format(len(m2mApiMatrix))
     )
-    gen_m2m_api_inserts(connection_id, m2mApiMatrix)
+    gen_m2m_api_inserts(rep_conn, m2mApiMatrix)
 
     for mission in missions:
 
         logger.info("Get last 30 days USGS inventory from DB: {}".format(mission[0]))
-        stacApiData = get_stac_metadata(connection_id, start_time, end_time)
+        logger.info("Checking GA S3 Listing: {}".format(mission[0]))
 
         if mission[0] == "LANDSAT_8":
-            logger.info("Checking GA S3 Listing: {}".format(mission[0]))
-            s3List = get_s3_listing(connection_id, "L8C2", start_time, execution_date)
+            stacApiData = get_stac_metadata(rep_conn, "LC8%", start_time, end_time)
+            s3List = get_s3_listing(rep_conn, "L8C2", start_time, execution_date)
             logger.debug("GA-S3 Listing: {} - {}".format(mission[0], s3List))
             productId = "usgs_ls8c_level1_nrt_c2"
         elif mission[0] == "LANDSAT_7":
-            logger.info("Checking GA S3 Listing: {}".format(mission[0]))
-            s3List = get_s3_listing(connection_id, "L7C2", start_time, execution_date)
+            stacApiData = get_stac_metadata(rep_conn, "LE7%", start_time, end_time)
+            s3List = get_s3_listing(rep_conn, "L7C2", start_time, execution_date)
             logger.debug("GA-S3 Listing: {} - {}".format(mission[0], s3List))
             productId = "usgs_ls7e_level1_nrt_c2"
 
@@ -487,7 +462,7 @@ def task(execution_date, connection_id, task_instance, **kwargs):
             completeness = None
 
         gen_sql_completeness(
-            connection_id,
+            rep_conn,
             "all_ls",
             completeness,
             expectedCount,
@@ -514,7 +489,7 @@ def task(execution_date, connection_id, task_instance, **kwargs):
         )
         logger.info("Missing Matrix - {}".format(missingMatrix))
         gen_sql_completeness_path_row(
-            connection_id,
+            rep_conn,
             pathRowCounterMatrix,
             productId,
             "Null",
