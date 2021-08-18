@@ -99,8 +99,14 @@ CHECK_DAGRUN_CONFIG = "check_dagrun_config"
 
 with dag:
 
-    r_pythonoperator(
+    all_conf = r_pythonoperator(
         a="{{ dag_run.conf['a'] }}",
         b="{{ dag_run.conf.b }}",
         c="{{ dag_run.conf.c }}",
     )
+
+    only_a = r_pythonoperator(
+        a="{{ dag_run.conf['a'] }}",
+    )
+
+    no_conf = r_pythonoperator()
