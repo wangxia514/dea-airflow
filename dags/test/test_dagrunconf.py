@@ -64,11 +64,11 @@ def r_pythonoperator(a=None, b=None, c=None, task_name=""):
     """testing behaviour"""
     if a:
         bash_command = "echo a"
-    if b:
+    elif b:
         bash_command = "echo b"
-    if c:
+    elif c:
         bash_command = "echo c"
-    if not (a and b and c):
+    elif not (a and b and c):
         bash_command = "echo not a b c"
     else:
         bash_command = "echo else"
@@ -86,19 +86,19 @@ CHECK_DAGRUN_CONFIG = "check_dagrun_config"
 with dag:
 
     all_conf = r_pythonoperator(
-        a="{{ dag_run.conf['a'] }}",
-        b="{{ dag_run.conf.b }}",
-        c="{{ dag_run.conf.c }}",
+        "{{ dag_run.conf['a'] }}",
+        "{{ dag_run.conf.b }}",
+        "{{ dag_run.conf.c }}",
         task_name="all_conf",
     )
 
     only_a_via_dict = r_pythonoperator(
-        a="{{ dag_run.conf['a'] }}",
+        "{{ dag_run.conf['a'] }}",
         task_name="only_a_via_dict",
     )
 
     only_a_via_get = r_pythonoperator(
-        a="{{ dag_run.conf.a }}",
+        "{{ dag_run.conf.a }}",
         task_name="only_a_via_get",
     )
 
