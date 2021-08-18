@@ -3,11 +3,9 @@ Utilities for odc db queries
 """
 
 import logging
+import psycopg2
 from datetime import timedelta
 
-from airflow.hooks.postgres_hook import PostgresHook
-
-from infra.connections import DB_ODC_READER_CONN
 from automated_reporting.utilities import helpers
 from automated_reporting.databases import sql
 
@@ -21,9 +19,8 @@ SQL_QUERY = {
 }
 
 
-def query(product_id, execution_date, days):
+def query(connection_parameters, product_id, execution_date, days):
     """Query odc for a product id, date and number of days"""
-    odc_pg_hook = PostgresHook(postgres_conn_id=DB_ODC_READER_CONN)
 
     execution_date = helpers.python_dt(execution_date)
 
@@ -42,7 +39,7 @@ def query(product_id, execution_date, days):
     actual_products = []
     try:
         # open the connection to the AWS ODC and get a cursor
-        with odc_pg_hook.get_conn() as odc_conn:
+        with psycopg2.connect(**connection_parameters) as odc_conn:
             with odc_conn.cursor() as odc_cursor:
                 odc_cursor.execute(
                     SQL_QUERY[product_id],
@@ -81,15 +78,14 @@ def query(product_id, execution_date, days):
     return actual_products
 
 
-def query_stepped(product_id, execution_date, steps):
+def query_stepped(connection_parameters, product_id, execution_date, steps):
     """Query odc progressively until a result is returned"""
 
-    odc_pg_hook = PostgresHook(postgres_conn_id=DB_ODC_READER_CONN)
     odc_conn = None
     results = []
     try:
         # open the connection to the AWS ODC and get a cursor
-        with odc_pg_hook.get_conn() as odc_conn:
+        with psycopg2.connect(**connection_parameters) as odc_conn:
             with odc_conn.cursor() as odc_cursor:
 
                 # Loop through the time_delta list until we get some data back. Prevents returning a huge amount of data unecessarily from ODC.

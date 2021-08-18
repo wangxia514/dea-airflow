@@ -9,7 +9,7 @@ from automated_reporting.databases import reporting_db
 log = logging.getLogger("airflow.task")
 
 
-def task(connection_id, execution_date, **kwargs):
+def task(rep_conn, execution_date, **kwargs):
     """
     Task for inserting latency from the latest completeness record
     """
@@ -19,4 +19,4 @@ def task(connection_id, execution_date, **kwargs):
 
     latency_results = kwargs["task_instance"].xcom_pull(task_ids="usgs_completeness")
     if latency_results:
-        reporting_db.insert_latency_list(connection_id, latency_results, execution_date)
+        reporting_db.insert_latency_list(rep_conn, latency_results, execution_date)

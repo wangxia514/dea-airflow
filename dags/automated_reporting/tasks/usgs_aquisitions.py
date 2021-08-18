@@ -2,20 +2,11 @@
 Task for pulling acquisitions USGS L0/L1 from USGS from APIs and making them availbale to
 subsequent tasks.
 """
-import os
 import logging
 
-from automated_reporting.utilities import m2m_api
+from automated_reporting.utilities import m2m_api, helpers
 
 log = logging.getLogger("airflow.task")
-
-
-def get_aoi_list(aux_data_path, file_name):
-    """
-    Open an AOI file and read names into Python list
-    """
-    with open(os.path.join(aux_data_path, file_name)) as f:
-        return f.read().splitlines()
 
 
 def task(product_ids, execution_date, m2m_credentials, aux_data_path, **kwargs):
@@ -36,7 +27,7 @@ def task(product_ids, execution_date, m2m_credentials, aux_data_path, **kwargs):
 
         # Filter to AOI
         # We searched by bounding box, so lets filter further to the optimised AOI lists
-        aoi_list = get_aoi_list(aux_data_path, "landsat_l1_path_row_list.txt")
+        aoi_list = helpers.get_aoi_list(aux_data_path, "landsat_l1_path_row_list.txt")
         results = [r for r in results if r["wrs2"] in aoi_list]
 
         # Log results of M2M query

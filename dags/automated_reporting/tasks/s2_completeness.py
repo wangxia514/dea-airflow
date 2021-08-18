@@ -1,11 +1,7 @@
 """
 Task for s2 completeness calculations
 """
-import os
 import logging
-from pathlib import Path
-
-from airflow.configuration import conf
 
 from automated_reporting.utilities import helpers
 from automated_reporting.utilities import copernicus_api
@@ -171,19 +167,19 @@ def log_results(sensor, summary, output):
         )
     )
     # log region level completeness and latency
-    # for record in output:
-    #     log.info(
-    #         "{} - {} - {}:{}:{}".format(
-    #             sensor,
-    #             record["region_id"],
-    #             record["expected"],
-    #             record["actual"],
-    #             record["missing"],
-    #         )
-    #     )
-    #     # log missing granule ids for each tile
-    #     for scene_id in record["missing_ids"]:
-    #         log.info("    Missing:{}".format(scene_id))
+    for record in output:
+        log.debug(
+            "{} - {} - {}:{}:{}".format(
+                sensor,
+                record["region_id"],
+                record["expected"],
+                record["actual"],
+                record["missing"],
+            )
+        )
+        # log missing granule ids for each tile
+        for scene_id in record["missing_ids"]:
+            log.debug("    Missing:{}".format(scene_id))
 
 
 def generate_db_writes(product_id, summary, output, execution_date):
@@ -252,31 +248,25 @@ def swap_in_parent(product_list):
     return product_list
 
 
-def get_aoi_list():
-    """
-    Get optimised aoi list from file
-    """
-    file_path = "dags/automated_reporting/aux_data/sentinel2_aoi_list.txt"
-    root = Path(conf.get("core", "dags_folder")).parent
-    with open(os.path.join(root, file_path)) as f:
-        return f.read().splitlines()
-
-
 # Task callable
-def task_wo(execution_date, days, connection_id, **kwargs):
+def task_wo(execution_date, days, rep_conn, odc_conn, aux_data_path, **kwargs):
     """
     Task to compute Sentinel2 WO completeness
     """
 
     # query ODC for for all S2 ARD products for last X days
-    expected_products_odc = odc_db.query("s2a_nrt_granule", execution_date, days)
-    expected_products_odc += odc_db.query("s2b_nrt_granule", execution_date, days)
+    expected_products_odc = odc_db.query(
+        odc_conn, "s2a_nrt_granule", execution_date, days
+    )
+    expected_products_odc += odc_db.query(
+        odc_conn, "s2b_nrt_granule", execution_date, days
+    )
 
     # streamline the ODC results back to match the Copernicus query
     expected_products = streamline_with_copericus_format(expected_products_odc)
 
     # get a optimised tile list of AOI
-    aoi_list = get_aoi_list()
+    aoi_list = helpers.get_aoi_list(aux_data_path, "sentinel2_aoi_list.txt")
     log.info("Loaded AOI tile list: {} tiles found".format(len(aoi_list)))
 
     # a list of tuples to store values before writing to database
@@ -288,7 +278,7 @@ def task_wo(execution_date, days, connection_id, **kwargs):
     log.info("Computing completeness for: {}".format(sensor))
 
     # query ODC for all S2 L1 products for last X days
-    actual_products = odc_db.query(sensor, execution_date, days)
+    actual_products = odc_db.query(odc_conn, sensor, execution_date, days)
 
     # swap granule_id and parent_id
     actual_products = swap_in_parent(actual_products)
@@ -313,7 +303,7 @@ def task_wo(execution_date, days, connection_id, **kwargs):
     )
 
     # write records to reporting database
-    reporting_db.insert_completeness(connection_id, db_completeness_writes)
+    reporting_db.insert_completeness(rep_conn, db_completeness_writes)
     log.info(
         "Inserting completeness output to reporting DB: {} records".format(
             len(db_completeness_writes)
@@ -324,16 +314,26 @@ def task_wo(execution_date, days, connection_id, **kwargs):
 
 
 # Task callable
-def task_ard(execution_date, days, connection_id, **kwargs):
+def task_ard(
+    execution_date,
+    days,
+    rep_conn,
+    odc_conn,
+    aux_data_path,
+    copernicus_api_credentials,
+    **kwargs
+):
     """
     Task to compute Sentinel2 ARD completeness
     """
 
     # query Copernicus API for for all S2 L1 products for last X days
-    expected_products = copernicus_api.query(execution_date, days)
+    expected_products = copernicus_api.query(
+        execution_date, days, copernicus_api_credentials
+    )
 
     # get a optimised tile list of AOI
-    aoi_list = get_aoi_list()
+    aoi_list = helpers.get_aoi_list(aux_data_path, "sentinel2_aoi_list.txt")
     log.info("Loaded AOI tile list: {} tiles found".format(len(aoi_list)))
 
     # a list of tuples to store values before writing to database
@@ -346,7 +346,7 @@ def task_ard(execution_date, days, connection_id, **kwargs):
 
         # query ODC for all S2 L1 products for last X days
         actual_products = odc_db.query(
-            "{}_nrt_granule".format(sensor), execution_date, days
+            odc_conn, "{}_nrt_granule".format(sensor), execution_date, days
         )
 
         # filter expected products on sensor (just for completeness between lo and l1)
@@ -374,7 +374,7 @@ def task_ard(execution_date, days, connection_id, **kwargs):
         )
 
     # write records to reporting database
-    reporting_db.insert_completeness(connection_id, db_completeness_writes)
+    reporting_db.insert_completeness(rep_conn, db_completeness_writes)
     log.info(
         "Inserting completeness output to reporting DB: {} records".format(
             len(db_completeness_writes)

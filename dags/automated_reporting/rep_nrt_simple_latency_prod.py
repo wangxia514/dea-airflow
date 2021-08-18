@@ -8,16 +8,21 @@ This DAG extracts latest timestamp values for a list of products in AWS ODC. It:
 
 """
 
+import os
+import pathlib
 import logging
 from datetime import datetime as dt
 from datetime import timedelta, timezone
 
 from airflow import DAG
+from airflow.configuration import conf
 from airflow.operators.python import PythonOperator
+from airflow.hooks.base_hook import BaseHook
 
 from automated_reporting import connections
-
 from automated_reporting.databases import schemas
+from automated_reporting.utilities import helpers
+from infra import connections as infra_connections
 
 # Tasks
 from automated_reporting.tasks.check_db import task as check_db_task
@@ -44,14 +49,23 @@ dag = DAG(
     schedule_interval=timedelta(minutes=15),
 )
 
+aux_data_path = os.path.join(
+    pathlib.Path(conf.get("core", "dags_folder")).parent,
+    "dags/automated_reporting/aux_data",
+)
+rep_conn = helpers.parse_connection(
+    BaseHook.get_connection(connections.DB_REP_WRITER_CONN_PROD)
+)
+odc_conn = helpers.parse_connection(
+    BaseHook.get_connection(infra_connections.DB_ODC_READER_CONN)
+)
+
 with dag:
 
     # Tasks
-    schema = schemas.LATENCY_SCHEMA
-
     check_db_kwargs = {
-        "expected_schema": schema,
-        "connection_id": connections.DB_REP_WRITER_CONN_PROD,
+        "expected_schema": schemas.LATENCY_SCHEMA,
+        "rep_conn": rep_conn,
     }
     check_db = PythonOperator(
         task_id="check_db_schema",
@@ -67,7 +81,8 @@ with dag:
         Function to generate PythonOperator tasks with id based on `product_name`
         """
         latency_kwargs = {
-            "connection_id": connections.DB_REP_WRITER_CONN_PROD,
+            "rep_conn": rep_conn,
+            "odc_conn": odc_conn,
             "product_name": product_name,
         }
         return PythonOperator(
