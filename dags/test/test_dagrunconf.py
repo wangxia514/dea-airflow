@@ -100,7 +100,7 @@ CHECK_DAGRUN_CONFIG = "check_dagrun_config"
 with dag:
 
     r_pythonoperator(
-        "{{ dag_run.conf.a }}",
-        "{{ dag_run.conf.b }}",
-        "{{ dag_run.conf.c }}",
+        a="{{ dag_run.conf.a }}",
+        b="{{ dag_run.conf.b }}",
+        c="{{ dag_run.conf.c }}",
     )
