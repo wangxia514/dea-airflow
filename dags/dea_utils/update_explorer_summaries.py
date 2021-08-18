@@ -12,6 +12,13 @@ from infra.images import EXPLORER_IMAGE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.variables import SECRET_EXPLORER_WRITER_NAME
 
+from infra.variables import SECRET_DBA_ADMIN_NAME
+
+EXPLORER_SANDBOX_SECRETS = [
+    Secret("env", "DB_USERNAME", SECRET_DBA_ADMIN_NAME, "postgres-username"),
+    Secret("env", "DB_PASSWORD", SECRET_DBA_ADMIN_NAME, "postgres-password"),
+]
+
 EXPLORER_SECRETS = [
     Secret("env", "DB_USERNAME", SECRET_EXPLORER_WRITER_NAME, "postgres-username"),
     Secret("env", "DB_PASSWORD", SECRET_EXPLORER_WRITER_NAME, "postgres-password"),
@@ -46,12 +53,7 @@ def explorer_refresh_operator(products, forcerefresh=False, sandboxdb=False, dag
 
     if sandboxdb:
         dag.default_args.get("env_vars", {}).update({"DB_DATABASE": "sandbox"})
-        from infra.variables import SECRET_DBA_ADMIN_NAME
-
-        EXPLORER_SECRETS = [
-            Secret("env", "DB_USERNAME", SECRET_DBA_ADMIN_NAME, "postgres-username"),
-            Secret("env", "DB_PASSWORD", SECRET_DBA_ADMIN_NAME, "postgres-password"),
-        ]
+        EXPLORER_SECRETS = EXPLORER_SANDBOX_SECRETS
 
     return KubernetesPodOperator(
         namespace="processing",
