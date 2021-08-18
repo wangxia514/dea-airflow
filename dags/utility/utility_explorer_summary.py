@@ -25,6 +25,14 @@ dag_run.conf format:
         "products": "s2a_nrt_granule s2b_nrt_granule"
     }
 
+## Advanced usage
+If there are datasets manually deleted, dag run can take a flag
+
+    {
+        "products": "product_a product_b"
+        "forcerefresh": "True"
+    }
+
 """
 
 from airflow import DAG
@@ -71,4 +79,6 @@ dag = DAG(
 
 with dag:
 
-    EXPLORER_SUMMARY = explorer_refresh_operator("{{ dag_run.conf.products }}")
+    EXPLORER_SUMMARY = explorer_refresh_operator(
+        "{{ dag_run.conf.products }}", "{{ dag_run.conf.forcerefresh }}"
+    )

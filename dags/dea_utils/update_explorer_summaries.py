@@ -16,7 +16,7 @@ EXPLORER_SECRETS = [
 ]
 
 
-def explorer_refresh_operator(products):
+def explorer_refresh_operator(products, forcerefresh=False):
     """
     Sets up a Task to Refresh Datacube Explorer
 
@@ -36,6 +36,14 @@ def explorer_refresh_operator(products):
         "-c",
         f"cubedash-gen -v --no-init-database --refresh-stats {products}",
     ]
+
+    if forcerefresh:
+        EXPLORER_BASH_COMMAND = [
+            "bash",
+            "-c",
+            f"cubedash-gen -v --no-init-database --force-refresh {products}",
+        ]
+
     return KubernetesPodOperator(
         namespace="processing",
         image=EXPLORER_IMAGE,
