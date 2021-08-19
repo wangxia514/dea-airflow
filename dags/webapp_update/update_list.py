@@ -22,7 +22,6 @@ EXPLORER_UPDATE_LIST = (
     "s2a_ard_granule",
     "s2b_ard_granule",
     "wofs_albers",
-    "ls5_fc_albers",
     "ls7_fc_albers",
     "ls8_fc_albers",
     "ga_ls_wo_3",
