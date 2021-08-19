@@ -24,7 +24,6 @@ INDEXING_PRODUCTS = (
     "s2a_nrt_granule",
     "s2b_nrt_granule",
     "wofs_albers",
-    "ls5_fc_albers",
     "ls7_fc_albers",
     "ls8_fc_albers",
     "ga_s2am_ard_provisional_3",
