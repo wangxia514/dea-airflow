@@ -111,3 +111,8 @@ with dag:
     EXPLORER_SUMMARY_FORCE_REFRESH = explorer_forcerefresh_operator(
         "{{ dag_run.conf.products }}",
     )
+
+    EXPLORER_CMD_DECIDER >> [
+        EXPLORER_SUMMARY_FORCE_REFRESH,
+        EXPLORER_SUMMARY_REFRESH_STATS,
+    ]
