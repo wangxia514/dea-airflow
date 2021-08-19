@@ -114,7 +114,7 @@ def explorer_sandboxdb_forcerefresh_operator(products, dag=None):
     EXPLORER_BASH_COMMAND = [
         "bash",
         "-c",
-        f"cubedash-gen -v --no-init-database --refresh-stats {products}",
+        f"cubedash-gen -v --no-init-database --force-refresh {products}",
     ]
 
     return KubernetesPodOperator(
