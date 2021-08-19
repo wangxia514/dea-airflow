@@ -74,9 +74,9 @@ def check_dagrun_config(forcerefresh, **kwargs):
     determine task needed to perform
     """
     if forcerefresh:
-        return EXPLORER_SUMMARY_FORCE_REFRESH
+        return EXPLORER_SUMMARY_FORCE_REFRESH_TASK_ID
     else:
-        return EXPLORER_SUMMARY_REFRESH_STATS
+        return EXPLORER_SUMMARY_REFRESH_STATS_TASK_ID
 
 
 # THE DAG
@@ -91,6 +91,8 @@ dag = DAG(
 
 CHECK_DAGRUN_CONFIG = "check_dagrun_config"
 
+EXPLORER_SUMMARY_FORCE_REFRESH_TASK_ID = "explorer-force-refresh-summary-task"
+EXPLORER_SUMMARY_REFRESH_STATS_TASK_ID = "explorer-summary-task"
 
 with dag:
 
