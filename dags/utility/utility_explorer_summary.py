@@ -50,6 +50,9 @@ from infra.variables import (
 
 DAG_NAME = "utility_explorer-refresh-stats"
 
+EXPLORER_SUMMARY_FORCE_REFRESH_TASK_ID = "explorer-force-refresh-summary-task"
+EXPLORER_SUMMARY_REFRESH_STATS_TASK_ID = "explorer-summary-task"
+
 # DAG CONFIGURATION
 DEFAULT_ARGS = {
     "owner": "Pin Jin",
@@ -91,8 +94,6 @@ dag = DAG(
 
 CHECK_DAGRUN_CONFIG = "check_dagrun_config"
 
-EXPLORER_SUMMARY_FORCE_REFRESH_TASK_ID = "explorer-force-refresh-summary-task"
-EXPLORER_SUMMARY_REFRESH_STATS_TASK_ID = "explorer-summary-task"
 
 with dag:
 
