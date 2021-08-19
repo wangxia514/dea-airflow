@@ -16,9 +16,7 @@ EXPLORER_SECRETS = [
 ]
 
 
-def explorer_refresh_operator(
-    products, forcerefresh=False, task_name="explorer-refresh-stats-task"
-):
+def explorer_refresh_operator(products, forcerefresh=False):
     """
     Sets up a Task to Refresh Datacube Explorer
 
@@ -53,7 +51,43 @@ def explorer_refresh_operator(
         secrets=EXPLORER_SECRETS,
         labels={"app": "explorer-refresh-stats"},
         name="explorer-summary",
-        task_id=task_name,
+        task_id="explorer-summary-task",
+        get_logs=True,
+        is_delete_operator_pod=True,
+        affinity=ONDEMAND_NODE_AFFINITY,
+        log_events_on_failure=True,
+    )
+
+
+def explorer_forcerefresh_operator(products):
+    """
+    Sets up a Task to Refresh Datacube Explorer
+
+    Expects to be run within the context of a DAG
+
+    The `products` argument can either be:
+    - a list of products to refresh
+    - a string, which may include Airflow template syntax which is filled in when the DAG is executed.
+      For example: `{{ dag_run.conf.products }}` would allows manual execution, passing in a space separated string
+      of products
+    """
+    if isinstance(products, Sequence) and not isinstance(products, str):
+        products = " ".join(products)
+
+    EXPLORER_BASH_COMMAND = [
+        "bash",
+        "-c",
+        f"cubedash-gen -v --no-init-database --force-refresh {products}",
+    ]
+
+    return KubernetesPodOperator(
+        namespace="processing",
+        image=EXPLORER_IMAGE,
+        arguments=EXPLORER_BASH_COMMAND,
+        secrets=EXPLORER_SECRETS,
+        labels={"app": "explorer-refresh-stats"},
+        name="explorer-summary",
+        task_id="explorer-force-refresh-summary-task",
         get_logs=True,
         is_delete_operator_pod=True,
         affinity=ONDEMAND_NODE_AFFINITY,

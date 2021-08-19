@@ -38,7 +38,10 @@ If there are datasets manually deleted, dag run can take a flag
 from airflow import DAG
 from datetime import datetime, timedelta
 from airflow.operators.python_operator import BranchPythonOperator
-from dea_utils.update_explorer_summaries import explorer_refresh_operator
+from dea_utils.update_explorer_summaries import (
+    explorer_refresh_operator,
+    explorer_forcerefresh_operator,
+)
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
@@ -102,8 +105,6 @@ with dag:
     EXPLORER_SUMMARY_REFRESH_STATS = explorer_refresh_operator(
         "{{ dag_run.conf.products }}"
     )
-    EXPLORER_SUMMARY_FORCE_REFRESH = explorer_refresh_operator(
+    EXPLORER_SUMMARY_FORCE_REFRESH = explorer_forcerefresh_operator(
         "{{ dag_run.conf.products }}",
-        forcerefresh=True,
-        task_name="explorer-force-refresh-task",
     )
