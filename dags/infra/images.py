@@ -18,7 +18,7 @@ WAGL_IMAGE = (
     "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:release-20210526a"
 )
 
-WAGL_IMAGE_POC = "geoscienceaustralia/dea-wagl-docker:latest"
+WAGL_IMAGE_POC = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/geoscienceaustralia/dea-wagl-docker:latest"
 
 # UNSTABLE IMAGES
 EXPLORER_UNSTABLE_IMAGE = "opendatacube/explorer:2.5.0-3-gd9f5a67"
