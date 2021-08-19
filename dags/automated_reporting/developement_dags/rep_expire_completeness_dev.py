@@ -65,6 +65,7 @@ with dag:
         "ga_s2a_msi_ard_c3",
         "ga_s2b_msi_ard_c3",
         "usgs_ls8c_level1_nrt_c2",
+        "usgs_ls7e_level1_nrt_c2",
         "ga_s2_wo_3",
     ]
 
