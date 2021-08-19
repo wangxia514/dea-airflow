@@ -16,7 +16,9 @@ EXPLORER_SECRETS = [
 ]
 
 
-def explorer_refresh_operator(products, forcerefresh=False):
+def explorer_refresh_operator(
+    products, forcerefresh=False, task_name="explorer-refresh-stats-task"
+):
     """
     Sets up a Task to Refresh Datacube Explorer
 
@@ -51,7 +53,7 @@ def explorer_refresh_operator(products, forcerefresh=False):
         secrets=EXPLORER_SECRETS,
         labels={"app": "explorer-refresh-stats"},
         name="explorer-summary",
-        task_id="explorer-summary-task",
+        task_id=task_name,
         get_logs=True,
         is_delete_operator_pod=True,
         affinity=ONDEMAND_NODE_AFFINITY,

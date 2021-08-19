@@ -103,5 +103,7 @@ with dag:
         "{{ dag_run.conf.products }}"
     )
     EXPLORER_SUMMARY_FORCE_REFRESH = explorer_refresh_operator(
-        "{{ dag_run.conf.products }}", forcerefresh=True
+        "{{ dag_run.conf.products }}",
+        forcerefresh=True,
+        task_name="explorer-force-refresh-task",
     )
