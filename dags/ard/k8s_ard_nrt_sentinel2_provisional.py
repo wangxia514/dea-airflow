@@ -25,7 +25,7 @@ from infra.connections import AWS_WAGL_NRT_CONN
 from infra.images import WAGL_IMAGE_POC, S3_TO_RDS_IMAGE
 from infra.pools import WAGL_TASK_POOL
 from infra.s3_buckets import S2_NRT_SOURCE_BUCKET, S2_NRT_TRANSFER_BUCKET
-from infra.sns_notifications import PUBLISH_S2_NRT_SNS
+from infra.sns_notifications import PUBLIC_ARD_NRT_S2_PROVISIONAL_SNS
 from infra.sqs_queues import ARD_NRT_S2_PROVISIONAL_PROCESS_SCENE_QUEUE
 from infra.variables import S2_NRT_AWS_CREDS
 
@@ -288,28 +288,6 @@ def finish_up(**context):
         ReceiptHandle=message["ReceiptHandle"],
     )
 
-    msg = task_instance.xcom_pull(
-        task_ids=f"dea-s2-wagl-nrt-{index}", key="return_value"
-    )
-
-    if msg == {}:
-        _LOG.info("dataset already existed, did not get processed by this DAG")
-        return
-
-    dataset_location = msg["dataset"]
-    parsed = urlparse(dataset_location)
-    _LOG.info("dataset location: %s", dataset_location)
-
-    s3 = get_s3()
-    _LOG.info("bucket: %s", parsed.netloc)
-    _LOG.info("key: %s", parsed.path.lstrip("/"))
-    response = s3.get_object(Bucket=parsed.netloc, Key=parsed.path.lstrip("/"))
-    body = json.dumps(yaml.load(response["Body"], Loader=NoDatesSafeLoader), indent=2)
-
-    _LOG.info("publishing to SNS: %s", body)
-    sns_hook = AwsSnsHook(aws_conn_id=AWS_WAGL_NRT_CONN)
-    sns_hook.publish_to_target(PUBLISH_S2_NRT_SNS, body)
-
 
 pipeline = DAG(
     "k8s_ard_nrt_sentinel2_provisional",
@@ -390,6 +368,7 @@ with pipeline:
                 + str(index)
                 + "', key='args')['granule_id'] }}",
                 S3_PREFIX,
+                PUBLIC_ARD_NRT_S2_PROVISIONAL_SNS,
                 EXPLORER_URL,
             ],
             labels={
