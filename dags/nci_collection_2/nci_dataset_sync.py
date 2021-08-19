@@ -75,6 +75,7 @@ with DAG(
     default_args=c2_default_args,
     catchup=False,
     schedule_interval=c2_schedule_interval,
+    concurrency=4,  # Limit the number of active tasks.
     tags=["nci", "landsat_c2"],
     default_view="tree",
 ) as dag:
@@ -91,11 +92,15 @@ with DAG(
             },
             do_xcom_push=True,
             timeout=5 * MINUTES,  # For running SSH Commands
+            weight_rule="upstream",  # Prefer completing downstream tasks before upstream tasks. We want to wait for
+            # PBS Jobs to complete before scheduling more. They tend to timeout when running
+            # too many at once.
         )
 
         wait_for_completion = PBSJobSensor(
             task_id=f"wait_for_{product}",
             pbs_job_id="{{ ti.xcom_pull(task_ids='submit_sync_%s') }}" % product,
+            weight_rule="upstream",
         )
 
         START >> submit_sync >> wait_for_completion
