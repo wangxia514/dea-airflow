@@ -87,7 +87,7 @@ DEFAULT_ARGS = {
 }
 
 
-def check_dagrun_config(forcerefresh, sandboxdb, **kwargs):
+def check_dagrun_config(forcerefresh=False, sandboxdb=False, **kwargs):
     """
     determine task needed to perform
     """
