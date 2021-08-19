@@ -4,18 +4,15 @@ Run ARD NRT pipeline for Sentinel-2 (provisional) in Airflow.
 import json
 import logging
 from datetime import datetime, timedelta
-from urllib.parse import urlparse
 
 from kubernetes.client.models import V1Volume, V1VolumeMount
 from kubernetes.client import models as k8s
-import yaml
 
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
-from airflow.providers.amazon.aws.hooks.sns import AwsSnsHook
 from airflow.providers.amazon.aws.hooks.sqs import SQSHook
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
@@ -28,11 +25,6 @@ from infra.s3_buckets import S2_NRT_SOURCE_BUCKET, S2_NRT_TRANSFER_BUCKET
 from infra.sns_topics import PUBLISH_ARD_NRT_S2_PROVISIONAL_SNS
 from infra.sqs_queues import ARD_NRT_S2_PROVISIONAL_PROCESS_SCENE_QUEUE
 from infra.variables import S2_NRT_AWS_CREDS
-
-try:
-    from yaml import CSafeLoader as SafeLoader  # type: ignore
-except ImportError:
-    from yaml import SafeLoader  # type: ignore
 
 _LOG = logging.getLogger()
 
@@ -248,32 +240,6 @@ def receive_task(**context):
         return f"dea-s2-wagl-nrt-copy-scene-{index}"
 
 
-class NoDatesSafeLoader(SafeLoader):  # pylint: disable=too-many-ancestors
-    """
-    class doc string
-    """
-
-    @classmethod
-    def remove_implicit_resolver(cls, tag_to_remove):
-        """
-        Removes implicit resolvers for a particular tag
-        Takes care not to modify resolvers in super classes.
-        We want to load datetimes as strings, not dates. We go on to
-        serialise as json which doesn't have the advanced types of
-        yaml, and leads to slightly different objects down the track.
-        """
-        if "yaml_implicit_resolvers" not in cls.__dict__:
-            cls.yaml_implicit_resolvers = cls.yaml_implicit_resolvers.copy()
-
-        for first_letter, mappings in cls.yaml_implicit_resolvers.items():
-            cls.yaml_implicit_resolvers[first_letter] = [
-                (tag, regexp) for tag, regexp in mappings if tag != tag_to_remove
-            ]
-
-
-NoDatesSafeLoader.remove_implicit_resolver("tag:yaml.org,2002:timestamp")
-
-
 def finish_up(**context):
     """Delete the SQS message to mark completion, broadcast to SNS."""
     task_instance = context["task_instance"]
@@ -287,28 +253,6 @@ def finish_up(**context):
         QueueUrl=ARD_NRT_S2_PROVISIONAL_PROCESS_SCENE_QUEUE,
         ReceiptHandle=message["ReceiptHandle"],
     )
-
-    msg = task_instance.xcom_pull(
-        task_ids=f"dea-s2-wagl-nrt-{index}", key="return_value"
-    )
-
-    if msg == {}:
-        _LOG.info("dataset already existed, did not get processed by this DAG")
-        return
-
-    dataset_location = msg["dataset"]
-    parsed = urlparse(dataset_location)
-    _LOG.info("dataset location: %s", dataset_location)
-
-    s3 = get_s3()
-    _LOG.info("bucket: %s", parsed.netloc)
-    _LOG.info("key: %s", parsed.path.lstrip("/"))
-    response = s3.get_object(Bucket=parsed.netloc, Key=parsed.path.lstrip("/"))
-    body = json.dumps(yaml.load(response["Body"], Loader=NoDatesSafeLoader), indent=2)
-
-    _LOG.info("publishing to SNS: %s", body)
-    sns_hook = AwsSnsHook(aws_conn_id=AWS_WAGL_NRT_CONN)
-    sns_hook.publish_to_target(PUBLISH_ARD_NRT_S2_PROVISIONAL_SNS, body)
 
 
 pipeline = DAG(
@@ -390,6 +334,7 @@ with pipeline:
                 + str(index)
                 + "', key='args')['granule_id'] }}",
                 S3_PREFIX,
+                PUBLISH_ARD_NRT_S2_PROVISIONAL_SNS,
                 EXPLORER_URL,
             ],
             labels={
@@ -409,7 +354,6 @@ with pipeline:
             volumes=[ancillary_volume],
             volume_mounts=[ancillary_volume_mount],
             execution_timeout=timedelta(minutes=180),
-            do_xcom_push=True,
             is_delete_operator_pod=True,
         )
 
