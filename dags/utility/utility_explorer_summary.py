@@ -87,7 +87,7 @@ DEFAULT_ARGS = {
 }
 
 
-def check_dagrun_config(forcerefresh, sandboxdb, **kwargs):
+def check_dagrun_config(forcerefresh="", sandboxdb="", **kwargs):
     """
     determine task needed to perform
     """
@@ -117,10 +117,10 @@ with dag:
     EXPLORER_CMD_DECIDER = BranchPythonOperator(
         task_id=CHECK_DAGRUN_CONFIG,
         python_callable=check_dagrun_config,
-        op_args=[
-            "{{ dag_run.conf.forcerefresh }}",
-            "{{ dag_run.conf.sandboxdb }}",
-        ],
+        op_kwargs={
+            "forcerefresh": "{% if dag_run.conf.get('forcerefresh') %} {{ dag_run.conf.forcerefresh }} {% endif %}",
+            "sandbox": "{% if dag_run.conf.get('sandbox') %} {{ dag_run.conf.sandboxdb }} {% endif %}",
+        },
     )
 
     EXPLORER_SUMMARY_REFRESH_STATS = explorer_refresh_operator(
