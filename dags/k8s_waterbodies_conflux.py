@@ -1,7 +1,6 @@
 """
 DEA Waterbodies processing using Conflux.
 """
-from collections import OrderedDict
 from datetime import datetime, timedelta
 
 # import json
@@ -156,8 +155,8 @@ def k8s_job_task(dag):
                                             --queue {queue} \
                                             --shapefile s3://dea-public-data/projects/WaterBodies/moree-test/AusWaterBodies_Moree.shp \
                                             --output s3://dea-public-data-dev/waterbodies/conflux/moree-test/
-                                    """.format(queue=f"waterbodies_conflux_sqs")
-                                    ),
+                                    """.format(queue="waterbodies_conflux_sqs")
+                                ),
                             ],
                             "env": [
                                 {"name": "DB_HOSTNAME", "value": DB_READER_HOSTNAME},
@@ -215,7 +214,7 @@ def k8s_job_task(dag):
     job_task = KubernetesJobOperator(
         image=CONFLUX_UNSTABLE_IMAGE,
         dag=dag,
-        task_id=f"waterbodies-conflux-run",
+        task_id="waterbodies-conflux-run",
         get_logs=True,
         body=yaml,
     )
@@ -235,14 +234,14 @@ def k8s_queue_push(dag):
             # Push the IDs to the queue.
             dea-conflux push-to-queue --txt ids.txt --queue {queue}
             """.format(
-                queue=f"waterbodies_conflux_sqs",
+                queue="waterbodies_conflux_sqs",
             )
         ),
     ]
     return KubernetesPodOperator(
         image=CONFLUX_UNSTABLE_IMAGE,
         dag=dag,
-        name=f"waterbodies-conflux-push",
+        name="waterbodies-conflux-push",
         arguments=cmd,
         image_pull_policy="IfNotPresent",
         labels={"app": "waterbodies-conflux-push"},
@@ -255,7 +254,7 @@ def k8s_queue_push(dag):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id=f"waterbodies-conflux-push",
+        task_id="waterbodies-conflux-push",
     )
 
 
@@ -297,7 +296,7 @@ def k8s_makequeue(dag):
     # TODO(MatthewJA): Use the name/ID of this DAG
     # to make sure that we don't double-up if we're
     # running two DAGs simultaneously.
-    queue_name = f"waterbodies_conflux_sqs"
+    queue_name = "waterbodies_conflux_sqs"
     makequeue_cmd = [
         "bash",
         "-c",
@@ -313,7 +312,7 @@ def k8s_makequeue(dag):
     ]
     makequeue = KubernetesPodOperator(
         image=WATERBODIES_UNSTABLE_IMAGE,
-        name=f"waterbodies-conflux-makequeue",
+        name="waterbodies-conflux-makequeue",
         arguments=makequeue_cmd,
         image_pull_policy="IfNotPresent",
         labels={"app": "waterbodies-conflux-makequeue"},
@@ -326,7 +325,7 @@ def k8s_makequeue(dag):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id=f"waterbodies-conflux-makequeue",
+        task_id="waterbodies-conflux-makequeue",
     )
     return makequeue
 
@@ -335,7 +334,7 @@ def k8s_delqueue(dag):
     # TODO(MatthewJA): Use the name/ID of this DAG
     # to make sure that we don't double-up if we're
     # running two DAGs simultaneously.
-    queue_name = f"waterbodies_conflux_sqs"
+    queue_name = "waterbodies_conflux_sqs"
     delqueue_cmd = [
         "bash",
         "-c",
@@ -351,7 +350,7 @@ def k8s_delqueue(dag):
     ]
     delqueue = KubernetesPodOperator(
         image=WATERBODIES_UNSTABLE_IMAGE,
-        name=f"waterbodies-conflux-delqueue",
+        name="waterbodies-conflux-delqueue",
         arguments=delqueue_cmd,
         image_pull_policy="IfNotPresent",
         labels={"app": "waterbodies-conflux-delqueue"},
@@ -364,7 +363,7 @@ def k8s_delqueue(dag):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id=f"waterbodies-conflux-delqueue",
+        task_id="waterbodies-conflux-delqueue",
     )
     return delqueue
 
