@@ -70,7 +70,7 @@ def explorer_forcerefresh_operator(products):
     EXPLORER_BASH_COMMAND = [
         "bash",
         "-c",
-        f"cubedash-gen -v --no-init-database --force-refresh {products}",
+        f"cubedash-gen -v --no-init-database --force-refresh —-recreate-dataset-extents {products}",
     ]
 
     return KubernetesPodOperator(
