@@ -100,9 +100,9 @@ with dag:
     EXPLORER_CMD_DECIDER = BranchPythonOperator(
         task_id=CHECK_DAGRUN_CONFIG,
         python_callable=check_dagrun_config,
-        op_args=[
-            "{{ dag_run.conf.forcerefresh }}",
-        ],
+        op_kwargs={
+            "forcerefresh": "{% if dag_run.conf.get('forcerefresh') %} {{ dag_run.conf.forcerefresh }} {% endif %}",
+        },
     )
 
     EXPLORER_SUMMARY_REFRESH_STATS = explorer_refresh_operator(
