@@ -119,7 +119,7 @@ with dag:
         python_callable=check_dagrun_config,
         op_kwargs={
             "forcerefresh": "{% if dag_run.conf.get('forcerefresh') %} {{ dag_run.conf.forcerefresh }} {% endif %}",
-            "sandbox": "{% if dag_run.conf.get('sandbox') %} {{ dag_run.conf.sandboxdb }} {% endif %}",
+            "sandboxdb": "{% if dag_run.conf.get('sandboxdb') %} {{ dag_run.conf.sandboxdb }} {% endif %}",
         },
     )
 
