@@ -26,7 +26,7 @@ if `b` is set to `true`, `task-b` is expected to run
 from datetime import timedelta
 
 from airflow import DAG
-from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
+from airflow.operators.python_operator import BranchPythonOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.utils.dates import days_ago
 
