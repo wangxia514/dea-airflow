@@ -186,7 +186,14 @@ def filter_scenes(**context):
     sqs = get_sqs()
     message = get_message(sqs, ARD_NRT_S2_FILTER_SCENE_QUEUE)
 
-    if message is None or region_code(message) not in australian_region_codes():
+    if message is None:
+        return f"nothing_to_do_{index}"
+
+    if region_code(message) not in australian_region_codes():
+        sqs.delete_message(
+            QueueUrl=ARD_NRT_S2_FILTER_SCENE_QUEUE,
+            ReceiptHandle=message["ReceiptHandle"],
+        )
         return f"nothing_to_do_{index}"
 
     msg_dict = decode(message)
