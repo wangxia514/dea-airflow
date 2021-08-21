@@ -202,8 +202,10 @@ def filter_scenes(**context):
 
     # delete me
     print("publishing message")
+    msg_str = json.dumps(msg_dict)
+    print(msg_str)
     sns_hook = AwsSnsHook(aws_conn_id=AWS_WAGL_NRT_CONN)
-    sns_hook.publish_to_target(PUBLISH_S2_NRT_FILTER_SNS, message)
+    sns_hook.publish_to_target(PUBLISH_S2_NRT_FILTER_SNS, msg_str)
     # end delete
 
     if region_code(message) not in australian_region_codes():
