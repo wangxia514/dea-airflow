@@ -201,10 +201,14 @@ def filter_scenes(**context):
         )
         return f"nothing_to_do_{index}"
 
+    print("received message")
+    print(message)
     msg_dict = decode(message)
+    print("content")
+    print(msg_dict)
     tile_info = get_tile_info(msg_dict)
     cmd = copy_cmd_tile(tile_info)
-    task_instance.xcom_push(key="message", value=msg_dict)
+    task_instance.xcom_push(key="message", value=message)
     task_instance.xcom_push(key="cmd", value=cmd)
     return f"dea-ard-nrt-sentinel2-copy-scene-{index}"
 
