@@ -10,7 +10,7 @@ from airflow import DAG
 from airflow import configuration
 
 from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators.python_operator import PythonBranchOperator, PythonOperator
+from airflow.operators.python_operator import BranchPythonOperator, PythonOperator
 from airflow.providers.amazon.aws.hooks.sqs import SQSHook
 from airflow.providers.amazon.aws.hooks.sns import AwsSnsHook
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
@@ -229,7 +229,7 @@ pipeline = DAG(
 
 with pipeline:
     for index in range(NUM_PARALLEL_PIPELINE):
-        FILTER = PythonBranchOperator(
+        FILTER = BranchPythonOperator(
             task_id=f"filter_scenes_{index}",
             python_callable=filter_scenes,
             op_kwargs={"index": index},
