@@ -200,6 +200,12 @@ def filter_scenes(**context):
     print("content")
     print(msg_dict)
 
+    # delete me
+    print("publishing message")
+    sns_hook = AwsSnsHook(aws_conn_id=AWS_WAGL_NRT_CONN)
+    sns_hook.publish_to_target(PUBLISH_S2_NRT_FILTER_SNS, message)
+    # end delete
+
     if region_code(message) not in australian_region_codes():
         sqs.delete_message(
             QueueUrl=ARD_NRT_S2_FILTER_SCENE_QUEUE,
