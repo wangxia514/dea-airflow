@@ -204,7 +204,7 @@ def filter_scenes(**context):
     msg_dict = decode(message)
     tile_info = get_tile_info(msg_dict)
     cmd = copy_cmd_tile(tile_info)
-    task_instance.xcom_push(key="message", value=message)
+    task_instance.xcom_push(key="message", value=msg_dict)
     task_instance.xcom_push(key="cmd", value=cmd)
     return f"dea-ard-nrt-sentinel2-copy-scene-{index}"
 
@@ -222,7 +222,6 @@ def finish_up(**context):
     )
 
     print("publishing message")
-    print(message)
     sns_hook = AwsSnsHook(aws_conn_id=AWS_WAGL_NRT_CONN)
     sns_hook.publish_to_target(PUBLISH_S2_NRT_FILTER_SNS, message)
 
