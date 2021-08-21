@@ -221,6 +221,8 @@ def finish_up(**context):
         QueueUrl=ARD_NRT_S2_FILTER_SCENE_QUEUE, ReceiptHandle=message["ReceiptHandle"]
     )
 
+    print("publishing message")
+    print(message)
     sns_hook = AwsSnsHook(aws_conn_id=AWS_WAGL_NRT_CONN)
     sns_hook.publish_to_target(PUBLISH_S2_NRT_FILTER_SNS, message)
 

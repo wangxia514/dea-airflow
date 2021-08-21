@@ -38,7 +38,7 @@ default_args = {
 }
 
 dag = DAG(
-    "k8s_wagl_modtran_test",
+    "k8s_ard_nrt_modtran_test",
     doc_md=__doc__,
     default_args=default_args,
     description="modtran6 image test",
