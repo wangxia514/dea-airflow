@@ -194,6 +194,12 @@ def filter_scenes(**context):
     if message is None:
         return f"nothing_to_do_{index}"
 
+    print("received message")
+    print(message)
+    msg_dict = decode(message)
+    print("content")
+    print(msg_dict)
+
     if region_code(message) not in australian_region_codes():
         sqs.delete_message(
             QueueUrl=ARD_NRT_S2_FILTER_SCENE_QUEUE,
@@ -201,11 +207,6 @@ def filter_scenes(**context):
         )
         return f"nothing_to_do_{index}"
 
-    print("received message")
-    print(message)
-    msg_dict = decode(message)
-    print("content")
-    print(msg_dict)
     tile_info = get_tile_info(msg_dict)
     cmd = copy_cmd_tile(tile_info)
     task_instance.xcom_push(key="message", value=message)
