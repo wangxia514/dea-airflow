@@ -13,6 +13,7 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import BranchPythonOperator, PythonOperator
 from airflow.providers.amazon.aws.hooks.sqs import SQSHook
 from airflow.providers.amazon.aws.hooks.sns import AwsSnsHook
+from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
@@ -23,6 +24,7 @@ from infra.connections import AWS_WAGL_NRT_CONN
 from infra.sqs_queues import ARD_NRT_S2_FILTER_SCENE_QUEUE
 from infra.sns_notifications import PUBLISH_S2_NRT_FILTER_SNS
 from infra.images import S3_TO_RDS_IMAGE
+from infra.variables import S2_NRT_AWS_CREDS
 
 AWS_CONN_ID = AWS_WAGL_NRT_CONN
 
@@ -42,6 +44,9 @@ default_args = {
     "email_on_retry": False,
     "retries": 0,
     "pool": WAGL_TASK_POOL,
+    "secrets": [
+        Secret("env", None, S2_NRT_AWS_CREDS),
+    ],
 }
 
 affinity = {
