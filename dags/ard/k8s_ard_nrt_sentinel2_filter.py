@@ -194,20 +194,6 @@ def filter_scenes(**context):
     if message is None:
         return f"nothing_to_do_{index}"
 
-    print("received message")
-    print(message)
-    msg_dict = decode(message)
-    print("content")
-    print(msg_dict)
-
-    # delete me
-    print("publishing message")
-    msg_str = json.dumps(msg_dict)
-    print(msg_str)
-    sns_hook = AwsSnsHook(aws_conn_id=AWS_WAGL_NRT_CONN)
-    sns_hook.publish_to_target(PUBLISH_S2_NRT_FILTER_SNS, msg_str)
-    # end delete
-
     if region_code(message) not in australian_region_codes():
         sqs.delete_message(
             QueueUrl=ARD_NRT_S2_FILTER_SCENE_QUEUE,
@@ -215,6 +201,7 @@ def filter_scenes(**context):
         )
         return f"nothing_to_do_{index}"
 
+    msg_dict = decode(message)
     tile_info = get_tile_info(msg_dict)
     cmd = copy_cmd_tile(tile_info)
     task_instance.xcom_push(key="message", value=message)
@@ -234,9 +221,10 @@ def finish_up(**context):
         QueueUrl=ARD_NRT_S2_FILTER_SCENE_QUEUE, ReceiptHandle=message["ReceiptHandle"]
     )
 
-    print("publishing message")
+    msg_dict = decode(message)
+    msg_str = json.dumps(msg_dict)
     sns_hook = AwsSnsHook(aws_conn_id=AWS_WAGL_NRT_CONN)
-    sns_hook.publish_to_target(PUBLISH_S2_NRT_FILTER_SNS, message)
+    sns_hook.publish_to_target(PUBLISH_S2_NRT_FILTER_SNS, msg_dict)
 
 
 pipeline = DAG(
