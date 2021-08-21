@@ -224,7 +224,7 @@ def finish_up(**context):
     msg_dict = decode(message)
     msg_str = json.dumps(msg_dict)
     sns_hook = AwsSnsHook(aws_conn_id=AWS_WAGL_NRT_CONN)
-    sns_hook.publish_to_target(PUBLISH_S2_NRT_FILTER_SNS, msg_dict)
+    sns_hook.publish_to_target(PUBLISH_S2_NRT_FILTER_SNS, msg_str)
 
 
 pipeline = DAG(
