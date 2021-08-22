@@ -27,9 +27,25 @@ The commands which are executed are:
 
 ### Sample Configuration
 
+Usecase A: Need to add a product then index its' datasets.
+
     {
         "product_definition_uri": "https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/master/products/lccs/lc_ls_c2.odc-product.yaml",
         "s3_glob": "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
+        "product_name": "lc_ls_landcover_class_cyear_2_0"
+    }
+
+Usecase B: Only needs to index additional datasets to an existing product.
+
+    {
+        "s3_glob": "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
+        "product_name": "lc_ls_landcover_class_cyear_2_0"
+    }
+
+Usecase C: Only need to add a product in this run, no datasets are ready for indexing.
+
+    {
+        "product_definition_uri": "https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/master/products/lccs/lc_ls_c2.odc-product.yaml",
         "product_name": "lc_ls_landcover_class_cyear_2_0"
     }
 
@@ -116,10 +132,10 @@ with dag:
     TASK_PLANNER = BranchPythonOperator(
         task_id=CHECK_DAGRUN_CONFIG,
         python_callable=check_dagrun_config,
-        op_args=[
-            "{{ dag_run.conf.product_definition_uri }}",
-            "{{ dag_run.conf.s3_glob }}",
-        ],
+        op_kwargs={
+            "product_definition_uri": "{% if dag_run.conf.get('product_definition_uri') %} {{ dag_run.conf.product_definition_uri }} {% endif %}",
+            "s3_glob": "{% if dag_run.conf.get('s3_glob') %} {{ dag_run.conf.s3_glob }} {% endif %}",
+        },
     )
 
     ADD_PRODUCT = KubernetesPodOperator(
