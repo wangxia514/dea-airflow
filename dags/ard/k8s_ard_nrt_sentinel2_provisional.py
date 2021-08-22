@@ -115,7 +115,9 @@ setup_logging()
 
 def decode(message):
     """Decode stringified message."""
-    return json.loads(message["Body"])
+    body_dict = json.loads(message["Body"])
+    msg_dict = json.loads(body_dict["Message"])
+    return msg_dict
 
 
 def get_tile_info(msg_dict):
