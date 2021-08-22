@@ -193,7 +193,7 @@ def receive_task(**context):
 
         task_instance.xcom_push(key="args", value=tile_args(tile_info))
 
-        return f"dea-s2-wagl-nrt-copy-scene-{index}"
+        return f"dea-ard-nrt-s2-provisional-{index}"
 
 
 def finish_up(**context):
@@ -236,7 +236,7 @@ with pipeline:
         RUN = KubernetesPodOperator(
             namespace="processing",
             name="dea-s2-wagl-nrt",
-            task_id=f"dea-s2-wagl-nrt-{index}",
+            task_id=f"dea-ard-nrt-s2-provisional-{index}",
             image_pull_policy="Always",
             # image_pull_policy="IfNotPresent",
             image=WAGL_IMAGE_POC,
