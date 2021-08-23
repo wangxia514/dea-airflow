@@ -55,7 +55,7 @@ MAX_ACTIVE_RUNS = 12
 
 # this should be 10 in dev for 10% capacity
 # then it would just discard the other 9 messages polled
-NUM_MESSAGES_TO_POLL = 1
+NUM_MESSAGES_TO_POLL = 10
 
 affinity = {
     "nodeAffinity": {
