@@ -8,16 +8,20 @@ SET search_path = 'agdc';
 SELECT Count(*)
 FROM   dataset_location dl
 WHERE  dl.dataset_ref in
-       (
+       ( -- SELECT all the dataset id that matches the WHERE Clause
             SELECT ds.id
             FROM   dataset ds
-            WHERE  ds.dataset_type_ref = (SELECT id
-                                        FROM   dataset_type dt
-                                        WHERE  dt.NAME = '{{ params.product_name }}')
-            AND ( ds.metadata -> 'extent' ->> 'center_dt' LIKE '1986%'
-                    OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1995%'
-                    OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1997%'
-                    OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1999%' )
+            WHERE  ds.dataset_type_ref = ( -- Limit the selection to a single product name
+                                            SELECT id
+                                            FROM   dataset_type dt
+                                            WHERE  dt.NAME = '{{ params.product_name }}'
+                                        )
+            AND ( -- select the years
+                ds.metadata -> 'extent' ->> 'center_dt' LIKE '1986%'
+                OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1995%'
+                OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1997%'
+                OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1999%'
+            )
         );
 
 -- -- -------------------------------------
@@ -26,30 +30,38 @@ WHERE  dl.dataset_ref in
 SELECT Count(*)
 FROM   dataset_source ds_source
 WHERE  ds_source.source_dataset_ref in
-       (
+       ( -- SELECT all the dataset id that matches the WHERE Clause
             SELECT ds.id
             FROM   dataset ds
-            WHERE  ds.dataset_type_ref = (SELECT id
-                                        FROM   dataset_type dt
-                                        WHERE  dt.NAME = '{{ params.product_name }}')
-            AND ( ds.metadata -> 'extent' ->> 'center_dt' LIKE '1986%'
+            WHERE  ds.dataset_type_ref = ( -- Limit the selection to a single product name
+                                            SELECT id
+                                            FROM   dataset_type dt
+                                            WHERE  dt.NAME = '{{ params.product_name }}'
+                                        )
+            AND ( -- select the years
+                    ds.metadata -> 'extent' ->> 'center_dt' LIKE '1986%'
                     OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1995%'
                     OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1997%'
-                    OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1999%' )
+                    OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1999%'
                 )
-
+        )
         OR
-        ds.dataset_ref in (
+        ds_source.dataset_ref in
+        ( -- SELECT all the dataset id that matches the WHERE Clause
             SELECT ds.id
             FROM   dataset ds
-            WHERE  ds.dataset_type_ref = (SELECT id
-                                        FROM   dataset_type dt
-                                        WHERE  dt.NAME = '{{ params.product_name }}')
-            AND ( ds.metadata -> 'extent' ->> 'center_dt' LIKE '1986%'
+            WHERE  ds.dataset_type_ref = ( -- Limit the selection to a single product name
+                                            SELECT id
+                                            FROM   dataset_type dt
+                                            WHERE  dt.NAME = '{{ params.product_name }}'
+                                        )
+            AND ( -- select the years
+                    ds.metadata -> 'extent' ->> 'center_dt' LIKE '1986%'
                     OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1995%'
                     OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1997%'
-                    OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1999%' )
-                );
+                    OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1999%'
+                )
+        );
 
 -- -------------------------------------
 -- -- finally delete datasets
@@ -70,26 +82,27 @@ WHERE
    )
    AND
    ( -- limit to the years for bad datasets
-(ds.metadata -> 'extent' ->> 'center_dt' LIKE '1986%'
-      AND ds.metadata -> 'extent' ->> 'from_dt' LIKE '1986%'
-      AND ds.metadata -> 'extent' ->> 'to_dt' LIKE '1986%')
-      OR
-      (
-         ds.metadata -> 'extent' ->> 'center_dt' LIKE '1995%'
-         AND ds.metadata -> 'extent' ->> 'from_dt' LIKE '1995%'
-         AND ds.metadata -> 'extent' ->> 'to_dt' LIKE '1995%'
-      )
-      OR
-      (
-         ds.metadata -> 'extent' ->> 'center_dt' LIKE '1997%'
-         AND ds.metadata -> 'extent' ->> 'from_dt' LIKE '1997%'
-         AND ds.metadata -> 'extent' ->> 'to_dt' LIKE '1997%'
-      )
-      OR
-      (
-         ds.metadata -> 'extent' ->> 'center_dt' LIKE '1999%'
-         AND ds.metadata -> 'extent' ->> 'from_dt' LIKE '1999%'
-         AND ds.metadata -> 'extent' ->> 'to_dt' LIKE '1999%'
-      )
-   )
-;
+        (
+            ds.metadata -> 'extent' ->> 'center_dt' LIKE '1986%'
+            AND ds.metadata -> 'extent' ->> 'from_dt' LIKE '1986%'
+            AND ds.metadata -> 'extent' ->> 'to_dt' LIKE '1986%'
+        )
+        OR
+        (
+            ds.metadata -> 'extent' ->> 'center_dt' LIKE '1995%'
+            AND ds.metadata -> 'extent' ->> 'from_dt' LIKE '1995%'
+            AND ds.metadata -> 'extent' ->> 'to_dt' LIKE '1995%'
+        )
+        OR
+        (
+            ds.metadata -> 'extent' ->> 'center_dt' LIKE '1997%'
+            AND ds.metadata -> 'extent' ->> 'from_dt' LIKE '1997%'
+            AND ds.metadata -> 'extent' ->> 'to_dt' LIKE '1997%'
+        )
+        OR
+        (
+            ds.metadata -> 'extent' ->> 'center_dt' LIKE '1999%'
+            AND ds.metadata -> 'extent' ->> 'from_dt' LIKE '1999%'
+            AND ds.metadata -> 'extent' ->> 'to_dt' LIKE '1999%'
+        )
+   );
