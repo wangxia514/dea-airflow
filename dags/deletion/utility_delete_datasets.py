@@ -105,7 +105,7 @@ WHERE  dl.dataset_ref in
     PostgresOperator(
         task_id="select_dataset_in_dt_years_sql_file",
         postgres_conn_id=DB_ODC_READER_CONN,
-        sql="selection_sql/selected_dt_years_dataset",
+        sql="selection_sql/selected_dt_years_dataset.sql",
         # params={"product_name": "{% if dag_run.conf.get('product_name') %}{{ dag_run.conf['product_name'] }}{% else %} 'ls5_fc_albers' {% endif %}" },
         params={"product_name": "ls5_fc_albers", "selected_year": "1986"},
     )
