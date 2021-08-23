@@ -38,3 +38,11 @@ From with automated_reporting venv:
       - Token is not the account password, it's a token associated to the account with limited privilege
       - The code is structured as a Python package (has a setup.py, etc.) in a subfolder within the repo
     - One issue with this is that the token is not obscured in the Airflow logs, but this should be solvable by modifying (sub-classing) the VirtualenvPythonOperator
+
+## M2M API
+For USGS acquisitions the USGS M2M API is now being used as STAC API seems to be still in a development phase. The library we use to query the API is at `dags/automated_reporting/utilities/m2m_api.py`. The API is well documented at `https://m2m.cr.usgs.gov/api/docs/reference/` (login required, register instantly with email).
+
+### Filters
+Filters are a bit complex in the M2M API, as you have to lookup the filter Id for the attribute that you wish to filter on. There is an API endpoint to see all the filters available for a particular dataset `https://m2m.cr.usgs.gov/api/docs/reference/#dataset-filters`. This can be called for a dataset using the API test page `https://m2m.cr.usgs.gov/api/test/json/`, which is useful for building up the desired filters.
+
+The scene filter section of the docs is also useful to undertsand how the filter payloads are structured `https://m2m.cr.usgs.gov/api/docs/datatypes/#sceneFilter`.

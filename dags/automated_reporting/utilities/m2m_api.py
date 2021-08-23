@@ -29,8 +29,8 @@ spatialFilter = {
     "upperRight": {"latitude": -5, "longitude": 160},
 }
 
+# See automated_reporting Readme for some docs on the M2M query format
 metadataFilter = {"filterType": "value", "filterId": "5e81f14fff5055a3", "value": "RT"}
-
 payload = {
     "datasetName": None,
     "maxResults": 100,
