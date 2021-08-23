@@ -30,7 +30,7 @@ The commands which are executed are:
     {
 
         "product_name": "ga_ls_wo_3",
-        "product_name": "1986",
+        "selected_year": "1986"
     }
 
 """
