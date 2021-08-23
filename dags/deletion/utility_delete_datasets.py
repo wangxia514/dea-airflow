@@ -72,6 +72,7 @@ dag = DAG(
 with dag:
 
     BranchSQLOperator(
+        task_id="select_dataset_in_years_branchsqloperator",
         conn_id=DB_ODC_READER_CONN,
         sql="""
         SELECT ds.metadata -> 'extent' ->> 'center_dt'
@@ -86,6 +87,7 @@ with dag:
     )
 
     SQLCheckOperator(
+        task_id="select_dataset_in_years_sqlcheckoperator",
         conn_id=DB_ODC_READER_CONN,
         sql="""
         SELECT count(ds.id)
