@@ -170,6 +170,15 @@ def get_message(sqs, url):
     if len(messages) == 0:
         return None
     else:
+        # dev only
+        for message in messages[1:]:
+            _LOG.info("ignoring %s", message["MessageId"])
+            sqs.delete_message(
+                QueueUrl=ARD_NRT_S2_PROVISIONAL_PROCESS_SCENE_QUEUE,
+                ReceiptHandle=message["ReceiptHandle"],
+            )
+        # end dev only
+
         return messages[0]
 
 
