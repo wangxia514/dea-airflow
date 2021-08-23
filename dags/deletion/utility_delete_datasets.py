@@ -23,7 +23,14 @@ The commands which are executed are:
 ### Sample Configuration
 
     {
-        "product_name": "lc_ls_landcover_class_cyear_2_0"
+        "product_name": "ls5_fc_albers",
+        "selected_year": "1986"
+    }
+
+    {
+
+        "product_name": "ga_ls_wo_3",
+        "product_name": "1986",
     }
 
 """
@@ -79,8 +86,8 @@ with dag:
         FROM   agdc.dataset ds
         WHERE  ds.dataset_type_ref = (SELECT id
                                     FROM   agdc.dataset_type dt
-                                    WHERE  dt.NAME = 'ls5_fc_albers')
-        AND ( ds.metadata -> 'extent' ->> 'center_dt' LIKE '1986%')
+                                    WHERE  dt.NAME = '{{ dag_run.conf['product_name'] }}')
+        AND ( ds.metadata -> 'extent' ->> 'center_dt' LIKE '{{ dag_run.conf['selected_year'] }}%')
         LIMIT 1;
         """,
         follow_task_ids_if_true="select_dataset_in_dt_years",
@@ -96,7 +103,7 @@ with dag:
         FROM   agdc.dataset ds
         WHERE  ds.dataset_type_ref = (SELECT id
                                     FROM   agdc.dataset_type dt
-                                    WHERE  dt.NAME = 'ls5_fc_albers')
+                                    WHERE  dt.NAME = '{{ dag_run.conf['product_name'] }}')
         """,
     )
 
@@ -124,7 +131,10 @@ WHERE  dl.dataset_ref in
         );
         """,
         # params={"product_name": "{% if dag_run.conf.get('product_name') %}{{ dag_run.conf['product_name'] }}{% else %} 'ls5_fc_albers' {% endif %}" },
-        params={"product_name": "ls5_fc_albers", "selected_year": "1986"},
+        params={
+            "product_name": "{{ dag_run.conf['product_name'] }}",
+            "selected_year": "{{ dag_run.conf['selected_year'] }}",
+        },
     )
 
     followB = PostgresOperator(
@@ -147,11 +157,14 @@ WHERE  dl.dataset_ref in
             WHERE  ds.dataset_type_ref = (SELECT id
                                         FROM   dataset_type dt
                                         WHERE  dt.NAME = '{{ params.product_name }}')
-            AND ( ds.metadata -> 'extent' ->> 'center_dt' LIKE '{{ params.selected_year }}%')
+            AND ( ds.metadata -> 'properties' ->> 'dtr:start_datetime' LIKE '{{ params.selected_year }}%')
         );
         """,
         # params={"product_name": "{% if dag_run.conf.get('product_name') %}{{ dag_run.conf['product_name'] }}{% else %} 'ls5_fc_albers' {% endif %}" },
-        params={"product_name": "ls5_fc_albers", "selected_year": "1986"},
+        params={
+            "product_name": "{{ dag_run.conf['product_name'] }}",
+            "selected_year": "{{ dag_run.conf['selected_year'] }}",
+        },
     )
 
     # PostgresOperator(
