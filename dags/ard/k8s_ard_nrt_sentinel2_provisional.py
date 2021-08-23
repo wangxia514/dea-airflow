@@ -21,7 +21,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 from infra.connections import AWS_WAGL_NRT_CONN
 from infra.images import WAGL_IMAGE_POC
 from infra.pools import WAGL_TASK_POOL
-from infra.s3_buckets import S2_NRT_SOURCE_BUCKET, S2_NRT_TRANSFER_BUCKET
+from infra.s3_buckets import S2_NRT_TRANSFER_BUCKET
 from infra.sns_notifications import PUBLISH_ARD_NRT_S2_PROVISIONAL_SNS
 from infra.sqs_queues import ARD_NRT_S2_PROVISIONAL_PROCESS_SCENE_QUEUE
 from infra.variables import S2_NRT_AWS_CREDS
