@@ -31,7 +31,12 @@ class testClass(unittest.TestCase):
     def test_explorer_utility_dag(self):
         self.assertDagDictEqual(
             {
+                "check_dagrun_config": [
+                    "explorer-summary-task",
+                    "explorer-force-refresh-summary-task",
+                ],
                 "explorer-summary-task": [],
+                "explorer-force-refresh-summary-task": [],
             },
             explorer_utility_dag,
         )
