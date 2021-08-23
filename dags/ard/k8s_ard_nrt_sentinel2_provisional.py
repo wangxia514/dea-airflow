@@ -19,9 +19,9 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 )
 
 from infra.connections import AWS_WAGL_NRT_CONN
-from infra.images import WAGL_IMAGE_POC, S3_TO_RDS_IMAGE
+from infra.images import WAGL_IMAGE_POC
 from infra.pools import WAGL_TASK_POOL
-from infra.s3_buckets import S2_NRT_SOURCE_BUCKET, S2_NRT_TRANSFER_BUCKET
+from infra.s3_buckets import S2_NRT_TRANSFER_BUCKET
 from infra.sns_topics import PUBLISH_ARD_NRT_S2_PROVISIONAL_SNS
 from infra.sqs_queues import ARD_NRT_S2_PROVISIONAL_PROCESS_SCENE_QUEUE
 from infra.variables import S2_NRT_AWS_CREDS
@@ -115,52 +115,9 @@ setup_logging()
 
 def decode(message):
     """Decode stringified message."""
-    return json.loads(message["Body"])
-
-
-def copy_cmd_tile(tile_info):
-    """The bash scipt to run to copy the tile over to the cache bucket."""
-    datastrip = tile_info["datastrip"]
-    path = tile_info["path"]
-    granule_id = tile_info["granule_id"]
-
-    cmd = f"""
-    set -e
-
-    if ! aws s3api head-object --bucket {S2_NRT_TRANSFER_BUCKET} --key {datastrip}/.done 2> /dev/null; then
-        mkdir -p /transfer/{granule_id}
-        echo sinergise -> disk [datastrip]
-        aws s3 sync --only-show-errors --request-payer requester \\
-                s3://{S2_NRT_SOURCE_BUCKET}/{datastrip} /transfer/{granule_id}/{datastrip}
-        echo disk -> cache [datastrip]
-        aws s3 sync --only-show-errors \\
-                /transfer/{granule_id}/{datastrip} s3://{S2_NRT_TRANSFER_BUCKET}/{datastrip}
-        touch /transfer/{granule_id}/{datastrip}/.done
-        aws s3 cp \\
-                /transfer/{granule_id}/{datastrip}/.done s3://{S2_NRT_TRANSFER_BUCKET}/{datastrip}/.done
-    else
-        echo s3://{S2_NRT_TRANSFER_BUCKET}/{datastrip} already exists
-    fi
-
-    if ! aws s3api head-object --bucket {S2_NRT_TRANSFER_BUCKET} --key {path}/.done 2> /dev/null; then
-        mkdir -p /transfer/{granule_id}
-        echo sinergise -> disk [path]
-        aws s3 sync --only-show-errors --request-payer requester \\
-                s3://{S2_NRT_SOURCE_BUCKET}/{path} /transfer/{granule_id}/{path}
-        echo disk -> cache [path]
-        aws s3 sync --only-show-errors \\
-                /transfer/{granule_id}/{path} s3://{S2_NRT_TRANSFER_BUCKET}/{path}
-        touch /transfer/{granule_id}/{path}/.done
-        aws s3 cp \\
-                /transfer/{granule_id}/{path}/.done s3://{S2_NRT_TRANSFER_BUCKET}/{path}/.done
-    else
-        echo s3://{S2_NRT_TRANSFER_BUCKET}/{path} already exists
-    fi
-
-    rm -rf /transfer/{granule_id}
-    """
-
-    return cmd
+    body_dict = json.loads(message["Body"])
+    msg_dict = json.loads(body_dict["Message"])
+    return msg_dict
 
 
 def get_tile_info(msg_dict):
@@ -234,10 +191,9 @@ def receive_task(**context):
         msg_dict = decode(message)
         tile_info = get_tile_info(msg_dict)
 
-        task_instance.xcom_push(key="cmd", value=copy_cmd_tile(tile_info))
         task_instance.xcom_push(key="args", value=tile_args(tile_info))
 
-        return f"dea-s2-wagl-nrt-copy-scene-{index}"
+        return f"dea-s2-ard-nrt-s2-provisional-{index}"
 
 
 def finish_up(**context):
@@ -277,43 +233,10 @@ with pipeline:
             provide_context=True,
         )
 
-        COPY = KubernetesPodOperator(
-            namespace="processing",
-            name="dea-s2-wagl-nrt-copy-scene",
-            task_id=f"dea-s2-wagl-nrt-copy-scene-{index}",
-            image_pull_policy="Always",
-            # image_pull_policy="IfNotPresent",
-            image=S3_TO_RDS_IMAGE,
-            affinity=affinity,
-            tolerations=tolerations,
-            startup_timeout_seconds=600,
-            volumes=[ancillary_volume],
-            volume_mounts=[ancillary_volume_mount],
-            cmds=[
-                "bash",
-                "-c",
-                "{{ task_instance.xcom_pull(task_ids='receive_task_"
-                + str(index)
-                + "', key='cmd') }}",
-            ],
-            labels={
-                "runner": "airflow",
-                "product": "Sentinel-2",
-                "app": "nrt",
-                "stage": "copy-scene",
-            },
-            resources={
-                "request_cpu": "1000m",
-                "request_memory": "2Gi",
-            },
-            get_logs=True,
-            is_delete_operator_pod=True,
-        )
-
         RUN = KubernetesPodOperator(
             namespace="processing",
             name="dea-s2-wagl-nrt",
-            task_id=f"dea-s2-wagl-nrt-{index}",
+            task_id=f"dea-s2-ard-nrt-s2-provisional-{index}",
             image_pull_policy="Always",
             # image_pull_policy="IfNotPresent",
             image=WAGL_IMAGE_POC,
@@ -366,5 +289,5 @@ with pipeline:
 
         NOTHING = DummyOperator(task_id=f"nothing_to_do_{index}")
 
-        SENSOR >> COPY >> RUN >> FINISH
+        SENSOR >> RUN >> FINISH
         SENSOR >> NOTHING
