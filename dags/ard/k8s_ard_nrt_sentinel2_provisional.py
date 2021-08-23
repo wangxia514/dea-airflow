@@ -157,7 +157,9 @@ def get_s3():
 def get_message(sqs, url):
     """Receive one message with an estimated completion time set."""
     response = sqs.receive_message(
-        QueueUrl=url, VisibilityTimeout=ESTIMATED_COMPLETION_TIME, MaxNumberOfMessages=1
+        QueueUrl=url,
+        VisibilityTimeout=ESTIMATED_COMPLETION_TIME,
+        MaxNumberOfMessages=NUM_MESSAGES_TO_POLL,
     )
 
     if "Messages" not in response:
