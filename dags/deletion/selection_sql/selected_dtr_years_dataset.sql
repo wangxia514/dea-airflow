@@ -2,11 +2,6 @@
 -- SQL to Delete datasets from product in year (Y1, Y2)
 --------------------------------------
 SET search_path = 'agdc';
------------------------------------
--- test
------------------------------------
-select * from agdc.dataset;
-
 -------------------------------------
 -- Matching dataset location and delete
 -------------------------------------

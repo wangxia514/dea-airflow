@@ -74,15 +74,10 @@ with dag:
         task_id="select_dataset_in_years",
         postgres_conn_id=DB_ODC_READER_CONN,
         sql="""
-        --------------------------------------
+--------------------------------------
 -- SQL to Delete datasets from product in year (Y1, Y2)
 --------------------------------------
 SET search_path = 'agdc';
------------------------------------
--- test
------------------------------------
-select * from agdc.dataset;
-
 -------------------------------------
 -- Matching dataset location and delete
 -------------------------------------
