@@ -75,11 +75,12 @@ with dag:
         task_id="select_dataset_in_years_branchsqloperator",
         conn_id=DB_ODC_READER_CONN,
         sql="""
-        SELECT ds.metadata -> 'extent' ->> 'center_dt'
+        SELECT count(*)
         FROM   agdc.dataset ds
         WHERE  ds.dataset_type_ref = (SELECT id
                                     FROM   agdc.dataset_type dt
                                     WHERE  dt.NAME = 'ls5_fc_albers')
+        AND ( ds.metadata -> 'extent' ->> 'center_dt' LIKE '1986%')
         LIMIT 1;
         """,
         follow_task_ids_if_true="select_dataset_in_dt_years",
@@ -92,9 +93,9 @@ with dag:
         conn_id=DB_ODC_READER_CONN,
         sql="""
         SELECT count(ds.id)
-        FROM   dataset ds
+        FROM   agdc.dataset ds
         WHERE  ds.dataset_type_ref = (SELECT id
-                                    FROM   dataset_type dt
+                                    FROM   agdc.dataset_type dt
                                     WHERE  dt.NAME = 'ls5_fc_albers')
         """,
     )
@@ -115,9 +116,9 @@ FROM   dataset_location dl
 WHERE  dl.dataset_ref in
        (
             SELECT ds.id
-            FROM   dataset ds
+            FROM   agdc.dataset ds
             WHERE  ds.dataset_type_ref = (SELECT id
-                                        FROM   dataset_type dt
+                                        FROM   agdc.dataset_type dt
                                         WHERE  dt.NAME = '{{ params.product_name }}')
             AND ( ds.metadata -> 'extent' ->> 'center_dt' LIKE '{{ params.selected_year }}%')
         );
