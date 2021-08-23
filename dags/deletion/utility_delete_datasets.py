@@ -28,7 +28,6 @@ The commands which are executed are:
     }
 
     {
-
         "product_name": "ga_ls_wo_3",
         "selected_year": "1986"
     }
