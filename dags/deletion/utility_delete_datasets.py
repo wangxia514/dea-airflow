@@ -72,32 +72,29 @@ dag = DAG(
 with dag:
 
     BranchSQLOperator(
-        task_id="select_dataset_in_years",
-        postgres_conn_id=DB_ODC_READER_CONN,
+        conn_id=DB_ODC_READER_CONN,
         sql="""
         SELECT ds.metadata -> 'extent' ->> 'center_dt'
         FROM   dataset ds
         WHERE  ds.dataset_type_ref = (SELECT id
                                     FROM   dataset_type dt
-                                    WHERE  dt.NAME = '{{ params.product_name }}')
+                                    WHERE  dt.NAME = 'ls5_fc_albers')
         LIMIT 1;
         """,
         follow_task_ids_if_true="select_dataset_in_dt_years",
         follow_task_ids_if_false="select_dataset_in_dtr_years",
-        params={"product_name": "ls5_fc_albers", "selected_year": "1986"},
     )
 
     SQLCheckOperator(
-        task_id="select_dataset_in_years",
-        postgres_conn_id=DB_ODC_READER_CONN,
+        conn_id=DB_ODC_READER_CONN,
         sql="""
         SELECT count(ds.id)
         FROM   dataset ds
         WHERE  ds.dataset_type_ref = (SELECT id
                                     FROM   dataset_type dt
-                                    WHERE  dt.NAME = '{{ params.product_name }}')
+                                    WHERE  dt.NAME = '{{ parameters.product_name }}')
         """,
-        params={"product_name": "ls5_fc_albers", "selected_year": "1986"},
+        parameters={"product_name": "ls5_fc_albers", "selected_year": "1986"},
     )
 
     PostgresOperator(
