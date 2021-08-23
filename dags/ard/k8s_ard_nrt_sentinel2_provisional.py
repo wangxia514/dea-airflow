@@ -21,7 +21,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 from infra.connections import AWS_WAGL_NRT_CONN
 from infra.images import WAGL_IMAGE_POC
 from infra.pools import WAGL_TASK_POOL
-from infra.s3_buckets import S2_NRT_SOURCE_BUCKET, S2_NRT_TRANSFER_BUCKET
+from infra.s3_buckets import S2_NRT_TRANSFER_BUCKET
 from infra.sns_notifications import PUBLISH_ARD_NRT_S2_PROVISIONAL_SNS
 from infra.sqs_queues import ARD_NRT_S2_PROVISIONAL_PROCESS_SCENE_QUEUE
 from infra.variables import S2_NRT_AWS_CREDS
@@ -55,7 +55,7 @@ MAX_ACTIVE_RUNS = 12
 
 # this should be 10 in dev for 10% capacity
 # then it would just discard the other 9 messages polled
-NUM_MESSAGES_TO_POLL = 1
+NUM_MESSAGES_TO_POLL = 10
 
 affinity = {
     "nodeAffinity": {
@@ -220,7 +220,7 @@ pipeline = DAG(
     max_active_runs=MAX_ACTIVE_RUNS,
     catchup=False,
     params={},
-    schedule_interval=None,
+    schedule_interval=timedelta(minutes=10),
     tags=["k8s", "dea", "psc", "ard", "wagl", "nrt", "sentinel-2", "provisional"],
 )
 
