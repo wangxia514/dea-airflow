@@ -79,12 +79,12 @@ with dag:
         FROM   agdc.dataset ds
         WHERE  ds.dataset_type_ref = (SELECT id
                                     FROM   agdc.dataset_type dt
-                                    WHERE  dt.NAME = '{{ parameters.product_name }}')
+                                    WHERE  dt.NAME = 'ls5_fc_albers')
         LIMIT 1;
         """,
         follow_task_ids_if_true="select_dataset_in_dt_years",
         follow_task_ids_if_false="select_dataset_in_dtr_years",
-        parameters={"product_name": "ls5_fc_albers", "selected_year": "1986"},
+        # parameters={"product_name": "ls5_fc_albers", "selected_year": "1986"},
     )
 
     checkop = SQLCheckOperator(
