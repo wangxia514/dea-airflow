@@ -13,7 +13,7 @@ WHERE  dl.dataset_ref in
             FROM   dataset ds
             WHERE  ds.dataset_type_ref = (SELECT id
                                         FROM   dataset_type dt
-                                        WHERE  dt.NAME = {{ params.product_name }})
+                                        WHERE  dt.NAME = '{{ params.product_name }}')
             AND ( ds.metadata -> 'extent' ->> 'center_dt' LIKE '1986%'
                     OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1995%'
                     OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1997%'
@@ -31,7 +31,7 @@ WHERE  ds_source.source_dataset_ref in
             FROM   dataset ds
             WHERE  ds.dataset_type_ref = (SELECT id
                                         FROM   dataset_type dt
-                                        WHERE  dt.NAME = {{ params.product_name }})
+                                        WHERE  dt.NAME = '{{ params.product_name }}')
             AND ( ds.metadata -> 'extent' ->> 'center_dt' LIKE '1986%'
                     OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1995%'
                     OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1997%'
@@ -44,7 +44,7 @@ WHERE  ds_source.source_dataset_ref in
             FROM   dataset ds
             WHERE  ds.dataset_type_ref = (SELECT id
                                         FROM   dataset_type dt
-                                        WHERE  dt.NAME = {{ params.product_name }})
+                                        WHERE  dt.NAME = '{{ params.product_name }}')
             AND ( ds.metadata -> 'extent' ->> 'center_dt' LIKE '1986%'
                     OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1995%'
                     OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1997%'
@@ -66,7 +66,7 @@ WHERE
       FROM
          dataset_type dt
       WHERE
-         dt.NAME = {{ params.product_name }}
+         dt.NAME = '{{ params.product_name }}'
    )
    AND
    ( -- limit to the years for bad datasets

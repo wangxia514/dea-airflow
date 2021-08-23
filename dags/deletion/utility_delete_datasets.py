@@ -89,7 +89,7 @@ WHERE  dl.dataset_ref in
             FROM   dataset ds
             WHERE  ds.dataset_type_ref = (SELECT id
                                         FROM   dataset_type dt
-                                        WHERE  dt.NAME = {{ params.product_name }})
+                                        WHERE  dt.NAME = '{{ params.product_name }}')
             AND ( ds.metadata -> 'extent' ->> 'center_dt' LIKE '{{ params.selected_year }}%')
         );
         """,
