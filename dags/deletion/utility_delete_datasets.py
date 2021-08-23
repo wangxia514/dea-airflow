@@ -71,14 +71,14 @@ dag = DAG(
 
 with dag:
 
-    BranchSQLOperator(
+    branchop = BranchSQLOperator(
         task_id="select_dataset_in_years_branchsqloperator",
         conn_id=DB_ODC_READER_CONN,
         sql="""
         SELECT ds.metadata -> 'extent' ->> 'center_dt'
-        FROM   dataset ds
+        FROM   agdc.dataset ds
         WHERE  ds.dataset_type_ref = (SELECT id
-                                    FROM   dataset_type dt
+                                    FROM   agdc.dataset_type dt
                                     WHERE  dt.NAME = '{{ parameters.product_name }}')
         LIMIT 1;
         """,
@@ -87,7 +87,7 @@ with dag:
         parameters={"product_name": "ls5_fc_albers", "selected_year": "1986"},
     )
 
-    SQLCheckOperator(
+    checkop = SQLCheckOperator(
         task_id="select_dataset_in_years_sqlcheckoperator",
         conn_id=DB_ODC_READER_CONN,
         sql="""
@@ -99,7 +99,7 @@ with dag:
         """,
     )
 
-    PostgresOperator(
+    followA = PostgresOperator(
         task_id="select_dataset_in_dt_years",
         postgres_conn_id=DB_ODC_READER_CONN,
         sql="""
@@ -126,7 +126,7 @@ WHERE  dl.dataset_ref in
         params={"product_name": "ls5_fc_albers", "selected_year": "1986"},
     )
 
-    PostgresOperator(
+    followB = PostgresOperator(
         task_id="select_dataset_in_dtr_years",
         postgres_conn_id=DB_ODC_READER_CONN,
         sql="""
@@ -153,13 +153,13 @@ WHERE  dl.dataset_ref in
         params={"product_name": "ls5_fc_albers", "selected_year": "1986"},
     )
 
-    PostgresOperator(
-        task_id="select_dataset_in_dt_years_sql_file",
-        postgres_conn_id=DB_ODC_READER_CONN,
-        sql="selection_sql/selected_dt_years_dataset.sql",
-        # params={"product_name": "{% if dag_run.conf.get('product_name') %}{{ dag_run.conf['product_name'] }}{% else %} 'ls5_fc_albers' {% endif %}" },
-        params={"product_name": "ls5_fc_albers", "selected_year": "1986"},
-    )
+    # PostgresOperator(
+    #     task_id="select_dataset_in_dt_years_sql_file",
+    #     postgres_conn_id=DB_ODC_READER_CONN,
+    #     sql="selection_sql/selected_dt_years_dataset.sql",
+    #     # params={"product_name": "{% if dag_run.conf.get('product_name') %}{{ dag_run.conf['product_name'] }}{% else %} 'ls5_fc_albers' {% endif %}" },
+    #     params={"product_name": "ls5_fc_albers", "selected_year": "1986"},
+    # )
 
     # PostgresOperator(
     #     task_id="delete_dataset",
@@ -169,3 +169,6 @@ WHERE  dl.dataset_ref in
     # )
 
     # explorer_forcerefresh_operator("{{ dag_run.conf['product_name'] }}")
+
+    branchop >> [followA, followB]
+    # checkop
