@@ -127,7 +127,7 @@ WHERE  dl.dataset_ref in
         params={"product_name": "ls5_fc_albers", "selected_year": "1986"},
     )
 
-        PostgresOperator(
+    PostgresOperator(
         task_id="select_dataset_in_dtr_years",
         postgres_conn_id=DB_ODC_READER_CONN,
         sql="""
