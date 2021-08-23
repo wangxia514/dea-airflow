@@ -33,7 +33,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 
 from airflow.providers.postgres.operators.postgres import PostgresOperator
-from airflow.operators.sql import SQLCheckerOperator, BranchSQLOperator
+from airflow.operators.sql import SQLCheckOperator, BranchSQLOperator
 from infra.connections import DB_ODC_READER_CONN
 
 # from dea_utils.update_explorer_summaries import explorer_forcerefresh_operator
@@ -87,7 +87,7 @@ with dag:
         params={"product_name": "ls5_fc_albers", "selected_year": "1986"},
     )
 
-    SQLCheckerOperator(
+    SQLCheckOperator(
         task_id="select_dataset_in_years",
         postgres_conn_id=DB_ODC_READER_CONN,
         sql="""
