@@ -1,7 +1,7 @@
 """
 # Sentinel-2 indexing automation
 
-DAG to periodically index/archive Sentinel-2 NBART data.
+DAG to periodically index Sentinel-2 NBART data from SQS Queues into the sandbox database.
 
 This DAG uses k8s executors and in cluster with relevant tooling
 and configuration installed.
@@ -73,6 +73,7 @@ DEFAULT_ARGS = {
 with DAG(
     "k8s_index_s2_nbart_sandbox",
     default_args=DEFAULT_ARGS,
+    doc_md=__doc__,
     schedule_interval="0 */1 * * *",
     catchup=False,
     tags=["k8s", "s2_nbart"],

@@ -1,7 +1,7 @@
 """
 # Sentinel-2 indexing automation
 
-DAG to bulk index Sentinel-2 NBART data.
+DAG index all Sentinel-2 NBART data from S3 into the sandbox database.
 
 This DAG uses k8s executors and in cluster with relevant tooling
 and configuration installed.
@@ -55,6 +55,7 @@ DEFAULT_ARGS = {
 dag = DAG(
     "k8s_index_s2_nbart_sandbox_backlog",
     default_args=DEFAULT_ARGS,
+    doc_md=__doc__,
     schedule_interval="@weekly",
     catchup=False,
     tags=["k8s", "s2_nbart"],
