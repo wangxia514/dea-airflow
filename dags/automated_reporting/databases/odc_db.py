@@ -16,6 +16,10 @@ SQL_QUERY = {
     "s2a_nrt_granule": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE1,
     "s2b_nrt_granule": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE1,
     "ga_s2_wo_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE2,
+    "ga_ls7e_ard_provisional_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE3,
+    "ga_ls8c_ard_provisional_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE3,
+    "ga_s2am_ard_provisional_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE4,
+    "ga_s2bm_ard_provisional_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE4,
 }
 
 
