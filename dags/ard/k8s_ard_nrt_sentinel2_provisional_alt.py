@@ -25,7 +25,7 @@ _LOG = logging.getLogger()
 default_args = {
     "owner": "Imam Alam",
     "depends_on_past": False,
-    "start_date": datetime(2021, 6, 1),
+    "start_date": datetime(2021, 8, 24),
     "email": ["imam.alam@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
@@ -117,7 +117,7 @@ with pipeline:
             startup_timeout_seconds=600,
             # this is the wagl_nrt user in the wagl container
             # security_context=dict(runAsUser=10015, runAsGroup=10015, fsGroup=10015),
-            cmds=["/scripts/aws-process-scene-sentinel.sh"],
+            cmds=["/scripts/aws-process-scene-sentinel-2.sh"],
             arguments=[
                 ARD_NRT_S2_PROVISIONAL_PROCESS_SCENE_QUEUE,
                 S2_NRT_TRANSFER_BUCKET,
