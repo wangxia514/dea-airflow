@@ -12,11 +12,11 @@ from infra.images import EXPLORER_IMAGE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.variables import SECRET_EXPLORER_WRITER_NAME
 
-from infra.variables import SECRET_DBA_ADMIN_NAME
+from infra.variables import DB_SANDBOX_USER_SECRET
 
 EXPLORER_SANDBOX_SECRETS = [
-    Secret("env", "DB_USERNAME", SECRET_DBA_ADMIN_NAME, "postgres-username"),
-    Secret("env", "DB_PASSWORD", SECRET_DBA_ADMIN_NAME, "postgres-password"),
+    Secret("env", "DB_USERNAME", DB_SANDBOX_USER_SECRET, "postgres-username"),
+    Secret("env", "DB_PASSWORD", DB_SANDBOX_USER_SECRET, "postgres-password"),
 ]
 
 EXPLORER_SECRETS = [
