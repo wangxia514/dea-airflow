@@ -98,7 +98,7 @@ with DAG(
     )
 
     EXPLORER_SUMMARY = explorer_sandboxdb_forcerefresh_operator(
-        "{{ dag_run.conf.product }}"
+        "{{ dag_run.conf.product }}", dag=dag
     )
 
     INDEXING >> EXPLORER_SUMMARY
