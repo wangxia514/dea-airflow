@@ -4,7 +4,7 @@
 # STABLE IMAGES
 INDEXER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/datacube-index:latest"
 
-OWS_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/ows:1.8.13"
+OWS_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/ows:1.8.16"
 OWS_CONFIG_IMAGE = "geoscienceaustralia/dea-datakube-config:latest"  # do not pull from ECR, to avoid delay in ecr sync
 
 EXPLORER_IMAGE = (
