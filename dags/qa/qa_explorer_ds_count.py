@@ -18,14 +18,16 @@ dag_run.conf format:
 from airflow import DAG
 from datetime import datetime, timedelta
 from airflow.hooks.postgres_hook import PostgresHook
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python_operator import BranchPythonOperator
+from airflow.operators.dummy_operator import DummyOperator
 
 from infra.connections import DB_EXPLORER_READ_CONN
 from qa.qa_sql_query import explorer_ds_count_compare
+from webapp_update.update_list import EXPLORER_UPDATE_LIST
 
-# from dea_utils.update_explorer_summaries import (
-#     explorer_forcerefresh_operator,
-# )
+from dea_utils.update_explorer_summaries import (
+    explorer_refresh_operator,
+)
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
@@ -57,7 +59,7 @@ dag = DAG(
     dag_id=DAG_NAME,
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
-    schedule_interval=None,
+    schedule_interval="0 */1 * * *",  # hourly
     catchup=False,
     tags=["k8s", "explorer", "qa"],
 )
@@ -76,18 +78,25 @@ def qa_ds_count():
     rows = cursor.fetchall()
     for row in rows:
         print(
-            f"Product: {row[2]} - Diff {row[3]} - agdc dataset count {row[0]} - explorer dataset count {row[1]}"
+            f"Product: {row[3]} - Diff {row[2]} - agdc dataset count {row[0]} - explorer dataset count {row[1]}"
         )
-    return rows
+    if len(rows) > 0:
+        return "explorer-summary-task"
+    else:
+        return "dummy_option"
 
 
 with dag:
 
-    PythonOperator(
+    qa_assessor = BranchPythonOperator(
         task_id="return_ds_count",
         python_callable=qa_ds_count,
     )
 
-    # EXPLORER_SUMMARY_FORCE_REFRESH = explorer_forcerefresh_operator(
-    #     "{{ dag_run.conf.products }}",
-    # )
+    explorer_update = explorer_refresh_operator(products=EXPLORER_UPDATE_LIST)
+
+    dummy3 = DummyOperator(
+        task_id="dummy_option",
+    )
+
+    qa_assessor >> [explorer_update, dummy3]
