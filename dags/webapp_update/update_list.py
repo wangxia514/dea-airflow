@@ -30,4 +30,8 @@ EXPLORER_UPDATE_LIST = (
     "ga_ls5t_ard_3",
     "ga_ls7e_ard_3",
     "ga_ls8c_ard_3",
+    "ga_ls7e_ard_provisional_3",
+    "ga_ls8c_ard_provisional_3",
+    "ga_s2am_ard_provisional_3",
+    "ga_s2bm_ard_provisional_3",
 )
