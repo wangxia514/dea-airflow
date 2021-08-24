@@ -17,8 +17,11 @@ dag_run.conf format:
 
 from airflow import DAG
 from datetime import datetime, timedelta
-from airflow.operators.sql import SQLCheckOperator
-from infra.connections import DB_ODC_READER_CONN
+from airflow.hooks.postgres_hook import PostgresHook
+from airflow.operators.python_operator import PythonOperator
+
+from infra.connections import DB_EXPLORER_READ_CONN
+from qa.qa_sql_query import explorer_ds_count_compare
 
 # from dea_utils.update_explorer_summaries import (
 #     explorer_forcerefresh_operator,
@@ -29,7 +32,7 @@ from infra.variables import (
     AWS_DEFAULT_REGION,
 )
 
-DAG_NAME = "qa-explorer-ds-count"
+DAG_NAME = "qa_explorer_ds_count"
 
 # DAG CONFIGURATION
 DEFAULT_ARGS = {
@@ -62,12 +65,25 @@ dag = DAG(
 CHECK_DAGRUN_CONFIG = "check_dagrun_config"
 
 
+def qa_ds_count():
+    """
+    return sql query result
+    """
+    pg_hook = PostgresHook(postgres_conn_id=DB_EXPLORER_READ_CONN)
+    connection = pg_hook.get_conn()
+    cursor = connection.cursor()
+    cursor.execute(explorer_ds_count_compare)
+    rows = cursor.fetchall()
+    for row in rows:
+        print(f"{row} Product: {row[0]} - Diff {row[1]}")
+    return rows
+
+
 with dag:
 
-    SQLCheckOperator(
-        task_id="explorer_dataset_count_qa_assessor",
-        conn_id=DB_ODC_READER_CONN,
-        sql="explorer_ds_count_qa.sql",
+    PythonOperator(
+        task_id="return_ds_count",
+        python_callable=qa_ds_count,
     )
 
     # EXPLORER_SUMMARY_FORCE_REFRESH = explorer_forcerefresh_operator(
