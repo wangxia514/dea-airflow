@@ -91,7 +91,7 @@ ancillary_volume = V1Volume(
 )
 
 pipeline = DAG(
-    "k8s_ard_nrt_landsat_provisional_alt",
+    "k8s_ard_nrt_sentinel2_provisional_alt",
     doc_md=__doc__,
     default_args=default_args,
     description="DEA Sentinel-2 ARD NRT processing (provisional)",
