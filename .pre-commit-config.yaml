@@ -13,6 +13,6 @@ repos:
     rev: v2.9.5
     hooks:
     - id: pylint
-      additional_dependencies: ['pylint-airflow','apache-airflow[aws,kubernetes,postgres,redis,ssh,celery]']
+      additional_dependencies: ['pylint-airflow','apache-airflow[aws,kubernetes,postgres,redis,ssh,sftp,celery]']
       name: pylint dags
       files: dags/

@@ -2,6 +2,8 @@
 """
 Script to sync Collection 3 data from NCI to AWS S3 bucket
 """
+import math
+
 import csv
 import io
 import json
@@ -239,7 +241,7 @@ def get_common_message_attributes(stac_doc: Dict) -> Dict:
     gqa_iterative_mean_xy = dicttoolz.get_in(
         ["properties", "gqa:iterative_mean_xy"], stac_doc
     )
-    if gqa_iterative_mean_xy:
+    if gqa_iterative_mean_xy and not math.isnan(gqa_iterative_mean_xy):
         msg_attributes["gqa_iterative_mean_xy"] = {
             "DataType": "Number",
             "StringValue": str(gqa_iterative_mean_xy),

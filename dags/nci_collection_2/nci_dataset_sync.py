@@ -95,12 +95,14 @@ with DAG(
             weight_rule="upstream",  # Prefer completing downstream tasks before upstream tasks. We want to wait for
             # PBS Jobs to complete before scheduling more. They tend to timeout when running
             # too many at once.
+            pool="nci_c2_sync",
         )
 
         wait_for_completion = PBSJobSensor(
             task_id=f"wait_for_{product}",
             pbs_job_id="{{ ti.xcom_pull(task_ids='submit_sync_%s') }}" % product,
             weight_rule="upstream",
+            pool="nci_c2_sync",
         )
 
         START >> submit_sync >> wait_for_completion
