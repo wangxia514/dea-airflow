@@ -78,7 +78,7 @@ def qa_ds_count():
     rows = cursor.fetchall()
     for row in rows:
         print(
-            f"Product: {row[2]} - Diff {row[3]} - agdc dataset count {row[0]} - explorer dataset count {row[1]}"
+            f"Product: {row[3]} - Diff {row[2]} - agdc dataset count {row[0]} - explorer dataset count {row[1]}"
         )
     if len(rows) > 0:
         return "explorer-summary-task"
