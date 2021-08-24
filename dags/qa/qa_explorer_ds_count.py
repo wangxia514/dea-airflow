@@ -18,7 +18,7 @@ dag_run.conf format:
 from airflow import DAG
 from datetime import datetime, timedelta
 from airflow.hooks.postgres_hook import PostgresHook
-from airflow.operators.python_operator import PythonBranchOperator
+from airflow.operators.python_operator import BranchPythonOperator
 from airflow.operators.dummy_operator import DummyOperator
 
 from infra.connections import DB_EXPLORER_READ_CONN
@@ -88,7 +88,7 @@ def qa_ds_count():
 
 with dag:
 
-    qa_assessor = PythonBranchOperator(
+    qa_assessor = BranchPythonOperator(
         task_id="return_ds_count",
         python_callable=qa_ds_count,
     )
