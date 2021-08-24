@@ -25,7 +25,8 @@ from pathlib import Path
 from textwrap import dedent
 
 import pendulum
-from airflow import DAG, configuration
+from airflow import DAG
+from airflow.configuration import conf
 from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
 from airflow.providers.sftp.operators.sftp import SFTPOperator, SFTPOperation
 from airflow.providers.ssh.operators.ssh import SSHOperator
@@ -156,7 +157,7 @@ with dag:
         sftp_c3_to_s3_script = SFTPOperator(
             task_id=f"sftp_c3_to_s3_script_{product}",
             local_filepath=str(
-                Path(configuration.get("core", "dags_folder")).parent
+                Path(conf.get("core", "dags_folder")).parent
                 / "scripts/c3_to_s3_rolling.py"
             ),
             remote_filepath=f"{WORK_DIR}/c3_to_s3_rolling.py",
@@ -164,7 +165,9 @@ with dag:
             create_intermediate_dirs=True,
         )
         # Execute script to upload Landsat collection 3 data to s3 bucket
-        aws_hook = AwsHook(aws_conn_id=dag.default_args["aws_conn_id"], client_type="s3")
+        aws_hook = AwsHook(
+            aws_conn_id=dag.default_args["aws_conn_id"], client_type="s3"
+        )
         execute_c3_to_s3_script = SSHOperator(
             task_id=f"execute_c3_to_s3_script_{product}",
             command=COMMON + RUN_UPLOAD_SCRIPT,
