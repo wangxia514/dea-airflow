@@ -1,7 +1,7 @@
 """
 SQL commands for automated reporting dags
 """
-#
+# s2a_nrt_granule, s2b_nrt_granule
 SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE1 = """
     SELECT
         dataset.id,
@@ -45,6 +45,49 @@ SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE2 = """
         dataset.added <= %s;
 """
 
+# ga_ls7e_ard_provisional_3,ga_ls8c_ard_provisional_3
+SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE3 = """
+    SELECT
+        dataset.id,
+        dataset.added AS indexed_time,
+        dataset.metadata #>> '{label}'::text[] as granule_id,
+        dataset.metadata #>> '{properties,landsat:landsat_product_id}'::text[] as parent_id,
+        dataset.metadata #>> '{properties,odc:region_code}'::text[] as tile_id,
+        agdc.common_timestamp(dataset.metadata #>> '{properties,datetime}'::text[]) as satellite_acquisition_time,
+        agdc.common_timestamp(dataset.metadata #>> '{properties,odc:processing_datetime}'::text[]) AS processing_time
+    FROM agdc.dataset
+        JOIN agdc.dataset_type ON dataset_type.id = dataset.dataset_type_ref
+    WHERE
+        dataset.archived IS NULL
+    AND
+        dataset_type.name = %s
+    AND
+        dataset.added > %s
+    AND
+        dataset.added <= %s;
+"""
+
+# ga_s2am_ard_provisional_3,ga_s2bm_ard_provisional_3
+SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE4 = """
+    SELECT
+        dataset.id,
+        dataset.added AS indexed_time,
+        dataset.metadata #>> '{label}'::text[] as granule_id,
+        dataset.metadata #>> '{properties,sentinel:sentinel_tile_id}'::text[] as parent_id,
+        dataset.metadata #>> '{properties,odc:region_code}'::text[] as tile_id,
+        agdc.common_timestamp(dataset.metadata #>> '{properties,datetime}'::text[]) as satellite_acquisition_time,
+        agdc.common_timestamp(dataset.metadata #>> '{properties,odc:processing_datetime}'::text[]) AS processing_time
+    FROM agdc.dataset
+        JOIN agdc.dataset_type ON dataset_type.id = dataset.dataset_type_ref
+    WHERE
+        dataset.archived IS NULL
+    AND
+        dataset_type.name = %s
+    AND
+        dataset.added > %s
+    AND
+        dataset.added <= %s;
+"""
 
 SELECT_SCHEMA = """SELECT * FROM information_schema.schemata WHERE catalog_name=%s and schema_name=%s;"""
 
