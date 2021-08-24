@@ -21,7 +21,7 @@ from airflow.hooks.postgres_hook import PostgresHook
 from airflow.operators.python_operator import PythonOperator
 
 from infra.connections import DB_EXPLORER_READ_CONN
-from qa_sql_query import explorer_ds_count_compare
+from qa.qa_sql_query import explorer_ds_count_compare
 
 # from dea_utils.update_explorer_summaries import (
 #     explorer_forcerefresh_operator,
