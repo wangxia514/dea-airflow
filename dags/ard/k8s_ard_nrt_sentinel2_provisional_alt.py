@@ -13,7 +13,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 
-from infra.images import WAGL_IMAGE_POC
+from infra.images import WAGL_IMAGE_POC_LATEST
 from infra.pools import WAGL_TASK_POOL
 from infra.sns_notifications import PUBLISH_ARD_NRT_S2_PROVISIONAL_SNS
 from infra.sqs_queues import ARD_NRT_S2_PROVISIONAL_PROCESS_SCENE_QUEUE
@@ -111,7 +111,7 @@ with pipeline:
             task_id=f"dea-ard-nrt-sentinel2-provisional-{index}",
             image_pull_policy="Always",
             # image_pull_policy="IfNotPresent",
-            image=WAGL_IMAGE_POC,
+            image=WAGL_IMAGE_POC_LATEST,
             affinity=affinity,
             tolerations=tolerations,
             startup_timeout_seconds=600,
