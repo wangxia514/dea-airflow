@@ -1,5 +1,5 @@
 """
-Run ARD NRT pipeline for Sentinel-2 in Airflow.
+Run ARD NRT provisional pipeline for Sentinel-2 in Airflow.
 """
 import logging
 from datetime import datetime, timedelta
