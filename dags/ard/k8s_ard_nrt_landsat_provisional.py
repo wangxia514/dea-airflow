@@ -1,5 +1,5 @@
 """
-Run ARD NRT pipeline for Landsat in Airflow.
+Run ARD NRT provisional pipeline for Landsat in Airflow.
 """
 import logging
 from datetime import datetime, timedelta
@@ -99,8 +99,8 @@ pipeline = DAG(
 with pipeline:
     RUN = KubernetesPodOperator(
         namespace="processing",
-        name="dea-ard-nrt-landsat",
-        task_id="dea-ard-nrt-landsat",
+        name="dea-ard-nrt-landsat-provisional",
+        task_id="dea-ard-nrt-landsat-provisional",
         image_pull_policy="Always",
         # image_pull_policy="IfNotPresent",
         image=WAGL_IMAGE_POC,
