@@ -101,14 +101,11 @@ with pipeline:
         namespace="processing",
         name="dea-ard-nrt-landsat-provisional",
         task_id="dea-ard-nrt-landsat-provisional",
-        image_pull_policy="Always",
-        # image_pull_policy="IfNotPresent",
+        image_pull_policy="IfNotPresent",
         image=WAGL_IMAGE_POC,
         affinity=affinity,
         tolerations=tolerations,
         startup_timeout_seconds=600,
-        # this is the wagl_nrt user in the wagl container
-        # security_context=dict(runAsUser=10015, runAsGroup=10015, fsGroup=10015),
         cmds=["/scripts/aws-process-scene-landsat.sh"],
         arguments=[
             ARD_NRT_LS_PROCESS_SCENE_QUEUE,
