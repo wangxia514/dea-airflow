@@ -26,6 +26,7 @@ from infra.sns_topics import PUBLISH_S2_NRT_FILTER_SNS
 from infra.images import S3_TO_RDS_IMAGE
 from infra.variables import S2_NRT_AWS_CREDS
 
+
 ESTIMATED_COMPLETION_TIME = 30 * 60
 
 NUM_PARALLEL_PIPELINE = 100
