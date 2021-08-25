@@ -10,7 +10,9 @@ import yaml
 
 from airflow import DAG
 
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 from airflow.providers.amazon.aws.hooks.sns import AwsSnsHook
@@ -120,12 +122,12 @@ setup_logging()
 
 
 def decode(message):
-    """ Decode stringified message. """
+    """Decode stringified message."""
     return json.loads(message["Body"])
 
 
 def copy_cmd_tile(tile_info):
-    """ The bash scipt to run to copy the tile over to the cache bucket. """
+    """The bash scipt to run to copy the tile over to the cache bucket."""
     datastrip = tile_info["datastrip"]
     path = tile_info["path"]
     granule_id = tile_info["granule_id"]
@@ -170,7 +172,7 @@ def copy_cmd_tile(tile_info):
 
 
 def get_tile_info(msg_dict):
-    """ Minimal info to be able to run wagl. """
+    """Minimal info to be able to run wagl."""
     assert len(msg_dict["tiles"]) == 1, "was not expecting multi-tile granule"
     tile = msg_dict["tiles"][0]
 
@@ -182,7 +184,7 @@ def get_tile_info(msg_dict):
 
 
 def tile_args(tile_info):
-    """ Arguments to the wagl container. """
+    """Arguments to the wagl container."""
     path = tile_info["path"]
     datastrip = tile_info["datastrip"]
 
@@ -194,17 +196,19 @@ def tile_args(tile_info):
 
 
 def get_sqs():
-    """ SQS client. """
-    return AwsHook(aws_conn_id=AWS_CONN_ID, client_type="sqs").get_session().client("sqs")
+    """SQS client."""
+    return (
+        AwsHook(aws_conn_id=AWS_CONN_ID, client_type="sqs").get_session().client("sqs")
+    )
 
 
 def get_s3():
-    """ S3 client. """
+    """S3 client."""
     return AwsHook(aws_conn_id=AWS_CONN_ID, client_type="s3").get_session().client("s3")
 
 
 def get_message(sqs, url):
-    """ Receive one message with an estimated completion time set. """
+    """Receive one message with an estimated completion time set."""
     response = sqs.receive_message(
         QueueUrl=url, VisibilityTimeout=ESTIMATED_COMPLETION_TIME, MaxNumberOfMessages=1
     )
@@ -221,7 +225,7 @@ def get_message(sqs, url):
 
 
 def receive_task(**context):
-    """ Receive a task from the task queue. """
+    """Receive a task from the task queue."""
     task_instance = context["task_instance"]
     index = context["index"]
 
@@ -247,7 +251,7 @@ def receive_task(**context):
 
 
 def finish_up(**context):
-    """ Delete the SQS message to mark completion, broadcast to SNS. """
+    """Delete the SQS message to mark completion, broadcast to SNS."""
     task_instance = context["task_instance"]
     index = context["index"]
 
@@ -281,7 +285,7 @@ def finish_up(**context):
 
 
 pipeline = DAG(
-    "k8s_wagl_nrt",
+    "k8s_ard_nrt_sentinel2",
     doc_md=__doc__,
     default_args=default_args,
     description="DEA Sentinel-2 NRT processing",
@@ -290,7 +294,7 @@ pipeline = DAG(
     catchup=False,
     params={},
     schedule_interval=timedelta(minutes=5),
-    tags=["k8s", "dea", "psc", "wagl", "nrt"],
+    tags=["k8s", "dea", "psc", "ard", "sentinel-2", "wagl", "nrt"],
 )
 
 with pipeline:
