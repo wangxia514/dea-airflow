@@ -223,7 +223,7 @@ with pipeline:
         image=S3_TO_RDS_IMAGE,
         annotations={"iam.amazonaws.com/role": "svc-dea-dev-eks-ard-nrt-ancillary"},
         cmds=["bash", "-c", " &&\n".join(SYNC_JOBS)],
-        image_pull_policy="Always",
+        image_pull_policy="IfNotPresent",
         name="sync_ancillaries",
         task_id="sync_ancillaries",
         get_logs=True,
