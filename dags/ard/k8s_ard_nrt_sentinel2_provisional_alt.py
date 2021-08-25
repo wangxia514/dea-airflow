@@ -44,13 +44,7 @@ BUCKET_REGION = "ap-southeast-2"
 S3_PREFIX = "s3://dea-public-data-dev/baseline/"
 EXPLORER_URL = "https://explorer.dev.dea.ga.gov.au"
 
-# TODO tune NUM_PARALLEL_PIPELINE according to need
-NUM_PARALLEL_PIPELINE = 1
 MAX_ACTIVE_RUNS = 12
-
-# this should be 10 in dev for 10% capacity
-# then it would just discard the other 9 messages polled
-NUM_MESSAGES_TO_POLL = 1
 
 affinity = {
     "nodeAffinity": {
@@ -95,7 +89,7 @@ pipeline = DAG(
     doc_md=__doc__,
     default_args=default_args,
     description="DEA Sentinel-2 ARD NRT processing (provisional)",
-    concurrency=MAX_ACTIVE_RUNS * NUM_PARALLEL_PIPELINE,
+    concurrency=MAX_ACTIVE_RUNS,
     max_active_runs=MAX_ACTIVE_RUNS,
     catchup=False,
     params={},
@@ -104,43 +98,42 @@ pipeline = DAG(
 )
 
 with pipeline:
-    for index in range(NUM_PARALLEL_PIPELINE):
-        RUN = KubernetesPodOperator(
-            namespace="processing",
-            name="dea-ard-nrt-sentinel2-provisional",
-            task_id=f"dea-ard-nrt-sentinel2-provisional-{index}",
-            image_pull_policy="Always",
-            # image_pull_policy="IfNotPresent",
-            image=WAGL_IMAGE_POC_LATEST,
-            affinity=affinity,
-            tolerations=tolerations,
-            startup_timeout_seconds=600,
-            # this is the wagl_nrt user in the wagl container
-            # security_context=dict(runAsUser=10015, runAsGroup=10015, fsGroup=10015),
-            cmds=["/scripts/aws-process-scene-sentinel-2.sh"],
-            arguments=[
-                ARD_NRT_S2_PROVISIONAL_PROCESS_SCENE_QUEUE,
-                S2_NRT_TRANSFER_BUCKET,
-                S3_PREFIX,
-                PUBLISH_ARD_NRT_S2_PROVISIONAL_SNS,
-                EXPLORER_URL,
-            ],
-            labels={
-                "runner": "airflow",
-                "product": "Sentinel-2",
-                "app": "nrt",
-                "stage": "wagl",
-            },
-            env_vars=dict(
-                MODTRAN_DATA="/ancillary/MODTRAN6.0.2.3G/DATA",
-            ),
-            get_logs=True,
-            resources={
-                "request_cpu": "1000m",
-                "request_memory": "12Gi",
-            },
-            volumes=[ancillary_volume],
-            volume_mounts=[ancillary_volume_mount],
-            execution_timeout=timedelta(minutes=180),
-            is_delete_operator_pod=True,
-        )
+    RUN = KubernetesPodOperator(
+        namespace="processing",
+        name="dea-ard-nrt-sentinel2-provisional",
+        task_id="dea-ard-nrt-sentinel2-provisional",
+        image_pull_policy="Always",
+        # image_pull_policy="IfNotPresent",
+        image=WAGL_IMAGE_POC_LATEST,
+        affinity=affinity,
+        tolerations=tolerations,
+        startup_timeout_seconds=600,
+        # this is the wagl_nrt user in the wagl container
+        # security_context=dict(runAsUser=10015, runAsGroup=10015, fsGroup=10015),
+        cmds=["/scripts/aws-process-scene-sentinel-2.sh"],
+        arguments=[
+            ARD_NRT_S2_PROVISIONAL_PROCESS_SCENE_QUEUE,
+            S2_NRT_TRANSFER_BUCKET,
+            S3_PREFIX,
+            PUBLISH_ARD_NRT_S2_PROVISIONAL_SNS,
+            EXPLORER_URL,
+        ],
+        labels={
+            "runner": "airflow",
+            "product": "Sentinel-2",
+            "app": "nrt",
+            "stage": "wagl",
+        },
+        env_vars=dict(
+            MODTRAN_DATA="/ancillary/MODTRAN6.0.2.3G/DATA",
+        ),
+        get_logs=True,
+        resources={
+            "request_cpu": "1000m",
+            "request_memory": "12Gi",
+        },
+        volumes=[ancillary_volume],
+        volume_mounts=[ancillary_volume_mount],
+        execution_timeout=timedelta(minutes=180),
+        is_delete_operator_pod=True,
+    )

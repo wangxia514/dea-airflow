@@ -45,10 +45,6 @@ EXPLORER_URL = "https://explorer.dev.dea.ga.gov.au"
 
 MAX_ACTIVE_RUNS = 12
 
-# this should be 10 in dev for 10% capacity
-# then it would just discard the other 9 messages polled
-NUM_MESSAGES_TO_POLL = 1
-
 affinity = {
     "nodeAffinity": {
         "requiredDuringSchedulingIgnoredDuringExecution": {
@@ -104,7 +100,7 @@ with pipeline:
     RUN = KubernetesPodOperator(
         namespace="processing",
         name="dea-ard-nrt-landsat",
-        task_id=f"dea-ard-nrt-landsat",
+        task_id="dea-ard-nrt-landsat",
         image_pull_policy="Always",
         # image_pull_policy="IfNotPresent",
         image=WAGL_IMAGE_POC,
