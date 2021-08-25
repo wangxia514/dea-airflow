@@ -22,11 +22,9 @@ from infra.pools import WAGL_TASK_POOL
 from infra.s3_buckets import S2_NRT_SOURCE_BUCKET, S2_NRT_TRANSFER_BUCKET
 from infra.connections import AWS_WAGL_NRT_CONN
 from infra.sqs_queues import ARD_NRT_S2_FILTER_SCENE_QUEUE
-from infra.sns_notifications import PUBLISH_S2_NRT_FILTER_SNS
+from infra.sns_topics import PUBLISH_S2_NRT_FILTER_SNS
 from infra.images import S3_TO_RDS_IMAGE
 from infra.variables import S2_NRT_AWS_CREDS
-
-AWS_CONN_ID = AWS_WAGL_NRT_CONN
 
 ESTIMATED_COMPLETION_TIME = 30 * 60
 
@@ -224,8 +222,6 @@ def finish_up(**context):
     msg_dict = decode(message)
     msg_str = json.dumps(msg_dict)
     sns_hook = AwsSnsHook(aws_conn_id=AWS_WAGL_NRT_CONN)
-    print("sending message")
-    print(msg_str)
     sns_hook.publish_to_target(PUBLISH_S2_NRT_FILTER_SNS, msg_str)
 
 

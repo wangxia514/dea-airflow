@@ -15,7 +15,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 
 from infra.images import WAGL_IMAGE_POC
 from infra.pools import WAGL_TASK_POOL
-from infra.sns_notifications import PUBLISH_ARD_NRT_LS_SNS
+from infra.sns_topics import PUBLISH_ARD_NRT_LS_SNS
 from infra.sqs_queues import ARD_NRT_LS_PROCESS_SCENE_QUEUE
 from infra.variables import ARD_NRT_LS_CREDS
 
