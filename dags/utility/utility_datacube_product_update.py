@@ -83,10 +83,11 @@ PRODUCT_UPDATE_CMD = [
     dedent(
         """
             datacube -v product update \
-            {% for p in dag_run.conf.product_definition_urls %}
-                {{ p }}
-            {% endfor %};
-        """
+    https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_ls7_provisional.odc-product.yaml \
+    https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_ls8_provisional.odc-product.yaml \
+    https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_s2a_provisional.odc-product.yaml \
+    https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_s2b_provisional.odc-product.yaml
+            """
     ),
 ]
 
