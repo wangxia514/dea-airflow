@@ -101,7 +101,7 @@ with dag:
             "-v",
             "product",
             "update",
-            "{% for p in dag_run.conf.product_definition_urls %} p \ {% endfor %}",
+            "{% for p in dag_run.conf.product_definition_urls %} {{ p }} \ {% endfor %}",
             "--allow-unsafe",
         ],
         name="datacube-product-update",
