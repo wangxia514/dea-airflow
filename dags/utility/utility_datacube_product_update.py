@@ -84,7 +84,7 @@ PRODUCT_UPDATE_CMD = [
         f"""
             datacube -v product update \
             for product in {{ dag_run.conf.product_definition_urls }}; do
-                product \
+                $product \
             done;
         """
     ),
