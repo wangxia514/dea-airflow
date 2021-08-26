@@ -29,6 +29,10 @@ SECRET_DBA_ADMIN_NAME = Variable.get(
     "db_dba_admin_secret", default_var="dba_admin"
 )  # qa
 
+SECRET_ODC_ADMIN_NAME = Variable.get(
+    "db_odc_admin_secret", default_var="odc-admin"
+)
+
 SECRET_EXPLORER_NCI_ADMIN_NAME = Variable.get(
     "db_explorer_nci_admin_secret", default_var="explorer-nci-admin"
 )  # qa

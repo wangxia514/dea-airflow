@@ -40,7 +40,7 @@ from infra.images import INDEXER_IMAGE
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
-    SECRET_ODC_WRITER_NAME,
+    SECRET_ODC_ADMIN_NAME,
     AWS_DEFAULT_REGION,
     DB_PORT,
 )
@@ -69,8 +69,8 @@ DEFAULT_ARGS = {
     },
     # Lift secrets into environment variables
     "secrets": [
-        Secret("env", "DB_USERNAME", SECRET_ODC_WRITER_NAME, "postgres-username"),
-        Secret("env", "DB_PASSWORD", SECRET_ODC_WRITER_NAME, "postgres-password"),
+        Secret("env", "DB_USERNAME", SECRET_ODC_ADMIN_NAME, "postgres-username"),
+        Secret("env", "DB_PASSWORD", SECRET_ODC_ADMIN_NAME, "postgres-password"),
     ],
 }
 
