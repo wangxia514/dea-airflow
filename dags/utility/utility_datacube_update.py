@@ -100,7 +100,7 @@ with dag:
             "product",
             "update",
             "{{ dag_run.conf.product_defintion_urls }}",
-            # "--no-sign-request",
+            "--allow-unsafe",
         ],
         name="datacube-product-update",
         task_id="datacube-product-update",
