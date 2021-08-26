@@ -13,17 +13,19 @@ datacube -v product update \
 All list of utility dags here: https://github.com/GeoscienceAustralia/dea-airflow/tree/develop/dags/utility, see Readme
 
 #### Utility customisation
-The DAG can be parameterized with run time configuration `product_defintion_urls`
+The DAG can be parameterized with run time configuration `product_definition_urls`
 
 dag_run.conf format:
 
 #### example conf in json format
 
     {
-        "product_defintion_urls": "https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_ls7_provisional.odc-product.yaml \
-    https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_ls8_provisional.odc-product.yaml
-    https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_s2a_provisional.odc-product.yaml
-    https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_s2b_provisional.odc-product.yaml"
+        "product_definition_urls": [
+            "https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_ls7_provisional.odc-product.yaml",
+            "https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_ls8_provisional.odc-product.yaml",
+            "https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_s2a_provisional.odc-product.yaml",
+            "https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_s2b_provisional.odc-product.yaml"
+        ]
     }
 
 """
@@ -99,7 +101,7 @@ with dag:
             "-v",
             "product",
             "update",
-            "{{ dag_run.conf.product_defintion_urls }}",
+            "{% for p in dag_run.conf.product_definition_urls %} p \ {% endfor %}",
             "--allow-unsafe",
         ],
         name="datacube-product-update",
