@@ -111,10 +111,14 @@ MEM_BRANCHES = OrderedDict(
 
 JOBS_BRANCHES = OrderedDict(
     [
-        ("tiny", 64),
-        ("small", 32),
-        ("large", 16),
-        ("huge", 4),
+        # ("tiny", 64),
+        # ("small", 32),
+        # ("large", 16),
+        # ("huge", 4),
+        ("tiny", 1),
+        ("small", 1),
+        ("large", 1),
+        ("huge", 1),
         ("jumbo", 1),
     ]
 )
