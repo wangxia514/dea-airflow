@@ -31,8 +31,7 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from dea_utils.update_explorer_summaries import explorer_refresh_operator
-from dea_utils.update_ows_products import ows_update_operator
+
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
