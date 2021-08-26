@@ -21,7 +21,7 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.utils.dates import days_ago
 
 
-DAG_NAME = "testing_dagrun_conf"
+DAG_NAME = "testing_dagrun_conf_as_flag"
 
 # DAG CONFIGURATION
 DEFAULT_ARGS = {
