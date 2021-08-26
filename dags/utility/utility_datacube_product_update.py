@@ -83,7 +83,7 @@ PRODUCT_UPDATE_CMD = [
     dedent(
         """
             datacube -v product update \
-            {% for p in dag_run.conf.product_definition_urls %}{{ p }}{% endfor %}
+            {% for p in dag_run.conf.product_definition_urls %}{{ p }} \ {% endfor %}
         """
     ),
 ]
