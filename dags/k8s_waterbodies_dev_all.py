@@ -101,10 +101,10 @@ tolerations = [
 
 MEM_BRANCHES = OrderedDict(
     [
-        ("tiny", 512),
-        ("small", 1024),
-        ("large", 8 * 1024),
-        ("huge", 62 * 1024),
+        ("tiny", 512 * 2),
+        ("small", 1024 * 2),
+        ("large", 8 * 1024 * 2),
+        ("huge", 62 * 1024 * 2),
         ("jumbo", 124 * 1024),
     ]
 )
