@@ -19,6 +19,7 @@ if `a` is set to `true`, `task-a` is expected to run
 
 from datetime import timedelta
 from airflow.operators.bash import BashOperator
+from textwrap import dedent
 
 from airflow import DAG
 from airflow.operators.python_operator import BranchPythonOperator
@@ -39,6 +40,18 @@ DEFAULT_ARGS = {
     "retries": 0,
     "retry_delay": timedelta(minutes=5),
 }
+
+PRODUCT_UPDATE_CMD = [
+    "bash",
+    "-c",
+    dedent(
+        """
+            datacube -v product update --allow-unsafe\
+            {% for p in dag_run.conf.array_input %}
+            {{ p }}{% endfor %}
+        """
+    ),
+]
 
 
 # THE DAG
@@ -63,3 +76,8 @@ with dag:
             task_id='test_json_input_w_jinja',
             bash_command="{% for p in dag_run.conf.array_input %} echo {{ p }} \n {% endfor %}",
         )
+
+    test_json_input_w_dedent = BashOperator(
+        task_id='test_json_input_w_dedent',
+        bash_command=PRODUCT_UPDATE_CMD,
+    )
