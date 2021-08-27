@@ -12,7 +12,12 @@ When dag is triggered without any configuration the expected task run is `task-c
 if `a` is set to `true`, `task-a` is expected to run
 
     {
-        "array_input": ["a", "b", "c"]
+       "array_input": [
+            "https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_ls7_provisional.odc-product.yaml",
+            "https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_ls8_provisional.odc-product.yaml",
+            "https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_s2a_provisional.odc-product.yaml",
+            "https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_s2b_provisional.odc-product.yaml"
+        ]
     }
 
 """
@@ -40,7 +45,8 @@ DEFAULT_ARGS = {
     "retry_delay": timedelta(minutes=5),
 }
 
-args = "echo {% for p in dag_run.conf.array_input %}{{ p }} {% endfor %}"
+args = """curl \
+{% for p in dag_run.conf.array_input %}{{ p + ' \' }} {% endfor %}"""
 
 
 # THE DAG
@@ -68,5 +74,5 @@ with dag:
 
     test_json_input_w_dedent = BashOperator(
         task_id='test_json_input_w_dedent',
-        bash_command=args.split(' '),
+        bash_command=args,
     )

@@ -79,7 +79,7 @@ PRODUCT_UPDATE_CMD = [
     "datacube", "-v", "product", "update", "--allow-unsafe",
 ]
 
-PRODUCT_UPDATE_ARGS = "{% for p in dag_run.conf.product_definition_urls %}{{ p }} \ {% endfor %}"
+PRODUCT_UPDATE_ARGS = "{% for p in dag_run.conf.product_definition_urls %}{{ p + ' \' }}{% endfor %}"
 
 # THE DAG
 dag = DAG(
