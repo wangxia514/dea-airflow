@@ -54,8 +54,7 @@ args = [
     dedent(
         """
         {% for product in dag_run.conf.array_input %}
-            curl $product
-        {% endfor %}
+            curl {{product}}{% endfor %}
     """
     ),
 ]
