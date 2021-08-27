@@ -101,24 +101,20 @@ tolerations = [
 
 MEM_BRANCHES = OrderedDict(
     [
-        ("tiny", 512 * 2),
-        ("small", 1024 * 2),
-        ("large", 8 * 1024 * 2),
-        ("huge", 62 * 1024 * 2),
+        ("tiny", 512),
+        ("small", 1024),
+        ("large", 8 * 1024),
+        ("huge", 62 * 1024),
         ("jumbo", 124 * 1024),
     ]
 )
 
 JOBS_BRANCHES = OrderedDict(
     [
-        # ("tiny", 64),
-        # ("small", 32),
-        # ("large", 16),
-        # ("huge", 4),
-        ("tiny", 1),
-        ("small", 1),
-        ("large", 1),
-        ("huge", 1),
+        ("tiny", 64),
+        ("small", 32),
+        ("large", 16),
+        ("huge", 4),
         ("jumbo", 1),
     ]
 )
