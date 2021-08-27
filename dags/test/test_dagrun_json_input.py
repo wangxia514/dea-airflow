@@ -25,6 +25,8 @@ if `a` is set to `true`, `task-a` is expected to run
 from datetime import timedelta
 from airflow.operators.bash import BashOperator
 from airflow.operators.docker_operator import DockerOperator
+from textwrap import dedent
+
 
 from airflow import DAG
 from airflow.operators.python_operator import BranchPythonOperator
@@ -46,7 +48,17 @@ DEFAULT_ARGS = {
     "retry_delay": timedelta(minutes=5),
 }
 
-args = ["curl", "{% for p in dag_run.conf.array_input %}{{ p }}{% endfor %}"]
+args = [
+    "bash",
+    "-c",
+    dedent(
+        """
+        {% for product in dag_run.conf.array_input %}
+            curl $product
+        {% endfor %}
+    """
+    ),
+]
 
 # THE DAG
 dag = DAG(
