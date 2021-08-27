@@ -75,9 +75,10 @@ DEFAULT_ARGS = {
     ],
 }
 
-PRODUCT_UPDATE_CMD = """datacube -v product update --allow-unsafe \
-            {% for p in dag_run.conf.product_definition_urls %}{{ p }} {% endfor %}"""
-
+PRODUCT_UPDATE_CMD = [
+    "-v", "product", "update", "--allow-unsafe",
+    """{% for p in dag_run.conf.product_definition_urls %}{{ p }}{% endfor %}"""
+]
 
 # THE DAG
 dag = DAG(
@@ -96,6 +97,7 @@ with dag:
         image=INDEXER_IMAGE,
         image_pull_policy="IfNotPresent",
         labels={"step": "datacube-product-update"},
+        cmds=["datacube"]
         arguments=[PRODUCT_UPDATE_CMD],
         name="datacube-product-update",
         task_id="datacube-product-update",
