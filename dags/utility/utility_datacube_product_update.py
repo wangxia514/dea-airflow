@@ -82,8 +82,7 @@ PRODUCT_UPDATE_CMD = [
         "-c",
         dedent(
             """
-            {% for product in dag_run.conf.product_definition_urls }}
-                datacube -v product update --allow-unsafe {{product}}{% endfor %}
+            {% for product in dag_run.conf.product_definition_urls %}datacube -v product update --allow-unsafe {{product}}{% endfor %}
         """
         ),
 ]
