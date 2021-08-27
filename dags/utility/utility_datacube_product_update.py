@@ -78,8 +78,6 @@ DEFAULT_ARGS = {
 }
 
 PRODUCT_UPDATE_CMD = [
-    "bash",
-    "-c",
     dedent(
         """
             datacube -v product update --allow-unsafe \
