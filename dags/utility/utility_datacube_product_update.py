@@ -77,15 +77,8 @@ DEFAULT_ARGS = {
     ],
 }
 
-PRODUCT_UPDATE_CMD = [
-    dedent(
-        """
-            datacube -v product update --allow-unsafe \
-            {% for p in dag_run.conf.product_definition_urls %}
-            {{ p }}{% endfor %}
-            """
-    ),
-]
+PRODUCT_UPDATE_CMD = """datacube -v product update --allow-unsafe \
+            {% for p in dag_run.conf.product_definition_urls %}{{ p }} {% endfor %}"""
 
 
 # THE DAG
