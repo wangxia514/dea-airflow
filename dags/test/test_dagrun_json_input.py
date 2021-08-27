@@ -40,8 +40,7 @@ DEFAULT_ARGS = {
     "retry_delay": timedelta(minutes=5),
 }
 
-PRODUCT_UPDATE_CMD = """echo \
-{% for p in dag_run.conf.array_input %}{{ p }} {% endfor %}"""
+args = "echo {% for p in dag_run.conf.array_input %}{{ p }} {% endfor %}"
 
 
 # THE DAG
@@ -69,5 +68,5 @@ with dag:
 
     test_json_input_w_dedent = BashOperator(
         task_id='test_json_input_w_dedent',
-        bash_command=PRODUCT_UPDATE_CMD,
+        bash_command=args.split(' '),
     )
