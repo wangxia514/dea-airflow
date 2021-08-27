@@ -37,8 +37,6 @@ from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-from textwrap import dedent
-
 from infra.images import INDEXER_IMAGE
 from infra.variables import (
     DB_DATABASE,
@@ -98,7 +96,7 @@ with dag:
         image=INDEXER_IMAGE,
         image_pull_policy="IfNotPresent",
         labels={"step": "datacube-product-update"},
-        arguments=PRODUCT_UPDATE_CMD,
+        cmds=[PRODUCT_UPDATE_CMD],
         name="datacube-product-update",
         task_id="datacube-product-update",
         get_logs=True,
