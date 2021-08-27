@@ -26,8 +26,6 @@ from textwrap import dedent
 
 
 from airflow import DAG
-from airflow.operators.python_operator import BranchPythonOperator
-from airflow.operators.dummy_operator import DummyOperator
 from airflow.utils.dates import days_ago
 
 
@@ -70,14 +68,14 @@ dag = DAG(
 with dag:
 
     test_json_array_input = BashOperator(
-            task_id='test_json_array_input',
-            bash_command="echo {{ dag_run.conf.array_input }}",
-        )
+        task_id='test_json_array_input',
+        bash_command="echo {{ dag_run.conf.array_input }}",
+    )
 
     test_json_input_w_jinja = BashOperator(
-            task_id='test_json_input_w_jinja',
-            bash_command="{% for p in dag_run.conf.array_input %} echo {{ p }} \n {% endfor %}",
-        )
+        task_id='test_json_input_w_jinja',
+        bash_command="{% for p in dag_run.conf.array_input %} echo {{ p }} \n {% endfor %}",
+    )
 
     test_json_input_w_dedent = BashOperator(
         task_id='test_json_input_w_dedent',
@@ -90,4 +88,4 @@ with dag:
         api_version='auto',
         auto_remove=True,
         command=args,
-        )
+    )
