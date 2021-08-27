@@ -79,7 +79,7 @@ PRODUCT_UPDATE_CMD = [
     "datacube", "-v", "product", "update", "--allow-unsafe",
 ]
 
-PRODUCT_UPDATE_ARGS =["{% for p in dag_run.conf.product_definition_urls %}{{ p + '\' }}{% endfor %}"]
+# PRODUCT_UPDATE_ARGS =["{% for p in dag_run.conf.product_definition_urls %}{{ p }}{% endfor %}"]
 
 # THE DAG
 dag = DAG(
@@ -99,7 +99,7 @@ with dag:
         image_pull_policy="IfNotPresent",
         labels={"step": "datacube-product-update"},
         cmds=PRODUCT_UPDATE_CMD,
-        arguments=PRODUCT_UPDATE_ARGS,
+        arguments="{{ dag_run.conf.product_definition_urls }}",
         name="datacube-product-update",
         task_id="datacube-product-update",
         get_logs=True,

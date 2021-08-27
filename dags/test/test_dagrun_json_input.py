@@ -45,9 +45,7 @@ DEFAULT_ARGS = {
     "retry_delay": timedelta(minutes=5),
 }
 
-args = """curl \
-{% for p in dag_run.conf.array_input %}{{ p + ' \' }} {% endfor %}"""
-
+args = ["curl {{ dag_run.conf.array_input }}"]
 
 # THE DAG
 dag = DAG(
