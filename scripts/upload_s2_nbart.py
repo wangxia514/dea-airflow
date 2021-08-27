@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Script to sync Sentinel-2 data from NCI to AWS S3 bucket
 """
@@ -34,7 +33,7 @@ from c3_to_s3_rolling import (
 NCI_DIR = '/g/data/if87/datacube/002/S2_MSI_ARD/packaged'
 S3_BUCKET = "dea-public-data"
 WORK_DIR = Path("/g/data/v10/work/s2_nbart_rolling_archive")
-_LOG = logging.getLogger()
+_LOG = logging.getLogger('upload_s2_nbart')
 
 
 def setup_logging():
@@ -50,7 +49,7 @@ def setup_logging():
 
     # Create formatters and add it to handlers
     # c_format = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter('%(asctime)s - %(thread)s - %(name)s - %(levelname)s - %(message)s')
     c_handler.setFormatter(formatter)
     f_handler.setFormatter(formatter)
 
@@ -75,20 +74,25 @@ def main(granule_ids, sns_topic_arn, workers):
 
     _LOG.info(f"{len(granule_ids)} granules to upload.")
     with ThreadPoolExecutor(max_workers=workers) as executor:
-        futures = [executor.submit(upload_granule, granule_id, sns_topic_arn) for granule_id in granule_ids]
+        futures = {executor.submit(upload_granule, granule_id, sns_topic_arn)
+                   for granule_id in granule_ids}
 
-        for future in tqdm(as_completed(futures), total=len(granule_ids), unit='granules', disable=None):
-            _LOG.info(f"Completed uploaded: {future.result()}")
+        for future in tqdm(as_completed(futures), total=len(granule_ids), 
+                unit='granules', desc='processed', disable=None):
+            futures.remove(future)
+            _LOG.info(f"Completed upload: {future.result()}")
 
 
 def upload_granule(granule_id, sns_topic_arn):
     """
     :param granule_id: the id of the granule in format 'date/tile_id'
     """
+    _LOG.info(f'Processing {granule_id}')
     session = boto3.session.Session()
     bucket_stac_path = f"{get_granule_s3_path(granule_id)}/stac-ARD-METADATA.json"
 
     if not check_granule_exists(S3_BUCKET, bucket_stac_path, session=session):
+
         sync_granule(
             granule_id,
             NCI_DIR,
@@ -156,6 +160,8 @@ def upload_metadata(granule_id):
     stac_dump = json.dumps(stac, default=json_fallback, indent=4)
 
     eo3 = serialise.to_doc(eo3)
+    # Hack to replace UUIDs with Strings.
+    eo3['lineage']['ard'] = [str(lineage_id) for lineage_id in eo3['lineage']['ard']]
     eo3["label"] = eo3["label"].replace(eo3["product"]["name"], product)
     eo3["product"]["name"] = product
     s3_dump(

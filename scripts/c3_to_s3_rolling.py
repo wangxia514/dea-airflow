@@ -20,12 +20,7 @@ import click
 from eodatasets3 import verify, serialise
 from eodatasets3.scripts.tostac import dc_to_stac, json_fallback
 
-formatter = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
-handler = logging.StreamHandler()
-handler.setFormatter(formatter)
 LOG = logging.getLogger("c3_to_s3_rolling")
-LOG.setLevel(logging.DEBUG)
-LOG.addHandler(handler)
 
 
 def find_granules(file_path):
@@ -657,6 +652,11 @@ def main(
     :param force_update: If this flag is set then do a fresh sync of data and
     replace the metadata
     """
+    formatter = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
+    handler = logging.StreamHandler()
+    handler.setFormatter(formatter)
+    LOG.setLevel(logging.DEBUG)
+    LOG.addHandler(handler)
     LOG.info(
         f"Syncing granules listed in file {filepath} "
         f"from NCI dir {ncidir} "
