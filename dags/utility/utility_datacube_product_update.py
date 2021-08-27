@@ -15,7 +15,7 @@ All list of utility dags here: https://github.com/GeoscienceAustralia/dea-airflo
 #### Utility customisation
 The DAG can be parameterized with run time configuration `product_definition_urls`
 
-dag_run.conf format:
+dag_run.conf format is json list, this is designed to improve readability when large number of products definitions need to be updated.
 
 #### example conf in json format
 

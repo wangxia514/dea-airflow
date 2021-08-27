@@ -7,9 +7,6 @@ Test behavior when dag run input is json list
 May be altered to test advanced logics.
 
 ## Customisation
-When dag is triggered without any configuration the expected task run is `task-c`
-
-if `a` is set to `true`, `task-a` is expected to run
 
     {
        "array_input": [
@@ -53,8 +50,8 @@ args = [
     "-c",
     dedent(
         """
-        {% for product in dag_run.conf.array_input %}
-            curl {{product}}{% endfor %}
+        {% for product in dag_run.conf.array_input %}curl {{product}}
+        {% endfor %}
     """
     ),
 ]
@@ -90,10 +87,7 @@ with dag:
     t3 = DockerOperator(
         task_id='docker_command_hello',
         image='alphine:latest',
-        container_name='task___command_hello',
         api_version='auto',
         auto_remove=True,
         command=args,
-        docker_url="unix://var/run/docker.sock",
-        network_mode="bridge"
         )
