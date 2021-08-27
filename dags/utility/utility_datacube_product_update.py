@@ -37,8 +37,6 @@ from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-from textwrap import dedent
-
 from infra.images import INDEXER_IMAGE
 from infra.variables import (
     DB_DATABASE,
@@ -78,15 +76,10 @@ DEFAULT_ARGS = {
 }
 
 PRODUCT_UPDATE_CMD = [
-    dedent(
-        """
-            datacube -v product update --allow-unsafe \
-            {% for p in dag_run.conf.product_definition_urls %}
-            {{ p }}{% endfor %}
-            """
-    ),
+    "-v", "product", "update", "--allow-unsafe",
+    """{% for p in dag_run.conf.product_definition_urls %}{{ p }}
+    {% endfor %}"""
 ]
-
 
 # THE DAG
 dag = DAG(
@@ -105,7 +98,8 @@ with dag:
         image=INDEXER_IMAGE,
         image_pull_policy="IfNotPresent",
         labels={"step": "datacube-product-update"},
-        arguments=PRODUCT_UPDATE_CMD,
+        cmds=["datacube"],
+        arguments=[PRODUCT_UPDATE_CMD],
         name="datacube-product-update",
         task_id="datacube-product-update",
         get_logs=True,
