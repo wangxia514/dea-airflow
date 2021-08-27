@@ -24,6 +24,7 @@ if `a` is set to `true`, `task-a` is expected to run
 
 from datetime import timedelta
 from airflow.operators.bash import BashOperator
+from airflow.operators.docker_operator import DockerOperator
 
 from airflow import DAG
 from airflow.operators.python_operator import BranchPythonOperator
@@ -45,7 +46,7 @@ DEFAULT_ARGS = {
     "retry_delay": timedelta(minutes=5),
 }
 
-args = ["curl {{ dag_run.conf.array_input }}"]
+args = ["curl", "{% for p in dag_run.conf.array_input %}{{ p }}{% endfor %}"]
 
 # THE DAG
 dag = DAG(
@@ -74,3 +75,14 @@ with dag:
         task_id='test_json_input_w_dedent',
         bash_command=args,
     )
+
+    t3 = DockerOperator(
+        task_id='docker_command_hello',
+        image='alphine:latest',
+        container_name='task___command_hello',
+        api_version='auto',
+        auto_remove=True,
+        command=args,
+        docker_url="unix://var/run/docker.sock",
+        network_mode="bridge"
+        )

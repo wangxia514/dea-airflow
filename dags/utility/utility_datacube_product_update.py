@@ -32,6 +32,8 @@ dag_run.conf format:
 from datetime import datetime, timedelta
 
 from airflow import DAG
+from textwrap import dedent
+
 from airflow.kubernetes.secret import Secret
 
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
@@ -76,10 +78,16 @@ DEFAULT_ARGS = {
 }
 
 PRODUCT_UPDATE_CMD = [
-    "datacube", "-v", "product", "update", "--allow-unsafe",
+        "bash",
+        "-c",
+        dedent(
+            """
+            for product in {{ dag_run.conf.product_definition_urls }}; do
+                datacube -v product update --allow-unsafe $product
+            done;
+        """
+        ),
 ]
-
-# PRODUCT_UPDATE_ARGS =["{% for p in dag_run.conf.product_definition_urls %}{{ p }}{% endfor %}"]
 
 # THE DAG
 dag = DAG(
@@ -98,8 +106,7 @@ with dag:
         image=INDEXER_IMAGE,
         image_pull_policy="IfNotPresent",
         labels={"step": "datacube-product-update"},
-        cmds=PRODUCT_UPDATE_CMD,
-        arguments="{{ dag_run.conf.product_definition_urls }}",
+        arguments=PRODUCT_UPDATE_CMD,
         name="datacube-product-update",
         task_id="datacube-product-update",
         get_logs=True,
