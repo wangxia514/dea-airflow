@@ -77,7 +77,8 @@ DEFAULT_ARGS = {
 
 PRODUCT_UPDATE_CMD = [
     "-v", "product", "update", "--allow-unsafe",
-    """{% for p in dag_run.conf.product_definition_urls %}{{ p }}{% endfor %}"""
+    """{% for p in dag_run.conf.product_definition_urls %}{{ p }}
+    {% endfor %}"""
 ]
 
 # THE DAG
