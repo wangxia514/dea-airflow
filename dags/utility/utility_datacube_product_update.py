@@ -99,7 +99,7 @@ with dag:
         image_pull_policy="IfNotPresent",
         labels={"step": "datacube-product-update"},
         cmds=PRODUCT_UPDATE_CMD,
-        arguments="{{ dag_run.conf.product_definition_urls }}",
+        arguments=eval("{{ dag_run.conf.product_definition_urls }}"),
         name="datacube-product-update",
         task_id="datacube-product-update",
         get_logs=True,
