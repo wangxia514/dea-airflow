@@ -97,7 +97,7 @@ with dag:
         image=INDEXER_IMAGE,
         image_pull_policy="IfNotPresent",
         labels={"step": "datacube-product-update"},
-        cmds=["datacube"]
+        cmds=["datacube"],
         arguments=[PRODUCT_UPDATE_CMD],
         name="datacube-product-update",
         task_id="datacube-product-update",
