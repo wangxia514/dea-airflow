@@ -354,10 +354,7 @@ def k8s_queue_push(dag, branch):
             EOF
 
             # Push the IDs to the queue.
-            aws sqs get-queue-url --queue-name {queue} --output text > queue.txt
-            cat queue.txt
-            queue_url=$(<queue.txt)
-            cat ids.txt | xargs -L1 -I{{}} aws sqs send-message --queue-url $queue_url --message-body {{}}
+            python -m dea_waterbodies.queues push-to-queue --txt ids.txt --queue {queue}
             """.format(
                 image=WATERBODIES_UNSTABLE_IMAGE,
                 low=lower_mem_branches[branch],
