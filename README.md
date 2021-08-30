@@ -96,6 +96,13 @@ docker exec -it dea-airflow_opendatacube_1 bash
 PGPASSWORD=opendatacubepassword psql -U opendatacubeusername -d opendatacube -p 5432 -h localhost
 ```
 
+### Integration test setup
+
+setup connections for `db_odc_reader`
+```bash
+docker-compose -f docker-compose.workflow.yaml run airflow-worker airflow connections add db_odc_reader --conn-schema opendatacube --conn-login opendatacubeusername --conn-password opendatacubepassword --conn-port 5432 --conn-type postgres --conn-host opendatacube
+```
+
 ### integration test database
 The integration test database contains selected number of products and datasets, if you need to add more products and datasets to the database, please update `dbsetup.sh` in `integration_tests` folder.
 
