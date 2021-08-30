@@ -1,0 +1,4 @@
+[flake8]
+ignore = E501,W503,W605,F811,F841,E722,E711,E131,E203,W292
+exclude = Dockerfile
+max-line-length = 119
