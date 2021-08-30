@@ -1,8 +1,13 @@
 """
-# Sentinel-2_nrt update views automation
+# Update Explorer and OWS
+This DAG runs every 6 hours to update for fresh index datasets
+The current product list is available from https://github.com/GeoscienceAustralia/dea-airflow/blob/develop/dags/webapp_update/update_list.py
 
-This DAG uses k8s executors and in cluster with relevant tooling
-and configuration installed.
+## OWS UPDATE
+the observed time takes for ows to update is between `1hour` to `2hours`
+
+## Explorer update
+the observed time takes for explorer to update is between `10mins` to `30mins`
 """
 
 from datetime import datetime, timedelta
