@@ -32,12 +32,14 @@ scenario 1: delete by `center_dt` or `dtr:start_date` matching year
     }
 
 scenario 2: delete by `center_dt` or `dtr:start_date` matching year and month
+
     {
         "product_name": "ga_ls_wo_3",
         "selected_year": "1986-01"
     }
 
 scenario 3: delete by `center_dt` or `dtr:start_date` matching date
+
     {
         "product_name": "ga_ls_wo_3",
         "selected_year": "1986-01-01"
@@ -48,6 +50,7 @@ scenario 3: delete by `center_dt` or `dtr:start_date` matching date
 ```
     docker-compose -f docker-compose.workflow.yaml run airflow-worker \
     airflow dags trigger --conf '{"product_name": "s2a_nrt_granule", "selected_year": "2021"}' deletion_utility_select_dataset_in_years
+
     docker-compose -f docker-compose.workflow.yaml run airflow-worker \
     airflow dags trigger --conf '{"product_name": "ga_ls8c_ard_provisional_3", "selected_year": "2021"}' deletion_utility_select_dataset_in_years
 ```
