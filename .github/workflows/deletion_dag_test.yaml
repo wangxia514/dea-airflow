@@ -53,6 +53,6 @@ jobs:
           time: '300s'
       - name: check integration test result
         run: |
-                docker-compose -f docker-compose.workflow.yaml run airflow-worker airflow dags list-runs -d deletion_utility_select_dataset_in_years -v
+          docker-compose -f docker-compose.workflow.yaml run airflow-worker airflow dags list-runs -d deletion_utility_select_dataset_in_years -v
           docker-compose -f docker-compose.workflow.yaml exec -T airflow-worker /bin/bash -c "cd /opt/airflow/integration_tests; ./check_dags.sh"
           docker-compose -f docker-compose.workflow.yaml down

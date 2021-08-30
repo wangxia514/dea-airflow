@@ -3,7 +3,7 @@
 
 This DAG should be triggered manually and will:
 
-- delete selected years of datasets
+- delete selected datasets matching condition: `year` or `year-month` or `year-month-date`
 
 ## Note
 All list of utility dags here: https://github.com/GeoscienceAustralia/dea-airflow/tree/develop/dags/deletion, see Readme
@@ -13,41 +13,44 @@ All list of utility dags here: https://github.com/GeoscienceAustralia/dea-airflo
 There are three configuration arguments:
 
 - `product_name`
+- `selected_year`
 
-The commands which are executed are:
+The tasks steps in this dag which are executed are:
 
-1. deletion sql
-3. update explorer
+1. pre-check there is dataset for deletion for the given product with the condition, if no dataset found this dag will fail
+2. execute the deletion
+3. confirm deletion successed, if dataset are still found, this dag will fail
 
 
 ### Sample Configuration
 
-    {
-        "product_name": "ls5_fc_albers",
-        "selected_year": "1986"
-    }
+scenario 1: delete by `center_dt` or `dtr:start_date` matching year
 
     {
         "product_name": "ga_ls_wo_3",
         "selected_year": "1986"
     }
 
-## for testing
-
-scenario 1: 4 datasets in total, type `center_dt`
-
+scenario 2: delete by `center_dt` or `dtr:start_date` matching year and month
     {
-        "product_name": "s2a_nrt_granule",
-        "selected_year": "2021"
+        "product_name": "ga_ls_wo_3",
+        "selected_year": "1986-01"
     }
 
-scenario 2: 1 datasets in total, type `dtr:start_datetime`
-
+scenario 3: delete by `center_dt` or `dtr:start_date` matching date
     {
-        "product_name": "ga_ls8c_ard_provisional_3",
-        "selected_year": "2021"
+        "product_name": "ga_ls_wo_3",
+        "selected_year": "1986-01-01"
     }
 
+## for local integration testing testing
+
+```
+    docker-compose -f docker-compose.workflow.yaml run airflow-worker \
+    airflow dags trigger --conf '{"product_name": "s2a_nrt_granule", "selected_year": "2021"}' deletion_utility_select_dataset_in_years
+    docker-compose -f docker-compose.workflow.yaml run airflow-worker \
+    airflow dags trigger --conf '{"product_name": "ga_ls8c_ard_provisional_3", "selected_year": "2021"}' deletion_utility_select_dataset_in_years
+```
 """
 
 from datetime import datetime, timedelta
@@ -62,8 +65,6 @@ from infra.connections import DB_ODC_READER_CONN
 from deletion.deletion_sql_queries import (
     DATASET_COUNT_CONFIRMATION,
 )
-
-# from dea_utils.update_explorer_summaries import explorer_forcerefresh_operator
 from airflow.exceptions import AirflowException
 
 
@@ -78,13 +79,6 @@ DEFAULT_ARGS = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
-    "env_vars": {
-        # TODO: Pass these via templated params in DAG Run
-        # "DB_HOSTNAME": DB_HOSTNAME,
-        # "DB_DATABASE": DB_DATABASE,
-        # "DB_PORT": DB_PORT,
-        # "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
-    },
 }
 
 
