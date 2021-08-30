@@ -57,7 +57,14 @@ class PBSJobSensor(SSHRunMixin, BaseSensorOperator):
         **kwargs,
     ):
 
-        BaseSensorOperator.__init__(self, mode=mode, poke_interval=poke_interval, timeout=timeout, *args, **kwargs)
+        BaseSensorOperator.__init__(
+            self,
+            mode=mode,
+            poke_interval=poke_interval,
+            timeout=timeout,
+            *args,
+            **kwargs,
+        )
 
         self.timeout = timeout
         self.ssh_hook = ssh_hook

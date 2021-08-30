@@ -11,7 +11,9 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from infra.variables import DB_HOSTNAME
 from infra.images import INDEXER_IMAGE
 from infra.variables import (
@@ -76,7 +78,9 @@ with dag:
                     "--skip-check",
                     "--update-if-exists",
                     "--no-sign-request",
-                    "{% raw %}s3://dea-public-data/baseline/s2[ab]_ard_granule/{% endraw %}" + f"{year}-{quarter}" + "{% raw %}-*/*/eo3-ARD-METADATA.odc-metadata.yaml{% endraw %}",
+                    "{% raw %}s3://dea-public-data/baseline/s2[ab]_ard_granule/{% endraw %}"
+                    + f"{year}-{quarter}"
+                    + "{% raw %}-*/*/eo3-ARD-METADATA.odc-metadata.yaml{% endraw %}",
                     dag.default_args["products"],
                 ],
                 labels={"step": "s3-dc-indexing"},

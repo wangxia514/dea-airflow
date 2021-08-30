@@ -11,7 +11,8 @@ from pathlib import Path
 from textwrap import dedent
 
 import pendulum
-from airflow import DAG, configuration
+from airflow import DAG
+from airflow.configuration import conf
 from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
 from airflow.providers.sftp.operators.sftp import SFTPOperator, SFTPOperation
 from airflow.providers.ssh.operators.ssh import SSHOperator
@@ -70,8 +71,7 @@ with dag:
     upload_uploader_script = SFTPOperator(
         task_id="upload_uploader_script",
         local_filepath=str(
-            Path(configuration.get("core", "dags_folder")).parent
-            / "scripts/upload_s2_nbart.py"
+            Path(conf.get("core", "dags_folder")).parent / "scripts/upload_s2_nbart.py"
         ),
         remote_filepath=WORK_DIR + "/{{ds}}/upload_s2_nbart.py",
         operation=SFTPOperation.PUT,
@@ -81,8 +81,7 @@ with dag:
     upload_utils = SFTPOperator(
         task_id="upload_utils",
         local_filepath=str(
-            Path(configuration.get("core", "dags_folder")).parent
-            / "scripts/c3_to_s3_rolling.py"
+            Path(conf.get("core", "dags_folder")).parent / "scripts/c3_to_s3_rolling.py"
         ),
         remote_filepath=WORK_DIR + "/{{ds}}/c3_to_s3_rolling.py",
         operation=SFTPOperation.PUT,

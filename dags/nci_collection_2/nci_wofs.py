@@ -143,5 +143,11 @@ with dag:
         timeout=20 * MINUTES,
     )
 
-    ingest_completed >> generate_wofs_tasks >> test_wofs_tasks >> submit_wofs_job >> wait_for_wofs_albers
+    (
+        ingest_completed
+        >> generate_wofs_tasks
+        >> test_wofs_tasks
+        >> submit_wofs_job
+        >> wait_for_wofs_albers
+    )
     wait_for_wofs_albers >> check_for_errors

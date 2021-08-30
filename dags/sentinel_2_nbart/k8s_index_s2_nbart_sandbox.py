@@ -11,7 +11,9 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from infra.sqs_queues import SENTINEL_2_ARD_INDEXING_SQS_QUEUE_NAME_SANDBOX_DB
 from infra.variables import (
     DB_SANDBOX_DATABASE,

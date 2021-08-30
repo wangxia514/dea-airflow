@@ -118,4 +118,10 @@ with dag:
             timeout=60 * 60 * 24 * 7,
         )
 
-        ingest_completed >> generate_tasks >> test_tasks >> submit_fc_job >> wait_for_completion
+        (
+            ingest_completed
+            >> generate_tasks
+            >> test_tasks
+            >> submit_fc_job
+            >> wait_for_completion
+        )

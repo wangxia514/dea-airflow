@@ -127,4 +127,10 @@ with ingest_dag:
             pbs_job_id="{{ ti.xcom_pull(task_ids='%s') }}" % submit_task_id,
         )
 
-        wait_for_sync >> save_tasks >> test_tasks >> submit_ingest_job >> wait_for_completion
+        (
+            wait_for_sync
+            >> save_tasks
+            >> test_tasks
+            >> submit_ingest_job
+            >> wait_for_completion
+        )
