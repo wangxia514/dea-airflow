@@ -17,10 +17,7 @@ WHERE  dl.dataset_ref in
                                             WHERE  dt.NAME = '{{ params.product_name }}'
                                         )
             AND ( -- select the years
-                ds.metadata -> 'extent' ->> 'center_dt' LIKE '1986%'
-                OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1995%'
-                OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1997%'
-                OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1999%'
+                ds.metadata -> 'extent' ->> 'center_dt' LIKE '{{ params.selected_year}}%'
             )
         );
 
@@ -39,11 +36,8 @@ WHERE  ds_source.source_dataset_ref in
                                             WHERE  dt.NAME = '{{ params.product_name }}'
                                         )
             AND ( -- select the years
-                    ds.metadata -> 'extent' ->> 'center_dt' LIKE '1986%'
-                    OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1995%'
-                    OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1997%'
-                    OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1999%'
-                )
+                ds.metadata -> 'extent' ->> 'center_dt' LIKE '{{ params.selected_year}}%'
+            )
         )
         OR
         ds_source.dataset_ref in
@@ -56,11 +50,8 @@ WHERE  ds_source.source_dataset_ref in
                                             WHERE  dt.NAME = '{{ params.product_name }}'
                                         )
             AND ( -- select the years
-                    ds.metadata -> 'extent' ->> 'center_dt' LIKE '1986%'
-                    OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1995%'
-                    OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1997%'
-                    OR ds.metadata -> 'extent' ->> 'center_dt' LIKE '1999%'
-                )
+                ds.metadata -> 'extent' ->> 'center_dt' LIKE '{{ params.selected_year}}%'
+            )
         );
 
 -- -------------------------------------
@@ -80,29 +71,6 @@ WHERE
       WHERE
          dt.NAME = '{{ params.product_name }}'
    )
-   AND
-   ( -- limit to the years for bad datasets
-        (
-            ds.metadata -> 'extent' ->> 'center_dt' LIKE '1986%'
-            AND ds.metadata -> 'extent' ->> 'from_dt' LIKE '1986%'
-            AND ds.metadata -> 'extent' ->> 'to_dt' LIKE '1986%'
-        )
-        OR
-        (
-            ds.metadata -> 'extent' ->> 'center_dt' LIKE '1995%'
-            AND ds.metadata -> 'extent' ->> 'from_dt' LIKE '1995%'
-            AND ds.metadata -> 'extent' ->> 'to_dt' LIKE '1995%'
-        )
-        OR
-        (
-            ds.metadata -> 'extent' ->> 'center_dt' LIKE '1997%'
-            AND ds.metadata -> 'extent' ->> 'from_dt' LIKE '1997%'
-            AND ds.metadata -> 'extent' ->> 'to_dt' LIKE '1997%'
-        )
-        OR
-        (
-            ds.metadata -> 'extent' ->> 'center_dt' LIKE '1999%'
-            AND ds.metadata -> 'extent' ->> 'from_dt' LIKE '1999%'
-            AND ds.metadata -> 'extent' ->> 'to_dt' LIKE '1999%'
-        )
-   );
+   AND ( -- select the years
+        ds.metadata -> 'extent' ->> 'center_dt' LIKE '{{ params.selected_year}}%'
+    );
