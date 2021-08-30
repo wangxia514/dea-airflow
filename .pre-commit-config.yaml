@@ -10,9 +10,14 @@ repos:
     hooks:
       - id: black
   - repo: https://github.com/pycqa/pylint
+
     rev: v2.9.5
     hooks:
     - id: pylint
       additional_dependencies: ['pylint-airflow','apache-airflow[aws,kubernetes,postgres,redis,ssh,sftp,celery]']
       name: pylint dags
       files: dags/
+  - repo: https://github.com/pycqa/flake8
+    rev: 3.9.2
+    hooks:
+      - id: flake8
