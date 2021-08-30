@@ -13,6 +13,7 @@ OWS_UPDATE_LIST = (
     "ga_ls7e_ard_3",
     "ga_ls8c_ard_3",
     "ga_ls_ard_3",
+    "s2_nrt_provisional_granule_nbar_t",
 )
 
 # Default Datacube Explorer Products to Update
