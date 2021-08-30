@@ -82,7 +82,9 @@ Your code will now be formatted and validated before each commit. You can also
 invoke it manually by running `pre-commit run --all-files`
 
 ## Integration Test on GITHUB ACTION or locally
-### execution
+This `docker-compose.workflow.yaml` has an extra postgres endpoint with a copy of odc database.
+
+### run it locally
 ```bash
 mkdir ./logs
 echo -e "AIRFLOW_UID=$(id -u)\nAIRFLOW_GID=0" >> .env
