@@ -57,9 +57,8 @@ SYNC_COMMAND = dedent(
   qsub -N sync_{{ params.product}}_{{ params.year }} \
   -q {{ params.queue }} \
   -W umask=33 \
-  -l wd,walltime=12:00:00,mem=9GB -m abe \
+  -l wd,walltime=10:00:00,mem=12GB,ncpus=4 -m abe \
   -l storage=gdata/v10+gdata/fk4+gdata/rs0+gdata/if87 \
-  -M nci.monitor@dea.ga.gov.au \
   -P {{ params.project }} -o {{ work_dir }} -e {{ work_dir }} \
   -- /bin/bash -l -c \
       "source $HOME/.bashrc; \
@@ -88,7 +87,7 @@ with DAG(
                 "product": product,
                 "sync_prefix_path": SYNC_PREFIX_PATH[product],
                 "sync_suffix_path": SYNC_SUFFIX_PATH[product],
-                "queue": "copyq",
+                "queue": "normal",
             },
             do_xcom_push=True,
             timeout=5 * MINUTES,  # For running SSH Commands
