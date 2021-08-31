@@ -16,9 +16,8 @@ dag_run.conf format:
 """
 
 from airflow import DAG
-import csv
 import pandas as pd
-import glob, os
+import os
 
 from datetime import datetime, timedelta
 from airflow.operators.python_operator import PythonOperator
@@ -49,15 +48,6 @@ DEFAULT_ARGS = {
     },
 }
 
-# THE DAG
-dag = DAG(
-    dag_id=DAG_NAME,
-    doc_md=__doc__,
-    default_args=DEFAULT_ARGS,
-    schedule_interval=None,  # Manual
-    catchup=False,
-    tags=["qa", "index-check"],
-)
 
 def compare_dsreport_csv():
     """
@@ -71,6 +61,18 @@ def compare_dsreport_csv():
     for row in range(len(c['product_name'])):
         if c['dataset_count_x'][row] != c['dataset_count_y'][row]:
             print(c.loc[row, :])
+
+
+# THE DAG
+dag = DAG(
+    dag_id=DAG_NAME,
+    doc_md=__doc__,
+    default_args=DEFAULT_ARGS,
+    schedule_interval=None,  # Manual
+    catchup=False,
+    tags=["qa", "index-check"],
+)
+
 
 with dag:
 
