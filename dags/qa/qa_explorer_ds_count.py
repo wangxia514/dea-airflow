@@ -34,7 +34,7 @@ from infra.variables import (
     AWS_DEFAULT_REGION,
 )
 
-DAG_NAME = "qa_explorer_ds_count"
+DAG_NAME = "qa_explorer_update"
 
 # DAG CONFIGURATION
 DEFAULT_ARGS = {
@@ -64,8 +64,6 @@ dag = DAG(
     tags=["k8s", "explorer", "qa"],
 )
 
-CHECK_DAGRUN_CONFIG = "check_dagrun_config"
-
 
 def qa_ds_count():
     """
@@ -83,7 +81,7 @@ def qa_ds_count():
     if len(rows) > 0:
         return "explorer-summary-task"
     else:
-        return "dummy_option"
+        return "skip"
 
 
 with dag:
@@ -95,8 +93,8 @@ with dag:
 
     explorer_update = explorer_refresh_operator(products=EXPLORER_UPDATE_LIST)
 
-    dummy3 = DummyOperator(
-        task_id="dummy_option",
+    skip = DummyOperator(
+        task_id="skip",
     )
 
-    qa_assessor >> [explorer_update, dummy3]
+    qa_assessor >> [explorer_update, skip]
