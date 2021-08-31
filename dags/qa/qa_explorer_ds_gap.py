@@ -55,8 +55,8 @@ def compare_dsreport_csv():
     """
     path = os.path.dirname(os.path.abspath(__file__))
 
-    base_csv = pd.read_csv('sample_dsreport.csv')
-    comparewith_csv = pd.read_csv('sample_dsreport1.csv')
+    base_csv = pd.read_csv(os.path.join(path, 'sample_dsreport.csv'))
+    comparewith_csv = pd.read_csv(os.path.join(path, 'sample_dsreport1.csv'))
     c = pd.merge(base_csv, comparewith_csv, on=['product_name', 'period_type', 'date'])
     for row in range(len(c['product_name'])):
         if c['dataset_count_x'][row] != c['dataset_count_y'][row]:
@@ -72,6 +72,7 @@ dag = DAG(
     catchup=False,
     tags=["qa", "index-check"],
 )
+
 
 with dag:
 
