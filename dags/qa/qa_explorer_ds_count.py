@@ -64,6 +64,7 @@ dag = DAG(
     tags=["k8s", "explorer", "qa"],
 )
 
+
 def qa_ds_count():
     """
     return sql query result
