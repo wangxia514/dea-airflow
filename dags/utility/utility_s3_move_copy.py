@@ -28,7 +28,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from textwrap import dedent
-from infra.images import INDEXER_IMAGE
+from infra.images import S5CMD_IMAGE
 from infra.iam_roles import UTILITY_S3_COPY_MOVE_ROLE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.variables import AWS_DEFAULT_REGION
@@ -57,7 +57,7 @@ S3_MOVE_COMMAND = [
     dedent(
         """
             {% if dag_run.conf.get('src_bucket_folder') and dag_run.conf.get('dest_bucket_folder') %}
-            aws s3 cp --acl bucket-owner-full-control {{ dag_run.conf.src_bucket_folder }} {{ dag_run.conf.dest_bucket_folder }} --recursive
+            s5cmd cp -acl bucket-owner-full-control '{{ dag_run.conf.src_bucket_folder }}' {{ dag_run.conf.dest_bucket_folder }} --recursive
             {% endif %}
         """
     ),
@@ -76,12 +76,12 @@ dag = DAG(
 with dag:
     S3_COPY = KubernetesPodOperator(
         namespace="processing",
-        image=INDEXER_IMAGE,
+        image=S5CMD_IMAGE,
         arguments=S3_MOVE_COMMAND,
         annotations={"iam.amazonaws.com/role": UTILITY_S3_COPY_MOVE_ROLE},
-        labels={"step": "utility-s3-move"},
-        name="s3-move",
-        task_id="s3-move",
+        labels={"step": "utility-s5cmd-copy"},
+        name="s5cmd-copy",
+        task_id="s5cmd-copy",
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
