@@ -41,6 +41,7 @@ Scenario 1: need to update product definitions
 Scenario 2: need to update dataset
 
     {
+        "product_definition_urls": [],
         "s3_glob": "s3://dea-public-data-dev/s2be//**/*.yaml",
         "product": "s2_barest_earth"
     }
@@ -104,7 +105,7 @@ PRODUCT_UPDATE_CMD = [
             {% endfor %}
         {% endif %}
         {% if dag_run.conf['s3_glob'] and dag_run.conf['product'] %}
-            s3-to-dc --allow-unsafe --update-if-exists --no-sign-request dag_run.conf.s3_glob dag_run.conf.product
+            s3-to-dc --allow-unsafe --update-if-exists --no-sign-request {{ dag_run.conf.s3_glob}} {{dag_run.conf.product}}
         {% endif %}
     """
     ),
