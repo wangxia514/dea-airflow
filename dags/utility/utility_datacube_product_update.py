@@ -27,7 +27,7 @@ dag_run.conf format is json list, this is designed to improve readability when l
 
 #### example conf in json format
 
-Scenario 1: need to update product definitions
+Scenario 1: need to update product definitions ONLY
 
     {
         "product_definition_urls": [
@@ -35,14 +35,29 @@ Scenario 1: need to update product definitions
             "https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_ls8_provisional.odc-product.yaml",
             "https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_s2a_provisional.odc-product.yaml",
             "https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_s2b_provisional.odc-product.yaml"
-        ]
+        ],
+        "s3_glob": "",
+        "product": ""
     }
 
-Scenario 2: need to update dataset
+Scenario 2: need to update dataset ONLY
 
     {
         "product_definition_urls": [],
-        "s3_glob": "s3://dea-public-data-dev/s2be//**/*.yaml",
+        "s3_glob": "s3://dea-public-data-dev/s2be/*/*.odc-metadata.yaml",
+        "product": "s2_barest_earth"
+    }
+
+Scenario 3: need to update product and datasets
+
+    {
+        "product_definition_urls": [
+            "https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_ls7_provisional.odc-product.yaml",
+            "https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_ls8_provisional.odc-product.yaml",
+            "https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_s2a_provisional.odc-product.yaml",
+            "https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_s2b_provisional.odc-product.yaml"
+        ],
+        "s3_glob": "s3://dea-public-data-dev/s2be/*/*.odc-metadata.yaml",
         "product": "s2_barest_earth"
     }
 
