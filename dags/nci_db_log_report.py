@@ -63,7 +63,7 @@ with DAG(
     dump_daily_log = SSHOperator(
         task_id="dump_daily_log",
         command=COMMON
-        + './pgcopy.sh {{ execution_date.format("%a") }}',  # %a is Short Day of Week
+        + './pgcopy.sh {{ execution_date.format("%a", locale="en") }}',  # %a is Short Day of Week
     )
 
     update_pg_badger_report = SSHOperator(
