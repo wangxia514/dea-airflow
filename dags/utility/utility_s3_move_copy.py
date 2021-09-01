@@ -50,9 +50,11 @@ DEFAULT_ARGS = {
     },
 }
 
-S3_MOVE_COMMAND = [
-    "{% if dag_run.conf.get('src_bucket_folder') and dag_run.conf.get('dest_bucket_folder') %}cp -acl bucket-owner-full-control '{{ dag_run.conf.src_bucket_folder }}' {{ dag_run.conf.dest_bucket_folder }}{% endif %}"
-]
+# S3_MOVE_COMMAND = [
+#     "{% if dag_run.conf.get('src_bucket_folder') and dag_run.conf.get('dest_bucket_folder') %}cp -acl bucket-owner-full-control '{{ dag_run.conf.src_bucket_folder }}' {{ dag_run.conf.dest_bucket_folder }}{% endif %}"
+# ]
+
+S3_MOVE_COMMAND = ["ls"]
 
 # THE DAG
 dag = DAG(
@@ -75,5 +77,5 @@ with dag:
         task_id="s5cmd-copy",
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,
-        is_delete_operator_pod=True,
+        is_delete_operator_pod=False,
     )
