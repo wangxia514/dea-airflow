@@ -56,10 +56,10 @@ S3_MOVE_COMMAND = [
     "-c",
     dedent(
         """
-            aws s3 cp --acl bucket-owner-full-control {0} {1} --recursive
+            {% if dag_run.conf.get('src_bucket_folder') and dag_run.conf.get('dest_bucket_folder') %}
+            aws s3 cp --acl bucket-owner-full-control {{ dag_run.conf.src_bucket_folder }} {{ dag_run.conf.dest_bucket_folder }} --recursive
+            {% endif %}
         """
-    ).format(
-        "{{ dag_run.conf.src_bucket_folder }}", "{{ dag_run.conf.dest_bucket_folder }}"
     ),
 ]
 
