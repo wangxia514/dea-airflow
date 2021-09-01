@@ -19,7 +19,7 @@ This dag allows s3 file move between the following buckets
         "dest_bucket_folder": "s://dea-public-data/s2be"
     }
 """
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 
 from airflow import DAG
 
