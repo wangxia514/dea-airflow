@@ -1,7 +1,7 @@
 """
 # DB Backup Utility Tool (Self Serve)
-## odc database in RDS backup and store to s3
-This DAG backup ODC database data weekly and stores in S3 bucket.
+## s3 copy objects from bucket to another bucket
+This DAG copies files from s3 to another s3 using `s5cmd` commands
 
 ## Note
 All list of utility dags here: https://github.com/GeoscienceAustralia/dea-airflow/tree/develop/dags/utility, see Readme
@@ -27,7 +27,6 @@ from airflow import DAG
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-from textwrap import dedent
 from infra.images import S5CMD_IMAGE
 from infra.iam_roles import UTILITY_S3_COPY_MOVE_ROLE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
@@ -52,13 +51,7 @@ DEFAULT_ARGS = {
 }
 
 S3_MOVE_COMMAND = [
-    dedent(
-        """
-            {% if dag_run.conf.get('src_bucket_folder') and dag_run.conf.get('dest_bucket_folder') %}
-            s5cmd cp -acl bucket-owner-full-control '{{ dag_run.conf.src_bucket_folder }}' {{ dag_run.conf.dest_bucket_folder }}
-            {% endif %}
-        """
-    ),
+    "{% if dag_run.conf.get('src_bucket_folder') and dag_run.conf.get('dest_bucket_folder') %}s5cmd cp -acl bucket-owner-full-control '{{ dag_run.conf.src_bucket_folder }}' {{ dag_run.conf.dest_bucket_folder }}{% endif %}"
 ]
 
 # THE DAG
