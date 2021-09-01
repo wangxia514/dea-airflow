@@ -16,7 +16,7 @@ This dag allows s3 file move between the following buckets
 ## Customisation
 
     {
-        "src_bucket_folder": "s3://dea-public-data-dev/s2be/",
+        "src_bucket_folder": "s3://dea-public-data-dev/s2be/*",
         "dest_bucket_folder": "s3://dea-public-data/derived/s2_barest_earth/"
     }
 """
@@ -52,12 +52,10 @@ DEFAULT_ARGS = {
 }
 
 S3_MOVE_COMMAND = [
-    "bash",
-    "-c",
     dedent(
         """
             {% if dag_run.conf.get('src_bucket_folder') and dag_run.conf.get('dest_bucket_folder') %}
-            s5cmd cp -acl bucket-owner-full-control '{{ dag_run.conf.src_bucket_folder }}' {{ dag_run.conf.dest_bucket_folder }} --recursive
+            s5cmd cp -acl bucket-owner-full-control '{{ dag_run.conf.src_bucket_folder }}' {{ dag_run.conf.dest_bucket_folder }}
             {% endif %}
         """
     ),
