@@ -21,7 +21,7 @@ There are three configuration arguments:
 The commands which are executed are:
 
 1. `datacube product add`
-2. `s3-to-dc --update-if-exists --allow-unsafe --no-sign-request`
+2. `s3-to-dc --no-sign-request`
 3. update explorer
 
 
@@ -169,8 +169,6 @@ with dag:
             "{{ dag_run.conf.s3_glob }}",
             "{{ dag_run.conf.product_name }}",
             "--no-sign-request",
-            "--update-if-exists",
-            "--allow-unsafe",
         ],
         name="datacube-index",
         task_id=INDEXING_TASK_ID,
