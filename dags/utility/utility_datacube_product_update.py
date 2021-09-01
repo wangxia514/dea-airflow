@@ -1,7 +1,8 @@
 """
 ## Utility Tool (Self Serve)
-For updating products
+For updating products or updating datasets
 
+datacube command used for `product update`
 ```
 datacube -v product update \
     https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_ls7_provisional.odc-product.yaml \
@@ -9,6 +10,13 @@ datacube -v product update \
     https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_s2a_provisional.odc-product.yaml \
     https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_s2b_provisional.odc-product.yaml
 ```
+
+odc-tools command used for `dataset update`
+```
+s3-to-dc --allow-unsafe --update-if-exists --no-sign-request \
+    s3://dea-public-data-dev/s2be//**/*.yaml s2_barest_earth
+```
+
 ## Note
 All list of utility dags here: https://github.com/GeoscienceAustralia/dea-airflow/tree/develop/dags/utility, see Readme
 
@@ -19,6 +27,8 @@ dag_run.conf format is json list, this is designed to improve readability when l
 
 #### example conf in json format
 
+Scenario 1: need to update product definitions
+
     {
         "product_definition_urls": [
             "https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_ls7_provisional.odc-product.yaml",
@@ -26,6 +36,13 @@ dag_run.conf format is json list, this is designed to improve readability when l
             "https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_s2a_provisional.odc-product.yaml",
             "https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_s2b_provisional.odc-product.yaml"
         ]
+    }
+
+Scenario 2: need to update dataset
+
+    {
+        "s3_glob": "s3://dea-public-data-dev/s2be//**/*.yaml",
+        "product": "s2_barest_earth"
     }
 
 """
@@ -82,8 +99,13 @@ PRODUCT_UPDATE_CMD = [
     "-c",
     dedent(
         """
-        {% for product in dag_run.conf.product_definition_urls %}datacube -v product update --allow-unsafe {{product}}
-        {% endfor %}
+        {% if dag_run.conf['product_definition_urls'] %}
+            {% for product in dag_run.conf.product_definition_urls %}datacube -v product update --allow-unsafe {{product}}
+            {% endfor %}
+        {% endif %}
+        {% if dag_run.conf['s3_glob'] and dag_run.conf['product'] %}
+            s3-to-dc --allow-unsafe --update-if-exists --no-sign-request dag_run.conf.s3_glob dag_run.conf.product
+        {% endif %}
     """
     ),
 ]
@@ -100,14 +122,14 @@ dag = DAG(
 
 
 with dag:
-    Product_update = KubernetesPodOperator(
+    Product_or_dataset_update = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
         image_pull_policy="IfNotPresent",
         labels={"step": "datacube-product-update"},
         arguments=PRODUCT_UPDATE_CMD,
-        name="datacube-product-update",
-        task_id="datacube-product-update",
+        name="datacube-product-or-dataset-update",
+        task_id="datacube-product-or-dataset-update",
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,

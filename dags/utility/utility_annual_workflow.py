@@ -8,6 +8,12 @@ All list of utility dags here: https://github.com/GeoscienceAustralia/dea-airflo
 #### Utility customisation
 The DAG can be parameterized with run time configuration `product` and `s3_glob`
 
+The commands which are executed are:
+
+1. `s3-to-dc --no-sign-request --skip-lineage`
+2. update ows
+3. update explorer
+
 dag_run.conf format:
 
 #### example conf in json format
