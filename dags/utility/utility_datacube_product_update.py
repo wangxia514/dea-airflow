@@ -36,14 +36,11 @@ Scenario 1: need to update product definitions ONLY
             "https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_s2a_provisional.odc-product.yaml",
             "https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_s2b_provisional.odc-product.yaml"
         ],
-        "s3_glob": "",
-        "product": ""
     }
 
 Scenario 2: need to update dataset ONLY
 
     {
-        "product_definition_urls": [],
         "s3_glob": "s3://dea-public-data-dev/s2be/*/*.odc-metadata.yaml",
         "product": "s2_barest_earth"
     }
@@ -115,11 +112,11 @@ PRODUCT_UPDATE_CMD = [
     "-c",
     dedent(
         """
-        {% if dag_run.conf['product_definition_urls'] %}
+        {% if dag_run.conf.get('product_definition_urls') %}
             {% for product in dag_run.conf.product_definition_urls %}datacube -v product update --allow-unsafe {{product}}
             {% endfor %}
         {% endif %}
-        {% if dag_run.conf['s3_glob'] and dag_run.conf['product'] %}
+        {% if dag_run.conf.get('s3_glob') and dag_run.conf.get('product') %}
             s3-to-dc --allow-unsafe --update-if-exists --no-sign-request {{ dag_run.conf.s3_glob}} {{dag_run.conf.product}}
         {% endif %}
     """
