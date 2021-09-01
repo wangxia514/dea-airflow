@@ -14,7 +14,6 @@ from datetime import date, datetime, timedelta
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 
-# from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
@@ -98,7 +97,7 @@ with dag:
         image=INDEXER_IMAGE,
         arguments=DUMP_TO_S3_COMMAND,
         annotations={"iam.amazonaws.com/role": DB_DUMP_S3_ROLE},
-        labels={"step": "ds-arch"},
+        labels={"step": "utiliy-dump-odc-db"},
         name="dump-odc-db",
         task_id="dump-odc-db",
         get_logs=True,
