@@ -8,6 +8,7 @@ All list of utility dags here: https://github.com/GeoscienceAustralia/dea-airflo
 
 ### Restrictions
 This dag allows s3 file move between the following buckets
+
 - `"dea-public-data-dev"`
 - `"dea-public-data"`
 - `"dea-non-public-data"`
@@ -16,7 +17,7 @@ This dag allows s3 file move between the following buckets
 
     {
         "src_bucket_folder": "s3://dea-public-data-dev/s2be/",
-        "dest_bucket_folder": "s://dea-public-data/s2be"
+        "dest_bucket_folder": "s3://dea-public-data/derived/s2_barest_earth/"
     }
 """
 from datetime import datetime, timedelta
