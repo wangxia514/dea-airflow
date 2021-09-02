@@ -15,11 +15,11 @@ This dag allows s3 file move between the following buckets
 
 ## Customisation
 
-scenario 1: for standard copy from src to destination
+scenario 1: for dry-run copy from src to destination
 
     {
         "src_bucket_folder": "s3://dea-public-data-dev/s2be/*",
-        "dest_bucket_folder": "s3://dea-public-data/derivative/s2_barest_earth/"
+        "dest_bucket_folder": "s3://dea-public-data/derivative/s2_barest_earth/",
     }
 
 scenario 2: for standard copy from src to destination
@@ -27,7 +27,16 @@ scenario 2: for standard copy from src to destination
     {
         "src_bucket_folder": "s3://dea-public-data-dev/s2be/*",
         "dest_bucket_folder": "s3://dea-public-data/derivative/s2_barest_earth/",
-        "mv": "True"
+        "dry_run": "False"
+    }
+
+scenario 3: for standard copy from src to destination
+
+    {
+        "src_bucket_folder": "s3://dea-public-data-dev/s2be/*",
+        "dest_bucket_folder": "s3://dea-public-data/derivative/s2_barest_earth/",
+        "mv": "True",
+        "dry_run": "False"
     }
 """
 from datetime import datetime, timedelta
@@ -63,6 +72,7 @@ DEFAULT_ARGS = {
 S3_COPY_COMMAND = [
     "-c",
     "./s5cmd",
+    "{% if not dag_run.conf.get('dry_run') %} --dry-run {% endif %}",
     "{% if dag_run.conf.get('mv') %} mv {% else %} cp {% endif %}",
     "--acl bucket-owner-full-control",
     "'{{ dag_run.conf.src_bucket_folder }}' {{ dag_run.conf.dest_bucket_folder }}",
