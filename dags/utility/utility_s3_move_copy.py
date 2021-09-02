@@ -57,7 +57,7 @@ S3_COPY_COMMAND = [
 
 S3_CHECK_ARGS = [
     "-c",
-    "./s5cmd ls s3://dea-public-data-dev",
+    "./s5cmd ls s3://dea-public-data && ./s5cmd ls s3://dea-public-data-dev && ./s5cmd ls s3://dea-non-public-data",
 ]
 
 # THE DAG
@@ -75,7 +75,7 @@ with dag:
         namespace="processing",
         image=S5CMD_IMAGE,
         cmds=["/bin/sh"],
-        arguments=S3_COPY_COMMAND,
+        arguments=S3_CHECK_ARGS,
         annotations={"iam.amazonaws.com/role": UTILITY_S3_COPY_MOVE_ROLE},
         labels={"step": "utility-s5cmd-copy"},
         name="s5cmd-copy",
