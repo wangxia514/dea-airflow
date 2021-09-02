@@ -55,8 +55,8 @@ DEFAULT_ARGS = {
 # ]
 
 S3_CHECK_ARGS = [
-    "ls",
-    "/s5cmd /s5cmd/s5cmd",
+    "-c",
+    "./s5cmd ls",
 ]
 
 # THE DAG
@@ -73,7 +73,7 @@ with dag:
     S3_COPY = KubernetesPodOperator(
         namespace="processing",
         image=S5CMD_IMAGE,
-        # cmds=["./s5cmd"],
+        cmds=["/bin/sh"],
         arguments=S3_CHECK_ARGS,
         annotations={"iam.amazonaws.com/role": UTILITY_S3_COPY_MOVE_ROLE},
         labels={"step": "utility-s5cmd-copy"},
