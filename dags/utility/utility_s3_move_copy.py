@@ -9,9 +9,9 @@ All list of utility dags here: https://github.com/GeoscienceAustralia/dea-airflo
 ### Restrictions
 This dag allows s3 file move between the following buckets
 
-- `"dea-public-data-dev"`
-- `"dea-public-data"`
-- `"dea-non-public-data"`
+- `"s3://dea-public-data-dev"`
+- `"s3://dea-public-data"`
+- `"s3://dea-non-public-data"`
 
 ## Customisation
 
@@ -56,7 +56,7 @@ DEFAULT_ARGS = {
 
 S3_CHECK_ARGS = [
     "-c",
-    "./s5cmd ls",
+    "./s5cmd ls s3://dea-public-data-dev",
 ]
 
 # THE DAG
