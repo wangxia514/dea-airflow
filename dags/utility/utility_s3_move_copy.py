@@ -15,11 +15,16 @@ This dag allows s3 file move between the following buckets
 
 ## Customisation
 
+### Flags
+
+- `mv` config acts like a flag, if it is passed, the `cp` command will be replaced with `mv` command
+- `dry_run` is enabled by default, if its passed it will be disabled
+
 scenario 1: for dry-run copy from src to destination
 
     {
         "src_bucket_folder": "s3://dea-public-data-dev/s2be/*",
-        "dest_bucket_folder": "s3://dea-public-data/derivative/s2_barest_earth/",
+        "dest_bucket_folder": "s3://dea-public-data/derivative/s2_barest_earth/"
     }
 
 scenario 2: for standard copy from src to destination
@@ -71,11 +76,7 @@ DEFAULT_ARGS = {
 
 S3_COPY_COMMAND = [
     "-c",
-    "./s5cmd",
-    "{% if not dag_run.conf.get('dry_run') %} --dry-run {% endif %}",
-    "{% if dag_run.conf.get('mv') %} mv {% else %} cp {% endif %}",
-    "--acl bucket-owner-full-control",
-    "'{{ dag_run.conf.src_bucket_folder }}' {{ dag_run.conf.dest_bucket_folder }}",
+    "{% if dag_run.conf.get('src_bucket_folder') and dag_run.conf.get('dest_bucket_folder') %}./s5cmd {% if dag_run.conf.get('mv') %} mv {% else %} cp {% endif %} {% if not dag_run.conf.get('dry_run') %} --dry-run {% endif %} --acl bucket-owner-full-control '{{ dag_run.conf.src_bucket_folder }}' {{ dag_run.conf.dest_bucket_folder }}{% endif %}",
 ]
 
 # THE DAG
