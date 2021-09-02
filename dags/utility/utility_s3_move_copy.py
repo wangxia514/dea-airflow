@@ -15,9 +15,19 @@ This dag allows s3 file move between the following buckets
 
 ## Customisation
 
+scenario 1: for standard copy from src to destination
+
     {
         "src_bucket_folder": "s3://dea-public-data-dev/s2be/*",
-        "dest_bucket_folder": "s3://dea-public-data/derived/s2_barest_earth/"
+        "dest_bucket_folder": "s3://dea-public-data/derivative/s2_barest_earth/"
+    }
+
+scenario 2: for standard copy from src to destination
+
+    {
+        "src_bucket_folder": "s3://dea-public-data-dev/s2be/*",
+        "dest_bucket_folder": "s3://dea-public-data/derivative/s2_barest_earth/",
+        "mv": "True"
     }
 """
 from datetime import datetime, timedelta
@@ -52,13 +62,11 @@ DEFAULT_ARGS = {
 
 S3_COPY_COMMAND = [
     "-c",
-    "{% if dag_run.conf.get('src_bucket_folder') and dag_run.conf.get('dest_bucket_folder') %}./s5cmd cp --acl bucket-owner-full-control '{{ dag_run.conf.src_bucket_folder }}' {{ dag_run.conf.dest_bucket_folder }}{% endif %}",
+    "./s5cmd",
+    "{% if dag_run.conf.get('mv') %} mv {% else %} cp {% endif %}",
+    "--acl bucket-owner-full-control",
+    "'{{ dag_run.conf.src_bucket_folder }}' {{ dag_run.conf.dest_bucket_folder }}",
 ]
-
-# S3_CHECK_ARGS = [
-#     "-c",
-#     "./s5cmd ls s3://dea-public-data/ && ./s5cmd ls s3://dea-public-data-dev/ && ./s5cmd ls s3://dea-non-public-data/",
-# ]
 
 # THE DAG
 dag = DAG(
