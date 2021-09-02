@@ -55,10 +55,10 @@ DEFAULT_ARGS = {
 # ]
 
 S3_CHECK_COMMAND = [
-    "s5cmd ls",
-    "dea-public-data-dev",
-    "dea-public-data",
-    "dea-non-public-data",
+    "ls",
+    "s3://dea-public-data-dev",
+    "s3://dea-public-data",
+    "s3://dea-non-public-data",
 ]
 
 # THE DAG
