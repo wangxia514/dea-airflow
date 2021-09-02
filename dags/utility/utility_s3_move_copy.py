@@ -50,9 +50,10 @@ DEFAULT_ARGS = {
     },
 }
 
-# S3_COPY_COMMAND = [
-#     "{% if dag_run.conf.get('src_bucket_folder') and dag_run.conf.get('dest_bucket_folder') %}cp --acl bucket-owner-full-control '{{ dag_run.conf.src_bucket_folder }}' {{ dag_run.conf.dest_bucket_folder }}{% endif %}"
-# ]
+S3_COPY_COMMAND = [
+    "-c",
+    "{% if dag_run.conf.get('src_bucket_folder') and dag_run.conf.get('dest_bucket_folder') %}./s5cmd cp --acl bucket-owner-full-control '{{ dag_run.conf.src_bucket_folder }}' {{ dag_run.conf.dest_bucket_folder }}{% endif %}",
+]
 
 S3_CHECK_ARGS = [
     "-c",
@@ -74,7 +75,7 @@ with dag:
         namespace="processing",
         image=S5CMD_IMAGE,
         cmds=["/bin/sh"],
-        arguments=S3_CHECK_ARGS,
+        arguments=S3_COPY_COMMAND,
         annotations={"iam.amazonaws.com/role": UTILITY_S3_COPY_MOVE_ROLE},
         labels={"step": "utility-s5cmd-copy"},
         name="s5cmd-copy",
