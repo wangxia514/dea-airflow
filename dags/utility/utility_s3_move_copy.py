@@ -70,7 +70,8 @@ with dag:
     S3_COPY = KubernetesPodOperator(
         namespace="processing",
         image=S5CMD_IMAGE,
-        arguments=S3_MOVE_COMMAND,
+        cmds=S3_MOVE_COMMAND,
+        # arguments=S3_MOVE_COMMAND,
         annotations={"iam.amazonaws.com/role": UTILITY_S3_COPY_MOVE_ROLE},
         labels={"step": "utility-s5cmd-copy"},
         name="s5cmd-copy",
