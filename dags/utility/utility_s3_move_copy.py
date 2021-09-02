@@ -57,7 +57,7 @@ S3_COPY_COMMAND = [
 
 S3_CHECK_ARGS = [
     "-c",
-    "./s5cmd ls s3://dea-public-data && ./s5cmd ls s3://dea-public-data-dev && ./s5cmd ls s3://dea-non-public-data",
+    "./s5cmd ls s3://dea-public-data/ && ./s5cmd ls s3://dea-public-data-dev/ && ./s5cmd ls s3://dea-non-public-data/",
 ]
 
 # THE DAG
