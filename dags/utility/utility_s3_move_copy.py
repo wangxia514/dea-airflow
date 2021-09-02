@@ -76,7 +76,7 @@ DEFAULT_ARGS = {
 
 S3_COPY_COMMAND = [
     "-c",
-    "{% if dag_run.conf.get('src_bucket_folder') and dag_run.conf.get('dest_bucket_folder') %}./s5cmd {% if dag_run.conf.get('mv') %} mv {% else %} cp {% endif %} {% if not dag_run.conf.get('dry_run') %} --dry-run {% endif %} --acl bucket-owner-full-control '{{ dag_run.conf.src_bucket_folder }}' {{ dag_run.conf.dest_bucket_folder }}{% endif %}",
+    "{% if dag_run.conf.get('src_bucket_folder') and dag_run.conf.get('dest_bucket_folder') %}./s5cmd {% if not dag_run.conf.get('dry_run') %}--dry-run{% endif %} {% if dag_run.conf.get('mv') %}mv{% else %}cp{% endif %} --acl bucket-owner-full-control '{{ dag_run.conf.src_bucket_folder }}' {{ dag_run.conf.dest_bucket_folder }}{% endif %}",
 ]
 
 # THE DAG
