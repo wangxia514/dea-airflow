@@ -55,7 +55,7 @@ DEFAULT_ARGS = {
 # ]
 
 S3_CHECK_ARGS = [
-    "ls s3://dea-public-data-dev",
+    "./s5cmd ls s3://dea-public-data-dev",
 ]
 
 # THE DAG
