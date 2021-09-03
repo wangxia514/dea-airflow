@@ -64,7 +64,7 @@ from airflow.hooks.postgres_hook import PostgresHook
 from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.operators.python_operator import PythonOperator
 
-from infra.connections import DB_ODC_READER_CONN
+from infra.connections import DB_ODC_READER_CONN, DB_ODC_WRITER_CONN
 from deletion.deletion_sql_queries import (
     DATASET_COUNT_CONFIRMATION,
 )
@@ -149,7 +149,7 @@ with dag:
     delete_selected_year_for_product = PostgresOperator(
         task_id="delete_selected_year_for_product",
         sql="deletion_sql/delete_selected_years_dataset.sql",
-        postgres_conn_id=DB_ODC_READER_CONN,
+        postgres_conn_id=DB_ODC_WRITER_CONN,
         params={
             "product_name": "{{ dag_run.conf.product_name }}",
             "selected_year": "{{ dag_run.conf.selected_year }}",

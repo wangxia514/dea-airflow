@@ -15,3 +15,4 @@ AWS_WAGL_NRT_CONN = "aws_wagl_nrt"
 
 # QA DB CONN
 DB_EXPLORER_READ_CONN = "db_explorer_reader"
+DB_ODC_WRITER_CONN = "db_odc_writer"
