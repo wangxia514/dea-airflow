@@ -92,7 +92,6 @@ SYNC_JOBS = [
     "echo synching brdf",
     *[
         sync(
-            "",
             f"s3://ga-sentinel/ancillary/BRDF/brdf-jl/data/{doy}/",
             f"/ancillary/brdf-jl/{doy}/",
         )
@@ -146,6 +145,11 @@ SYNC_JOBS = [
         '--exclude "*" --include DEM_one_deg_20June2019.h5',
         "s3://ga-sentinel/ancillary/eoancillarydata-2/elevation/world_1deg/",
         "/ancillary/eoancillarydata-2/elevation/world_1deg/",
+    ),
+    "echo synching GQA ancillaries",
+    sync(
+        "s3://dea-dev-bucket/GQA/",
+        "/ancillary/GQA/",
     ),
     "find /ancillary/ -type f",
     # this is needed because we want the wagl_nrt user to have write access
