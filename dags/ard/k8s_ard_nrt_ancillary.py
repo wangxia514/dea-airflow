@@ -163,6 +163,7 @@ SYNC_JOBS = [
         "s3://dea-dev-bucket/GQA/wrs2-descending/",
         "/ancillary/GQA/wrs2-descending/",
     ),
+    "echo synching GQA reference images",
     *[
         sync(
             f"s3://dea-dev-bucket/GQA/wrs2/{sat_path:03d}/",
@@ -170,7 +171,10 @@ SYNC_JOBS = [
         )
         for sat_path in range(88, 117)
     ],
+    "echo listing ancillaries on disk",
+    "find /ancillary/ -type f",
     # this is needed because we want the wagl_nrt user to have write access
+    "echo changing ancillary file permissions",
     "find /ancillary/ -type d | xargs chmod g+w",
     "date",
 ]
