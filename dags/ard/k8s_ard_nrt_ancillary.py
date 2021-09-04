@@ -148,9 +148,28 @@ SYNC_JOBS = [
     ),
     "echo synching GQA ancillaries",
     sync(
-        "s3://dea-dev-bucket/GQA/",
-        "/ancillary/GQA/",
+        "s3://dea-dev-bucket/GQA/Fix_QA_points/",
+        "/ancillary/GQA/Fix_QA_points/",
     ),
+    sync(
+        "s3://dea-dev-bucket/GQA/gverify/",
+        "/ancillary/GQA/gverify/",
+    ),
+    sync(
+        "s3://dea-dev-bucket/GQA/ocean_tiles/",
+        "/ancillary/GQA/ocean_tiles/",
+    ),
+    sync(
+        "s3://dea-dev-bucket/GQA/wrs2-descending/",
+        "/ancillary/GQA/wrs2-descending/",
+    ),
+    *[
+        sync(
+            f"s3://dea-dev-bucket/GQA/wrs2/{sat_path:03d}/",
+            f"/ancillary/GQA/wrs2/{sat_path:03d}/",
+        )
+        for sat_path in range(88, 117)
+    ],
     # this is needed because we want the wagl_nrt user to have write access
     "find /ancillary/ -type d | xargs chmod g+w",
     "date",
