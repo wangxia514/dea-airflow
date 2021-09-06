@@ -14,6 +14,10 @@ datacube dataset add https://data.dea.ga.gov.au/L2/sentinel-2-nrt/S2MSIARD/2021-
 datacube dataset add https://data.dea.ga.gov.au/L2/sentinel-2-nrt/S2MSIARD/2021-08-28/S2A_OPER_MSI_ARD_TL_VGS4_20210829T011308_A032302_T56JNL_N03.01/ARD-METADATA.yaml --confirm-ignore-lineage
 datacube dataset add https://data.dea.ga.gov.au/L2/sentinel-2-nrt/S2MSIARD/2021-08-29/S2A_OPER_MSI_ARD_TL_VGS4_20210829T035557_A032303_T52JGR_N03.01/ARD-METADATA.yaml --confirm-ignore-lineage
 
+# s2b nrt granule datasets (used in delete dataset location dag)
+datacube dataset add https://data.dea.ga.gov.au/L2/sentinel-2-nrt/S2MSIARD/2021-09-06/S2B_OPER_MSI_ARD_TL_VGS1_20210906T031504_A023509_T51KZP_N03.01/ARD-METADATA.yaml --confirm-ignore-lineage
+datacube dataset update s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-09-06/S2B_OPER_MSI_ARD_TL_VGS1_20210906T031504_A023509_T51KZP_N03.01/ARD-METADATA.yaml
+
 # provisional products
 datacube product add https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_ls7_provisional.odc-product.yaml # ls7 provision products
 datacube product add https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_ls8_provisional.odc-product.yaml # ls8 provisional products

@@ -165,3 +165,5 @@ with dag:
             "product_name": "{{ dag_run.conf.product_name }}",
         },
     )
+
+    check_dataset_location >> delete_location
