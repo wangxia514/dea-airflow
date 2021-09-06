@@ -82,7 +82,7 @@ with DAG(
 
             export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
             export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
-            aws s3 sync report/ s3://nci-db-dump/pgbadger/nci/dea-db/ --no-progress"""
+            aws s3 sync reports/ s3://nci-db-dump/pgbadger/nci/dea-db/ --no-progress"""
         ),
     )
 
