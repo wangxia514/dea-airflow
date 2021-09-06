@@ -101,7 +101,7 @@ with pipeline:
         namespace="processing",
         name="dea-ard-nrt-sentinel2-provisional",
         task_id="dea-ard-nrt-sentinel2-provisional",
-        image_pull_policy="IfNotPresent",
+        image_pull_policy="Always",
         image=WAGL_IMAGE_POC_LATEST,
         affinity=affinity,
         tolerations=tolerations,
