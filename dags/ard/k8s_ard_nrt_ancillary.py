@@ -64,11 +64,7 @@ SYNC_JOBS = [
     "echo synching invariant height",
     sync("s3://dea-dev-bucket/s2-wagl-nrt/invariant/", "/ancillary/invariant"),
     "echo synching land sea rasters",
-    sync(
-        '--exclude "*" --include Land_Sea_Rasters.tar.z',
-        "s3://dea-dev-bucket/s2-wagl-nrt/",
-        "/ancillary",
-    ),
+    "aws s3 cp --only-show-errors --no-follow-symlinks s3://dea-dev-bucket/s2-wagl-nrt/Land_Sea_Rasters.tar.z /ancillary",
     "echo extracting land sea rasters",
     "tar xvf /ancillary/Land_Sea_Rasters.tar.z -C /ancillary/",
     "chown -R root:10015 /ancillary/Land_Sea_Rasters/",
