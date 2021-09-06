@@ -16,7 +16,6 @@ from airflow import DAG
 from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
 from airflow.providers.ssh.operators.ssh import SSHOperator
 
-from operators.ssh_operators import SecretHandlingSSHOperator
 from infra.connections import AWS_NCI_DB_BACKUP_CONN
 
 AWS_CONN_ID = AWS_NCI_DB_BACKUP_CONN
@@ -45,6 +44,7 @@ with DAG(
     catchup=False,
     schedule_interval="@daily",
     max_active_runs=1,
+    concurrency=1,
     tags=["nci"],
 ) as dag:
     COMMON = dedent(
@@ -63,7 +63,8 @@ with DAG(
     dump_daily_log = SSHOperator(
         task_id="dump_daily_log",
         command=COMMON
-        + './pgcopy.sh {{ execution_date.format("%a", locale="en") }}',  # %a is Short Day of Week
+        # Day of week in three letters. https://pendulum.eustace.io/docs/#formatter
+        + './pgcopy.sh {{ execution_date.format("ddd") }}',
     )
 
     update_pg_badger_report = SSHOperator(
@@ -72,17 +73,18 @@ with DAG(
     )
 
     aws_conn = AwsHook(aws_conn_id=AWS_CONN_ID, client_type="s3")
-    upload_to_s3 = SecretHandlingSSHOperator(
+    upload_to_s3 = SSHOperator(
         task_id="upload_to_s3",
         params=dict(aws_conn=aws_conn),
-        secret_command="""
+        command=COMMON
+        + dedent(
+            """
             {% set aws_creds = params.aws_conn.get_credentials() -%}
 
             export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
             export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
-        """,
-        command=COMMON
-        + "aws s3 sync report/ s3://nci-db-dump/pgbadger/nci/dea-db/ --no-progress",
+            aws s3 sync reports/ s3://nci-db-dump/pgbadger/nci/dea-db/ --no-progress"""
+        ),
     )
 
     dump_daily_log >> update_pg_badger_report >> upload_to_s3
