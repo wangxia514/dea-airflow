@@ -45,26 +45,22 @@ All list of utility dags here: https://github.com/GeoscienceAustralia/dea-airflo
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from textwrap import dedent
 
 from airflow.kubernetes.secret import Secret
 from airflow.hooks.postgres_hook import PostgresHook
-from deletion.deletion_sql_queries import CONFIRM_DATASET_HAS_MORE_THAN_ONE_LOCATION, SELECT_DATASET_LOCATIONS_WHERE_URI_BODY_MATCHES
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
-    KubernetesPodOperator,
+from deletion.deletion_sql_queries import (
+    CONFIRM_DATASET_HAS_MORE_THAN_ONE_LOCATION,
+    SELECT_ALL_PRODUCTS_MATCHING_URI_PATTERNS,
 )
+
+from airflow.providers.postgres.operators.postgres import PostgresOperator
+from infra.connections import DB_ODC_READER_CONN
+
 from airflow.operators.python_operator import PythonOperator
-from infra.images import INDEXER_IMAGE
 from infra.variables import (
-    DB_DATABASE,
-    DB_HOSTNAME,
-    SECRET_ODC_ADMIN_NAME,
     AWS_DEFAULT_REGION,
-    DB_PORT,
 )
-from infra.podconfig import (
-    ONDEMAND_NODE_AFFINITY,
-)
+from airflow.exceptions import AirflowException
 
 DAG_NAME = "deletion_utility_datacube_dataset_location"
 
@@ -79,21 +75,12 @@ DEFAULT_ARGS = {
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "env_vars": {
-        # TODO: Pass these via templated params in DAG Run
-        "DB_HOSTNAME": DB_HOSTNAME,
-        "DB_DATABASE": DB_DATABASE,
-        "DB_PORT": DB_PORT,
         "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
     },
-    # Lift secrets into environment variables
-    "secrets": [
-        Secret("env", "DB_USERNAME", SECRET_ODC_ADMIN_NAME, "postgres-username"),
-        Secret("env", "DB_PASSWORD", SECRET_ODC_ADMIN_NAME, "postgres-password"),
-    ],
 }
 
 
-def check_dataset_location(product_name="", **kwargs):
+def check_dataset_location(product_name="", uri_pattern="", **kwargs):
     """
     return sql query result
     """
@@ -103,25 +90,36 @@ def check_dataset_location(product_name="", **kwargs):
     cursor = connection.cursor()
 
     # SQL
-    check_if_only_one_location = CONFIRM_DATASET_HAS_MORE_THAN_ONE_LOCATION.format(product_name=product_name)
+    check_if_only_one_location = CONFIRM_DATASET_HAS_MORE_THAN_ONE_LOCATION.format(
+        product_name=product_name
+    )
 
     cursor.execute(check_if_only_one_location)
     count_dataset_location_more_than_one = cursor.fetchone()
     print("check the datasets for the product all contain more than 1 location")
     print(count_dataset_location_more_than_one)
-    if not count_dataset_location_more_than_one or count_dataset_location_more_than_one[0] == 0:
-        raise AirflowException("The datasets for the product only has one location, exiting")  # mark it failed
+    if (
+        not count_dataset_location_more_than_one
+        or count_dataset_location_more_than_one[0] == 0
+    ):
+        raise AirflowException(
+            "The datasets for the product only has one location, exiting"
+        )  # mark it failed
 
     # check URI match and product matches
     # SQL
-    check_uri_pattern = SELECT_ALL_PRODUCTS_MATCHING_URI_PATTERNS.format(uri_pattern=uri_pattern)
+    check_uri_pattern = SELECT_ALL_PRODUCTS_MATCHING_URI_PATTERNS.format(
+        uri_pattern=uri_pattern
+    )
 
     cursor.execute(check_uri_pattern)
     count_product_match_uri_pattern = cursor.fetchone()
     print("check uri pattern matches for only one product")
     print(count_product_match_uri_pattern)
     if not count_product_match_uri_pattern or count_product_match_uri_pattern[0] > 1:
-        raise AirflowException("There are more than one product match the uri pattern, the uri pattern can be better refined, exiting")  # mark it failed
+        raise AirflowException(
+            "There are more than one product match the uri pattern, the uri pattern can be better refined, exiting"
+        )  # mark it failed
 
 
 # THE DAG
