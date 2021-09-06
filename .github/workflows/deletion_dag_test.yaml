@@ -37,6 +37,7 @@ jobs:
           docker-compose -f docker-compose.workflow.yaml up airflow-init
           docker-compose -f docker-compose.workflow.yaml up -d airflow-worker airflow-scheduler postgres flower opendatacube
           docker-compose -f docker-compose.workflow.yaml run airflow-worker airflow connections add db_odc_reader --conn-schema opendatacube --conn-login opendatacubeusername --conn-password opendatacubepassword --conn-port 5432 --conn-type postgres --conn-host opendatacube
+          docker-compose -f docker-compose.workflow.yaml run airflow-worker airflow connections add db_odc_writer --conn-schema opendatacube --conn-login opendatacubeusername --conn-password opendatacubepassword --conn-port 5432 --conn-type postgres --conn-host opendatacube
           docker-compose -f docker-compose.workflow.yaml run airflow-worker airflow dags list
       - name: Wait 120s for all dags to populate
         uses: jakejarvis/wait-action@master

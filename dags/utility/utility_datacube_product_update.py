@@ -21,9 +21,9 @@ s3-to-dc --allow-unsafe --update-if-exists --no-sign-request \
 All list of utility dags here: https://github.com/GeoscienceAustralia/dea-airflow/tree/develop/dags/utility, see Readme
 
 #### Utility customisation
-The DAG can be parameterized with run time configuration `product_definition_urls`
+The DAG can be parameterized with run time configuration `product_definition_urls` or `s3_glob` and `product`
 
-dag_run.conf format is json list, this is designed to improve readability when large number of products definitions need to be updated.
+dag_run.conf format is for `product_definition_url` is in json list, this is designed to improve readability when large number of products definitions need to be updated.
 
 #### example conf in json format
 
@@ -81,7 +81,7 @@ from infra.podconfig import (
     ONDEMAND_NODE_AFFINITY,
 )
 
-DAG_NAME = "utility_datacube_product_update"
+DAG_NAME = "utility_datacube_product_dataset_update"
 
 # DAG CONFIGURATION
 DEFAULT_ARGS = {
@@ -107,7 +107,7 @@ DEFAULT_ARGS = {
     ],
 }
 
-PRODUCT_UPDATE_CMD = [
+PRODUCT_OR_DATASET_UPDATE_CMD = [
     "bash",
     "-c",
     dedent(
@@ -130,7 +130,7 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
-    tags=["k8s", "datacube-product-update", "self-service"],
+    tags=["k8s", "datacube-product-update", "datacube-dataset-update", "self-service"],
 )
 
 
@@ -140,7 +140,7 @@ with dag:
         image=INDEXER_IMAGE,
         image_pull_policy="IfNotPresent",
         labels={"step": "datacube-product-update"},
-        arguments=PRODUCT_UPDATE_CMD,
+        arguments=PRODUCT_OR_DATASET_UPDATE_CMD,
         name="datacube-product-or-dataset-update",
         task_id="datacube-product-or-dataset-update",
         get_logs=True,
