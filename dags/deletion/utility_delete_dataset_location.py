@@ -46,7 +46,6 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 
-from airflow.kubernetes.secret import Secret
 from airflow.hooks.postgres_hook import PostgresHook
 from deletion.deletion_sql_queries import (
     CONFIRM_DATASET_HAS_MORE_THAN_ONE_LOCATION,
