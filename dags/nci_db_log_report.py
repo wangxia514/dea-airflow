@@ -44,6 +44,7 @@ with DAG(
     catchup=False,
     schedule_interval="@daily",
     max_active_runs=1,
+    concurrency=1,
     tags=["nci"],
 ) as dag:
     COMMON = dedent(
