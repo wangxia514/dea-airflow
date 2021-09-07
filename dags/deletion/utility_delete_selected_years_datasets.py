@@ -89,7 +89,9 @@ def datetime_metadata_selector(product_name="", selected_year="", **kwargs):
     """
     return sql query result
     """
-    query_string = DATASET_COUNT_CONFIRMATION.format(product_name=product_name, selected_year=selected_year)
+    query_string = DATASET_COUNT_CONFIRMATION.format(
+        product_name=product_name, selected_year=selected_year
+    )
     print(query_string)
     pg_hook = PostgresHook(postgres_conn_id=DB_ODC_READER_CONN)
     connection = pg_hook.get_conn()
@@ -97,9 +99,13 @@ def datetime_metadata_selector(product_name="", selected_year="", **kwargs):
     cursor.execute(query_string)
     result = cursor.fetchone()
     if not result or result[0] == 0:
-        raise AirflowException("This product does not have any datasets for the selected year, ending the run")  # mark it failed
+        raise AirflowException(
+            "This product does not have any datasets for the selected year, ending the run"
+        )  # mark it failed
     else:
-        print(f"{result[0]} datasets for year {selected_year} for product {product_name} can be deleted")
+        print(
+            f"{result[0]} datasets for year {selected_year} for product {product_name} can be deleted"
+        )
     return True
 
 
@@ -119,7 +125,9 @@ def deletion_confirmation(product_name="", selected_year="", **kwargs):
     cursor.execute(query_string)
     result = cursor.fetchone()
     if result[0] > 0:
-        raise AirflowException(f"{result[0]} datasets remaining for the year {selected_year}, deletion failed")  # mark it failed
+        raise AirflowException(
+            f"{result[0]} datasets remaining for the year {selected_year}, deletion failed"
+        )  # mark it failed
     else:
         print("No dataset found, deletion has successfully completed")
         return True
@@ -132,7 +140,12 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
-    tags=["k8s", "self-service", "delete-datasets", "explorer-update"],
+    tags=[
+        "k8s",
+        "self-service",
+        "datasets-deletion",
+        "deletion",
+    ],
 )
 
 with dag:
