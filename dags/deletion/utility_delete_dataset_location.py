@@ -71,7 +71,7 @@ DEFAULT_ARGS = {
     "email": ["pin.jin@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 1,
+    "retries": 0,
     "retry_delay": timedelta(minutes=5),
     "env_vars": {
         "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
@@ -138,7 +138,7 @@ with dag:
         task_id="check_dataset_location",
         python_callable=check_dataset_location,
         op_kwargs={
-            "uri_pattern": "{{ dag_run.conf.uri_patern }}",
+            "uri_pattern": "{{ dag_run.conf.uri_pattern }}",
             "product_name": "{{ dag_run.conf.product_name }}",
         },
     )
@@ -161,7 +161,7 @@ with dag:
         """,
         postgres_conn_id=DB_ODC_READER_CONN,
         params={
-            "uri_pattern": "{{ dag_run.conf.uri_patern }}",
+            "uri_pattern": "{{ dag_run.conf.uri_pattern }}",
             "product_name": "{{ dag_run.conf.product_name }}",
         },
     )

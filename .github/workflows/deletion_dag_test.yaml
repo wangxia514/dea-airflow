@@ -54,7 +54,7 @@ jobs:
       - name: Wait 300s for all dags to complete
         uses: jakejarvis/wait-action@master
         with:
-          time: '360s'
+          time: '300s'
       - name: check integration test result
         run: |
           docker-compose -f docker-compose.workflow.yaml run airflow-worker airflow dags list-runs -d deletion_utility_select_dataset_in_years -v
