@@ -110,7 +110,7 @@ The integration test database contains selected number of products and datasets,
 
 Once the local database has been updated, create the dump for integration test
 ```bash
-pg_dump -U opendatacubeusername -h localhost opendatacube >> opendatacube.sql
+PGPASSWORD=opendatacubepassword pg_dump -U opendatacubeusername -h localhost opendatacube >> opendatacube.sql
 mv opendatacube.sql ~/dea-airflow/docker/database
 ```
 
