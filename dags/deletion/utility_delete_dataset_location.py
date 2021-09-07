@@ -53,7 +53,7 @@ from deletion.deletion_sql_queries import (
 )
 
 from airflow.providers.postgres.operators.postgres import PostgresOperator
-from infra.connections import DB_ODC_READER_CONN
+from infra.connections import DB_ODC_READER_CONN, DB_ODC_WRITER_CONN
 
 from airflow.operators.python_operator import PythonOperator
 from infra.variables import (
@@ -159,7 +159,7 @@ with dag:
                         )
                     );
         """,
-        postgres_conn_id=DB_ODC_READER_CONN,
+        postgres_conn_id=DB_ODC_WRITER_CONN,
         params={
             "uri_pattern": "{{ dag_run.conf.uri_pattern }}",
             "product_name": "{{ dag_run.conf.product_name }}",
