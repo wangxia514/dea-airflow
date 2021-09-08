@@ -92,7 +92,7 @@ pipeline = DAG(
     max_active_runs=MAX_ACTIVE_RUNS,
     catchup=False,
     params={},
-    schedule_interval=None,
+    schedule_interval=timedelta(minutes=1),
     tags=["k8s", "dea", "psc", "ard", "wagl", "nrt", "landsat", "provisional"],
 )
 
