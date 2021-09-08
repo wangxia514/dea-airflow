@@ -128,7 +128,7 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
-    tags=["k8s", "datacube-dataset-location-deletion", "self-service"],
+    tags=["k8s", "dataset-location-deletion", "deletion", "self-service"],
 )
 
 
