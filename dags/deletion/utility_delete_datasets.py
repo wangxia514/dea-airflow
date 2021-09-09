@@ -84,8 +84,8 @@ DEFAULT_ARGS = {
     ],
 }
 
-DELETE_PRODUCT_CMD = """
-    datacube dataset search {{ dag_run.conf.dataset_search }} -f csv > /tmp/search_result.csv;
+DELETE_DATASETS_CMD = """
+    datacube dataset search {{ dag_run.conf.dataset_search_query }} -f csv > /tmp/search_result.csv;
     cat /tmp/search_result.csv | awk -F',' '{print $1}' | sed '1d' > /tmp/datasets.list;
     sed -e "s/^/'/" -e "s/ /' '/g" -e 's/$/'"'"'/' /tmp/datasets.list > /tmp/datasets.txt
     tr '\n' ',' < /tmp/datasets.txt > /tmp/id.list
@@ -109,7 +109,7 @@ with dag:
         image=INDEXER_IMAGE,
         image_pull_policy="IfNotPresent",
         labels={"step": "delete-datasets"},
-        arguments=DELETE_PRODUCT_CMD,
+        arguments=DELETE_DATASETS_CMD,
         name="delete-datasets",
         task_id="delete-datasets",
         get_logs=True,
