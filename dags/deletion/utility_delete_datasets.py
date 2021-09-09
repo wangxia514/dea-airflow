@@ -33,7 +33,14 @@ Use case 4: delete datasets in a product geolocation
         "dataset_search_query": "product=ga_s2_ba_provisional_3 lat in [-40, -30]"
     }
 
-Use case 5: Any combination of `datacube dataset search query`
+
+Use case 5: delete a dataset based on id
+
+    {
+        "dataset_search_query": "id=81c5a2ac-606b-5e89-b302-0a82146af1fx"
+    }
+
+Use case 6: Any combination of `datacube dataset search query`
 
 """
 from datetime import datetime, timedelta
@@ -50,7 +57,7 @@ from infra.images import INDEXER_IMAGE
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
-    SECRET_ODC_READER_NAME,
+    SECRET_ODC_WRITER_NAME,
     AWS_DEFAULT_REGION,
     DB_PORT,
 )
@@ -81,8 +88,8 @@ DEFAULT_ARGS = {
     },
     # Lift secrets into environment variables
     "secrets": [
-        Secret("env", "DB_USERNAME", SECRET_ODC_READER_NAME, "postgres-username"),
-        Secret("env", "DB_PASSWORD", SECRET_ODC_READER_NAME, "postgres-password"),
+        Secret("env", "DB_USERNAME", SECRET_ODC_WRITER_NAME, "postgres-username"),
+        Secret("env", "DB_PASSWORD", SECRET_ODC_WRITER_NAME, "postgres-password"),
     ],
 }
 
