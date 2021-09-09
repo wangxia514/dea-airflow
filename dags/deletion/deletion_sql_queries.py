@@ -22,7 +22,7 @@ DATASET_COUNT_CONFIRMATION = """
                     ds.metadata -> 'extent' ->> 'center_dt' LIKE '{selected_year}%'
                 )
                 OR ( -- select the years
-                    ds.metadata -> 'properties' ->> 'dtr:start_datetime' LIKE '{selected_year}%'
+                    ds.metadata -> 'properties' ->> 'datetime' LIKE '{selected_year}%'
                 )
         );
 """
