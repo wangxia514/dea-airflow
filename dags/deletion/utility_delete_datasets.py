@@ -12,7 +12,7 @@ The DAG can be parameterized with run time configuration `dataset_search_query`
 Use case 1: delete all datasets in a product
 
     {
-        "dataset_search_query": "product=ga_s2_ba_provisional_3 time in 2021-09-06"
+        "dataset_search_query": "product=ga_s2_ba_provisional_3"
     }
 
 Use case 2: delete datasets in a product at a certain time
@@ -95,8 +95,8 @@ DELETE_DATASETS_CMD = [
         cat /tmp/search_result.csv | awk -F',' '{print $1}' | sed '1d' > /tmp/datasets.list;
         sed -e "s/^/'/" -e "s/ /' '/g" -e 's/$/'"'"'/' /tmp/datasets.list > /tmp/datasets.txt
         tr '\n' ',' < /tmp/datasets.txt > /tmp/id.list
-        sed s/,$// /tmp/id.list
-        PGPASSWORD=$DB_PASSWORD psql -d $DB_DATABASE -U $DB_USERNAME -h $DB_HOSTNAME -c "select count(*) from agdc.dataset WHERE id IN (`cat /tmp/id.list`);"
+        sed s/,$// /tmp/id.list > /tmp/ids.list
+        PGPASSWORD=$DB_PASSWORD psql -d $DB_DATABASE -U $DB_USERNAME -h $DB_HOSTNAME -c "select count(*) from agdc.dataset WHERE id IN (`cat /tmp/ids.list`);"
         """
     ),
 ]
