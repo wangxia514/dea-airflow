@@ -21,7 +21,7 @@ WHERE  dl.dataset_ref in
                         ds.metadata -> 'extent' ->> 'center_dt' LIKE '{{ params.selected_year }}%'
                     )
                     OR ( -- select the years
-                        ds.metadata -> 'properties' ->> 'dtr:start_datetime' LIKE '{{ params.selected_year }}%'
+                        ds.metadata -> 'properties' ->> 'datetime' LIKE '{{ params.selected_year }}%'
                     )
             )
         );
@@ -45,7 +45,7 @@ WHERE  ds_source.source_dataset_ref in
                         ds.metadata -> 'extent' ->> 'center_dt' LIKE '{{ params.selected_year }}%'
                     )
                     OR ( -- select the years
-                        ds.metadata -> 'properties' ->> 'dtr:start_datetime' LIKE '{{ params.selected_year }}%'
+                        ds.metadata -> 'properties' ->> 'datetime' LIKE '{{ params.selected_year }}%'
                     )
             )
         )
@@ -64,7 +64,7 @@ WHERE  ds_source.source_dataset_ref in
                         ds.metadata -> 'extent' ->> 'center_dt' LIKE '{{ params.selected_year }}%'
                     )
                     OR ( -- select the years
-                        ds.metadata -> 'properties' ->> 'dtr:start_datetime' LIKE '{{ params.selected_year }}%'
+                        ds.metadata -> 'properties' ->> 'datetime' LIKE '{{ params.selected_year }}%'
                     )
             )
         );
@@ -90,6 +90,6 @@ WHERE
                 ds.metadata -> 'extent' ->> 'center_dt' LIKE '{{ params.selected_year }}%'
             )
             OR ( -- select the years
-                ds.metadata -> 'properties' ->> 'dtr:start_datetime' LIKE '{{ params.selected_year }}%'
+                ds.metadata -> 'properties' ->> 'datetime' LIKE '{{ params.selected_year }}%'
             )
     );

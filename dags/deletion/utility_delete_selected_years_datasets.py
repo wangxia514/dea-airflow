@@ -24,21 +24,21 @@ The tasks steps in this dag which are executed are:
 
 ### Sample Configuration
 
-scenario 1: delete by `center_dt` or `dtr:start_date` matching year
+scenario 1: delete by `center_dt` or `datetime` matching year
 
     {
         "product_name": "ga_ls_wo_3",
         "selected_year": "1986"
     }
 
-scenario 2: delete by `center_dt` or `dtr:start_date` matching year and month
+scenario 2: delete by `center_dt` or `datetime` matching year and month
 
     {
         "product_name": "ga_ls_wo_3",
         "selected_year": "1986-01"
     }
 
-scenario 3: delete by `center_dt` or `dtr:start_date` matching date
+scenario 3: delete by `center_dt` or `datetime` matching date
 
     {
         "product_name": "ga_ls_wo_3",
