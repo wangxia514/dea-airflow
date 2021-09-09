@@ -44,11 +44,13 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 
+from textwrap import dedent
+
 from infra.images import INDEXER_IMAGE
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
-    SECRET_ODC_ADMIN_NAME,
+    SECRET_ODC_READER_NAME,
     AWS_DEFAULT_REGION,
     DB_PORT,
 )
@@ -79,19 +81,25 @@ DEFAULT_ARGS = {
     },
     # Lift secrets into environment variables
     "secrets": [
-        Secret("env", "DB_USERNAME", SECRET_ODC_ADMIN_NAME, "postgres-username"),
-        Secret("env", "DB_PASSWORD", SECRET_ODC_ADMIN_NAME, "postgres-password"),
+        Secret("env", "DB_USERNAME", SECRET_ODC_READER_NAME, "postgres-username"),
+        Secret("env", "DB_PASSWORD", SECRET_ODC_READER_NAME, "postgres-password"),
     ],
 }
 
-DELETE_DATASETS_CMD = """
-    datacube dataset search {{ dag_run.conf.dataset_search_query }} -f csv > /tmp/search_result.csv;
-    cat /tmp/search_result.csv | awk -F',' '{print $1}' | sed '1d' > /tmp/datasets.list;
-    sed -e "s/^/'/" -e "s/ /' '/g" -e 's/$/'"'"'/' /tmp/datasets.list > /tmp/datasets.txt
-    tr '\n' ',' < /tmp/datasets.txt > /tmp/id.list
-    sed s/,$// /tmp/id.list
-    PGPASSWORD=$DB_PASSWORD psql -d $DB_DATABASE -U $DB_USERNAME -h $DB_HOSTNAME -c "select count(*) from agdc.dataset WHERE id IN (`cat /tmp/id.list`);"
-"""
+DELETE_DATASETS_CMD = [
+    "bash",
+    "-c",
+    dedent(
+        """
+        datacube dataset search {{ dag_run.conf.dataset_search_query }} -f csv > /tmp/search_result.csv;
+        cat /tmp/search_result.csv | awk -F',' '{print $1}' | sed '1d' > /tmp/datasets.list;
+        sed -e "s/^/'/" -e "s/ /' '/g" -e 's/$/'"'"'/' /tmp/datasets.list > /tmp/datasets.txt
+        tr '\n' ',' < /tmp/datasets.txt > /tmp/id.list
+        sed s/,$// /tmp/id.list
+        PGPASSWORD=$DB_PASSWORD psql -d $DB_DATABASE -U $DB_USERNAME -h $DB_HOSTNAME -c "select count(*) from agdc.dataset WHERE id IN (`cat /tmp/id.list`);"
+        """
+    ),
+]
 
 # THE DAG
 dag = DAG(
@@ -104,7 +112,7 @@ dag = DAG(
 )
 
 with dag:
-    DELETE_PRODUCT = KubernetesPodOperator(
+    DELETE_DATASETS = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
         image_pull_policy="IfNotPresent",
