@@ -103,7 +103,7 @@ DELETE_DATASETS_CMD = [
         sed -e "s/^/'/" -e "s/ /' '/g" -e 's/$/'"'"'/' /tmp/datasets.list > /tmp/datasets.txt
         tr '\n' ',' < /tmp/datasets.txt > /tmp/id.list
         sed s/,$// /tmp/id.list > /tmp/ids.list
-        PGPASSWORD=$DB_PASSWORD psql -d $DB_DATABASE -U $DB_USERNAME -h $DB_HOSTNAME -c "select count(*) from agdc.dataset WHERE id IN (`cat /tmp/ids.list`);"
+        PGPASSWORD=$DB_PASSWORD psql -d $DB_DATABASE -U $DB_USERNAME -h $DB_HOSTNAME -c "DELETE from agdc.dataset WHERE id IN (`cat /tmp/ids.list`);"
         """
     ),
 ]
