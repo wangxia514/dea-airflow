@@ -57,7 +57,7 @@ from infra.images import INDEXER_IMAGE
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
-    SECRET_ODC_WRITER_NAME,
+    SECRET_ODC_READER_NAME,
     AWS_DEFAULT_REGION,
     DB_PORT,
 )
@@ -66,8 +66,6 @@ from infra.podconfig import (
 )
 
 DAG_NAME = "deletion_utility_datasets"
-
-INDEXER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/datacube-index:0.0.31"
 
 # DAG CONFIGURATION
 DEFAULT_ARGS = {
@@ -88,8 +86,8 @@ DEFAULT_ARGS = {
     },
     # Lift secrets into environment variables
     "secrets": [
-        Secret("env", "DB_USERNAME", SECRET_ODC_WRITER_NAME, "postgres-username"),
-        Secret("env", "DB_PASSWORD", SECRET_ODC_WRITER_NAME, "postgres-password"),
+        Secret("env", "DB_USERNAME", SECRET_ODC_READER_NAME, "postgres-username"),
+        Secret("env", "DB_PASSWORD", SECRET_ODC_READER_NAME, "postgres-password"),
     ],
 }
 
@@ -98,12 +96,17 @@ DELETE_DATASETS_CMD = [
     "-c",
     dedent(
         """
+        # get dataset ids
         datacube dataset search {{ dag_run.conf.dataset_search_query }} -f csv > /tmp/search_result.csv;
         cat /tmp/search_result.csv | awk -F',' '{print $1}' | sed '1d' > /tmp/datasets.list;
         sed -e "s/^/'/" -e "s/ /' '/g" -e 's/$/'"'"'/' /tmp/datasets.list > /tmp/datasets.txt
         tr '\n' ',' < /tmp/datasets.txt > /tmp/id.list
         sed s/,$// /tmp/id.list > /tmp/ids.list
-        PGPASSWORD=$DB_PASSWORD psql -d $DB_DATABASE -U $DB_USERNAME -h $DB_HOSTNAME -c "DELETE from agdc.dataset WHERE id IN (`cat /tmp/ids.list`);"
+
+        # start sql execution
+        PGPASSWORD=$DB_PASSWORD psql -d $DB_DATABASE -U $DB_USERNAME -h $DB_HOSTNAME -c "SELECT count(*) FROM agdc.dataset_location WHERE dataset_ref IN (`cat /tmp/ids.list`);"
+        PGPASSWORD=$DB_PASSWORD psql -d $DB_DATABASE -U $DB_USERNAME -h $DB_HOSTNAME -c "SELECT count(*) FROM agdc.dataset_source WHERE source_dataset_ref IN (`cat /tmp/ids.list`) OR dataset_ref IN (`cat /tmp/list`);
+        PGPASSWORD=$DB_PASSWORD psql -d $DB_DATABASE -U $DB_USERNAME -h $DB_HOSTNAME -c "SELECT count(*) FROM agdc.dataset WHERE id IN (`cat /tmp/ids.list`);"
         """
     ),
 ]
@@ -119,6 +122,7 @@ dag = DAG(
 )
 
 with dag:
+
     DELETE_DATASETS = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
