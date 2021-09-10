@@ -105,7 +105,7 @@ DELETE_DATASETS_CMD = [
 
         # start sql execution
         PGPASSWORD=$DB_PASSWORD psql -d $DB_DATABASE -U $DB_USERNAME -h $DB_HOSTNAME -c "SELECT count(*) FROM agdc.dataset_location WHERE dataset_ref IN (`cat /tmp/ids.list`);"
-        PGPASSWORD=$DB_PASSWORD psql -d $DB_DATABASE -U $DB_USERNAME -h $DB_HOSTNAME -c "SELECT count(*) FROM agdc.dataset_source WHERE source_dataset_ref IN (`cat /tmp/ids.list`) OR dataset_ref IN (`cat /tmp/ids.list`);
+        PGPASSWORD=$DB_PASSWORD psql -d $DB_DATABASE -U $DB_USERNAME -h $DB_HOSTNAME -c "SELECT count(*) FROM agdc.dataset_source WHERE source_dataset_ref IN (`cat /tmp/ids.list`) OR dataset_ref IN (`cat /tmp/ids.list`);"
         PGPASSWORD=$DB_PASSWORD psql -d $DB_DATABASE -U $DB_USERNAME -h $DB_HOSTNAME -c "SELECT count(*) FROM agdc.dataset WHERE id IN (`cat /tmp/ids.list`);"
         """
     ),
