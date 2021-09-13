@@ -453,7 +453,7 @@ def sync_granule(
     return_code = subprocess.call(command, shell=True)
 
     if return_code != 0:
-        raise S3SyncException("Failed running S3 sync command")
+        raise S3SyncException("Failed running S3 sync command. Return error code: " + return_code)
 
 
 def sync_granules(
