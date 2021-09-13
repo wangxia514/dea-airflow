@@ -29,7 +29,8 @@ SYNC_COMMAND = dedent(
     """
       module use /g/data/v10/public/modules/modulefiles/; \
       module load {{ params.module }}; \
-      find {{ params.sync_path }} -maxdepth 1 -mindepth 1 -newermt '30 days ago' | awk '{ print $1 "/ga-metadata.yaml"}' | xargs -P 4 datacube dataset add
+      find {{ params.sync_path }} -maxdepth 1 -mindepth 1 -newermt '30 days ago' | \
+      awk '{ print $1 "/ga-metadata.yaml"}' | xargs -P 4 python ~/bin/datacube-indexer.py
 """
 )
 
