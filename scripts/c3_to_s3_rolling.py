@@ -569,6 +569,19 @@ def sync_granules(
                         try:
                             sync_granule(granule, nci_dir, s3_root_path, s3_bucket)
                             LOG.info(f"Finished S3 sync of granule - {granule}")
+
+                            # s3 sync and metadata update happen in same section
+                            metadata_update_error_list = update_metadata(
+                                metadata_file,
+                                s3_bucket,
+                                s3_base_url,
+                                explorer_base_url,
+                                sns_topic,
+                                s3_path,
+                            )
+                            error_list.extend(metadata_update_error_list)
+
+                        # if the s3 sync has exception, not touch metadata
                         except S3SyncException as exp:
                             LOG.error(
                                 f"Failed to sync of {granule} "
@@ -578,16 +591,6 @@ def sync_granules(
                                 f"Failed to sync of {granule} "
                                 f"because of an error in the sync command - {exp}"
                             )
-
-                        metadata_update_error_list = update_metadata(
-                            metadata_file,
-                            s3_bucket,
-                            s3_base_url,
-                            explorer_base_url,
-                            sns_topic,
-                            s3_path,
-                        )
-                        error_list.extend(metadata_update_error_list)
 
                     else:
                         LOG.warning(
