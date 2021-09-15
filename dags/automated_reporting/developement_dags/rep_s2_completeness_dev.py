@@ -127,7 +127,7 @@ with dag:
     }
     completeness_kwargs_ard_prov.update(completeness_kwargs)
     compute_sentinel_ard_prov_completeness = PythonOperator(
-        task_id="compute_sentinel_ard_completeness",
+        task_id="compute_sentinel_ard_completeness_prov",
         python_callable=s2_completeness_ard_task,
         op_kwargs=completeness_kwargs,
         provide_context=True,
