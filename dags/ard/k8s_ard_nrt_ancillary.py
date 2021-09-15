@@ -64,14 +64,9 @@ SYNC_JOBS = [
     "echo synching invariant height",
     sync("s3://dea-dev-bucket/s2-wagl-nrt/invariant/", "/ancillary/invariant"),
     "echo synching land sea rasters",
-    sync(
-        '--exclude "*" --include Land_Sea_Rasters.tar.z',
-        "s3://dea-dev-bucket/s2-wagl-nrt/",
-        "/ancillary",
-    ),
+    "aws s3 cp --only-show-errors --no-follow-symlinks s3://dea-dev-bucket/s2-wagl-nrt/Land_Sea_Rasters.tar.z /ancillary",
     "echo extracting land sea rasters",
     "tar xvf /ancillary/Land_Sea_Rasters.tar.z -C /ancillary/",
-    "chown -R root:10015 /ancillary/Land_Sea_Rasters/",
     "echo removing existing water vapour",
     "mkdir -p /ancillary/water_vapour/",
     "find /ancillary/water_vapour/ -type f -exec rm {} \\;",
@@ -92,7 +87,6 @@ SYNC_JOBS = [
     "echo synching brdf",
     *[
         sync(
-            "",
             f"s3://ga-sentinel/ancillary/BRDF/brdf-jl/data/{doy}/",
             f"/ancillary/brdf-jl/{doy}/",
         )
@@ -147,8 +141,35 @@ SYNC_JOBS = [
         "s3://ga-sentinel/ancillary/eoancillarydata-2/elevation/world_1deg/",
         "/ancillary/eoancillarydata-2/elevation/world_1deg/",
     ),
+    "echo synching GQA ancillaries",
+    sync(
+        "s3://dea-dev-bucket/GQA/Fix_QA_points/",
+        "/ancillary/GQA/Fix_QA_points/",
+    ),
+    sync(
+        "s3://dea-dev-bucket/GQA/gverify/",
+        "/ancillary/GQA/gverify/",
+    ),
+    sync(
+        "s3://dea-dev-bucket/GQA/ocean_tiles/",
+        "/ancillary/GQA/ocean_tiles/",
+    ),
+    sync(
+        "s3://dea-dev-bucket/GQA/wrs2-descending/",
+        "/ancillary/GQA/wrs2-descending/",
+    ),
+    "echo synching GQA reference images",
+    *[
+        sync(
+            f"s3://dea-dev-bucket/GQA/wrs2/{sat_path:03d}/",
+            f"/ancillary/GQA/wrs2/{sat_path:03d}/",
+        )
+        for sat_path in range(88, 117)
+    ],
+    "echo listing ancillaries on disk",
     "find /ancillary/ -type f",
     # this is needed because we want the wagl_nrt user to have write access
+    "echo changing ancillary file permissions",
     "find /ancillary/ -type d | xargs chmod g+w",
     "date",
 ]
