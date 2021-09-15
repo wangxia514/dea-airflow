@@ -33,7 +33,8 @@ from automated_reporting.tasks.check_db import task as check_db_task
 from automated_reporting.tasks.s2_completeness import (
     task_ard as s2_completeness_ard_task,
 )
-from automated_reporting.tasks.s2_completeness import task_wo as s2_completeness_wo_task
+
+# from automated_reporting.tasks.s2_completeness import task_wo as s2_completeness_wo_task
 
 log = logging.getLogger("airflow.task")
 
@@ -97,11 +98,11 @@ with dag:
         provide_context=True,
     )
 
-    compute_sentinel_wo_completeness = PythonOperator(
-        task_id="compute_sentinel_wo_completeness",
-        python_callable=s2_completeness_wo_task,
-        op_kwargs=completeness_kwargs,
-        provide_context=True,
-    )
+    # compute_sentinel_wo_completeness = PythonOperator(
+    #     task_id="compute_sentinel_wo_completeness",
+    #     python_callable=s2_completeness_wo_task,
+    #     op_kwargs=completeness_kwargs,
+    #     provide_context=True,
+    # )
 
-    check_db >> [compute_sentinel_ard_completeness, compute_sentinel_wo_completeness]
+    check_db >> [compute_sentinel_ard_completeness]
