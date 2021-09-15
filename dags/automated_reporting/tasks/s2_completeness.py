@@ -149,22 +149,14 @@ def log_results(sensor, summary, output):
     """log a resulkts list to Airflow logs"""
 
     # log summary completeness and latency
-    log.info("{} Completeness complete".format(sensor.upper()))
-    log.info("{} Total expected: {}".format(sensor.upper(), summary["expected"]))
-    log.info("{} Total missing: {}".format(sensor.upper(), summary["missing"]))
-    log.info("{} Total actual: {}".format(sensor.upper(), summary["actual"]))
+    log.info("{} Completeness complete".format(sensor))
+    log.info("{} Total expected: {}".format(sensor, summary["expected"]))
+    log.info("{} Total missing: {}".format(sensor, summary["missing"]))
+    log.info("{} Total actual: {}".format(sensor, summary["actual"]))
+    log.info("{} Total completeness: {}".format(sensor, summary["completeness"]))
+    log.info("{} Latest Sat Acq Time: {}".format(sensor, summary["latest_sat_acq_ts"]))
     log.info(
-        "{} Total completeness: {}".format(sensor.upper(), summary["completeness"])
-    )
-    log.info(
-        "{} Latest Sat Acq Time: {}".format(
-            sensor.upper(), summary["latest_sat_acq_ts"]
-        )
-    )
-    log.info(
-        "{} Latest Processing Time: {}".format(
-            sensor.upper(), summary["latest_processing_ts"]
-        )
+        "{} Latest Processing Time: {}".format(sensor, summary["latest_processing_ts"])
     )
     # log region level completeness and latency
     for record in output:
@@ -248,19 +240,19 @@ def swap_in_parent(product_list):
     return product_list
 
 
-# Task callable
-def task_wo(execution_date, days, rep_conn, odc_conn, aux_data_path, **kwargs):
+# Task callable for derivatives
+def task_derivative(
+    upstream, target, execution_date, days, rep_conn, odc_conn, aux_data_path, **kwargs
+):
     """
-    Task to compute Sentinel2 WO completeness
+    Task to compute Sentinel2 derivative completeness
     """
-
-    # query ODC for for all S2 ARD products for last X days
-    expected_products_odc = odc_db.query(
-        odc_conn, "s2a_nrt_granule", execution_date, days
-    )
-    expected_products_odc += odc_db.query(
-        odc_conn, "s2b_nrt_granule", execution_date, days
-    )
+    expected_products_odc = list()
+    for product_code in upstream:
+        # query ODC for for all upstream products for last X days
+        expected_products_odc += odc_db.query(
+            odc_conn, product_code, execution_date, days
+        )
 
     # streamline the ODC results back to match the Copernicus query
     expected_products = streamline_with_copericus_format(expected_products_odc)
@@ -272,13 +264,10 @@ def task_wo(execution_date, days, rep_conn, odc_conn, aux_data_path, **kwargs):
     # a list of tuples to store values before writing to database
     db_completeness_writes = []
 
-    # calculate metrics for each s2 sensor/platform and add to output list
-    sensor = "ga_s2_wo_3"
-
-    log.info("Computing completeness for: {}".format(sensor))
+    log.info("Computing completeness for: {}".format(target))
 
     # query ODC for all S2 L1 products for last X days
-    actual_products = odc_db.query(odc_conn, sensor, execution_date, days)
+    actual_products = odc_db.query(odc_conn, target, execution_date, days)
 
     # swap granule_id and parent_id
     actual_products = swap_in_parent(actual_products)
@@ -292,14 +281,11 @@ def task_wo(execution_date, days, rep_conn, odc_conn, aux_data_path, **kwargs):
     summary = calculate_summary_stats_for_aoi(output)
 
     # write results to Airflow logs
-    log_results(sensor, summary, output)
-
-    # format a GA standard product_id
-    product_id = sensor
+    log_results(target, summary, output)
 
     # generate the list of database writes for sensor/platform
     db_completeness_writes += generate_db_writes(
-        product_id, summary, output, execution_date
+        target, summary, output, execution_date
     )
 
     # write records to reporting database
@@ -313,8 +299,10 @@ def task_wo(execution_date, days, rep_conn, odc_conn, aux_data_path, **kwargs):
     return None
 
 
-# Task callable
+# Task callable for ard
 def task_ard(
+    s2a,
+    s2b,
     execution_date,
     days,
     rep_conn,
@@ -340,18 +328,18 @@ def task_ard(
     db_completeness_writes = []
 
     # calculate metrics for each s2 sensor/platform and add to output list
-    for sensor in ["s2a", "s2b"]:
+    for sensor in [s2a, s2b]:
 
-        log.info("Computing completeness for: {}".format(sensor))
+        log.info("Computing completeness for: {}".format(sensor["odc_code"]))
 
         # query ODC for all S2 L1 products for last X days
         actual_products = odc_db.query(
-            odc_conn, "{}_nrt_granule".format(sensor), execution_date, days
+            odc_conn, sensor["odc_code"], execution_date, days
         )
 
         # filter expected products on sensor (just for completeness between lo and l1)
         filtered_expected_products = filter_expected_to_sensor(
-            expected_products, sensor
+            expected_products, sensor["id"]
         )
 
         # compute completeness and latency for every tile in AOI
@@ -363,14 +351,11 @@ def task_ard(
         summary = calculate_summary_stats_for_aoi(output)
 
         # write results to Airflow logs
-        log_results(sensor, summary, output)
-
-        # format a GA standard product_id
-        product_id = "ga_{}_msi_ard_c3".format(sensor)
+        log_results(sensor["odc_code"], summary, output)
 
         # generate the list of database writes for sensor/platform
         db_completeness_writes += generate_db_writes(
-            product_id, summary, output, execution_date
+            sensor["rep_code"], summary, output, execution_date
         )
 
     # write records to reporting database
