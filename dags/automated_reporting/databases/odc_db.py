@@ -20,6 +20,7 @@ SQL_QUERY = {
     "ga_ls8c_ard_provisional_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE3,
     "ga_s2am_ard_provisional_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE4,
     "ga_s2bm_ard_provisional_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE4,
+    "ga_s2_ba_provisional_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE4,
 }
 
 
