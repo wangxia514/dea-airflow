@@ -166,6 +166,8 @@ SYNC_JOBS = [
         )
         for sat_path in range(88, 117)
     ],
+    "echo synching modtran",
+    sync("s3://dea-dev-bucket/MODTRAN6.0.2.3G/", "/ancillary/MODTRAN6.0.2.3G/"),
     "echo listing ancillaries on disk",
     "find /ancillary/ -type f",
     # this is needed because we want the wagl_nrt user to have write access
