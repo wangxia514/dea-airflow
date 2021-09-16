@@ -69,6 +69,7 @@ from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
+    SECRET_ODC_ADMIN_NAME,
     AWS_DEFAULT_REGION,
     DB_PORT,
 )
@@ -144,6 +145,10 @@ with dag:
         image_pull_policy="IfNotPresent",
         labels={"step": "datacube-product-add"},
         cmds=["datacube"],
+        secrets=[
+            Secret("env", "DB_USERNAME", SECRET_ODC_ADMIN_NAME, "postgres-username"),
+            Secret("env", "DB_PASSWORD", SECRET_ODC_ADMIN_NAME, "postgres-password"),
+        ],
         arguments=[
             "product",
             "add",
