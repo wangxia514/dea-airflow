@@ -245,7 +245,7 @@ def get_common_message_attributes(stac_doc: Dict) -> Dict:
     return msg_attributes
 
 
-def update_metadata(
+def upload_metadata(
     nci_metadata_file, s3_bucket, s3_base_url, explorer_base_url, sns_topic, s3_path
 ):
     """
@@ -425,7 +425,7 @@ def sync_granule(
     nci_dir,
     s3_root_path,
     s3_bucket,
-    exclude=["ga_*_nbar_*.*", "ga_*_nbar-*.*", "*.sha1"],
+    exclude=["ga_*_nbar_*.*", "ga_*_nbar-*.*", "*.sha1", "*.stac-item.json", "*.odc-metadata.yaml"],
     cross_account=False,
 ):
     """
@@ -435,7 +435,7 @@ def sync_granule(
     :param nci_dir: Source directory for the files in NCI
     :param s3_root_path: Root folder of the S3 bucket
     :param s3_bucket: Name of the S3 bucket
-    :param exclude: list of file patterns to exclude
+    :param exclude: list of file patterns to exclude.
     :return: Returns code zero, if success.
     """
     local_path = Path(nci_dir).joinpath(granule)
@@ -453,7 +453,7 @@ def sync_granule(
     return_code = subprocess.call(command, shell=True)
 
     if return_code != 0:
-        raise S3SyncException("Failed running S3 sync command")
+        raise S3SyncException("Failed running S3 sync command. Return error code: " + return_code)
 
 
 def sync_granules(
@@ -569,6 +569,19 @@ def sync_granules(
                         try:
                             sync_granule(granule, nci_dir, s3_root_path, s3_bucket)
                             LOG.info(f"Finished S3 sync of granule - {granule}")
+
+                            # s3 sync and metadata update happen in same section
+                            metadata_update_error_list = upload_metadata(
+                                metadata_file,
+                                s3_bucket,
+                                s3_base_url,
+                                explorer_base_url,
+                                sns_topic,
+                                s3_path,
+                            )
+                            error_list.extend(metadata_update_error_list)
+
+                        # if the s3 sync has exception, not touch metadata
                         except S3SyncException as exp:
                             LOG.error(
                                 f"Failed to sync of {granule} "
@@ -578,16 +591,6 @@ def sync_granules(
                                 f"Failed to sync of {granule} "
                                 f"because of an error in the sync command - {exp}"
                             )
-
-                        metadata_update_error_list = update_metadata(
-                            metadata_file,
-                            s3_bucket,
-                            s3_base_url,
-                            explorer_base_url,
-                            sns_topic,
-                            s3_path,
-                        )
-                        error_list.extend(metadata_update_error_list)
 
                     else:
                         LOG.warning(

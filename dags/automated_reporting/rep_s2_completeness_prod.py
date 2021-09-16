@@ -33,7 +33,8 @@ from automated_reporting.tasks.check_db import task as check_db_task
 from automated_reporting.tasks.s2_completeness import (
     task_ard as s2_completeness_ard_task,
 )
-from automated_reporting.tasks.s2_completeness import task_wo as s2_completeness_wo_task
+
+# from automated_reporting.tasks.s2_completeness import task_wo as s2_completeness_wo_task
 
 log = logging.getLogger("airflow.task")
 
@@ -90,18 +91,48 @@ with dag:
         "copernicus_api_credentials": copernicus_api_creds,
         "aux_data_path": aux_data_path,
     }
+
+    completeness_kwargs_ard = {
+        "s2a": {
+            "id": "s2a",
+            "odc_code": "s2a_nrt_granule",
+            "rep_code": "ga_s2a_msi_ard_c3",
+        },
+        "s2b": {
+            "id": "s2b",
+            "odc_code": "s2b_nrt_granule",
+            "rep_code": "ga_s2b_msi_ard_c3",
+        },
+    }
+    completeness_kwargs_ard.update(completeness_kwargs)
     compute_sentinel_ard_completeness = PythonOperator(
-        task_id="compute_sentinel_ard_completeness",
+        task_id="compute_s2_ard_completeness",
         python_callable=s2_completeness_ard_task,
-        op_kwargs=completeness_kwargs,
+        op_kwargs=completeness_kwargs_ard,
         provide_context=True,
     )
 
-    compute_sentinel_wo_completeness = PythonOperator(
-        task_id="compute_sentinel_wo_completeness",
-        python_callable=s2_completeness_wo_task,
-        op_kwargs=completeness_kwargs,
+    completeness_kwargs_ard_prov = {
+        "s2a": {
+            "id": "s2a",
+            "odc_code": "ga_s2am_ard_provisional_3",
+            "rep_code": "ga_s2am_ard_provisional_3",
+        },
+        "s2b": {
+            "id": "s2b",
+            "odc_code": "ga_s2bm_ard_provisional_3",
+            "rep_code": "ga_s2bm_ard_provisional_3",
+        },
+    }
+    completeness_kwargs_ard_prov.update(completeness_kwargs)
+    compute_sentinel_ard_prov_completeness = PythonOperator(
+        task_id="compute_s2_ard_completeness_prov",
+        python_callable=s2_completeness_ard_task,
+        op_kwargs=completeness_kwargs_ard_prov,
         provide_context=True,
     )
 
-    check_db >> [compute_sentinel_ard_completeness, compute_sentinel_wo_completeness]
+    check_db >> [
+        compute_sentinel_ard_completeness,
+        compute_sentinel_ard_prov_completeness,
+    ]

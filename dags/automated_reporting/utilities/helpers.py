@@ -21,6 +21,9 @@ def python_dt(airflow_dt):
     """
     Convert Airflow datetime (Pendulum) to regular python datetime
     """
+    if type(airflow_dt) == dt:
+        return airflow_dt
+
     return dt(
         airflow_dt.year,
         airflow_dt.month,
