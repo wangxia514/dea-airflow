@@ -1,22 +1,28 @@
 """
-## Utility Tool
-### ows update ranges
+# OWS update ranges Utility Tool (Self Serve)
 This is utility is to provide administrators the easy accessiblity to run ad-hoc --views and update-ranges
 
-#### default run
-    `datacube-ows-update --views`
-    `datacube-ows-update s2_nrt_granule_nbar_t`
+## Note
+All list of utility dags here: https://github.com/GeoscienceAustralia/dea-airflow/tree/develop/dags/utility, see Readme
 
-#### Utility customisation
+## Customisation
 The DAG can be parameterized with run time configuration `products`
-
 To run with all, set `dag_run.conf.products` to `--all`
 otherwise provide products to be refreshed seperated by space, i.e. `s2a_nrt_granule s2b_nrt_granule`
 dag_run.conf format:
 
-#### example conf in json format
-    "products": "--all"
-    "products": "s2a_nrt_granule s2b_nrt_granule"
+### sample conf in json format
+
+    {
+        "products": "--all"
+    }
+
+    or
+
+    {
+        "products": "s2a_nrt_granule s2b_nrt_granule"
+    }
+
 """
 
 from datetime import datetime, timedelta
@@ -56,6 +62,7 @@ with DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
-    tags=["k8s", "ows"],
+    tags=["k8s", "ows", "self-service"],
 ) as dag:
+
     ows_update_operator(products="{{ dag_run.conf.products }}", dag=dag)
