@@ -92,11 +92,11 @@ class CompletenessTests_S2_ARD(unittest.TestCase):
         self.assertEqual(summary["s2a"]["actual"], 1)
         self.assertEqual(summary["s2a"]["completeness"], 50.0)
         self.assertEqual(
-            summary["s2a"]["latest_sat_acq_ts"],
+            parser.isoparse(summary["s2a"]["latest_sat_acq_ts"]),
             parser.isoparse("2021-09-03T02:30:00.000000Z"),
         )
         self.assertEqual(
-            summary["s2a"]["latest_processing_ts"],
+            parser.isoparse(summary["s2a"]["latest_processing_ts"]),
             parser.isoparse("2021-09-03T04:30:00.000000Z"),
         )
 
@@ -157,11 +157,11 @@ class CompletenessTests_S2_ARD(unittest.TestCase):
         self.assertEqual(summary["s2a"]["actual"], 1)
         self.assertEqual(summary["s2a"]["completeness"], 50.0)
         self.assertEqual(
-            summary["s2a"]["latest_sat_acq_ts"],
+            parser.isoparse(summary["s2a"]["latest_sat_acq_ts"]),
             parser.isoparse("2021-09-03T02:30:00.000000Z"),
         )
         self.assertEqual(
-            summary["s2a"]["latest_processing_ts"],
+            parser.isoparse(summary["s2a"]["latest_processing_ts"]),
             parser.isoparse("2021-09-03T04:30:00.000000Z"),
         )
 
@@ -254,11 +254,11 @@ class CompletenessTests_S2_Deriv(unittest.TestCase):
         self.assertEqual(summary["ga_s2_wo_3"]["actual"], 1)
         self.assertEqual(summary["ga_s2_wo_3"]["completeness"], 50.0)
         self.assertEqual(
-            summary["ga_s2_wo_3"]["latest_sat_acq_ts"],
+            parser.isoparse(summary["ga_s2_wo_3"]["latest_sat_acq_ts"]),
             parser.isoparse("2021-09-03T02:30:00.000000Z"),
         )
         self.assertEqual(
-            summary["ga_s2_wo_3"]["latest_processing_ts"],
+            parser.isoparse(summary["ga_s2_wo_3"]["latest_processing_ts"]),
             parser.isoparse("2021-09-03T06:30:00.000000Z"),
         )
 
@@ -302,11 +302,11 @@ class CompletenessTests_S2_Deriv(unittest.TestCase):
         self.assertEqual(summary["ga_s2_ba_provisional_3"]["actual"], 1)
         self.assertEqual(summary["ga_s2_ba_provisional_3"]["completeness"], 50.0)
         self.assertEqual(
-            summary["ga_s2_ba_provisional_3"]["latest_sat_acq_ts"],
+            parser.isoparse(summary["ga_s2_ba_provisional_3"]["latest_sat_acq_ts"]),
             parser.isoparse("2021-09-03T02:30:00.000000Z"),
         )
         self.assertEqual(
-            summary["ga_s2_ba_provisional_3"]["latest_processing_ts"],
+            parser.isoparse(summary["ga_s2_ba_provisional_3"]["latest_processing_ts"]),
             parser.isoparse("2021-09-03T06:30:00.000000Z"),
         )
 

@@ -279,7 +279,13 @@ def task_derivative(
 
     # calculate summary stats for whole of AOI
     summary = calculate_summary_stats_for_aoi(output)
-    summary_out = {target: summary}
+    summary_out = {target: summary.copy()}
+    summary_out[target]["latest_sat_acq_ts"] = summary_out[target][
+        "latest_sat_acq_ts"
+    ].isoformat()
+    summary_out[target]["latest_processing_ts"] = summary_out[target][
+        "latest_processing_ts"
+    ].isoformat()
 
     # write results to Airflow logs
     log_results(target, summary, output)
@@ -352,7 +358,17 @@ def task_ard(
 
         # calculate summary stats for whole of AOI
         summary = calculate_summary_stats_for_aoi(output)
-        summary_out[sensor["id"]] = summary
+        summary_out[sensor["id"]] = summary.copy()
+        summary_out[sensor["id"]]["latest_sat_acq_ts"] = (
+            summary_out[sensor["id"]]["latest_sat_acq_ts"].isoformat()
+            if summary_out[sensor["id"]]["latest_sat_acq_ts"]
+            else None
+        )
+        summary_out[sensor["id"]]["latest_processing_ts"] = (
+            summary_out[sensor["id"]]["latest_processing_ts"].isoformat()
+            if summary_out[sensor["id"]]["latest_processing_ts"]
+            else None
+        )
 
         # write results to Airflow logs
         log_results(sensor["odc_code"], summary, output)
