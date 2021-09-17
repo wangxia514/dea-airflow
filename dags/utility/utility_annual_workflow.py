@@ -5,12 +5,21 @@ For indexing datasets from s3 into an existing product and OWS layer/s.
 #### Utility customisation
 The DAG can be parameterized with run time configuration `product` and `s3_glob`
 
+The commands which are executed are:
+
+1. `s3-to-dc --no-sign-request --skip-lineage`
+2. update ows
+3. update explorer
+
 dag_run.conf format:
 
 #### example conf in json format
 
-    "s3_glob": "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
-    "product": "cemp_insar_alos_displacement"
+    {
+        "s3_glob": "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
+        "product": "cemp_insar_alos_displacement"
+    }
+
 """
 from datetime import datetime, timedelta
 
@@ -67,8 +76,9 @@ with DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
-    tags=["k8s", "annual", "batch-indexing", "self-service"],
+    tags=["k8s", "batch-indexing", "web-app-update", "self-service"],
 ) as dag:
+
     INDEXING = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
