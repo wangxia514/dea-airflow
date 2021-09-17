@@ -19,7 +19,7 @@ def get_expected_ids_missing_in_actual(r_expected_products, r_actual_products):
     """return list of granule_ids in expected, that are missing in actual, for region"""
     return list(
         set([x["granule_id"] for x in r_expected_products])
-        - set([y["granule_id"] for y in r_actual_products])
+        - set([y["parent_id"] for y in r_actual_products])
     )
 
 
@@ -27,9 +27,9 @@ def get_products_in_expected_and_actual(r_expected_products, r_actual_products):
     """return a list of products that are in both expected and actual lists, for region"""
     actual_ids = list(
         set([x["granule_id"] for x in r_expected_products])
-        & set([y["granule_id"] for y in r_actual_products])
+        & set([y["parent_id"] for y in r_actual_products])
     )
-    return list(filter(lambda x: x["granule_id"] in actual_ids, r_actual_products))
+    return list(filter(lambda x: x["parent_id"] in actual_ids, r_actual_products))
 
 
 def calculate_metric_for_region(r_expected_products, r_actual_products):
@@ -146,7 +146,7 @@ def calculate_summary_stats_for_aoi(output):
 
 
 def log_results(sensor, summary, output):
-    """log a resulkts list to Airflow logs"""
+    """log a results list to Airflow logs"""
 
     # log summary completeness and latency
     log.info("{} Completeness complete".format(sensor))
@@ -270,7 +270,7 @@ def task_derivative(
     actual_products = odc_db.query(odc_conn, target, execution_date, days)
 
     # swap granule_id and parent_id
-    actual_products = swap_in_parent(actual_products)
+    # actual_products = swap_in_parent(actual_products)
 
     # compute completeness and latency for every tile in AOI
     output = calculate_metrics_for_all_regions(
@@ -279,6 +279,7 @@ def task_derivative(
 
     # calculate summary stats for whole of AOI
     summary = calculate_summary_stats_for_aoi(output)
+    summary_out = {target: summary}
 
     # write results to Airflow logs
     log_results(target, summary, output)
@@ -296,7 +297,7 @@ def task_derivative(
         )
     )
 
-    return None
+    return summary_out
 
 
 # Task callable for ard
@@ -327,6 +328,8 @@ def task_ard(
     # a list of tuples to store values before writing to database
     db_completeness_writes = []
 
+    summary_out = dict()
+
     # calculate metrics for each s2 sensor/platform and add to output list
     for sensor in [s2a, s2b]:
 
@@ -349,6 +352,7 @@ def task_ard(
 
         # calculate summary stats for whole of AOI
         summary = calculate_summary_stats_for_aoi(output)
+        summary_out[sensor["id"]] = summary
 
         # write results to Airflow logs
         log_results(sensor["odc_code"], summary, output)
@@ -366,4 +370,4 @@ def task_ard(
         )
     )
 
-    return None
+    return summary_out

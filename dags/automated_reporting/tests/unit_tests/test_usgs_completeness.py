@@ -13,13 +13,13 @@ from automated_reporting.tasks.usgs_completeness import (
     filter_aoi,
 )
 from automated_reporting.utilities.stac_api import collect_stac_api_results
-from automated_reporting.tests.test_data import (
+from automated_reporting.tests.data import (
     usgs_completeness_sample_data as sample_data,
 )
 from automated_reporting.utilities import helpers
 
 logger = logging.getLogger("airflow.task")
-AR_FOLDER = os.path.dirname(os.path.dirname(__file__))
+AR_FOLDER = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
 
 class TestUSGSCompletenessDagUnits(unittest.TestCase):
