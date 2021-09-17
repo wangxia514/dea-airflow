@@ -1,14 +1,13 @@
-# ARD pipeline workflow
+# ARD pipeline workflow DAGs
 
-Currently we only have Sentinel-2 NRT pipeline.
+## `k8s_ard_nrt_sentinel2`
+(Legacy) Sentinel-2 NRT (Collection 2) processing
 
-# DAGs
+## `k8s_ard_nrt_sentinel2_provisional.py`
+(Provisional) Sentinel-2 NRT (Collection 3) processing
 
-## `k8s_wagl_nrt`
-The main DAG that runs the ARD processing.
+## `k8s_ard_nrt_landsat_provisional`
+(Provisional) Landsat NRT (Collection 3) processing
 
-## `k8s_wagl_nrt_ancillary`
-Copies ancillary datasets daily to a support EFS filesystem.
-
-## `k8s_wagl_nrt_filter`
-Filters level-1 granules for Australian ones only.
+## `k8s_ard_nrt_ancillary`
+Ancillary sync into the shared EFS volume
