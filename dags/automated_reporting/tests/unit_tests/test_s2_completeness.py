@@ -21,36 +21,42 @@ class TestCompletenessDagUnits(unittest.TestCase):
     ACTUAL_PRODUCTS = [
         {
             "granule_id": "GRANULE_ID_1",
+            "parent_id": "PARENT_GRANULE_ID_1",
             "region_id": "54DFT",
             "processing_dt": BT,
             "center_dt": BT - td(hours=6),
         },
         {
             "granule_id": "GRANULE_ID_2",
+            "parent_id": "PARENT_GRANULE_ID_2",
             "region_id": "54DFT",
             "processing_dt": BT - td(hours=24),
             "center_dt": BT - td(hours=28),
         },
         {
             "granule_id": "GRANULE_ID_5",
+            "parent_id": "PARENT_GRANULE_ID_5",
             "region_id": "54DFT",
             "processing_dt": BT + td(hours=48),
             "center_dt": BT + td(hours=43),
         },  # tile in region, but not in expected (date error)
         {
             "granule_id": "GRANULE_ID_6",
+            "parent_id": "PARENT_GRANULE_ID_6",
             "region_id": "55DCF",
             "processing_dt": BT - td(hours=26),
             "center_dt": BT - td(hours=32),
         },
         {
             "granule_id": "GRANULE_ID_7",
+            "parent_id": "PARENT_GRANULE_ID_7",
             "region_id": "55DCF",
             "processing_dt": BT - td(hours=50),
             "center_dt": BT - td(hours=53),
         },
         {
             "granule_id": "GRANULE_ID_8",
+            "parent_id": "PARENT_GRANULE_ID_8",
             "region_id": "XX000",
             "processing_dt": BT - td(hours=22),
             "center_dt": BT - td(hours=27),
@@ -59,55 +65,61 @@ class TestCompletenessDagUnits(unittest.TestCase):
     ACTUAL_PRODUCTS2 = [  # Don't match with anything in expected
         {
             "granule_id": "GRANULE_ID_11",
+            "parent_id": "PARENT_GRANULE_ID_11",
             "region_id": "54DFT",
             "processing_dt": BT,
             "center_dt": BT - td(hours=6),
         },
         {
             "granule_id": "GRANULE_ID_12",
+            "parent_id": "PARENT_GRANULE_ID_12",
             "region_id": "54DFT",
             "processing_dt": BT - td(hours=24),
             "center_dt": BT - td(hours=28),
         },
         {
             "granule_id": "GRANULE_ID_15",
+            "parent_id": "PARENT_GRANULE_ID_15",
             "region_id": "54DFT",
             "processing_dt": BT + td(hours=48),
             "center_dt": BT + td(hours=43),
         },  # tile in region, but not in expected (date error)
         {
             "granule_id": "GRANULE_ID_16",
+            "parent_id": "PARENT_GRANULE_ID_16",
             "region_id": "55DCF",
             "processing_dt": BT - td(hours=26),
             "center_dt": BT - td(hours=32),
         },
         {
             "granule_id": "GRANULE_ID_17",
+            "parent_id": "PARENT_GRANULE_ID_17",
             "region_id": "55DCF",
             "processing_dt": BT - td(hours=50),
             "center_dt": BT - td(hours=53),
         },
         {
             "granule_id": "GRANULE_ID_18",
+            "parent_id": "PARENT_GRANULE_ID_18",
             "region_id": "XX000",
             "processing_dt": BT - td(hours=22),
             "center_dt": BT - td(hours=27),
         },  # product not in AOI
     ]
     EXPECTED_PRODUCTS = [
-        {"granule_id": "GRANULE_ID_1", "region_id": "54DFT", "sensor": "s2a"},
-        {"granule_id": "GRANULE_ID_2", "region_id": "54DFT", "sensor": "s2a"},
-        {"granule_id": "GRANULE_ID_3", "region_id": "54DFT", "sensor": "s2a"},
-        {"granule_id": "GRANULE_ID_4", "region_id": "54DFT", "sensor": "s2a"},
-        {"granule_id": "GRANULE_ID_6", "region_id": "55DCF", "sensor": "s2a"},
-        {"granule_id": "GRANULE_ID_7", "region_id": "55DCF", "sensor": "s2a"},
+        {"granule_id": "PARENT_GRANULE_ID_1", "region_id": "54DFT", "sensor": "s2a"},
+        {"granule_id": "PARENT_GRANULE_ID_2", "region_id": "54DFT", "sensor": "s2a"},
+        {"granule_id": "PARENT_GRANULE_ID_3", "region_id": "54DFT", "sensor": "s2a"},
+        {"granule_id": "PARENT_GRANULE_ID_4", "region_id": "54DFT", "sensor": "s2a"},
+        {"granule_id": "PARENT_GRANULE_ID_6", "region_id": "55DCF", "sensor": "s2a"},
+        {"granule_id": "PARENT_GRANULE_ID_7", "region_id": "55DCF", "sensor": "s2a"},
         {
-            "granule_id": "GRANULE_ID_8",
+            "granule_id": "PARENT_GRANULE_ID_8",
             "region_id": "00XXX",
             "sensor": "s2a",
         },  # product not in AOI
         {
-            "granule_id": "GRANULE_ID_9",
+            "granule_id": "PARENT_GRANULE_ID_9",
             "region_id": "55DCF",
             "sensor": "s2b",
         },  # s2b platform
@@ -146,8 +158,8 @@ class TestCompletenessDagUnits(unittest.TestCase):
         result = get_expected_ids_missing_in_actual(
             r_expected_products, r_actual_products
         )
-        self.assertTrue("GRANULE_ID_3" in result)
-        self.assertTrue("GRANULE_ID_4" in result)
+        self.assertTrue("PARENT_GRANULE_ID_3" in result)
+        self.assertTrue("PARENT_GRANULE_ID_4" in result)
 
         expected_products = filter_products_to_region(self.EXPECTED_PRODUCTS, "55DCF")
         r_expected_products = filter_expected_to_sensor(expected_products, "s2a")
@@ -177,8 +189,8 @@ class TestCompletenessDagUnits(unittest.TestCase):
         self.assertEqual(result["missing"], 2)
         self.assertEqual(result["actual"], 2)
         self.assertEqual(len(result["missing_ids"]), 2)
-        self.assertTrue("GRANULE_ID_3" in result["missing_ids"])
-        self.assertTrue("GRANULE_ID_4" in result["missing_ids"])
+        self.assertTrue("PARENT_GRANULE_ID_3" in result["missing_ids"])
+        self.assertTrue("PARENT_GRANULE_ID_4" in result["missing_ids"])
         self.assertEqual(result["latest_sat_acq_ts"], self.BT - td(hours=6))
         self.assertEqual(result["latest_processing_ts"], self.BT)
 
