@@ -22,6 +22,8 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 
+from textwrap import dedent
+
 from infra.images import INDEXER_IMAGE
 from infra.variables import (
     DB_DATABASE,
@@ -72,11 +74,17 @@ DEFAULT_ARGS = {
     ],
 }
 
-DELETE_PRODUCT_CMD = """
-    export PRODUCT_NAME={{ dag_run.conf.product_name }}
-    cd /code/odc-product-delete
-    ./delete_product.sh
-"""
+DELETE_PRODUCT_CMD = [
+    "bash",
+    "-c",
+    dedent(
+        """
+        export PRODUCT_NAME={{ dag_run.conf.product_name }}
+        cd /code/odc-product-delete
+        ./delete_product.sh
+        """
+    ),
+]
 
 # THE DAG
 dag = DAG(
