@@ -22,6 +22,8 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 
+from textwrap import dedent
+
 from infra.images import INDEXER_IMAGE
 from infra.variables import (
     DB_DATABASE,

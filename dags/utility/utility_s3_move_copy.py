@@ -51,8 +51,6 @@ from airflow import DAG
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-from textwrap import dedent
-
 from infra.images import S5CMD_IMAGE
 from infra.iam_roles import UTILITY_S3_COPY_MOVE_ROLE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
