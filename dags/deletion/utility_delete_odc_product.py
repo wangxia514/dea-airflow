@@ -72,11 +72,17 @@ DEFAULT_ARGS = {
     ],
 }
 
-DELETE_PRODUCT_CMD = """
-    export PRODUCT_NAME={{ dag_run.conf.product_name }}
-    cd /code/odc-product-delete
-    ./delete_product.sh
-"""
+DELETE_PRODUCT_CMD = [
+    "bash",
+    "-c",
+    dedent(
+        """
+        export PRODUCT_NAME={{ dag_run.conf.product_name }}
+        cd /code/odc-product-delete
+        ./delete_product.sh
+        """
+    ),
+]
 
 # THE DAG
 dag = DAG(
