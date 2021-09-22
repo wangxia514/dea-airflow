@@ -50,7 +50,7 @@ default_args = {
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "email_on_failure": False,
-    "email": ["kieran.ricardo@ga.gov.au", "damien.ayers@ga.gov.au"],
+    "email": ["damien.ayers@ga.gov.au"],
     "ssh_conn_id": "lpgs_gadi",
     "aws_conn_id": "sentinel_2_ard_sync_user",
 }

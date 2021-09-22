@@ -20,7 +20,6 @@ c2_default_args = {
     "email": [
         "damien.ayers@ga.gov.au",
         "david.gavin@ga.gov.au",
-        "kieran.ricardo@ga.gov.au",
     ],
     "email_on_failure": True,
     "email_on_retry": False,

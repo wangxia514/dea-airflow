@@ -26,7 +26,7 @@ DEFAULT_ARGS = {
     "owner": "Kieran Ricardo",
     "depends_on_past": False,
     "start_date": datetime(2020, 6, 14),
-    "email": ["kieran.ricardo@ga.gov.au"],
+    "email": ["damien.ayers@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 1,

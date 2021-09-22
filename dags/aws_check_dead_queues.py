@@ -18,7 +18,7 @@ from infra.connections import AWS_DEAD_LETTER_QUEUE_CHECKER_CONN
 default_args = {
     "owner": "Damien Ayers",
     "start_date": datetime(2020, 6, 15),
-    "email": ["kieran.ricardo@ga.gov.au", "damien.ayers@ga.gov.au"],
+    "email": ["damien.ayers@ga.gov.au"],
     "email_on_failure": True,
 }
 
