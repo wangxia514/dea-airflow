@@ -43,7 +43,7 @@ COMMON = dedent(
 )
 
 default_args = {
-    "owner": "Kieran Ricardo",
+    "owner": "Damien Ayers",
     "start_date": datetime(
         2016, 6, 1, tzinfo=local_tz
     ),  # earliest date in nci DB is 2016-06-29

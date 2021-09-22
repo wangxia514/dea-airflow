@@ -23,7 +23,7 @@ from infra.variables import (
 )
 
 DEFAULT_ARGS = {
-    "owner": "Kieran Ricardo",
+    "owner": "Damien Ayers",
     "depends_on_past": False,
     "start_date": datetime(2020, 6, 14),
     "email": ["damien.ayers@ga.gov.au"],

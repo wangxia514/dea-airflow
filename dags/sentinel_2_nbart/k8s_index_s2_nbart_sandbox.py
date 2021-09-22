@@ -25,7 +25,7 @@ from infra.variables import (
 from infra.images import INDEXER_IMAGE
 
 DEFAULT_ARGS = {
-    "owner": "Kieran Ricardo",
+    "owner": "Damien Ayers",
     "depends_on_past": False,
     "start_date": datetime(2020, 6, 1),
     "email": ["damien.ayers@ga.gov.au"],
