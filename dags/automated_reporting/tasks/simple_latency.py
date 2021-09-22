@@ -43,10 +43,7 @@ def task(rep_conn, odc_conn, next_execution_date, product_name, **kwargs):
             latest_processing_ts = processing_ts
 
     # This is the case that no data was found for any of the time periods specified
-    if (
-        latest_processing_ts == helpers.ZERO_TS
-        or latest_processing_ts == helpers.ZERO_TS
-    ):
+    if latest_processing_ts == helpers.ZERO_TS or latest_sat_acq_ts == helpers.ZERO_TS:
         log.error(
             "Unable to find data in ODC for last {} days".format(max(timedelta_list))
         )
