@@ -46,7 +46,7 @@ DEFAULT_ARGS = {
     "owner": "Alex Leith",
     "depends_on_past": False,
     "start_date": datetime(2020, 10, 1),
-    "email": ["kieran.ricardo@ga.gov.au"],
+    "email": ["damien.ayers@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
