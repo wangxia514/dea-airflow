@@ -242,11 +242,21 @@ def swap_in_parent(product_list):
 
 # Task callable for derivatives
 def task_derivative(
-    upstream, target, execution_date, days, rep_conn, odc_conn, aux_data_path, **kwargs
+    upstream,
+    target,
+    next_execution_date,
+    days,
+    rep_conn,
+    odc_conn,
+    aux_data_path,
+    **kwargs
 ):
     """
     Task to compute Sentinel2 derivative completeness
     """
+    # Correct issue with running at start of scheduled period
+    execution_date = next_execution_date
+
     expected_products_odc = list()
     for product_code in upstream:
         # query ODC for for all upstream products for last X days
@@ -310,7 +320,7 @@ def task_derivative(
 def task_ard(
     s2a,
     s2b,
-    execution_date,
+    next_execution_date,
     days,
     rep_conn,
     odc_conn,
@@ -321,6 +331,8 @@ def task_ard(
     """
     Task to compute Sentinel2 ARD completeness
     """
+    # Correct issue with running at start of scheduled period
+    execution_date = next_execution_date
 
     # query Copernicus API for for all S2 L1 products for last X days
     expected_products = copernicus_api.query(

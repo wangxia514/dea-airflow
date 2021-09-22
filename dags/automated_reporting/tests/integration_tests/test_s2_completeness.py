@@ -25,7 +25,7 @@ class CompletenessTests_S2_ARD(unittest.TestCase):
 
     completeness_kwargs = {
         "days": 1,
-        "execution_date": parser.isoparse("2021-09-03T20:30:00.000000+10"),
+        "next_execution_date": parser.isoparse("2021-09-03T20:30:00.000000+10"),
         "rep_conn": "rep_conn",
         "odc_conn": "odc_conn",
         "copernicus_api_credentials": {},
@@ -191,7 +191,7 @@ class CompletenessTests_S2_Deriv(unittest.TestCase):
 
     completeness_kwargs = {
         "days": 1,
-        "execution_date": parser.isoparse("2021-09-03T20:30:00.000000+10"),
+        "next_execution_date": parser.isoparse("2021-09-03T20:30:00.000000+10"),
         "rep_conn": "rep_conn",
         "odc_conn": "odc_conn",
         "copernicus_api_credentials": {},
