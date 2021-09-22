@@ -25,7 +25,8 @@ from infra import connections as infra_connections
 
 # Tasks
 from automated_reporting.tasks.check_db import task as check_db_task
-from automated_reporting.tasks.simple_latency import task as simple_latency_task
+from automated_reporting.tasks.simple_latency import task as odc_latency_task
+from automated_reporting.tasks.sns_latency import task as sns_latency_task
 
 log = logging.getLogger("airflow.task")
 
@@ -94,10 +95,31 @@ with dag:
             "product_name": product_name,
         }
         return PythonOperator(
-            task_id="nrt-simple-latency_" + product_name,
-            python_callable=simple_latency_task,
+            task_id="odc-latency_" + product_name,
+            python_callable=odc_latency_task,
             op_kwargs=latency_kwargs,
             provide_context=True,
         )
 
-    check_db >> [create_task(product_name) for product_name in products_list]
+    sns_list = [("S2A_MSIL1C", "esa_s2a_msi_l1c"), ("S2B_MSIL1C", "esa_s2b_msi_l1c")]
+
+    def create_sns_task(pipeline, product_id):
+        """
+        Function to generate PythonOperator tasks with id based on `product_name`
+        and pipeline from SNS table
+        """
+        latency_kwargs = {
+            "rep_conn": rep_conn,
+            "product_id": product_id,
+            "pipeline": pipeline,
+        }
+        return PythonOperator(
+            task_id="sns-latency_" + product_id,
+            python_callable=sns_latency_task,
+            op_kwargs=latency_kwargs,
+            provide_context=True,
+        )
+
+    odc_tasks = [create_task(product_name) for product_name in products_list]
+    sns_tasks = [create_sns_task(*args) for args in sns_list]
+    check_db >> (odc_tasks + sns_tasks)

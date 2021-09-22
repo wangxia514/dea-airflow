@@ -5,10 +5,36 @@ Utilities for reporting db queries and inserts
 import logging
 import psycopg2
 from psycopg2.errors import UniqueViolation  # pylint: disable-msg=E0611
+import psycopg2.extras
 from automated_reporting.databases import sql
 from datetime import datetime as dt, timezone, timedelta
 
 log = logging.getLogger("airflow.task")
+
+
+def read_sns_currency(connection_parameters, pipeline):
+    """ """
+    rep_conn = None
+    output = {"latest_sat_aq": None, "latest_processing": None}
+    try:
+        # open the connection to the Reporting DB and get a cursor
+        with psycopg2.connect(**connection_parameters) as rep_conn:
+            with rep_conn.cursor(
+                cursor_factory=psycopg2.extras.RealDictCursor
+            ) as rep_cursor:
+                rep_cursor.execute(sql.SELECT_SNS_CURRENCY, (pipeline,))
+                output = rep_cursor.fetchone()
+                log.debug(
+                    "Reporting Executed SQL: {}".format(
+                        rep_cursor.query.decode().strip()
+                    )
+                )
+    except Exception as e:
+        raise e
+    finally:
+        if rep_conn is not None:
+            rep_conn.close()
+    return output
 
 
 def insert_completeness(connection_parameters, db_completeness_writes):

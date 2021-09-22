@@ -400,9 +400,7 @@ def task(execution_date, rep_conn, task_instance, aux_data_path, **kwargs):
 
     # Format dates to example '2020-11-01'
     start_time = execution_date - timedelta(days=dayRange)
-    end_time = execution_date + timedelta(days=1)
-    startDate = start_time.strftime("%Y-%m-%d")
-    endDate = end_time.strftime("%Y-%m-%d")
+    end_time = execution_date
 
     logger.info("Starting reporting workflow for Landsat L1 NRT")
 
