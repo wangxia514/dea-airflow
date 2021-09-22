@@ -81,7 +81,7 @@ DELETE_PRODUCT_CMD = [
         """
         export PRODUCT_NAME={{ dag_run.conf.product_name }}
         cd /code/odc-product-delete
-        ./delete_product.sh
+        yes | ./delete_product.sh
         """
     ),
 ]
