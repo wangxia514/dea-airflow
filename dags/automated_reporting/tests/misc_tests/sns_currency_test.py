@@ -9,7 +9,7 @@ import logging
 import configparser
 import dateutil.parser as parser
 
-from automated_reporting.tasks import simple_latency
+from automated_reporting.tasks import sns_latency
 
 AR_FOLDER = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
@@ -31,10 +31,10 @@ log.addHandler(handler)
 def main():
     """Run the tasks"""
 
-    simple_latency.sns_task(
+    sns_latency.task(
         pipeline="S2A_MSIL1C",
         product_id="s2a_l1_nrt",
-        execution_date=parser.isoparse("2021-09-21T11:30:00.000000+00:00"),
+        next_execution_date=parser.isoparse("2021-09-21T11:45:00.000000+00:00"),
         rep_conn=dict(config["reporting_db"]),
     )
 
