@@ -99,6 +99,14 @@ SELECT_COLUMN = """SELECT * FROM information_schema.columns WHERE table_catalog=
 
 INSERT_LATENCY = """INSERT INTO landsat.derivative_latency VALUES (%s, %s, %s, %s);"""
 
+SELECT_SNS_CURRENCY = """
+    SELECT
+        MAX(sat_acq_time) as latest_sat_acq,
+        MAX(processing_time) as latest_processing
+    FROM dea.sqs_data_arrivals
+    WHERE pipeline=%s;
+"""
+
 INSERT_COMPLETENESS = """
     INSERT INTO reporting.completeness (geo_ref, completeness, expected_count, actual_count,
         product_id, sat_acq_time, processing_time, last_updated)
