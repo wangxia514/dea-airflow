@@ -384,11 +384,13 @@ def convert_m2m_to_matrix(acquisitions):
     return matrix_output
 
 
-def task(execution_date, rep_conn, task_instance, aux_data_path, **kwargs):
+def task(next_execution_date, rep_conn, task_instance, aux_data_path, **kwargs):
     """
     Main function
     :return:
     """
+    # Correct issue with running at start of scheduled period
+    execution_date = next_execution_date
 
     # get the results for upstream call to USGS M2M Api
     acquisitions = task_instance.xcom_pull(task_ids="usgs_acquisitions")

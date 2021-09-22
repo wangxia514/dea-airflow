@@ -51,7 +51,7 @@ class CompletenessTests_USGS_L1(unittest.TestCase):
     task_instance.xcom_pull = MagicMock(return_value=xcom_acquisitions)
 
     completeness_kwargs = {
-        "execution_date": parser.isoparse("2021-05-20T20:30:00.000000+00:00"),
+        "next_execution_date": parser.isoparse("2021-05-20T20:30:00.000000+00:00"),
         "rep_conn": "rep_conn",
         "task_instance": task_instance,
         "aux_data_path": "some_data_path",

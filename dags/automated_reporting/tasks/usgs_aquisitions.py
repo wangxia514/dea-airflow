@@ -9,10 +9,13 @@ from automated_reporting.utilities import m2m_api, helpers
 log = logging.getLogger("airflow.task")
 
 
-def task(product_ids, execution_date, m2m_credentials, aux_data_path, **kwargs):
+def task(product_ids, next_execution_date, m2m_credentials, aux_data_path, **kwargs):
     """
     Task to fetch recent USGS aquisitions and write to reporting database
     """
+    # Correct issue with running at start of scheduled period
+    execution_date = next_execution_date
+
     task_output = list()
 
     for product_id in product_ids:
