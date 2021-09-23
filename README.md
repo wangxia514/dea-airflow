@@ -80,3 +80,41 @@ Now install the pre-commit hook to the current repository:
 
 Your code will now be formatted and validated before each commit. You can also
 invoke it manually by running `pre-commit run --all-files`
+
+## Integration Test on GITHUB ACTION or locally
+This `docker-compose.workflow.yaml` has an extra postgres endpoint with a copy of odc database.
+
+### run it locally
+```bash
+mkdir ./logs
+echo -e "AIRFLOW_UID=$(id -u)\nAIRFLOW_GID=0" >> .env
+docker-compose -f docker-compose.workflow.yaml up airflow-init
+docker-compose -f docker-compose.workflow.yaml up
+```
+
+checking the `opendatacube` integration test database
+```bash
+docker exec -it dea-airflow_opendatacube_1 bash
+PGPASSWORD=opendatacubepassword psql -U opendatacubeusername -d opendatacube -p 5432 -h localhost
+```
+
+### Integration test setup
+
+setup connections for `db_odc_reader`
+```bash
+docker-compose -f docker-compose.workflow.yaml run airflow-worker airflow connections add db_odc_reader --conn-schema opendatacube --conn-login opendatacubeusername --conn-password opendatacubepassword --conn-port 5432 --conn-type postgres --conn-host opendatacube
+```
+
+### integration test database
+The integration test database contains selected number of products and datasets, if you need to add more products and datasets to the database, please update `dbsetup.sh` in `integration_tests` folder.
+
+Once the local database has been updated, create the dump for integration test
+```bash
+PGPASSWORD=opendatacubepassword pg_dump -U opendatacubeusername -h localhost opendatacube >> opendatacube.sql
+mv opendatacube.sql ~/dea-airflow/docker/database
+```
+
+some basic sql for checking correctness
+```sql
+select id, name from agdc.dataset_type;
+```
