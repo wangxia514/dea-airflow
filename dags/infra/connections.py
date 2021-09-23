@@ -14,3 +14,4 @@ AWS_DEA_PUBLIC_DATA_UPLOAD_CONN = "sentinel_2_ard_sync_user"
 
 # QA DB CONN
 DB_EXPLORER_READ_CONN = "db_explorer_reader"
+DB_ODC_WRITER_CONN = "db_odc_writer"
