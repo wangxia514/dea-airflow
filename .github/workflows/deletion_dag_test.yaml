@@ -1,0 +1,60 @@
+---
+name: deletion DAGs integration tests
+
+on:
+  push:
+    paths:
+      - 'dags/deletion/**'
+      - '.github/workflows/deletion_dag_test.yaml'
+      - 'integration_test/check_dags.sh'
+  pull_request:
+    types: [opened, reopened]
+    branches:
+      - master
+      - develop
+    paths:
+      - 'dags/deletion/**'
+      - '.github/workflows/deletion_dag_test.yaml'
+      - 'integration_test/check_dags.sh'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Deletion Dag tests
+    steps:
+      - name: checkout git
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Check docker-compose version
+        run: |
+          docker-compose -v
+      - name: Dockerize and start airflow
+        run: |
+          mkdir ./logs
+          chmod 777 ./logs
+          echo -e "AIRFLOW_UID=$(id -u)\nAIRFLOW_GID=0" >> .env
+          docker-compose -f docker-compose.workflow.yaml up airflow-init
+          docker-compose -f docker-compose.workflow.yaml up -d airflow-worker airflow-scheduler postgres flower opendatacube
+          docker-compose -f docker-compose.workflow.yaml run airflow-worker airflow connections add db_odc_reader --conn-schema opendatacube --conn-login opendatacubeusername --conn-password opendatacubepassword --conn-port 5432 --conn-type postgres --conn-host opendatacube
+          docker-compose -f docker-compose.workflow.yaml run airflow-worker airflow connections add db_odc_writer --conn-schema opendatacube --conn-login opendatacubeusername --conn-password opendatacubepassword --conn-port 5432 --conn-type postgres --conn-host opendatacube
+          docker-compose -f docker-compose.workflow.yaml run airflow-worker airflow dags list
+      - name: Wait 120s for all dags to populate
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '120s'
+      - name: start integration test
+        run: |
+          docker-compose -f docker-compose.workflow.yaml run airflow-worker airflow dags unpause deletion_utility_datacube_dataset_location
+          docker-compose -f docker-compose.workflow.yaml run airflow-worker airflow dags trigger --conf '{"product_name": "s2b_nrt_granule", "uri_pattern": "data.dea.ga.gov.au/L2"}' deletion_utility_datacube_dataset_location
+          docker-compose -f docker-compose.workflow.yaml run airflow-worker airflow dags trigger --conf '{"product_name": "s2b_nrt_granule", "uri_pattern": "L2/sentinel-2-nrt/S2MSIARD"}' deletion_utility_datacube_dataset_location
+          docker-compose -f docker-compose.workflow.yaml run airflow-worker airflow dags trigger --conf '{"product_name": "s2b_nrt_granule", "uri_pattern": "dea-public-data/L2/sentinel-2-nrt"}' deletion_utility_datacube_dataset_location
+      - name: Wait 300s for all dags to complete
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '300s'
+      - name: check integration test result
+        run: |
+          docker-compose -f docker-compose.workflow.yaml run airflow-worker airflow dags list-runs -d deletion_utility_datacube_dataset_location -v
+          docker-compose -f docker-compose.workflow.yaml exec -T airflow-worker /bin/bash -c "cd /opt/airflow/integration_tests; ./check_deletion_dags_result.sh"
+          docker-compose -f docker-compose.workflow.yaml down
