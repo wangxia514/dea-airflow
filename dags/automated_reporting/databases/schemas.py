@@ -60,6 +60,31 @@ LATENCY_SCHEMA = {
     }
 }
 
+
+USGS_ACQUISITIONS_SCHEMA = {
+    "database": {
+        "name": "reporting",
+        "schemas": [
+            {
+                "name": "landsat",
+                "tables": [
+                    {
+                        "name": "usgs_l1_nrt_c2_stac_listing",
+                        "columns": [
+                            {"name": "scene_id"},
+                            {"name": "wrs_path"},
+                            {"name": "wrs_row"},
+                            {"name": "collection_category"},
+                            {"name": "collection_number"},
+                            {"name": "sat_acq"},
+                        ],
+                    }
+                ],
+            },
+        ],
+    }
+}
+
 USGS_COMPLETENESS_SCHEMA = {
     "database": {
         "name": "reporting",
@@ -91,23 +116,7 @@ USGS_COMPLETENESS_SCHEMA = {
                         ],
                     },
                 ],
-            },
-            {
-                "name": "landsat",
-                "tables": [
-                    {
-                        "name": "usgs_l1_nrt_c2_stac_listing",
-                        "columns": [
-                            {"name": "scene_id"},
-                            {"name": "wrs_path"},
-                            {"name": "wrs_row"},
-                            {"name": "collection_category"},
-                            {"name": "collection_number"},
-                            {"name": "sat_acq"},
-                        ],
-                    }
-                ],
-            },
+            }
         ],
     }
 }

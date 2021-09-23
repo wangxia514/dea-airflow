@@ -25,17 +25,21 @@ from automated_reporting.utilities import helpers
 
 # Tasks
 from automated_reporting.tasks.check_db import task as check_db_task
-from automated_reporting.tasks.usgs_completeness import task as usgs_completeness_task
+from automated_reporting.tasks.usgs_completeness import (
+    task_l1 as usgs_l1_completeness_task,
+    task_ard as usgs_ard_completeness_task,
+)
 from automated_reporting.tasks.latency_from_completeness import (
     task as latency_from_completeness_task,
 )
 from automated_reporting.tasks.usgs_aquisitions import task as usgs_acquisitions_task
 from automated_reporting.tasks.usgs_insert_hg_l0 import task as usgs_insert_hg_l0_task
+from automated_reporting.tasks.usgs_insert_acqs import task as usgs_insert_acqs_task
 
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt(2021, 8, 17, 0, 0, 5, tzinfo=timezone.utc),
+    "start_date": dt(2021, 9, 23, tzinfo=timezone.utc),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
@@ -49,7 +53,6 @@ dag = DAG(
     tags=["reporting"],
     default_args=default_args,
     schedule_interval=timedelta(minutes=15),
-    concurrency=1,
 )
 
 aux_data_path = os.path.join(
@@ -71,6 +74,14 @@ def usgs_insert_hg_l0_xcom(task_instance, **kwargs):
     return usgs_insert_hg_l0_task(**kwargs)
 
 
+def usgs_insert_acqs_xcom(task_instance, **kwargs):
+    """
+    A wrapper to use Xcom in a task without adding an Airflow dependcy in the task itself
+    """
+    kwargs["acquisitions"] = task_instance.xcom_pull(task_ids="usgs_acquisitions")
+    return usgs_insert_acqs_task(**kwargs)
+
+
 with dag:
 
     # Acquisitions from M2M Api
@@ -84,9 +95,29 @@ with dag:
         python_callable=usgs_acquisitions_task,
         provide_context=True,
         op_kwargs=acquisitions_kwargs,
+        task_concurrency=1,
     )
 
-    # Completeness and Latency Metrics
+    # Insert Aquisitions to Reporting DB
+    check_db_kwargs_acquisitions = {
+        "expected_schema": schemas.USGS_ACQUISITIONS_SCHEMA,
+        "rep_conn": rep_conn,
+    }
+    check_db_schema_acquisitions = PythonOperator(
+        task_id="check_db_schema_acquisitions",
+        python_callable=check_db_task,
+        op_kwargs=check_db_kwargs_acquisitions,
+    )
+
+    insert_acqs_kwargs = {"rep_conn": rep_conn}
+    usgs_insert_acqs = PythonOperator(
+        task_id="usgs_insert_acqs",
+        python_callable=usgs_insert_acqs_xcom,
+        provide_context=True,
+        op_kwargs=insert_acqs_kwargs,
+    )
+
+    # Calculate USGS Completeness Metrics
     check_db_kwargs_completeness = {
         "expected_schema": schemas.USGS_COMPLETENESS_SCHEMA,
         "rep_conn": rep_conn,
@@ -98,13 +129,21 @@ with dag:
     )
 
     completeness_kwargs = {"rep_conn": rep_conn, "aux_data_path": aux_data_path}
-    usgs_completeness = PythonOperator(
-        task_id="usgs_completeness",
-        python_callable=usgs_completeness_task,
+    usgs_l1_completeness = PythonOperator(
+        task_id="usgs_l1_completeness",
+        python_callable=usgs_l1_completeness_task,
+        provide_context=True,
+        op_kwargs=completeness_kwargs,
+    )
+    completeness_kwargs = {"rep_conn": rep_conn, "aux_data_path": aux_data_path}
+    usgs_ard_completeness = PythonOperator(
+        task_id="usgs_ard_completeness",
+        python_callable=usgs_ard_completeness_task,
         provide_context=True,
         op_kwargs=completeness_kwargs,
     )
 
+    # Insert Latency from completness results
     check_db_kwargs_latency = {
         "expected_schema": schemas.LATENCY_SCHEMA,
         "rep_conn": rep_conn,
@@ -116,8 +155,8 @@ with dag:
     )
 
     latency_kwargs = {"rep_conn": rep_conn}
-    usgs_latency = PythonOperator(
-        task_id="latency",
+    usgs_l1_latency = PythonOperator(
+        task_id="usgs_l1_latency",
         python_callable=latency_from_completeness_task,
         provide_context=True,
         op_kwargs=completeness_kwargs,
@@ -144,9 +183,10 @@ with dag:
 
     (
         usgs_acquisitions
+        >> check_db_schema_acquisitions
+        >> usgs_insert_acqs
         >> check_db_completeness
-        >> usgs_completeness
-        >> check_db_latency
-        >> usgs_latency
     )
+    check_db_completeness >> usgs_l1_completeness >> check_db_latency >> usgs_l1_latency
+    check_db_completeness >> usgs_ard_completeness
     usgs_acquisitions >> check_db_hg >> usgs_insert_hg_l0
