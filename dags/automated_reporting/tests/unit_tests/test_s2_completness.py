@@ -1,7 +1,7 @@
 # pylint: skip-file
 import unittest
 
-from automated_reporting.tasks.s2_completeness import filter_expected_to_sensor
+from automated_reporting.tasks.s2_ard_completeness import filter_expected_to_sensor
 
 
 # Unit Tests
