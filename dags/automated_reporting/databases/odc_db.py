@@ -41,46 +41,27 @@ def query(connection_parameters, product_id, execution_date, days):
     # print logs of query and row count
 
     odc_conn = None
-    actual_products = []
+    datasets = []
     try:
         # open the connection to the AWS ODC and get a cursor
         with psycopg2.connect(**connection_parameters) as odc_conn:
-            with odc_conn.cursor() as odc_cursor:
+            with odc_conn.cursor(
+                cursor_factory=psycopg2.extras.RealDictCursor
+            ) as odc_cursor:
                 odc_cursor.execute(
                     SQL_QUERY[product_id],
                     (product_id, odc_start_time, odc_end_time),
                 )
                 log.debug("ODC Executed SQL: {}".format(odc_cursor.query.decode()))
                 log.info("ODC query returned: {} rows".format(odc_cursor.rowcount))
-
-                # Find the latest values for sat_acq and processing in the returned rows by updating
-                # latest_sat_acq_ts and latest_processing_ts
-
                 for row in odc_cursor:
-                    (
-                        id,
-                        indexed_time,
-                        granule_id,
-                        parent_id,
-                        region_id,
-                        sat_acq_ts,
-                        processing_ts,
-                    ) = row
-                    row = {
-                        "uuid": id,
-                        "granule_id": granule_id,
-                        "parent_id": parent_id,
-                        "region_id": region_id,
-                        "center_dt": sat_acq_ts,
-                        "processing_dt": processing_ts,
-                    }
-                    actual_products.append(row)
+                    datasets.append(row)
     except Exception as e:
         raise e
     finally:
         if odc_conn is not None:
             odc_conn.close()
-    return actual_products
+    return datasets
 
 
 def query_stepped(connection_parameters, product_id, execution_date, steps):

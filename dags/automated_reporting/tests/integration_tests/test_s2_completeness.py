@@ -33,12 +33,14 @@ class CompletenessTests_S2_ARD(unittest.TestCase):
     }
     odc_return = [
         {
-            "uuid": "some-uuid",
+            "id": "some-uuid",
             "granule_id": "s2a_granule_id1",
             "parent_id": "s2a_parent_id1",
-            "region_id": "49KGQ",
-            "center_dt": parser.isoparse("2021-09-03T02:30:00.000000Z"),
-            "processing_dt": parser.isoparse("2021-09-03T04:30:00.000000Z"),
+            "tile_id": "49KGQ",
+            "satellite_acquisition_time": parser.isoparse(
+                "2021-09-03T02:30:00.000000Z"
+            ),
+            "processing_time": parser.isoparse("2021-09-03T04:30:00.000000Z"),
         }
     ]
     copernicus_return = [
@@ -199,32 +201,38 @@ class CompletenessTests_S2_Deriv(unittest.TestCase):
     }
     odc_return_target = [
         {
-            "uuid": "some-uuid",
+            "id": "some-uuid",
             "granule_id": "s2a_granule_id1",
             "parent_id": "s2a_parent_id1",
-            "region_id": "49KGQ",
-            "center_dt": parser.isoparse("2021-09-03T02:30:00.000000Z"),
-            "processing_dt": parser.isoparse("2021-09-03T06:30:00.000000Z"),
+            "tile_id": "49KGQ",
+            "satellite_acquisition_time": parser.isoparse(
+                "2021-09-03T02:30:00.000000Z"
+            ),
+            "processing_time": parser.isoparse("2021-09-03T06:30:00.000000Z"),
         }
     ]
     odc_return_upstream1 = [
         {
-            "uuid": "some-uuid",
+            "id": "some-uuid",
             "granule_id": "s2a_parent_id1",
             "parent_id": "s2a_parent_id1",
-            "region_id": "49KGQ",
-            "center_dt": parser.isoparse("2021-09-03T02:30:00.000000Z"),
-            "processing_dt": parser.isoparse("2021-09-03T04:30:00.000000Z"),
+            "tile_id": "49KGQ",
+            "satellite_acquisition_time": parser.isoparse(
+                "2021-09-03T02:30:00.000000Z"
+            ),
+            "processing_time": parser.isoparse("2021-09-03T04:30:00.000000Z"),
         }
     ]
     odc_return_upstream2 = [
         {
-            "uuid": "some-uuid",
+            "id": "some-uuid",
             "granule_id": "s2b_parent_id2",
             "parent_id": "s2b_parent_id2",
-            "region_id": "49KGP",
-            "center_dt": parser.isoparse("2021-09-03T02:30:00.000000Z"),
-            "processing_dt": parser.isoparse("2021-09-03T04:30:00.000000Z"),
+            "tile_id": "49KGP",
+            "satellite_acquisition_time": parser.isoparse(
+                "2021-09-03T02:30:00.000000Z"
+            ),
+            "processing_time": parser.isoparse("2021-09-03T04:30:00.000000Z"),
         }
     ]
     aoi_return = ["49JHN", "49KGP", "49KGQ", "49KGR"]
