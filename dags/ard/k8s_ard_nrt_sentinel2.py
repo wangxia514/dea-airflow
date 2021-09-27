@@ -237,7 +237,7 @@ def receive_task(**context):
         task_instance.xcom_push(key="cmd", value=copy_cmd_tile(tile_info))
         task_instance.xcom_push(key="args", value=tile_args(tile_info))
 
-        return f"dea-s2-wagl-nrt-copy-scene-{index}"
+        return f"dea-s2-wagl-nrt-{index}"
 
 
 def finish_up(**context):
