@@ -66,10 +66,12 @@ with dag:
         "ga_s2b_msi_ard_c3",
         "usgs_ls8c_level1_nrt_c2",
         "usgs_ls7e_level1_nrt_c2",
-        "ga_s2_wo_3",
         "ga_s2am_ard_provisional_3",
         "ga_s2bm_ard_provisional_3",
+        "ga_ls7e_ard_provisional_3",
+        "ga_ls8c_ard_provisional_3",
         "ga_s2_ba_provisional_3",
+        "ga_s2_wo_3",
     ]
 
     def create_task(product_id):
