@@ -7,7 +7,9 @@ import psycopg2
 from psycopg2.errors import UniqueViolation  # pylint: disable-msg=E0611
 import psycopg2.extras
 from automated_reporting.databases import sql
-from datetime import datetime as dt, timezone, timedelta
+from datetime import datetime as timezone, timedelta
+import dateutil.parser as parser
+
 
 log = logging.getLogger("airflow.task")
 
@@ -130,7 +132,9 @@ def expire_completeness(connection_parameters, product_id):
     return count
 
 
-def insert_latency_list(connection_parameters, latency_results, execution_date):
+def insert_latency_from_completeness(
+    connection_parameters, completeness_summary, execution_date
+):
     """Insert latency result into reporting DB"""
 
     rep_conn = None
@@ -138,24 +142,25 @@ def insert_latency_list(connection_parameters, latency_results, execution_date):
         # open the connection to the Reporting DB and get a cursor
         with psycopg2.connect(**connection_parameters) as rep_conn:
             with rep_conn.cursor() as rep_cursor:
-                for latency in latency_results:
-                    sat_acq_ts = dt.utcfromtimestamp(latency["latest_sat_acq_ts"])
-                    proc_ts = None
-                    if latency["latest_processing_ts"]:
-                        proc_ts = dt.utcfromtimestamp(latency["latest_processing_ts"])
-                    rep_cursor.execute(
-                        sql.INSERT_LATENCY,
-                        (
-                            latency["product_name"],
-                            sat_acq_ts,
-                            proc_ts,
-                            execution_date.astimezone(
-                                tz=timezone(timedelta(hours=10), name="AEST")
-                            ).replace(tzinfo=None),
-                        ),
+                sat_acq_ts = parser.isoparse(completeness_summary["latest_sat_acq_ts"])
+                proc_ts = None
+                if completeness_summary["latest_processing_ts"]:
+                    proc_ts = parser.isoparse(
+                        completeness_summary["latest_processing_ts"]
                     )
-                    log.info("REP Executed SQL: {}".format(rep_cursor.query.decode()))
-                    log.info("REP returned: {}".format(rep_cursor.statusmessage))
+                rep_cursor.execute(
+                    sql.INSERT_LATENCY,
+                    (
+                        completeness_summary["product_code"],
+                        sat_acq_ts,
+                        proc_ts,
+                        execution_date.astimezone(
+                            tz=timezone(timedelta(hours=10), name="AEST")
+                        ).replace(tzinfo=None),
+                    ),
+                )
+                log.info("REP Executed SQL: {}".format(rep_cursor.query.decode()))
+                log.info("REP returned: {}".format(rep_cursor.statusmessage))
     except UniqueViolation as e:
         log.error("Duplicate item in database")
     except Exception as e:

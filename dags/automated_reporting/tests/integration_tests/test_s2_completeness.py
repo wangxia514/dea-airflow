@@ -8,7 +8,8 @@ import dateutil.parser as parser
 import unittest
 from unittest.mock import patch
 
-from automated_reporting.tasks import s2_completeness
+from automated_reporting.tasks import s2_ard_completeness
+from automated_reporting.tasks import s2_deriv_completeness
 
 handler = logging.StreamHandler(sys.stdout)
 handler.setLevel(logging.DEBUG)
@@ -33,12 +34,14 @@ class CompletenessTests_S2_ARD(unittest.TestCase):
     }
     odc_return = [
         {
-            "uuid": "some-uuid",
+            "id": "some-uuid",
             "granule_id": "s2a_granule_id1",
             "parent_id": "s2a_parent_id1",
-            "region_id": "49KGQ",
-            "center_dt": parser.isoparse("2021-09-03T02:30:00.000000Z"),
-            "processing_dt": parser.isoparse("2021-09-03T04:30:00.000000Z"),
+            "tile_id": "49KGQ",
+            "satellite_acquisition_time": parser.isoparse(
+                "2021-09-03T02:30:00.000000Z"
+            ),
+            "processing_time": parser.isoparse("2021-09-03T04:30:00.000000Z"),
         }
     ]
     copernicus_return = [
@@ -82,7 +85,7 @@ class CompletenessTests_S2_ARD(unittest.TestCase):
             },
         }
         completeness_kwargs_ard.update(self.completeness_kwargs)
-        summary = s2_completeness.task_ard(**completeness_kwargs_ard)
+        summary = s2_ard_completeness.task(**completeness_kwargs_ard)
 
         self.assertEqual(mock_odc_query.call_args_list[0][0][1], "s2a_nrt_granule")
         self.assertEqual(mock_odc_query.call_args_list[1][0][1], "s2b_nrt_granule")
@@ -143,7 +146,7 @@ class CompletenessTests_S2_ARD(unittest.TestCase):
             },
         }
         completeness_kwargs_ard_prov.update(self.completeness_kwargs)
-        summary = s2_completeness.task_ard(**completeness_kwargs_ard_prov)
+        summary = s2_ard_completeness.task(**completeness_kwargs_ard_prov)
 
         self.assertEqual(
             mock_odc_query.call_args_list[0][0][1], "ga_s2am_ard_provisional_3"
@@ -199,32 +202,38 @@ class CompletenessTests_S2_Deriv(unittest.TestCase):
     }
     odc_return_target = [
         {
-            "uuid": "some-uuid",
+            "id": "some-uuid",
             "granule_id": "s2a_granule_id1",
             "parent_id": "s2a_parent_id1",
-            "region_id": "49KGQ",
-            "center_dt": parser.isoparse("2021-09-03T02:30:00.000000Z"),
-            "processing_dt": parser.isoparse("2021-09-03T06:30:00.000000Z"),
+            "tile_id": "49KGQ",
+            "satellite_acquisition_time": parser.isoparse(
+                "2021-09-03T02:30:00.000000Z"
+            ),
+            "processing_time": parser.isoparse("2021-09-03T06:30:00.000000Z"),
         }
     ]
     odc_return_upstream1 = [
         {
-            "uuid": "some-uuid",
+            "id": "some-uuid",
             "granule_id": "s2a_parent_id1",
             "parent_id": "s2a_parent_id1",
-            "region_id": "49KGQ",
-            "center_dt": parser.isoparse("2021-09-03T02:30:00.000000Z"),
-            "processing_dt": parser.isoparse("2021-09-03T04:30:00.000000Z"),
+            "tile_id": "49KGQ",
+            "satellite_acquisition_time": parser.isoparse(
+                "2021-09-03T02:30:00.000000Z"
+            ),
+            "processing_time": parser.isoparse("2021-09-03T04:30:00.000000Z"),
         }
     ]
     odc_return_upstream2 = [
         {
-            "uuid": "some-uuid",
+            "id": "some-uuid",
             "granule_id": "s2b_parent_id2",
             "parent_id": "s2b_parent_id2",
-            "region_id": "49KGP",
-            "center_dt": parser.isoparse("2021-09-03T02:30:00.000000Z"),
-            "processing_dt": parser.isoparse("2021-09-03T04:30:00.000000Z"),
+            "tile_id": "49KGP",
+            "satellite_acquisition_time": parser.isoparse(
+                "2021-09-03T02:30:00.000000Z"
+            ),
+            "processing_time": parser.isoparse("2021-09-03T04:30:00.000000Z"),
         }
     ]
     aoi_return = ["49JHN", "49KGP", "49KGQ", "49KGR"]
@@ -243,7 +252,7 @@ class CompletenessTests_S2_Deriv(unittest.TestCase):
             "target": "ga_s2_wo_3",
         }
         completeness_kwargs_wo.update(self.completeness_kwargs)
-        summary = s2_completeness.task_derivative(**completeness_kwargs_wo)
+        summary = s2_deriv_completeness.task(**completeness_kwargs_wo)
 
         self.assertEqual(mock_odc_query.call_args_list[0][0][1], "s2a_nrt_granule")
         self.assertEqual(mock_odc_query.call_args_list[1][0][1], "s2b_nrt_granule")
@@ -285,7 +294,7 @@ class CompletenessTests_S2_Deriv(unittest.TestCase):
             "target": "ga_s2_ba_provisional_3",
         }
         completeness_kwargs_ba.update(self.completeness_kwargs)
-        summary = s2_completeness.task_derivative(**completeness_kwargs_ba)
+        summary = s2_deriv_completeness.task(**completeness_kwargs_ba)
 
         self.assertEqual(
             mock_odc_query.call_args_list[0][0][1], "ga_s2am_ard_provisional_3"

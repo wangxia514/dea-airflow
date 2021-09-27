@@ -30,11 +30,11 @@ from infra import connections as infra_connections
 
 # Tasks
 from automated_reporting.tasks.check_db import task as check_db_task
-from automated_reporting.tasks.s2_completeness import (
-    task_ard as s2_completeness_ard_task,
+from automated_reporting.tasks.s2_ard_completeness import (
+    task as s2_completeness_ard_task,
 )
-from automated_reporting.tasks.s2_completeness import (
-    task_derivative as s2_completeness_derivative_task,
+from automated_reporting.tasks.s2_deriv_completeness import (
+    task as s2_completeness_derivative_task,
 )
 
 log = logging.getLogger("airflow.task")
