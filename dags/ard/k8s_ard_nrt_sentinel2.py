@@ -277,38 +277,6 @@ with pipeline:
             provide_context=True,
         )
 
-        COPY = KubernetesPodOperator(
-            namespace="processing",
-            name="dea-s2-wagl-nrt-copy-scene",
-            task_id=f"dea-s2-wagl-nrt-copy-scene-{index}",
-            image_pull_policy="IfNotPresent",
-            image=S3_TO_RDS_IMAGE,
-            affinity=affinity,
-            tolerations=tolerations,
-            startup_timeout_seconds=600,
-            volumes=[ancillary_volume],
-            volume_mounts=[ancillary_volume_mount],
-            cmds=[
-                "bash",
-                "-c",
-                "{{ task_instance.xcom_pull(task_ids='receive_task_"
-                + str(index)
-                + "', key='cmd') }}",
-            ],
-            labels={
-                "runner": "airflow",
-                "product": "Sentinel-2",
-                "app": "nrt",
-                "stage": "copy-scene",
-            },
-            resources={
-                "request_cpu": "1000m",
-                "request_memory": "2Gi",
-            },
-            get_logs=True,
-            is_delete_operator_pod=True,
-        )
-
         RUN = KubernetesPodOperator(
             namespace="processing",
             name="dea-s2-wagl-nrt",
