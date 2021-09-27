@@ -98,7 +98,7 @@ def task(
 
     # generate the list of database writes for sensor/platform
     db_completeness_writes = completeness.generate_db_writes(
-        target, summary, output, execution_date
+        target, summary, "all_s2", output, execution_date
     )
 
     # write records to reporting database

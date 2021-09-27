@@ -103,7 +103,7 @@ def calculate_metric_for_region(r_expected_datasets, r_actual_datasets):
     )
 
     # filter the actual products list for region to those in expected products for region
-    actual_products = get_datasets_in_expected_and_actual(
+    actual_datasets = get_datasets_in_expected_and_actual(
         r_expected_datasets, r_actual_datasets
     )
 
@@ -111,10 +111,21 @@ def calculate_metric_for_region(r_expected_datasets, r_actual_datasets):
     latest_sat_acq_time = None
     latest_processing_time = None
 
-    if actual_products:
-        latest_sat_acq_time = max(actual_products, key=lambda x: x.center_dt).center_dt
+    if actual_datasets:
+        # take latest sat_acq_time from expected record, if not in actual record e.g. s3 listing
+        for actual_dataset in actual_datasets:
+            if not actual_dataset.center_dt:
+                expected_dataset = [
+                    d
+                    for d in r_expected_datasets
+                    if d.dataset_id == actual_dataset.parent_id
+                ][0]
+                actual_dataset.center_dt = expected_dataset.center_dt
+
+        latest_sat_acq_time = max(actual_datasets, key=lambda x: x.center_dt).center_dt
+
         latest_processing_time = max(
-            actual_products, key=lambda x: x.processing_dt
+            actual_datasets, key=lambda x: x.processing_dt
         ).processing_dt
 
     # calculate expected, actual, missing and completeness
@@ -200,7 +211,7 @@ def calculate_summary_stats(output):
     return summary
 
 
-def generate_db_writes(product_id, summary, output, execution_date):
+def generate_db_writes(product_id, summary, summary_region, output, execution_date):
     """Generate a list of db writes from a results list"""
 
     execution_date = helpers.python_dt(execution_date)
@@ -209,7 +220,7 @@ def generate_db_writes(product_id, summary, output, execution_date):
     # append summary stats to output list
     db_completeness_writes.append(
         [
-            "all_s2",
+            summary_region,
             summary["completeness"],
             summary["expected"],
             summary["actual"],
@@ -238,3 +249,71 @@ def generate_db_writes(product_id, summary, output, execution_date):
             completeness_record[-1].append([scene_id, execution_date])
         db_completeness_writes.append(completeness_record)
     return db_completeness_writes
+
+
+def map_odc_to_actual(datasets):
+    """convert list of odc records into Actual objects"""
+    actual_datasets = list()
+    for dataset in datasets:
+        actual_datasets.append(
+            Actual(
+                dataset_id=dataset.get("granule_id"),
+                parent_id=dataset.get("parent_id"),
+                region_id=dataset.get("tile_id"),
+                center_dt=dataset.get("satellite_acquisition_time"),
+                processing_dt=dataset.get("processing_time"),
+            )
+        )
+    return actual_datasets
+
+
+def map_usgs_acqs_to_expected(datasets):
+    """convert list of M2M acquisition records into Expected objects"""
+    expected_datasets = list()
+    for dataset in datasets:
+        expected_datasets.append(
+            Expected(
+                dataset_id=dataset.get("scene_id"),
+                region_id="{}_{}".format(
+                    dataset.get("wrs_path"), dataset.get("wrs_row")
+                ),
+                center_dt=dataset.get("sat_acq"),
+            )
+        )
+    return expected_datasets
+
+
+def map_usgs_s3_to_actual(datasets):
+    """convert list of M2M acquisition records into Expected objects"""
+    expected_datasets = list()
+    for dataset in datasets:
+        expected_datasets.append(
+            Actual(
+                dataset_id=dataset.get("scene_id"),
+                parent_id=dataset.get("scene_id"),
+                region_id="{}_{}".format(
+                    dataset.get("scene_id")[3:6], dataset.get("scene_id")[6:9]
+                ),
+                processing_dt=dataset.get("last_updated"),
+            )
+        )
+    return expected_datasets
+
+
+def get_xcom_summary(summary, product_code):
+    """
+    Reformats the output of completness task to make it compatiable with xcom
+    """
+    summary_out = summary.copy()
+    summary_out["latest_sat_acq_ts"] = (
+        summary_out["latest_sat_acq_ts"].isoformat()
+        if summary_out["latest_sat_acq_ts"]
+        else None
+    )
+    summary_out["latest_processing_ts"] = (
+        summary_out["latest_processing_ts"].isoformat()
+        if summary_out["latest_processing_ts"]
+        else None
+    )
+    summary_out["product_code"] = product_code
+    return summary_out

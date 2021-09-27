@@ -15,22 +15,6 @@ def filter_expected_to_sensor(expected_products, sensor):
     return [p for p in expected_products if p["sensor"] == sensor]
 
 
-def map_odc_to_actual(datasets):
-    """convert list of odc records into Actual objects"""
-    actual_datasets = list()
-    for dataset in datasets:
-        actual_datasets.append(
-            completeness.Actual(
-                dataset_id=dataset.get("granule_id"),
-                parent_id=dataset.get("parent_id"),
-                region_id=dataset.get("tile_id"),
-                center_dt=dataset.get("satellite_acquisition_time"),
-                processing_dt=dataset.get("processing_time"),
-            )
-        )
-    return actual_datasets
-
-
 def map_acq_to_expected(datasets):
     """convert list of Copernicus API records into Expected objects"""
     expected_datasets = list()
@@ -68,7 +52,7 @@ def task(
 
     # get a optimised tile list of AOI
     regions_list = helpers.get_aoi_list(aux_data_path, "sentinel2_aoi_list.txt")
-    log.info("Loaded AOI tile list: {} tiles found".format(len(regions_list)))
+    log.info("Loaded AOI regions list: {} found".format(len(regions_list)))
 
     # a list of tuples to store values before writing to database
     db_completeness_writes = []
@@ -81,7 +65,7 @@ def task(
         log.info("Computing completeness for: {}".format(sensor["odc_code"]))
 
         # query ODC for all S2 L1 products for last X days
-        actual_datasets = map_odc_to_actual(
+        actual_datasets = completeness.map_odc_to_actual(
             odc_db.query(odc_conn, sensor["odc_code"], execution_date, days)
         )
 
@@ -113,7 +97,7 @@ def task(
 
         # generate the list of database writes for sensor/platform
         db_completeness_writes += completeness.generate_db_writes(
-            sensor["rep_code"], summary, output, execution_date
+            sensor["rep_code"], summary, "all_s2", output, execution_date
         )
 
     # write records to reporting database

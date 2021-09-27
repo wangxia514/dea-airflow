@@ -131,6 +131,7 @@ class TestCompletenessUnit(unittest.TestCase):
             }
         ),  # product not in AOI
     ]
+
     EXPECTED_PRODUCTS = [
         Expected(**{"dataset_id": "PARENT_GRANULE_ID_1", "region_id": "54DFT"}),
         Expected(**{"dataset_id": "PARENT_GRANULE_ID_2", "region_id": "54DFT"}),
@@ -141,6 +142,41 @@ class TestCompletenessUnit(unittest.TestCase):
         Expected(
             **{"dataset_id": "PARENT_GRANULE_ID_8", "region_id": "00XXX"}
         ),  # product not in AOI
+    ]
+
+    ACTUAL_PRODUCTS_3 = [
+        Actual(
+            **{
+                "dataset_id": "GRANULE_ID_1",
+                "parent_id": "PARENT_GRANULE_ID_1",
+                "region_id": "54DFT",
+                "processing_dt": BT + td(hours=26),
+            }
+        ),
+        Actual(
+            **{
+                "dataset_id": "GRANULE_ID_2",
+                "parent_id": "PARENT_GRANULE_ID_2",
+                "region_id": "54DFT",
+                "processing_dt": BT + td(hours=27),
+            }
+        ),
+    ]
+    EXPECTED_PRODUCTS_1 = [
+        Expected(
+            **{
+                "dataset_id": "PARENT_GRANULE_ID_1",
+                "region_id": "54DFT",
+                "center_dt": BT + td(hours=1),
+            }
+        ),
+        Expected(
+            **{
+                "dataset_id": "PARENT_GRANULE_ID_2",
+                "region_id": "54DFT",
+                "center_dt": BT + td(hours=2),
+            }
+        ),
     ]
 
     def test_filter_datasets_to_region_returns_filtered_list_of_odc_products(self):
@@ -233,6 +269,18 @@ class TestCompletenessUnit(unittest.TestCase):
         self.assertEqual(len(result["missing_ids"]), 0)
         self.assertEqual(result["latest_sat_acq_ts"], None)
         self.assertEqual(result["latest_processing_ts"], None)
+
+        # Case4 (Edge case with no sat_acq_times in actual)
+        result = calculate_metric_for_region(
+            self.EXPECTED_PRODUCTS_1, self.ACTUAL_PRODUCTS_3
+        )
+        self.assertEqual(result["completeness"], 100.0)
+        self.assertEqual(result["expected"], 2)
+        self.assertEqual(result["missing"], 0)
+        self.assertEqual(result["actual"], 2)
+        self.assertEqual(len(result["missing_ids"]), 0)
+        self.assertEqual(result["latest_sat_acq_ts"], self.BT + td(hours=2))
+        self.assertEqual(result["latest_processing_ts"], self.BT + td(hours=27))
 
     def test_calculate_metrics_for_all_regions(self):
         result = calculate_metrics_for_all_regions(
