@@ -253,26 +253,6 @@ def finish_up(**context):
         QueueUrl=ARD_NRT_S2_PROCESS_SCENE_QUEUE, ReceiptHandle=message["ReceiptHandle"]
     )
 
-    msg = task_instance.xcom_pull(
-        task_ids=f"dea-s2-wagl-nrt-{index}", key="return_value"
-    )
-
-    if msg == {}:
-        _LOG.info("dataset already existed, did not get processed by this DAG")
-        return
-
-    dataset_location = msg["dataset"]
-    parsed = urlparse(dataset_location)
-    _LOG.info("dataset location: %s", dataset_location)
-
-    s3 = get_s3()
-    response = s3.get_object(Bucket=parsed.netloc, Key=parsed.path.lstrip("/"))
-    body = json.dumps(yaml.safe_load(response["Body"]), indent=2)
-
-    _LOG.info("publishing to SNS: %s", body)
-    sns_hook = AwsSnsHook(aws_conn_id=AWS_WAGL_NRT_CONN)
-    sns_hook.publish_to_target(PUBLISH_S2_NRT_SNS, body)
-
 
 pipeline = DAG(
     "k8s_ard_nrt_sentinel2",
@@ -381,7 +361,6 @@ with pipeline:
             volumes=[ancillary_volume],
             volume_mounts=[ancillary_volume_mount],
             execution_timeout=timedelta(minutes=180),
-            do_xcom_push=True,
             is_delete_operator_pod=True,
         )
 
@@ -394,5 +373,5 @@ with pipeline:
 
         NOTHING = DummyOperator(task_id=f"nothing_to_do_{index}")
 
-        SENSOR >> COPY >> RUN >> FINISH
+        SENSOR >> RUN >> FINISH
         SENSOR >> NOTHING
