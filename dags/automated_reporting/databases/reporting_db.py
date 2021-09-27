@@ -7,7 +7,7 @@ import psycopg2
 from psycopg2.errors import UniqueViolation  # pylint: disable-msg=E0611
 import psycopg2.extras
 from automated_reporting.databases import sql
-from datetime import datetime as timezone, timedelta
+from datetime import timezone, timedelta
 import dateutil.parser as parser
 
 
