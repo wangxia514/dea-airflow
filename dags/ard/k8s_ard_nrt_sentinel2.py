@@ -114,7 +114,8 @@ setup_logging()
 
 def decode(message):
     """Decode stringified message."""
-    return json.loads(message["Body"])
+    body = json.loads(message["Body"])
+    return json.loads(body["Message"])
 
 
 def copy_cmd_tile(tile_info):
@@ -202,7 +203,6 @@ def get_message(sqs, url):
         QueueUrl=url, VisibilityTimeout=ESTIMATED_COMPLETION_TIME, MaxNumberOfMessages=1
     )
 
-    print(json.dumps(response, indent=4))
     if "Messages" not in response:
         return None
 
