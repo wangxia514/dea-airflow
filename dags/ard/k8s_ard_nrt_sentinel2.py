@@ -202,6 +202,7 @@ def get_message(sqs, url):
         QueueUrl=url, VisibilityTimeout=ESTIMATED_COMPLETION_TIME, MaxNumberOfMessages=1
     )
 
+    print(json.dumps(response, indent=4))
     if "Messages" not in response:
         return None
 
