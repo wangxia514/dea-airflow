@@ -14,7 +14,7 @@ import os
 import pathlib
 import logging
 from datetime import datetime as dt
-from datetime import timedelta, timezone
+from datetime import timedelta
 
 from airflow import DAG
 from airflow.configuration import conf

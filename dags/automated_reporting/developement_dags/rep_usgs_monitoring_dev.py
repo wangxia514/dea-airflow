@@ -10,7 +10,7 @@ This DAG
 """
 import os
 import pathlib
-from datetime import datetime as dt, timedelta, timezone
+from datetime import datetime as dt, timedelta
 
 from airflow import DAG
 from airflow.configuration import conf

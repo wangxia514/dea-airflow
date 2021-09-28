@@ -8,7 +8,7 @@ values and the aoi summary values.
 
 import logging
 from datetime import datetime as dt
-from datetime import timedelta, timezone
+from datetime import timedelta
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
