@@ -65,7 +65,7 @@ def task(
         log.info("Computing completeness for: {}".format(sensor["odc_code"]))
 
         # query ODC for all S2 L1 products for last X days
-        actual_datasets = completeness.map_odc_to_actual(
+        actual_datasets = completeness.map_s2_odc_to_actual(
             odc_db.query(odc_conn, sensor["odc_code"], execution_date, days)
         )
 

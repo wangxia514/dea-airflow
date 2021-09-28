@@ -39,7 +39,7 @@ def task(
     )
 
     # Get actual datasets from ODC query
-    actual_datasets = completeness.map_odc_to_actual(
+    actual_datasets = completeness.map_usgs_odc_to_actual(
         odc_db.query(odc_conn, product["odc_code"], execution_date, days)
     )
 
