@@ -217,14 +217,13 @@ def get_message(sqs, url):
 def receive_task(**context):
     """Receive a task from the task queue."""
     task_instance = context["task_instance"]
-    index = context["index"]
 
     sqs = get_sqs()
     message = get_message(sqs, ARD_NRT_S2_PROCESS_SCENE_QUEUE)
 
     if message is None:
         _LOG.info("no messages")
-        return f"nothing_to_do_{index}"
+        return "nothing_to_do"
     else:
         _LOG.info("received message")
         _LOG.info("%r", message)
@@ -237,15 +236,14 @@ def receive_task(**context):
         task_instance.xcom_push(key="cmd", value=copy_cmd_tile(tile_info))
         task_instance.xcom_push(key="args", value=tile_args(tile_info))
 
-        return f"dea-s2-wagl-nrt-{index}"
+        return "dea-s2-wagl-nrt"
 
 
 def finish_up(**context):
     """Delete the SQS message to mark completion, broadcast to SNS."""
     task_instance = context["task_instance"]
-    index = context["index"]
 
-    message = task_instance.xcom_pull(task_ids=f"receive_task_{index}", key="message")
+    message = task_instance.xcom_pull(task_ids=f"receive_task", key="message")
     sqs = get_sqs()
 
     _LOG.info("deleting %s", message["ReceiptHandle"])
@@ -269,77 +267,55 @@ pipeline = DAG(
 )
 
 with pipeline:
-    for index in range(NUM_PARALLEL_PIPELINE):
-        SENSOR = BranchPythonOperator(
-            task_id=f"receive_task_{index}",
-            python_callable=receive_task,
-            op_kwargs={"index": index},
-            provide_context=True,
-        )
+    SENSOR = BranchPythonOperator(
+        task_id=f"receive_task",
+        python_callable=receive_task,
+        provide_context=True,
+    )
 
-        RUN = KubernetesPodOperator(
-            namespace="processing",
-            name="dea-s2-wagl-nrt",
-            task_id=f"dea-s2-wagl-nrt-{index}",
-            image_pull_policy="IfNotPresent",
-            image=WAGL_IMAGE,
-            affinity=affinity,
-            tolerations=tolerations,
-            startup_timeout_seconds=600,
-            # this is the wagl_nrt user in the wagl container
-            security_context=dict(runAsUser=10015, runAsGroup=10015, fsGroup=10015),
-            cmds=["/scripts/process-scene.sh"],
-            arguments=[
-                "{{ task_instance.xcom_pull(task_ids='receive_task_"
-                + str(index)
-                + "', key='args')['granule_url'] }}",
-                "{{ task_instance.xcom_pull(task_ids='receive_task_"
-                + str(index)
-                + "', key='args')['datastrip_url'] }}",
-                "{{ task_instance.xcom_pull(task_ids='receive_task_"
-                + str(index)
-                + "', key='args')['granule_id'] }}",
-                BUCKET_REGION,
-                S3_PREFIX,
-            ],
-            labels={
-                "runner": "airflow",
-                "product": "Sentinel-2",
-                "app": "nrt",
-                "stage": "wagl",
-            },
-            env_vars=dict(
-                bucket_region=BUCKET_REGION,
-                datastrip_url="{{ task_instance.xcom_pull(task_ids='receive_task_"
-                + str(index)
-                + "', key='args')['datastrip_url'] }}",
-                granule_url="{{ task_instance.xcom_pull(task_ids='receive_task_"
-                + str(index)
-                + "', key='args')['granule_url'] }}",
-                granule_id="{{ task_instance.xcom_pull(task_ids='receive_task_"
-                + str(index)
-                + "', key='args')['granule_id'] }}",
-                s3_prefix=S3_PREFIX,
-            ),
-            get_logs=True,
-            resources={
-                "request_cpu": "1000m",
-                "request_memory": "12Gi",
-            },
-            volumes=[ancillary_volume],
-            volume_mounts=[ancillary_volume_mount],
-            execution_timeout=timedelta(minutes=180),
-            is_delete_operator_pod=True,
-        )
+    RUN = KubernetesPodOperator(
+        namespace="processing",
+        name="dea-s2-wagl-nrt",
+        task_id=f"dea-s2-wagl-nrt",
+        image_pull_policy="IfNotPresent",
+        image=WAGL_IMAGE,
+        affinity=affinity,
+        tolerations=tolerations,
+        startup_timeout_seconds=600,
+        # this is the wagl_nrt user in the wagl container
+        security_context=dict(runAsUser=10015, runAsGroup=10015, fsGroup=10015),
+        cmds=["/scripts/process-scene.sh"],
+        arguments=[
+            "{{ task_instance.xcom_pull(task_ids='receive_task', key='args')['granule_url'] }}",
+            "{{ task_instance.xcom_pull(task_ids='receive_task', key='args')['datastrip_url'] }}",
+            "{{ task_instance.xcom_pull(task_ids='receive_task', key='args')['granule_id'] }}",
+            BUCKET_REGION,
+            S3_PREFIX,
+        ],
+        labels={
+            "runner": "airflow",
+            "product": "Sentinel-2",
+            "app": "nrt",
+            "stage": "wagl",
+        },
+        get_logs=True,
+        resources={
+            "request_cpu": "1000m",
+            "request_memory": "12Gi",
+        },
+        volumes=[ancillary_volume],
+        volume_mounts=[ancillary_volume_mount],
+        execution_timeout=timedelta(minutes=180),
+        is_delete_operator_pod=True,
+    )
 
-        FINISH = PythonOperator(
-            task_id=f"finish_{index}",
-            python_callable=finish_up,
-            op_kwargs={"index": index},
-            provide_context=True,
-        )
+    FINISH = PythonOperator(
+        task_id=f"finish",
+        python_callable=finish_up,
+        provide_context=True,
+    )
 
-        NOTHING = DummyOperator(task_id=f"nothing_to_do_{index}")
+    NOTHING = DummyOperator(task_id=f"nothing_to_do")
 
-        SENSOR >> RUN >> FINISH
-        SENSOR >> NOTHING
+    SENSOR >> RUN >> FINISH
+    SENSOR >> NOTHING
