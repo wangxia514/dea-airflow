@@ -35,5 +35,5 @@ SENTINEL_2_ARD_INDEXING_SQS_QUEUE_NAME_ODC_DB = Variable.get(
     "dea-sandbox-eks-sentinel-2-ard-indexing-odc-db",
 )  # qa
 ARD_NRT_LS_PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/060378307146/dea-sandbox-eks-wagl-ls-nrt-process-scene"
+ARD_NRT_S2_PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/060378307146/dea-sandbox-eks-wagl-s2-nrt-process-scene"
 ARD_NRT_S2_PROVISIONAL_PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/060378307146/dea-sandbox-eks-ard-nrt-s2-provisional-process-scene"
-ARD_NRT_S2_FILTER_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/060378307146/dea-sandbox-eks-wagl-s2-nrt-filter-scene"

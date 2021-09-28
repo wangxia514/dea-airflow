@@ -18,7 +18,3 @@ PUBLISH_ARD_NRT_LS_SNS = (
 PUBLISH_ARD_NRT_S2_PROVISIONAL_SNS = (
     "arn:aws:sns:ap-southeast-2:060378307146:dea-sandbox-eks-ard-nrt-s2-provisional"
 )
-
-PUBLISH_S2_NRT_FILTER_SNS = (
-    "arn:aws:sns:ap-southeast-2:060378307146:dea-sandbox-eks-ard-nrt-s2-filter"
-)
