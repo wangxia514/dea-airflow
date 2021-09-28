@@ -30,6 +30,9 @@ from infra import connections as infra_connections
 
 # Tasks
 from automated_reporting.tasks.check_db import task as check_db_task
+from automated_reporting.tasks.s2_l1_completeness import (
+    task as s2_completeness_l1_task,
+)
 from automated_reporting.tasks.s2_ard_completeness import (
     task as s2_completeness_ard_task,
 )
@@ -56,6 +59,7 @@ dag = DAG(
     tags=["reporting"],
     default_args=default_args,
     schedule_interval=timedelta(minutes=15),
+    concurrency=1,
 )
 
 aux_data_path = os.path.join(
@@ -91,6 +95,26 @@ with dag:
         "copernicus_api_credentials": copernicus_api_creds,
         "aux_data_path": aux_data_path,
     }
+
+    completeness_kwargs_l1 = {
+        "s2a": {
+            "id": "s2a",
+            "pipeline": "S2A_MSIL1C",
+            "rep_code": "esa_s2a_msi_l1c",
+        },
+        "s2b": {
+            "id": "s2b",
+            "pipeline": "S2B_MSIL1C",
+            "rep_code": "esa_s2b_msi_l1c",
+        },
+    }
+    completeness_kwargs_l1.update(completeness_kwargs)
+    compute_sentinel_l1_completeness = PythonOperator(
+        task_id="compute_s2_l1_completeness",
+        python_callable=s2_completeness_l1_task,
+        op_kwargs=completeness_kwargs_l1,
+        provide_context=True,
+    )
 
     completeness_kwargs_ard = {
         "s2a": {
@@ -133,6 +157,7 @@ with dag:
     )
 
     check_db >> [
+        compute_sentinel_l1_completeness,
         compute_sentinel_ard_completeness,
         compute_sentinel_ard_prov_completeness,
     ]

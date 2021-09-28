@@ -251,6 +251,28 @@ def generate_db_writes(product_id, summary, summary_region, output, execution_da
     return db_completeness_writes
 
 
+def s2_region_from_id(id):
+    """S2 region code from identifier"""
+    parts = id.split("_")
+    return parts[5][1:]
+
+
+def map_s2_sns_to_actual(datasets):
+    """convert list of sns records into Actual objects"""
+    actual_datasets = list()
+    for dataset in datasets:
+        actual_datasets.append(
+            Actual(
+                dataset_id=dataset.get("id"),
+                parent_id=dataset.get("id"),
+                region_id=s2_region_from_id(dataset.get("id")),
+                center_dt=dataset.get("sat_acq_time"),
+                processing_dt=dataset.get("processing_time"),
+            )
+        )
+    return actual_datasets
+
+
 def map_s2_odc_to_actual(datasets):
     """convert list of odc records into Actual objects"""
     actual_datasets = list()
@@ -296,6 +318,21 @@ def map_usgs_acqs_to_expected(datasets):
                     dataset.get("wrs_path"), dataset.get("wrs_row")
                 ),
                 center_dt=dataset.get("sat_acq"),
+            )
+        )
+    return expected_datasets
+
+
+def map_s2_acq_to_expected(datasets, use_identifier=False):
+    """convert list of Copernicus API records into Expected objects"""
+    expected_datasets = list()
+    for dataset in datasets:
+        expected_datasets.append(
+            Expected(
+                dataset_id=dataset.get("identifier")
+                if use_identifier
+                else dataset.get("granule_id"),
+                region_id=dataset.get("region_id"),
             )
         )
     return expected_datasets

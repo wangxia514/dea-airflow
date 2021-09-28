@@ -107,6 +107,14 @@ SELECT_SNS_CURRENCY = """
     WHERE pipeline=%s;
 """
 
+SELECT_SNS_COMPLETENESS = """
+    SELECT *
+    FROM dea.sqs_data_arrivals
+    WHERE pipeline=%s
+    AND last_updated > %s
+    AND last_updated <= %s;
+"""
+
 INSERT_COMPLETENESS = """
     INSERT INTO reporting.completeness (geo_ref, completeness, expected_count, actual_count,
         product_id, sat_acq_time, processing_time, last_updated)

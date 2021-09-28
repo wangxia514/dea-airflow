@@ -8,6 +8,7 @@ import dateutil.parser as parser
 import unittest
 from unittest.mock import patch
 
+from automated_reporting.tasks import s2_l1_completeness
 from automated_reporting.tasks import s2_ard_completeness
 from automated_reporting.tasks import s2_deriv_completeness
 
@@ -19,6 +20,108 @@ handler.setFormatter(formatter)
 log = logging.getLogger()
 log.setLevel(logging.INFO)
 log.addHandler(handler)
+
+
+class CompletenessTests_S2_L1(unittest.TestCase):
+    """Run the tasks"""
+
+    completeness_kwargs = {
+        "days": 1,
+        "next_execution_date": parser.isoparse("2021-09-03T20:30:00.000000+10"),
+        "rep_conn": "rep_conn",
+        "copernicus_api_credentials": {},
+        "aux_data_path": "some_data_path",
+    }
+    sns_return = [
+        {
+            "id": "S2A_MSIL1C_20210918T003659_N0301_R059_T49KGQ_20210918T015038",
+            "sat_acq_time": parser.isoparse("2021-09-03T02:30:00.000000Z"),
+            "processing_time": parser.isoparse("2021-09-03T04:30:00.000000Z"),
+        }
+    ]
+    copernicus_return = [
+        {
+            "uuid": "some-uuid",
+            "granule_id": "s2a_parent_id1",
+            "region_id": "49KGQ",
+            "sensor": "s2a",
+            "identifier": "S2A_MSIL1C_20210918T003659_N0301_R059_T49KGQ_20210918T015038",
+        },
+        {
+            "uuid": "some-uuid",
+            "granule_id": "s2a_parent_id2",
+            "region_id": "49KGP",
+            "sensor": "s2a",
+            "identifier": "S2A_MSIL1C_20210918T003659_N0301_R059_T49KGP_20210918T015038",
+        },
+    ]
+    aoi_return = ["49JHN", "49KGP", "49KGQ", "49KGR"]
+
+    @patch(
+        "automated_reporting.utilities.helpers.get_aoi_list", return_value=aoi_return
+    )
+    @patch(
+        "automated_reporting.databases.reporting_db.query_sns", return_value=sns_return
+    )
+    @patch(
+        "automated_reporting.utilities.copernicus_api.query",
+        return_value=copernicus_return,
+    )
+    @patch("automated_reporting.databases.reporting_db.insert_completeness")
+    def test_s2_l1(
+        self, mock_rep_inserts, mock_copernicus_query, mock_sns_query, mock_aoi
+    ):
+        completeness_kwargs_l1 = {
+            "s2a": {
+                "id": "s2a",
+                "pipeline": "S2A_MSIL1C",
+                "rep_code": "esa_s2a_msi_l1c",
+            },
+            "s2b": {
+                "id": "s2b",
+                "pipeline": "S2B_MSIL1C",
+                "rep_code": "esa_s2a_msi_l1c",
+            },
+        }
+        completeness_kwargs_l1.update(self.completeness_kwargs)
+        summary = s2_l1_completeness.task(**completeness_kwargs_l1)
+
+        self.assertEqual(mock_sns_query.call_args_list[0][0][1], "S2A_MSIL1C")
+        self.assertEqual(mock_sns_query.call_args_list[1][0][1], "S2B_MSIL1C")
+
+        self.assertEqual(summary["s2a"]["expected"], 2)
+        self.assertEqual(summary["s2a"]["missing"], 1)
+        self.assertEqual(summary["s2a"]["actual"], 1)
+        self.assertEqual(summary["s2a"]["completeness"], 50.0)
+        self.assertEqual(
+            parser.isoparse(summary["s2a"]["latest_sat_acq_ts"]),
+            parser.isoparse("2021-09-03T02:30:00.000000Z"),
+        )
+        self.assertEqual(
+            parser.isoparse(summary["s2a"]["latest_processing_ts"]),
+            parser.isoparse("2021-09-03T04:30:00.000000Z"),
+        )
+
+        self.assertEqual(summary["s2b"]["expected"], 0)
+        self.assertEqual(summary["s2b"]["missing"], 0)
+        self.assertEqual(summary["s2b"]["actual"], 0)
+        self.assertEqual(summary["s2b"]["completeness"], None)
+        self.assertEqual(summary["s2b"]["latest_sat_acq_ts"], None)
+        self.assertEqual(summary["s2b"]["latest_processing_ts"], None)
+
+        inserts = mock_rep_inserts.call_args_list[0][0][1]
+        self.assertEqual(len(inserts), 10)
+        self.assertEqual(len(list(filter(lambda x: x[0] == "all_s2", inserts))), 2)
+        self.assertEqual(
+            len(list(filter(lambda x: x[0] in self.aoi_return, inserts))), 8
+        )
+        missing = [x for x in inserts if x[0] == "49KGP" and x[4] == "esa_s2a_msi_l1c"][
+            0
+        ]
+        self.assertEqual(
+            missing[8][0][0],
+            "S2A_MSIL1C_20210918T003659_N0301_R059_T49KGP_20210918T015038",
+        )
 
 
 class CompletenessTests_S2_ARD(unittest.TestCase):

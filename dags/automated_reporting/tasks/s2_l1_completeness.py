@@ -5,7 +5,7 @@ import logging
 
 from automated_reporting.utilities import helpers
 from automated_reporting.utilities import copernicus_api, completeness
-from automated_reporting.databases import odc_db, reporting_db
+from automated_reporting.databases import reporting_db
 
 log = logging.getLogger("airflow.task")
 
@@ -22,7 +22,6 @@ def task(
     next_execution_date,
     days,
     rep_conn,
-    odc_conn,
     aux_data_path,
     copernicus_api_credentials,
     **kwargs
@@ -50,16 +49,17 @@ def task(
     # calculate metrics for each s2 sensor/platform and add to output list
     for sensor in [s2a, s2b]:
 
-        log.info("Computing completeness for: {}".format(sensor["odc_code"]))
+        log.info("Computing completeness for: {}".format(sensor["rep_code"]))
 
         # query ODC for all S2 L1 products for last X days
-        actual_datasets = completeness.map_s2_odc_to_actual(
-            odc_db.query(odc_conn, sensor["odc_code"], execution_date, days)
+        actual_datasets = completeness.map_s2_sns_to_actual(
+            reporting_db.query_sns(rep_conn, sensor["pipeline"], execution_date, days)
         )
 
         # filter expected products on sensor (just for completeness between lo and l1)
         expected_datasets = completeness.map_s2_acq_to_expected(
-            filter_expected_to_sensor(expected_products, sensor["id"])
+            filter_expected_to_sensor(expected_products, sensor["id"]),
+            use_identifier=True,
         )
 
         # compute completeness and latency for every tile in AOI
@@ -81,7 +81,7 @@ def task(
         )
 
         # write results to Airflow logs
-        completeness.log_results(sensor["odc_code"], summary, output)
+        completeness.log_results(sensor["rep_code"], summary, output)
 
         # generate the list of database writes for sensor/platform
         db_completeness_writes += completeness.generate_db_writes(
