@@ -51,7 +51,7 @@ SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE3 = """
         dataset.id,
         dataset.added AS indexed_time,
         dataset.metadata #>> '{label}'::text[] as granule_id,
-        dataset.metadata #>> '{properties,landsat:landsat_product_id}'::text[] as parent_id,
+        dataset.metadata #>> '{properties,landsat:landsat_scene_id}'::text[] as parent_id,
         dataset.metadata #>> '{properties,odc:region_code}'::text[] as tile_id,
         agdc.common_timestamp(dataset.metadata #>> '{properties,datetime}'::text[]) as satellite_acquisition_time,
         agdc.common_timestamp(dataset.metadata #>> '{properties,odc:processing_datetime}'::text[]) AS processing_time
