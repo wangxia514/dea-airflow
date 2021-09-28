@@ -164,6 +164,8 @@ def k8s_job_task(dag):
                                     dea-conflux run-from-queue -v \
                                             --plugin examples/waterbodies.conflux.py \
                                             --queue {queue} \
+                                            --overedge \
+                                            --partial \
                                             --shapefile {{{{ dag_run.conf.get("shapefile", "s3://dea-public-data/projects/WaterBodies/DEA_Waterbodies_shapefile/AusWaterBodiesFINALStateLink.shp") }}}} \
                                             --output s3://dea-public-data-dev/waterbodies/conflux/{{{{ dag_run.conf.get("outdir", "default-out") }}}}/
                                     """.format(queue="waterbodies_conflux_sqs")
