@@ -39,6 +39,37 @@ def read_sns_currency(connection_parameters, pipeline):
     return output
 
 
+def query_sns(connection_parameters, pipeline, execution_date, days):
+    """ """
+
+    start_time = execution_date - timedelta(days=days)
+    end_time = execution_date
+    rep_conn = None
+    datasets = []
+    try:
+        # open the connection to the Reporting DB and get a cursor
+        with psycopg2.connect(**connection_parameters) as rep_conn:
+            with rep_conn.cursor(
+                cursor_factory=psycopg2.extras.RealDictCursor
+            ) as rep_cursor:
+                rep_cursor.execute(
+                    sql.SELECT_SNS_COMPLETENESS, (pipeline, start_time, end_time)
+                )
+                log.debug(
+                    "Reporting Executed SQL: {}".format(
+                        rep_cursor.query.decode().strip()
+                    )
+                )
+                for row in rep_cursor:
+                    datasets.append(row)
+    except Exception as e:
+        raise e
+    finally:
+        if rep_conn is not None:
+            rep_conn.close()
+    return datasets
+
+
 def insert_completeness(connection_parameters, db_completeness_writes):
     """Insert completeness results into reporting DB"""
 

@@ -72,6 +72,8 @@ with dag:
         "ga_ls8c_ard_provisional_3",
         "ga_s2_ba_provisional_3",
         "ga_s2_wo_3",
+        "esa_s2a_msi_l1c",
+        "esa_s2b_msi_l1c",
     ]
 
     def create_task(product_id):

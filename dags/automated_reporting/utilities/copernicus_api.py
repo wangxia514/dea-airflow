@@ -101,6 +101,7 @@ def query(execution_date, days, copernicus_api_creds):
                         "granule_id": granule_id,
                         "region_id": get_entry_val(entry, "str", "tileid"),
                         "sensor": granule_id[:3].lower(),
+                        "identifier": get_entry_val(entry, "str", "identifier"),
                     }
                     expected_products.append(row)
             else:
