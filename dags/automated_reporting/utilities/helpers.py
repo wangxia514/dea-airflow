@@ -1,7 +1,7 @@
 """
 Helper functions for automated reporting dags
 """
-
+import os
 from datetime import timezone, datetime as dt
 
 ZERO_TS = dt(1970, 1, 1, tzinfo=timezone.utc)
@@ -21,6 +21,9 @@ def python_dt(airflow_dt):
     """
     Convert Airflow datetime (Pendulum) to regular python datetime
     """
+    if type(airflow_dt) == dt:
+        return airflow_dt
+
     return dt(
         airflow_dt.year,
         airflow_dt.month,
@@ -30,4 +33,25 @@ def python_dt(airflow_dt):
         airflow_dt.second,
         airflow_dt.microsecond,
         tzinfo=airflow_dt.tz,
+    )
+
+
+def get_aoi_list(aux_data_path, file_name):
+    """
+    Open an AOI file and read names into Python list
+    """
+    with open(os.path.join(aux_data_path, file_name)) as f:
+        return f.read().splitlines()
+
+
+def parse_connection(conn_obj):
+    """
+    Parse an Airflow connection object into a dictionary
+    """
+    return dict(
+        user=conn_obj.login,
+        password=conn_obj.password,
+        host=conn_obj.host,
+        dbname=conn_obj.schema,
+        port=conn_obj.port,
     )

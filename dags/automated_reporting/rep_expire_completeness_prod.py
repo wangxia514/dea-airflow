@@ -11,19 +11,25 @@ from datetime import datetime as dt
 from datetime import timedelta, timezone
 
 from airflow import DAG
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python import PythonOperator
+from airflow.hooks.base_hook import BaseHook
 
-import infra.connections as connections
-
+from automated_reporting import connections
+from automated_reporting.utilities import helpers
 from automated_reporting.databases import schemas
-from automated_reporting.tasks import check_db_task, expire_completeness_task
+
+# Tasks
+from automated_reporting.tasks.check_db import task as check_db_task
+from automated_reporting.tasks.expire_completeness import (
+    task as expire_completeness_task,
+)
 
 log = logging.getLogger("airflow.task")
 
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt(2021, 6, 7, tzinfo=timezone.utc),
+    "start_date": dt(2021, 7, 12, tzinfo=timezone.utc),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
@@ -32,18 +38,22 @@ default_args = {
 }
 
 dag = DAG(
-    "rep_expire_completeness",
-    description="Expire redundent completeness metrics",
+    "rep_expire_completeness_prod",
+    description="Expire redundent completeness metrics in live reporting DB",
     tags=["reporting"],
     default_args=default_args,
     schedule_interval="10 */2 * * *",  # try and avoid completeness generation
+)
+
+rep_conn = helpers.parse_connection(
+    BaseHook.get_connection(connections.DB_REP_WRITER_CONN_PROD)
 )
 
 with dag:
 
     check_db_kwargs = {
         "expected_schema": schemas.COMPLETENESS_SCHEMA,
-        "connection_id": connections.DB_REP_WRITER_CONN,
+        "rep_conn": rep_conn,
     }
     check_db = PythonOperator(
         task_id="check_db_schema",
@@ -55,6 +65,13 @@ with dag:
         "ga_s2a_msi_ard_c3",
         "ga_s2b_msi_ard_c3",
         "usgs_ls8c_level1_nrt_c2",
+        "usgs_ls7e_level1_nrt_c2",
+        "ga_s2am_ard_provisional_3",
+        "ga_s2bm_ard_provisional_3",
+        "ga_ls7e_ard_provisional_3",
+        "ga_ls8c_ard_provisional_3",
+        "ga_s2_ba_provisional_3",
+        "ga_s2_wo_3",
     ]
 
     def create_task(product_id):
@@ -62,7 +79,7 @@ with dag:
         Function to generate PythonOperator tasks with id based on `product_id`
         """
         expire_completeness_kwargs = {
-            "connection_id": connections.DB_REP_WRITER_CONN,
+            "rep_conn": rep_conn,
             "product_id": product_id,
         }
         return PythonOperator(

@@ -2,21 +2,18 @@
 Task to check that the schema in reporting db has the correct tables, columns, fields before progressing
 """
 import logging
-
-from airflow.providers.postgres.hooks.postgres import PostgresHook
-
+import psycopg2
 from automated_reporting.utilities import helpers
 from automated_reporting.databases import sql
 
 log = logging.getLogger("airflow.task")
 
 
-def task(expected_schema, connection_id):
+def task(expected_schema, rep_conn):
     """
     Task to check that the schema in reporting db has the correct tables, columns, fields before progressing
     """
-    rep_pg_hook = PostgresHook(postgres_conn_id=connection_id)
-    rep_conn = rep_pg_hook.get_conn()
+    rep_conn = psycopg2.connect(**rep_conn)
     rep_cursor = rep_conn.cursor()
     database = expected_schema["database"]
     structure_good = True

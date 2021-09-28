@@ -60,6 +60,31 @@ LATENCY_SCHEMA = {
     }
 }
 
+
+USGS_ACQUISITIONS_SCHEMA = {
+    "database": {
+        "name": "reporting",
+        "schemas": [
+            {
+                "name": "landsat",
+                "tables": [
+                    {
+                        "name": "usgs_l1_nrt_c2_stac_listing",
+                        "columns": [
+                            {"name": "scene_id"},
+                            {"name": "wrs_path"},
+                            {"name": "wrs_row"},
+                            {"name": "collection_category"},
+                            {"name": "collection_number"},
+                            {"name": "sat_acq"},
+                        ],
+                    }
+                ],
+            },
+        ],
+    }
+}
+
 USGS_COMPLETENESS_SCHEMA = {
     "database": {
         "name": "reporting",
@@ -91,23 +116,44 @@ USGS_COMPLETENESS_SCHEMA = {
                         ],
                     },
                 ],
-            },
+            }
+        ],
+    }
+}
+
+HIGH_GRANULARITY_SCHEMA = {
+    "database": {
+        "name": "reporting",
+        "schemas": [
             {
-                "name": "landsat",
+                "name": "high_granularity",
                 "tables": [
                     {
-                        "name": "usgs_l1_nrt_c2_stac_listing",
+                        "name": "dataset",
                         "columns": [
-                            {"name": "scene_id"},
-                            {"name": "wrs_path"},
-                            {"name": "wrs_row"},
-                            {"name": "collection_category"},
-                            {"name": "collection_number"},
-                            {"name": "sat_acq"},
+                            {"name": "id"},
+                            {"name": "label"},
+                            {"name": "product_def_id"},
+                            {"name": "timestamp"},
+                            {"name": "source_id"},
+                            {"name": "region_id"},
+                            {"name": "extra"},
+                            {"name": "archived"},
+                            {"name": "status_id"},
+                            {"name": "created_at"},
+                            {"name": "updated_at"},
                         ],
-                    }
+                    },
+                    {
+                        "name": "association",
+                        "columns": [
+                            {"name": "id"},
+                            {"name": "upstream_id"},
+                            {"name": "downstream_id"},
+                        ],
+                    },
                 ],
-            },
+            }
         ],
     }
 }
