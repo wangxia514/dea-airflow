@@ -168,7 +168,7 @@ with dag:
         "product": {
             "s3_code": "L8C2",
             "acq_code": "LC8%",
-            "rep_code": "landsat_ot_c2_l1",
+            "rep_code": "usgs_ls8c_level1_nrt_c2",
         }
     }
     usgs_l1_completness_ls8_kwargs.update(completeness_kwargs)
@@ -184,7 +184,7 @@ with dag:
         "product": {
             "s3_code": "L7C2",
             "acq_code": "LE7%",
-            "rep_code": "landsat_etm_c2_l1",
+            "rep_code": "usgs_ls7e_level1_nrt_c2",
         }
     }
     usgs_l1_completness_ls7_kwargs.update(completeness_kwargs)
