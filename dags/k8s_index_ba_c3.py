@@ -106,6 +106,8 @@ with dag:
             arguments=[
                 "bash",
                 "-c",
+                f"echo ${queue} && "
+                "echo ${BA_SQS_INDEXING_QUEUE} && "
                 "sqs-to-dc --stac "  # continue
                 f"--update-if-exists --allow-unsafe ${queue} {product}",
             ],
