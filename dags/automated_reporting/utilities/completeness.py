@@ -251,7 +251,7 @@ def generate_db_writes(product_id, summary, summary_region, output, execution_da
     return db_completeness_writes
 
 
-def map_odc_to_actual(datasets):
+def map_s2_odc_to_actual(datasets):
     """convert list of odc records into Actual objects"""
     actual_datasets = list()
     for dataset in datasets:
@@ -260,6 +260,24 @@ def map_odc_to_actual(datasets):
                 dataset_id=dataset.get("granule_id"),
                 parent_id=dataset.get("parent_id"),
                 region_id=dataset.get("tile_id"),
+                center_dt=dataset.get("satellite_acquisition_time"),
+                processing_dt=dataset.get("processing_time"),
+            )
+        )
+    return actual_datasets
+
+
+def map_usgs_odc_to_actual(datasets):
+    """convert list of odc records into Actual objects"""
+    actual_datasets = list()
+    for dataset in datasets:
+        actual_datasets.append(
+            Actual(
+                dataset_id=dataset.get("granule_id"),
+                parent_id=dataset.get("parent_id"),
+                region_id="{}_{}".format(
+                    dataset.get("tile_id")[0:3], dataset.get("tile_id")[3:6]
+                ),
                 center_dt=dataset.get("satellite_acquisition_time"),
                 processing_dt=dataset.get("processing_time"),
             )

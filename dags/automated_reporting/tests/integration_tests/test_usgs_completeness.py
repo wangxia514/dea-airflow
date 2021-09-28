@@ -196,7 +196,7 @@ class CompletenessTests_USGS_ARD(unittest.TestCase):
             "id": "some-uuid",
             "granule_id": "LS_SCENE_ID_01",
             "parent_id": "LC81070852021138LGN00",
-            "tile_id": "107_085",
+            "tile_id": "107085",
             "satellite_acquisition_time": parser.isoparse(
                 "2021-05-18T01:35:22.689111Z"
             ),
