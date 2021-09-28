@@ -25,7 +25,6 @@ from infra.connections import AWS_WAGL_NRT_CONN
 from infra.images import WAGL_IMAGE, S3_TO_RDS_IMAGE
 from infra.pools import WAGL_TASK_POOL
 from infra.s3_buckets import S2_NRT_SOURCE_BUCKET, S2_NRT_TRANSFER_BUCKET
-from infra.sns_topics import PUBLISH_S2_NRT_SNS
 from infra.sqs_queues import ARD_NRT_S2_PROCESS_SCENE_QUEUE
 from infra.variables import S2_NRT_AWS_CREDS
 
@@ -49,12 +48,7 @@ ESTIMATED_COMPLETION_TIME = 3 * 60 * 60
 BUCKET_REGION = "ap-southeast-2"
 S3_PREFIX = "s3://dea-public-data-dev/L2/sentinel-2-nrt/S2MSIARD/"
 
-NUM_PARALLEL_PIPELINE = 5
-MAX_ACTIVE_RUNS = 12
-
-# this should be 10 in dev for 10% capacity
-# then it would just discard the other 9 messages polled
-NUM_MESSAGES_TO_POLL = 1
+MAX_ACTIVE_RUNS = 60
 
 affinity = {
     "nodeAffinity": {
@@ -116,51 +110,6 @@ def decode(message):
     """Decode stringified message."""
     body = json.loads(message["Body"])
     return json.loads(body["Message"])
-
-
-def copy_cmd_tile(tile_info):
-    """The bash scipt to run to copy the tile over to the cache bucket."""
-    datastrip = tile_info["datastrip"]
-    path = tile_info["path"]
-    granule_id = tile_info["granule_id"]
-
-    cmd = f"""
-    set -e
-
-    if ! aws s3api head-object --bucket {S2_NRT_TRANSFER_BUCKET} --key {datastrip}/.done 2> /dev/null; then
-        mkdir -p /transfer/{granule_id}
-        echo sinergise -> disk [datastrip]
-        aws s3 sync --only-show-errors --request-payer requester \\
-                s3://{S2_NRT_SOURCE_BUCKET}/{datastrip} /transfer/{granule_id}/{datastrip}
-        echo disk -> cache [datastrip]
-        aws s3 sync --only-show-errors \\
-                /transfer/{granule_id}/{datastrip} s3://{S2_NRT_TRANSFER_BUCKET}/{datastrip}
-        touch /transfer/{granule_id}/{datastrip}/.done
-        aws s3 cp \\
-                /transfer/{granule_id}/{datastrip}/.done s3://{S2_NRT_TRANSFER_BUCKET}/{datastrip}/.done
-    else
-        echo s3://{S2_NRT_TRANSFER_BUCKET}/{datastrip} already exists
-    fi
-
-    if ! aws s3api head-object --bucket {S2_NRT_TRANSFER_BUCKET} --key {path}/.done 2> /dev/null; then
-        mkdir -p /transfer/{granule_id}
-        echo sinergise -> disk [path]
-        aws s3 sync --only-show-errors --request-payer requester \\
-                s3://{S2_NRT_SOURCE_BUCKET}/{path} /transfer/{granule_id}/{path}
-        echo disk -> cache [path]
-        aws s3 sync --only-show-errors \\
-                /transfer/{granule_id}/{path} s3://{S2_NRT_TRANSFER_BUCKET}/{path}
-        touch /transfer/{granule_id}/{path}/.done
-        aws s3 cp \\
-                /transfer/{granule_id}/{path}/.done s3://{S2_NRT_TRANSFER_BUCKET}/{path}/.done
-    else
-        echo s3://{S2_NRT_TRANSFER_BUCKET}/{path} already exists
-    fi
-
-    rm -rf /transfer/{granule_id}
-    """
-
-    return cmd
 
 
 def get_tile_info(msg_dict):
@@ -233,7 +182,6 @@ def receive_task(**context):
         msg_dict = decode(message)
         tile_info = get_tile_info(msg_dict)
 
-        task_instance.xcom_push(key="cmd", value=copy_cmd_tile(tile_info))
         task_instance.xcom_push(key="args", value=tile_args(tile_info))
 
         return "dea-s2-wagl-nrt"
@@ -257,11 +205,11 @@ pipeline = DAG(
     doc_md=__doc__,
     default_args=default_args,
     description="DEA Sentinel-2 NRT processing",
-    concurrency=MAX_ACTIVE_RUNS * NUM_PARALLEL_PIPELINE,
+    concurrency=MAX_ACTIVE_RUNS,
     max_active_runs=MAX_ACTIVE_RUNS,
     catchup=False,
     params={},
-    # schedule_interval=timedelta(minutes=5),
+    # schedule_interval=timedelta(minutes=1),
     schedule_interval=None,
     tags=["k8s", "dea", "psc", "ard", "wagl", "nrt", "sentinel-2"],
 )
