@@ -1,7 +1,7 @@
 """
 # Indexing Sentinel 2 ARD Data on the NCI
 
-This DAG is responsible for crawing the NCI file system for completed Sentinel 2
+This DAG is responsible for crawling the NCI file system for completed Sentinel 2
 ARD granules and adding them to the NCI Open Data Cube Index.
 
 This is both more complicated and flakier due to the time and cost crawling the
