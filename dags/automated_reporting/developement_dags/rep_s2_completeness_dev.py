@@ -14,7 +14,7 @@ import os
 import pathlib
 import logging
 from datetime import datetime as dt
-from datetime import timedelta, timezone
+from datetime import timedelta
 
 from airflow import DAG
 from airflow.configuration import conf
@@ -30,11 +30,11 @@ from infra import connections as infra_connections
 
 # Tasks
 from automated_reporting.tasks.check_db import task as check_db_task
+from automated_reporting.tasks.s2_l1_completeness import (
+    task as s2_completeness_l1_task,
+)
 from automated_reporting.tasks.s2_ard_completeness import (
     task as s2_completeness_ard_task,
-)
-from automated_reporting.tasks.s2_deriv_completeness import (
-    task as s2_completeness_derivative_task,
 )
 
 log = logging.getLogger("airflow.task")
@@ -42,7 +42,7 @@ log = logging.getLogger("airflow.task")
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt(2021, 7, 5, tzinfo=timezone.utc),
+    "start_date": dt.now() - timedelta(hours=1),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
@@ -57,6 +57,7 @@ dag = DAG(
     tags=["reporting"],
     default_args=default_args,
     schedule_interval=timedelta(minutes=15),
+    concurrency=1,
 )
 
 aux_data_path = os.path.join(
@@ -92,6 +93,26 @@ with dag:
         "copernicus_api_credentials": copernicus_api_creds,
         "aux_data_path": aux_data_path,
     }
+
+    completeness_kwargs_l1 = {
+        "s2a": {
+            "id": "s2a",
+            "pipeline": "S2A_MSIL1C",
+            "rep_code": "esa_s2a_msi_l1c",
+        },
+        "s2b": {
+            "id": "s2b",
+            "pipeline": "S2B_MSIL1C",
+            "rep_code": "esa_s2b_msi_l1c",
+        },
+    }
+    completeness_kwargs_l1.update(completeness_kwargs)
+    compute_sentinel_l1_completeness = PythonOperator(
+        task_id="compute_s2_l1_completeness",
+        python_callable=s2_completeness_l1_task,
+        op_kwargs=completeness_kwargs_l1,
+        provide_context=True,
+    )
 
     completeness_kwargs_ard = {
         "s2a": {
@@ -133,33 +154,8 @@ with dag:
         provide_context=True,
     )
 
-    completeness_kwargs_wo = {
-        "upstream": ["s2a_nrt_granule", "s2b_nrt_granule"],
-        "target": "ga_s2_wo_3",
-    }
-    completeness_kwargs_wo.update(completeness_kwargs)
-    compute_sentinel_wo_completeness = PythonOperator(
-        task_id="compute_sentinel_wo_completeness",
-        python_callable=s2_completeness_derivative_task,
-        op_kwargs=completeness_kwargs_wo,
-        provide_context=True,
-    )
-
-    completeness_kwargs_ba = {
-        "upstream": ["ga_s2am_ard_provisional_3", "ga_s2bm_ard_provisional_3"],
-        "target": "ga_s2_ba_provisional_3",
-    }
-    completeness_kwargs_ba.update(completeness_kwargs)
-    compute_sentinel_ba_completeness = PythonOperator(
-        task_id="compute_sentinel_ba_completeness",
-        python_callable=s2_completeness_derivative_task,
-        op_kwargs=completeness_kwargs_ba,
-        provide_context=True,
-    )
-
     check_db >> [
+        compute_sentinel_l1_completeness,
         compute_sentinel_ard_completeness,
         compute_sentinel_ard_prov_completeness,
-        compute_sentinel_wo_completeness,
-        compute_sentinel_ba_completeness,
     ]
