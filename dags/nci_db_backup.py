@@ -15,8 +15,11 @@ local_tz = pendulum.timezone("Australia/Canberra")
 default_args = {
     "owner": "Damien Ayers",
     "depends_on_past": False,
-    "retries": 0,
-    "retry_delay": timedelta(minutes=5),
+    # The following 4 options should make this quite resilient to temporary NCI outages
+    "retries": 5,
+    "retry_exponential_backoff": True,
+    "retry_delay": timedelta(minutes=60),
+    "max_retry_delay": timedelta(days=1),
     "start_date": datetime(2020, 5, 1, 1, tzinfo=local_tz),
     "timeout": 60 * 60 * 2,  # For running SSH Commands
     "ssh_conn_id": "lpgs_gadi",
