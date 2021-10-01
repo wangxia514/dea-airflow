@@ -43,7 +43,7 @@ ESTIMATED_COMPLETION_TIME = 3 * 60 * 60
 S3_PREFIX = "s3://dea-public-data-dev/baseline/"
 EXPLORER_URL = "https://explorer.dev.dea.ga.gov.au"
 
-MAX_ACTIVE_RUNS = 12
+MAX_ACTIVE_RUNS = 80
 
 affinity = {
     "nodeAffinity": {

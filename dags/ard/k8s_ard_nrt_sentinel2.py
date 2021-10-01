@@ -45,7 +45,7 @@ ESTIMATED_COMPLETION_TIME = 3 * 60 * 60
 BUCKET_REGION = "ap-southeast-2"
 S3_PREFIX = "s3://dea-public-data-dev/L2/sentinel-2-nrt/S2MSIARD/"
 
-MAX_ACTIVE_RUNS = 60
+MAX_ACTIVE_RUNS = 80
 
 affinity = {
     "nodeAffinity": {
