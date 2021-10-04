@@ -26,10 +26,6 @@ C3_WO_SQS_QUEUE_NAME = Variable.get(
     "landsat_c3_wo_indexing_sqs_queue_name_odc_db",
     "dea-sandbox-eks-alchemist-c3-indexing-wo-odc-db",
 )  # qa
-SENTINEL_2_ARD_INDEXING_SQS_QUEUE_NAME_SANDBOX_DB = Variable.get(
-    "sentinel_2_ard_indexing_sqs_queue_name_sandbox_db",
-    "dea-sandbox-eks-sentinel-2-ard-indexing-sandbox-db",
-)  # qa
 SENTINEL_2_ARD_INDEXING_SQS_QUEUE_NAME_ODC_DB = Variable.get(
     "sentinel_2_ard_indexing_sqs_queue_name_odc_db",
     "dea-sandbox-eks-sentinel-2-ard-indexing-odc-db",
