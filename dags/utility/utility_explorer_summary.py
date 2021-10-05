@@ -29,16 +29,6 @@ If there are datasets manually deleted, dag run can take a flag `forcerefresh` a
         "products": "product_a product_b",
         "forcerefresh": "True"
     }
-
-## Special handling for sandbox db (Only usable for sandbox where two db exists)
-If this needs to run against sandbox db, set `sandboxdb` to `True`
-
-    {
-        "products": "product_a product_b",
-        "forcerefresh": "True",
-        "sandboxdb": "True"
-    }
-
 """
 
 from datetime import datetime, timedelta
@@ -49,7 +39,6 @@ from airflow.operators.python_operator import BranchPythonOperator
 from dea_utils.update_explorer_summaries import (
     explorer_refresh_operator,
     explorer_forcerefresh_operator,
-    explorer_sandboxdb_forcerefresh_operator,
 )
 
 from infra.variables import (
@@ -62,11 +51,6 @@ DAG_NAME = "utility_explorer-refresh-stats"
 
 EXPLORER_SUMMARY_FORCE_REFRESH_TASK_ID = "explorer-force-refresh-summary-task"
 EXPLORER_SUMMARY_REFRESH_STATS_TASK_ID = "explorer-summary-task"
-
-# TODO: delete after db merge
-EXPLORER_SUMMARY_FORCE_REFRESH_SANDBOXDB_TASK_ID = (
-    "explorer-sandboxdb-force-refresh-summary-task"
-)
 
 # DAG CONFIGURATION
 DEFAULT_ARGS = {
@@ -87,13 +71,11 @@ DEFAULT_ARGS = {
 }
 
 
-def check_dagrun_config(forcerefresh="", sandboxdb="", **kwargs):
+def check_dagrun_config(forcerefresh="", **kwargs):
     """
     determine task needed to perform
     """
-    if sandboxdb and forcerefresh:
-        return EXPLORER_SUMMARY_FORCE_REFRESH_SANDBOXDB_TASK_ID
-    elif forcerefresh:
+    if forcerefresh:
         return EXPLORER_SUMMARY_FORCE_REFRESH_TASK_ID
     else:
         return EXPLORER_SUMMARY_REFRESH_STATS_TASK_ID
@@ -119,7 +101,6 @@ with dag:
         python_callable=check_dagrun_config,
         op_kwargs={
             "forcerefresh": "{% if dag_run.conf.get('forcerefresh') %} {{ dag_run.conf.forcerefresh }} {% endif %}",
-            "sandboxdb": "{% if dag_run.conf.get('sandboxdb') %} {{ dag_run.conf.sandboxdb }} {% endif %}",
         },
     )
 
@@ -131,12 +112,7 @@ with dag:
         "{{ dag_run.conf.products }}",
     )
 
-    EXPLORER_SANDBOXDB_SUMMARY_FORCE_REFRESH = explorer_sandboxdb_forcerefresh_operator(
-        "{{ dag_run.conf.products }}", dag=dag
-    )
-
     EXPLORER_CMD_DECIDER >> [
         EXPLORER_SUMMARY_FORCE_REFRESH,
         EXPLORER_SUMMARY_REFRESH_STATS,
-        EXPLORER_SANDBOXDB_SUMMARY_FORCE_REFRESH,
     ]

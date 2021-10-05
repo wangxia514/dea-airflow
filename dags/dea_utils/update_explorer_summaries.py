@@ -12,13 +12,6 @@ from infra.images import EXPLORER_IMAGE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.variables import SECRET_EXPLORER_WRITER_NAME
 
-from infra.variables import DB_SANDBOX_USER_SECRET
-
-EXPLORER_SANDBOX_SECRETS = [
-    Secret("env", "DB_USERNAME", DB_SANDBOX_USER_SECRET, "postgres-username"),
-    Secret("env", "DB_PASSWORD", DB_SANDBOX_USER_SECRET, "postgres-password"),
-]
-
 EXPLORER_SECRETS = [
     Secret("env", "DB_USERNAME", SECRET_EXPLORER_WRITER_NAME, "postgres-username"),
     Secret("env", "DB_PASSWORD", SECRET_EXPLORER_WRITER_NAME, "postgres-password"),
@@ -87,44 +80,6 @@ def explorer_forcerefresh_operator(products):
         labels={"app": "explorer-refresh-stats"},
         name="explorer-summary",
         task_id="explorer-force-refresh-summary-task",
-        get_logs=True,
-        is_delete_operator_pod=True,
-        affinity=ONDEMAND_NODE_AFFINITY,
-        log_events_on_failure=True,
-    )
-
-
-# TODO: delete once two dbs are merged
-def explorer_sandboxdb_forcerefresh_operator(products, dag=None):
-    """
-    Sets up a Task to Refresh Datacube Explorer
-    Expects to be run within the context of a DAG
-    The `products` argument can either be:
-    - a list of products to refresh
-    - a string, which may include Airflow template syntax which is filled in when the DAG is executed.
-      For example: `{{ dag_run.conf.products }}` would allows manual execution, passing in a space separated string
-      of products
-    """
-
-    if isinstance(products, Sequence) and not isinstance(products, str):
-        products = " ".join(products)
-
-    dag.default_args.get("env_vars", {}).update({"DB_DATABASE": "sandbox"})
-
-    EXPLORER_BASH_COMMAND = [
-        "bash",
-        "-c",
-        f"cubedash-gen -v --no-init-database --force-refresh --recreate-dataset-extents {products}",
-    ]
-
-    return KubernetesPodOperator(
-        namespace="processing",
-        image=EXPLORER_IMAGE,
-        arguments=EXPLORER_BASH_COMMAND,
-        secrets=EXPLORER_SANDBOX_SECRETS,
-        labels={"app": "explorer-refresh-stats"},
-        name="explorer-summary",
-        task_id="explorer-sandboxdb-force-refresh-summary-task",
         get_logs=True,
         is_delete_operator_pod=True,
         affinity=ONDEMAND_NODE_AFFINITY,

@@ -34,11 +34,9 @@ class testClass(unittest.TestCase):
                 "check_dagrun_config": [
                     "explorer-summary-task",
                     "explorer-force-refresh-summary-task",
-                    "explorer-sandboxdb-force-refresh-summary-task",
                 ],
                 "explorer-summary-task": [],
                 "explorer-force-refresh-summary-task": [],
-                "explorer-sandboxdb-force-refresh-summary-task": [],
             },
             explorer_utility_dag,
         )

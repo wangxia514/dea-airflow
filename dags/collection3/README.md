@@ -1,5 +1,5 @@
 # Collection 3 indexing
-This folder contains DAGs for indexing Collection 3 data into the `odc` database in the dea-sandbox-eks cluster. The dags for indexing into the `sandbox` database are managed seperately.
+This folder contains DAGs for indexing Collection 3 data into the `odc` database in the dea-sandbox-eks cluster.
 
 ## Products
 
@@ -25,4 +25,3 @@ Currently there is 1 IAM role used for the DAGs in this folder. The following SQ
 - 1 x index queue for baseline products
 - 1 x archive queue for baseline products
 - 1 x queue each for derivative products
-
