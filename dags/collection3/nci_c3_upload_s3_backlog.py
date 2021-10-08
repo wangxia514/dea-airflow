@@ -1,13 +1,13 @@
 """
 # Collection 3 NCI to AWS Automation Backlog
 
-This DAG runs tasks on Gadi at the NCI. User check metadata files in S3, and create 
+This DAG runs tasks on Gadi at the NCI. User check metadata files in S3, and create
 the incorrect meatadata file list. Then this one-off DAG sync incorrect Collection 3
-data from NCI to AWS S3 bucket again. 
+data from NCI to AWS S3 bucket again.
 
-This https://gajira.atlassian.net/browse/DEADM-1619 fix the missing data bug. The 
-current DAG aims to upload the missing files. Before run this DAG, the 
-https://gist.github.com/omad/6ba87227b57f842b05fe9ffad81ecbf3 creates missing file 
+This https://gajira.atlassian.net/browse/DEADM-1619 fix the missing data bug. The
+current DAG aims to upload the missing files. Before run this DAG, the
+https://gist.github.com/omad/6ba87227b57f842b05fe9ffad81ecbf3 creates missing file
 list. It:
 
  * Uploads `incorrect_metadata_in_s3.csv` from script folder to NCI work folder
@@ -104,7 +104,7 @@ with dag:
 
     # Uploading CSV file to NCI
     sftp_missing_csv = SFTPOperator(
-        task_id=f"sftp_incorrect_metadata_in_s3_csv",
+        task_id="sftp_incorrect_metadata_in_s3_csv",
         local_filepath=str(
             Path(conf.get("core", "dags_folder")).parent
             / "scripts/incorrect_metadata_in_s3.csv"
@@ -116,33 +116,29 @@ with dag:
 
     # Uploading c3_to_s3_rolling.py script to NCI
     sftp_c3_to_s3_script = SFTPOperator(
-        task_id=f"sftp_c3_to_s3_script_{product}",
+        task_id="sftp_c3_to_s3_script",
         local_filepath=str(
-            Path(conf.get("core", "dags_folder")).parent
-            / "scripts/c3_to_s3_rolling.py"
+            Path(conf.get("core", "dags_folder")).parent / "scripts/c3_to_s3_rolling.py"
         ),
         remote_filepath=f"{WORK_DIR}/c3_to_s3_rolling.py",
         operation=SFTPOperation.PUT,
         create_intermediate_dirs=True,
     )
     # Execute script to upload Landsat collection 3 data to s3 bucket
-    aws_hook = AwsHook(
-        aws_conn_id=dag.default_args["aws_conn_id"], client_type="s3"
-    )
+    aws_hook = AwsHook(aws_conn_id=dag.default_args["aws_conn_id"], client_type="s3")
     execute_c3_to_s3_script = SSHOperator(
-        task_id=f"execute_c3_to_s3_script_{product}",
+        task_id="execute_c3_to_s3_script",
         command=COMMON + RUN_UPLOAD_SCRIPT,
         remote_host="gadi-dm.nci.org.au",
         params={
             "aws_hook": aws_hook,
-            "product": product,
             "nci_dir": "/g/data/xu18/ga/",
         },
     )
 
     # Deletes working folder and uploaded script file
     clean_nci_work_dir = SSHOperator(
-        task_id=f"clean_nci_work_dir",
+        task_id="clean_nci_work_dir",
         # Remove work dir after aws s3 sync
         command=COMMON
         + dedent(
@@ -150,7 +146,7 @@ with dag:
                 set -eux
                 rm -vrf "{{ work_dir }}"
             """
-        )
+        ),
     )
 
     sftp_missing_csv >> sftp_c3_to_s3_script

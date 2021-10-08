@@ -56,16 +56,23 @@ file_path_list = ["ls7.txt", "ls8.txt"]
 metadata_list = []
 
 for file_path in file_path_list:
-    with open(file_path, 'r') as file:
+    with open(file_path, "r") as file:
         # only grab the metadata file
-        [metadata_list.append(e.replace('\n', '')) for e in file.readlines() if 's3://dea-public-data' in e]
+        [
+            metadata_list.append(e.replace("\n", ""))
+            for e in file.readlines()
+            if "s3://dea-public-data" in e
+        ]
 
 # the metadata right now is: '26: s3://dea-public-data/baseline/ga_ls7e_ard_3/088/080/1999/08/12/ga_ls7e_ard_3-0-0_088080_1999-08-12_final.odc-metadata.yaml'
 # let's convert it to NCI format
-metadata_list = [e.split(': ')[-1].replace('s3://dea-public-data/baseline/', '///g/data/xu18/ga/') for e in metadata_list]
+metadata_list = [
+    e.split(": ")[-1].replace("s3://dea-public-data/baseline/", "///g/data/xu18/ga/")
+    for e in metadata_list
+]
 
 # now, convert it to the CSV format
-with open('incorrect_metadata_in_s3.csv', 'w', newline='') as csv_file:
+with open("incorrect_metadata_in_s3.csv", "w", newline="") as csv_file:
     writer = csv.writer(csv_file)
-    for metadata in metadata_list:            
+    for metadata in metadata_list:
         writer.writerow([metadata, "", ""])
