@@ -102,16 +102,20 @@ with dag:
             """
     )
 
-    # Uploading CSV file to NCI
-    sftp_missing_csv = SFTPOperator(
-        task_id="sftp_incorrect_metadata_in_s3_csv",
-        local_filepath=str(
-            Path(conf.get("core", "dags_folder")).parent
-            / "scripts/incorrect_metadata_in_s3.csv"
+    # Download CSV file from gist
+    # This task also mkdir work directory
+    download_missing_csv = SSHOperator(
+        task_id="download_missing_csv",
+        command=COMMON
+        + dedent(
+            """
+            mkdir -p {{work_dir}}
+
+            cd {{ work_dir }}
+
+            wget https://gist.githubusercontent.com/supermarkion/8302629f84aedd6e1b945555df661506/raw/f1ad545457ce224539f3848999a73bc1fe52ebbc/incorrect_metadata_in_s3.csv
+        """
         ),
-        remote_filepath=f"{WORK_DIR}/incorrect_metadata_in_s3.csv",
-        operation=SFTPOperation.PUT,
-        create_intermediate_dirs=True,
     )
 
     # Uploading c3_to_s3_rolling.py script to NCI
@@ -149,6 +153,6 @@ with dag:
         ),
     )
 
-    sftp_missing_csv >> sftp_c3_to_s3_script
+    download_missing_csv >> sftp_c3_to_s3_script
     sftp_c3_to_s3_script >> execute_c3_to_s3_script
     execute_c3_to_s3_script >> clean_nci_work_dir
