@@ -98,7 +98,7 @@ dag = DAG(
 
 with dag:
 
-    WORK_DIR = f'/g/data/v10/work/c3_upload_s3/{"{{ ts_nodash }}"}'
+    WORK_DIR = f'/g/data/v10/work/c3_upload_s3_backlog/{"{{ ts_nodash }}"}'
     COMMON = dedent(
         """
             {% set work_dir = '/g/data/v10/work/c3_upload_s3_backlog/' + ts_nodash -%}
