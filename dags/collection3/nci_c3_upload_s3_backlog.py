@@ -116,10 +116,9 @@ with dag:
 
             cd {{ work_dir }}
 
-            wget $remote_file_path
+            wget {{ dag_run.conf.remote_file_path }}
         """
         ),
-        environment={"remote_file_path": '{{ dag_run.conf["remote_file_path"]}}'},
     )
 
     # Uploading c3_to_s3_rolling.py script to NCI
