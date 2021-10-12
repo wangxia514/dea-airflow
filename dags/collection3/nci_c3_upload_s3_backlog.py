@@ -10,9 +10,12 @@ current DAG aims to upload the missing files. Before run this DAG, the
 https://gist.github.com/omad/6ba87227b57f842b05fe9ffad81ecbf3 creates missing file
 list. It:
 
- * Uploads `incorrect_metadata_in_s3.csv` from script folder to NCI work folder
+ * Download `incorrect_metadata_in_s3.csv` from remote gist path to NCI work folder
  * Uploads `C3 to S3 rolling` script to NCI work folder.
  * Executes uploaded rolling script to upload `Collection 3` data to AWS `S3` bucket.
+
+Note: the config example:
+    {"remote_file_path": "https://gist.githubusercontent.com/supermarkion/8302629f84aedd6e1b945555df661506/raw/f1ad545457ce224539f3848999a73bc1fe52ebbc/incorrect_metadata_in_s3.csv"}
 
 This DAG takes following input parameters from `nci_c3_upload_s3_config` variable:
 
@@ -113,9 +116,10 @@ with dag:
 
             cd {{ work_dir }}
 
-            wget https://gist.githubusercontent.com/supermarkion/8302629f84aedd6e1b945555df661506/raw/f1ad545457ce224539f3848999a73bc1fe52ebbc/incorrect_metadata_in_s3.csv
+            wget $remote_file_path
         """
         ),
+        environment={"remote_file_path": '{{ dag_run.conf["remote_file_path"]}}'},
     )
 
     # Uploading c3_to_s3_rolling.py script to NCI
