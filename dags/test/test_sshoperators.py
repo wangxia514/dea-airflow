@@ -13,7 +13,6 @@ import pendulum
 from airflow import DAG
 
 from airflow.contrib.operators.ssh_operator import SSHOperator as v1_SSHOperator
-from infra.connections import AWS_DEA_PUBLIC_DATA_UPLOAD_CONN
 
 from airflow.providers.ssh.operators.ssh import SSHOperator as v2_SSHOperator
 from airflow.providers.ssh.hooks.ssh import SSHHook as v2_SSHHook  # noqa: F401
@@ -37,7 +36,6 @@ default_args = {
     "email_on_failure": False,
     "email": "pin.jin@ga.gov.au",
     "ssh_conn_id": "lpgs_gadi",
-    "aws_conn_id": AWS_DEA_PUBLIC_DATA_UPLOAD_CONN,
 }
 dag = DAG(
     dag_id="test_ssh_operators",
