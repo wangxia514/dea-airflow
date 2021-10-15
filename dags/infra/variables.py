@@ -7,11 +7,6 @@ Audit check:
 """
 from airflow.models import Variable
 
-# secrets name available in processing namespace
-INDEXING_USER_SECRET = Variable.get(
-    "processing_user_secret", default_var="indexing-aws-creds-sandbox"
-)  # qa
-
 # DB Users / Roles
 SECRET_EXPLORER_WRITER_NAME = Variable.get(
     "db_explorer_writer_secret", default_var="explorer-writer"
