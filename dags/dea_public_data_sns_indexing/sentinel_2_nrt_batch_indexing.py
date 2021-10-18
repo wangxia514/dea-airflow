@@ -75,7 +75,7 @@ INDEXING_BASH_COMMAND = [
 
 # THE DAG
 dag = DAG(
-    "sentinel_2_nrt_batch_indexing",
+    "dea_public_data_batch_indexing",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval="0 6 * * *",  # 11pm
