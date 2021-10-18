@@ -22,7 +22,7 @@ from infra.variables import (
 from infra.sqs_queues import SQS_QUEUE_NAME
 from infra.iam_roles import INDEXING_ROLE
 from infra.pools import DEA_NEWDATA_PROCESSING_POOL
-from sentinel_2_nrt.env_cfg import (
+from dea_public_data_sns_indexing.env_cfg import (
     NRT_PRODUCTS,
     NRT_PATHS,
 )
@@ -68,7 +68,7 @@ INDEXING_BASH_COMMAND = [
 
 # THE DAG
 dag = DAG(
-    "sentinel_2_nrt_streamline_indexing",
+    "dea_public_data_sns_streamline_indexing",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval="0 */1 * * *",  # hourly

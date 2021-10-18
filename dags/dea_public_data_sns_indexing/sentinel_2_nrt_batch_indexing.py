@@ -22,7 +22,7 @@ from infra.variables import (
 )
 from infra.pools import DEA_NEWDATA_PROCESSING_POOL
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
-from sentinel_2_nrt.env_cfg import (
+from dea_public_data_sns_indexing.env_cfg import (
     INDEXING_PRODUCTS,
 )
 
@@ -75,7 +75,7 @@ INDEXING_BASH_COMMAND = [
 
 # THE DAG
 dag = DAG(
-    "sentinel_2_nrt_batch_indexing",
+    "dea_public_data_batch_indexing",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval="0 6 * * *",  # 11pm
