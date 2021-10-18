@@ -31,7 +31,7 @@ from infra.sqs_queues import (
     C3_ARCHIVAL_SQS_QUEUE_NAME,
     C3_INDEXING_SQS_QUEUE_NAME,
 )
-from infra.variables import C3_INDEXING_USER_SECRET
+from infra.variables import C3_LANDSAT_INDEXING_USER_SECRET
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.images import INDEXER_IMAGE
 
@@ -68,19 +68,19 @@ DEFAULT_ARGS = {
         Secret(
             "env",
             "AWS_DEFAULT_REGION",
-            C3_INDEXING_USER_SECRET,
+            C3_LANDSAT_INDEXING_USER_SECRET,
             "AWS_DEFAULT_REGION",
         ),
         Secret(
             "env",
             "AWS_ACCESS_KEY_ID",
-            C3_INDEXING_USER_SECRET,
+            C3_LANDSAT_INDEXING_USER_SECRET,
             "AWS_ACCESS_KEY_ID",
         ),
         Secret(
             "env",
             "AWS_SECRET_ACCESS_KEY",
-            C3_INDEXING_USER_SECRET,
+            C3_LANDSAT_INDEXING_USER_SECRET,
             "AWS_SECRET_ACCESS_KEY",
         ),
     ],
