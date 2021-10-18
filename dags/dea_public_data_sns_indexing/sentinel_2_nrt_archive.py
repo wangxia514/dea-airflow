@@ -27,7 +27,7 @@ from infra.variables import (
 from infra.pools import DEA_NEWDATA_PROCESSING_POOL
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from dea_utils.update_explorer_summaries import explorer_refresh_operator
-from sentinel_2_nrt.env_cfg import ARCHIVE_CONDITION, ARCHIVE_PRODUCTS
+from dea_public_data_sns_indexing.env_cfg import ARCHIVE_CONDITION, ARCHIVE_PRODUCTS
 from webapp_update.update_list import EXPLORER_UPDATE_LIST, OWS_UPDATE_LIST
 
 DAG_NAME = "sentinel_2_nrt_archive"
