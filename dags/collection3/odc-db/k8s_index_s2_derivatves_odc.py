@@ -71,6 +71,12 @@ DEFAULT_ARGS = {
             C3_ALCHEMIST_SECRET,
             "AWS_SECRET_ACCESS_KEY",
         ),
+        Secret(
+            "env",
+            "BA_SQS_INDEXING_QUEUE",
+            C3_ALCHEMIST_SECRET,
+            "BA_SQS_INDEXING_QUEUE",
+        )
     ],
 }
 
