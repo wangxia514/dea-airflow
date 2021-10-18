@@ -1,4 +1,9 @@
-# SQS Processing Workflow
+# dea_public_data s3 notification indexing
+This is a patterned indexing, to enable indexing datasets from `s3://dea-public-data/` by s3 bucket generated notification for new files arriving into the bucket, simply by adding to the `env_cfg.py` folder.
+
+Criteria:
+1. product name must be added to `INDEXING_PRODUCTS` list
+2. `s3_uri` path pattern must be added to `PRODUCT_RECORD_PATHS`
 
 ## Background
 This workflow is designed to automate the process where new dataset for an ODC product has been created and stored in AWS S3. The application/software this workflow is based on are:
@@ -8,11 +13,6 @@ This workflow is designed to automate the process where new dataset for an ODC p
 | datacube core (indexing tool) | https://github.com/opendatacube/datacube-index |
 | datacube ows         | https://github.com/opendatacube/datacube-ows |
 | datacube explorer    | https://github.com/opendatacube/datacube-explorer |
-
-
-Other known names are:
-- ows-data
-- k8s-orchestrate
 
 ### Database setup
 
