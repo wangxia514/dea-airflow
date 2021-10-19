@@ -5,10 +5,6 @@ Audit check:
     date: 21/04/2021
 """
 from airflow.models import Variable
-from airflow.kubernetes.secret import Secret
-from infra.variables import (
-    C3_ALCHEMIST_SECRET
-)
 
 # AWS SQS
 NEWDEADATA_SQS_QUEUE_NAME = Variable.get(
