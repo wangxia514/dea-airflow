@@ -17,7 +17,7 @@ from infra.variables import (
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
 )
-from infra.variables import C3_ALCHEMIST_SECRET, C3_BA_ALCHEMIST_SECRET
+from infra.variables import C3_BA_ALCHEMIST_SECRET
 from infra.images import INDEXER_IMAGE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
@@ -52,19 +52,19 @@ DEFAULT_ARGS = {
         Secret(
             "env",
             "AWS_DEFAULT_REGION",
-            C3_ALCHEMIST_SECRET,
+            C3_BA_ALCHEMIST_SECRET,
             "AWS_DEFAULT_REGION",
         ),
         Secret(
             "env",
             "AWS_ACCESS_KEY_ID",
-            C3_ALCHEMIST_SECRET,
+            C3_BA_ALCHEMIST_SECRET,
             "AWS_ACCESS_KEY_ID",
         ),
         Secret(
             "env",
             "AWS_SECRET_ACCESS_KEY",
-            C3_ALCHEMIST_SECRET,
+            C3_BA_ALCHEMIST_SECRET,
             "AWS_SECRET_ACCESS_KEY",
         ),
         Secret(
