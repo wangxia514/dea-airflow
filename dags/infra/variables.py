@@ -14,6 +14,9 @@ C3_LANDSAT_INDEXING_USER_SECRET = Variable.get(
 C3_ALCHEMIST_SECRET = Variable.get(
     "alchemist_c3_indexing_user_secret", "alchemist-c3-user-creds"
 )  # qa
+C3_BA_ALCHEMIST_SECRET = Variable.get(
+    "alchemist_s2_c3_nrt_user_creds", "alchemist-s2-c3-user-creds"
+)
 
 SECRET_EXPLORER_WRITER_NAME = Variable.get(
     "db_explorer_writer_secret", "explorer-writer"

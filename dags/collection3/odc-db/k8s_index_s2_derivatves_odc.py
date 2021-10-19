@@ -17,7 +17,7 @@ from infra.variables import (
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
 )
-from infra.variables import C3_ALCHEMIST_SECRET
+from infra.variables import C3_ALCHEMIST_SECRET, C3_BA_ALCHEMIST_SECRET
 from infra.images import INDEXER_IMAGE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
@@ -70,7 +70,7 @@ DEFAULT_ARGS = {
         Secret(
             "env",
             "BURNS_SNS_INDEXING_QUEUE",
-            C3_ALCHEMIST_SECRET,
+            C3_BA_ALCHEMIST_SECRET,
             "BURNS_SNS_INDEXING_QUEUE",
         )
     ],
