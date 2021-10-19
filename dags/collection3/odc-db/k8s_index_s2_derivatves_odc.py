@@ -18,9 +18,6 @@ from infra.variables import (
     SECRET_ODC_WRITER_NAME,
 )
 from infra.variables import C3_ALCHEMIST_SECRET
-from infra.sqs_queues import (
-    S2_BA_SQS_QUEUE_NAME,
-)
 from infra.images import INDEXER_IMAGE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
@@ -37,7 +34,6 @@ DEFAULT_ARGS = {
     "env_vars": {
         "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
-        "BURNS_SQS_INDEXING_QUEUE": S2_BA_SQS_QUEUE_NAME,
     },
     # Lift secrets into environment variables
     "secrets": [
@@ -73,9 +69,9 @@ DEFAULT_ARGS = {
         ),
         Secret(
             "env",
-            "BA_SQS_INDEXING_QUEUE",
+            "BURNS_SNS_INDEXING_QUEUE",
             C3_ALCHEMIST_SECRET,
-            "BA_SQS_INDEXING_QUEUE",
+            "BURNS_SNS_INDEXING_QUEUE",
         )
     ],
 }
@@ -99,7 +95,7 @@ with dag:
             arguments=[
                 "bash",
                 "-c",
-                f"sqs-to-dc --stac --update-if-exists --allow-unsafe ${product.upper()}_SQS_INDEXING_QUEUE ga_s2_{product}_provisional_3",
+                f"sqs-to-dc --stac --update-if-exists --allow-unsafe $BURNS_SNS_INDEXING_QUEUE ga_s2_{product}_provisional_3",
             ],
             labels={"step": "sqs-dc-indexing"},
             name=f"datacube-index-{product}",
