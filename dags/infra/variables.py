@@ -9,7 +9,7 @@ from airflow.models import Variable
 
 # secrets name available in processing namespace
 C3_LANDSAT_INDEXING_USER_SECRET = Variable.get(
-    "c3_landsat_indexing_user_secret", "processing-aws-creds-sandbox"
+    "c3_landsat_indexing_user_secret", "processing-aws-creds-c3-landsat"
 )  # qa
 C3_ALCHEMIST_SECRET = Variable.get(
     "alchemist_c3_indexing_user_secret", "alchemist-c3-user-creds"
