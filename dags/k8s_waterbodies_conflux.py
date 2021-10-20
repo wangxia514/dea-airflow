@@ -7,8 +7,7 @@ shapefile
     Default "s3://dea-public-data/projects/WaterBodies/DEA_Waterbodies_shapefile/AusWaterBodiesFINALStateLink.shp"
 
 outdir
-    Appended to s3://dea-public-data-dev/waterbodies/conflux/.
-    Default "default-out"
+    Default "s3://dea-public-data-dev/waterbodies/conflux/default-out"
 
 cmd
     Datacube query to run. Default "--limit 1"
@@ -173,7 +172,7 @@ def k8s_job_task(dag):
                                             --overedge \
                                             --partial \
                                             --shapefile {{{{ dag_run.conf.get("shapefile", "s3://dea-public-data/projects/WaterBodies/DEA_Waterbodies_shapefile/AusWaterBodiesFINALStateLink.shp") }}}} \
-                                            --output s3://dea-public-data-dev/waterbodies/conflux/{{{{ dag_run.conf.get("outdir", "default-out") }}}} {{{{ dag_run.conf.get("flags", "") }}}}
+                                            --output {{{{ dag_run.conf.get("outdir", "s3://dea-public-data-dev/waterbodies/conflux/") }}}} {{{{ dag_run.conf.get("flags", "") }}}}
                                     """.format(queue="waterbodies_conflux_sqs")
                                 ),
                             ],
