@@ -69,9 +69,9 @@ DEFAULT_ARGS = {
         ),
         Secret(
             "env",
-            "BURNS_SNS_INDEXING_QUEUE",
+            "BA_SQS_INDEXING_QUEUE",
             C3_BA_ALCHEMIST_SECRET,
-            "BURNS_SNS_INDEXING_QUEUE",
+            "BA_SQS_INDEXING_QUEUE",
         )
     ],
 }
@@ -95,12 +95,12 @@ with dag:
             arguments=[
                 "bash",
                 "-c",
-                f"sqs-to-dc --stac --update-if-exists --allow-unsafe $BURNS_SNS_INDEXING_QUEUE ga_s2_{product}_provisional_3",
+                f"echo $BA_SQS_INDEXING_QUEUE && sqs-to-dc --stac --update-if-exists --allow-unsafe $BA_SQS_INDEXING_QUEUE ga_s2_{product}_provisional_3",
             ],
             labels={"step": "sqs-dc-indexing"},
             name=f"datacube-index-{product}",
             task_id=f"indexing-task-{product}",
             get_logs=True,
             affinity=ONDEMAND_NODE_AFFINITY,
-            is_delete_operator_pod=True,
+            is_delete_operator_pod=False,
         )
