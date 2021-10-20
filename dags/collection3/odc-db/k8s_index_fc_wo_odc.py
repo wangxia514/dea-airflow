@@ -21,7 +21,6 @@ from infra.variables import C3_ALCHEMIST_SECRET
 from infra.sqs_queues import (
     C3_FC_SQS_QUEUE_NAME,
     C3_WO_SQS_QUEUE_NAME,
-    S2_BA_SQS_QUEUE_NAME,
 )
 from infra.images import INDEXER_IMAGE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
@@ -41,7 +40,6 @@ DEFAULT_ARGS = {
         "DB_DATABASE": DB_DATABASE,
         "FC_SQS_INDEXING_QUEUE": C3_FC_SQS_QUEUE_NAME,
         "WO_SQS_INDEXING_QUEUE": C3_WO_SQS_QUEUE_NAME,
-        "BURNS_SQS_INDEXING_QUEUE": S2_BA_SQS_QUEUE_NAME,
     },
     # Lift secrets into environment variables
     "secrets": [
@@ -97,25 +95,6 @@ with dag:
                 "bash",
                 "-c",
                 f"sqs-to-dc --stac --update-if-exists --allow-unsafe ${product.upper()}_SQS_INDEXING_QUEUE ga_ls_{product}_3",
-            ],
-            labels={"step": "sqs-dc-indexing"},
-            name=f"datacube-index-{product}",
-            task_id=f"indexing-task-{product}",
-            get_logs=True,
-            affinity=ONDEMAND_NODE_AFFINITY,
-            is_delete_operator_pod=True,
-        )
-    
-    # Burn Area based on s2 dataset
-    for product in ["ba"]:
-        INDEXING = KubernetesPodOperator(
-            namespace="processing",
-            image=INDEXER_IMAGE,
-            image_pull_policy="IfNotPresent",
-            arguments=[
-                "bash",
-                "-c",
-                f"sqs-to-dc --stac --update-if-exists --allow-unsafe ${product.upper()}_SQS_INDEXING_QUEUE ga_s2_{product}_provisional_3",
             ],
             labels={"step": "sqs-dc-indexing"},
             name=f"datacube-index-{product}",
