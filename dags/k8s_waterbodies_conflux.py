@@ -15,6 +15,9 @@ product
 cmd
     Datacube query to run. Default "--limit 1"
 
+plugin
+    Plugin to drill with. Default "waterbodies".
+
 flags
     Other flags to pass to Conflux.
 
@@ -170,7 +173,7 @@ def k8s_job_task(dag):
                                     echo Default region $AWS_DEFAULT_REGION
                                     hostname -I
                                     dea-conflux run-from-queue -v \
-                                            --plugin examples/waterbodies.conflux.py \
+                                            --plugin examples/{{{{ dag_run.conf.get("plugin", "waterbodies") }}}}.conflux.py \
                                             --queue {queue} \
                                             --overedge \
                                             --partial \
