@@ -9,6 +9,9 @@ shapefile
 outdir
     Default "s3://dea-public-data-dev/waterbodies/conflux/default-out"
 
+product
+    Default "wofs_albers".
+
 cmd
     Datacube query to run. Default "--limit 1"
 
@@ -276,7 +279,7 @@ def k8s_queue_push(dag):
     )
 
 
-def k8s_getids(dag, cmd):
+def k8s_getids(dag, cmd, product):
     """K8s pod operator to get IDs."""
     getids_cmd = [
         "bash",
@@ -284,8 +287,8 @@ def k8s_getids(dag, cmd):
         dedent(
             """
             echo "Writing to /airflow/xcom/return.json"
-            dea-conflux get-ids wofs_albers {cmd} --s3 > /airflow/xcom/return.json
-            """.format(cmd=cmd)
+            dea-conflux get-ids {product} {cmd} --s3 > /airflow/xcom/return.json
+            """.format(cmd=cmd, product=product)
         ),
     ]
 
@@ -388,8 +391,9 @@ def k8s_delqueue(dag):
 
 with dag:
     cmd = '{{ dag_run.conf.get("cmd", "--limit=1") }}'
+    product = '{{ dag_run.conf.get("product", "wofs_albers") }}'
 
-    getids = k8s_getids(dag, cmd)
+    getids = k8s_getids(dag, cmd, product)
     makequeue = k8s_makequeue(dag)
     # Populate the queues.
     push = k8s_queue_push(dag)
