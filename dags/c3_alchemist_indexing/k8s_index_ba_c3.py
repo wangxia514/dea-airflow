@@ -22,6 +22,8 @@ from infra.variables import (
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.images import INDEXER_IMAGE
 
+ALCHEMIST_C3_USER_SECRET = "alchemist-s2-c3-nrt-user-creds"
+
 DEFAULT_ARGS = {
     "owner": "James OBrien",
     "depends_on_past": False,
