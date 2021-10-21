@@ -1,6 +1,10 @@
 """
 # Collection-3 indexing automation
 
+## Products
+
+- `ga_s2_wo_3`
+
 DAG to periodically index/archive Collection-3 data.
 
 This DAG uses k8s executors and in cluster with relevant tooling
@@ -21,6 +25,8 @@ from infra.variables import (
 )
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.images import INDEXER_IMAGE
+
+ALCHEMIST_C3_USER_SECRET = "alchemist-s2-nrt-user-creds"
 
 DEFAULT_ARGS = {
     "owner": "Alex Leith",
@@ -74,18 +80,6 @@ DEFAULT_ARGS = {
         ),
         Secret(
             "env",
-            "FC_SQS_INDEXING_QUEUE",
-            ALCHEMIST_C3_USER_SECRET,
-            "FC_SQS_INDEXING_QUEUE",
-        ),
-        Secret(
-            "env",
-            "WO_SQS_INDEXING_QUEUE",
-            ALCHEMIST_C3_USER_SECRET,
-            "WO_SQS_INDEXING_QUEUE",
-        ),
-        Secret(
-            "env",
             "S2_NRT_WO_SQS_INDEXING_QUEUE",
             ALCHEMIST_C3_USER_SECRET,
             "S2_NRT_WO_SQS_INDEXING_QUEUE",
@@ -101,17 +95,15 @@ DEFAULT_ARGS = {
 
 
 dag = DAG(
-    "k8s_index_wo_fc_c3",
+    "k8s_index_s2_wo_3",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval="0 */1 * * *",
     catchup=False,
-    tags=["k8s", "landsat_c3"],
+    tags=["k8s", "s2_wo_3"],
 )
 
 queue_to_product = {
-    "WO_SQS_INDEXING_QUEUE": "ga_ls_wo_3",
-    "FC_SQS_INDEXING_QUEUE": "ga_ls_fc_3",
     "S2_NRT_WO_SQS_INDEXING_QUEUE": "ga_s2_wo_3",
     "S2_WO_SQS_INDEXING_QUEUE": "ga_s2_wo_3",
 }

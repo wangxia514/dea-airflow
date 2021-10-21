@@ -1,6 +1,11 @@
 """
 # Landsat Collection-3 indexing automation
 
+## products
+- "ga_ls5t_ard_3"
+- "ga_ls7e_ard_3"
+- "ga_ls8c_ard_3"
+
 DAG to periodically index/archive Landsat Collection-3 data.
 
 This DAG uses k8s executors and in cluster with relevant tooling
@@ -11,7 +16,9 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from airflow.operators.dummy_operator import DummyOperator
 from infra.variables import (
     DB_HOSTNAME,
@@ -20,6 +27,8 @@ from infra.variables import (
 )
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.images import INDEXER_IMAGE
+
+LANDSAT_C3_AWS_USER_SECRET = "processing-landsat-3-aws-creds"
 
 DEFAULT_ARGS = {
     "owner": "Alex Leith",
@@ -74,6 +83,18 @@ DEFAULT_ARGS = {
             LANDSAT_C3_AWS_USER_SECRET,
             "AWS_SECRET_ACCESS_KEY",
         ),
+        Secret(
+            "env",
+            "ARD_INDEXING_QUEUE",
+            LANDSAT_C3_AWS_USER_SECRET,
+            "ARD_INDEXING_QUEUE",
+        ),
+        Secret(
+            "env",
+            "ARD_ARCHIVING_QUEUE",
+            LANDSAT_C3_AWS_USER_SECRET,
+            "ARD_ARCHIVING_QUEUE",
+        ),
     ],
 }
 
@@ -98,7 +119,7 @@ with dag:
             "sqs-to-dc",
             "--stac",
             "--skip-lineage",
-            dag.default_args["index_sqs_queue"],
+            "$ARD_INDEXING_QUEUE",
             dag.default_args["products"],
         ],
         labels={"step": "sqs-dc-indexing"},
@@ -116,7 +137,7 @@ with dag:
         arguments=[
             "sqs-to-dc",
             "--archive",
-            dag.default_args["archive_sqs_queue"],
+            "$ARD_ARCHIVING_QUEUE",
             dag.default_args["products"],
         ],
         labels={"step": "sqs-dc-archiving"},
