@@ -5,6 +5,7 @@ testpypi
 """
 # The DAG object; we'll need this to instantiate a DAG
 from airflow import DAG
+from airflow.operators.python import PythonVirtualenvOperator
 
 # [START instantiate_dag]
 pipeline = DAG(
@@ -18,6 +19,7 @@ pipeline = DAG(
 )
 # [END instantiate_dag]
 
+
 def callable_virtualenv():
     """
     Example function that will be performed in a virtual environment.
@@ -27,10 +29,7 @@ def callable_virtualenv():
     """
     from testpypi.testpypi import say_hello
 
-    #Generate "Hello,World"
     name1=say_hello()
-
-    #Generate "Hello,Everybod"
     name2=say_hello("Everybody")
     print(name1)
     print(name2)
