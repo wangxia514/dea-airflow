@@ -38,9 +38,10 @@ def callable_virtualenv():
 
 with pipeline:
 
-    virtualenv_task = PythonVirtualenvOperator(
+    virtualenv_task = PythonVirtualenvOperator
+    (
         task_id="virtualenv_python",
         python_callable=callable_virtualenv,
         requirements=["ga-reporting-etls==0.0.15"],
         system_site_packages=False,
-        )
+    )
