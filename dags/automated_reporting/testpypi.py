@@ -7,17 +7,26 @@ testpypi
 from airflow import DAG
 from airflow.operators.python import PythonVirtualenvOperator
 
+
+default_args = {
+    "owner": "Ramkumar Ramagopalan",
+    "depends_on_past": False,
+    "start_date": dt.now() - timedelta(hours=1),
+    "email": ["ramkumar.ramagopalan@ga.gov.au"],
+    "email_on_failure": True,
+    "email_on_retry": False,
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5),
+}
+
 # [START instantiate_dag]
-pipeline = DAG(
-    "testpypi",
-    doc_md=__doc__,
-    description="testpypi",
-    concurrency=1,
-    max_active_runs=1,
-    catchup=False,
+dag = DAG(
+    "testpy_test",
+    description="DAG for testing pypi flow",
     tags=["testpypi"],
-)
-# [END instantiate_dag]
+    default_args=default_args,
+    schedule_interval=timedelta(minutes=15),
+)# [END instantiate_dag]
 
 
 def callable_virtualenv():
