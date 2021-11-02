@@ -10,7 +10,9 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 
 from infra.images import INDEXER_IMAGE
 from infra.variables import (
@@ -87,5 +89,5 @@ with DAG(
         task_id="indexing-task",
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,
-        is_delete_operator_pod=True,
+        is_delete_operator_pod=False,
     )
