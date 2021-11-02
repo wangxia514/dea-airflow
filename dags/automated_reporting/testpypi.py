@@ -10,7 +10,6 @@ from airflow import DAG
 pipeline = DAG(
     "testpypi",
     doc_md=__doc__,
-    default_args=default_args,
     description="testpypi",
     concurrency=1,
     max_active_runs=1,
