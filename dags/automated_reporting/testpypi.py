@@ -19,15 +19,12 @@ default_args = {
     "retry_delay": timedelta(minutes=5),
 }
 
-# [START instantiate_dag]
 dag = DAG(
     "testpy_test",
     description="DAG for testing pypi flow",
     tags=["testpypi"],
     default_args=default_args,
     schedule_interval=timedelta(minutes=15),
-)# [END instantiate_dag]
-
 
 def callable_virtualenv():
     """
