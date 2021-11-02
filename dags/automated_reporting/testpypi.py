@@ -21,6 +21,7 @@ default_args = {
 
 dag = DAG("testpy_test", description="DAG for testing pypi flow", tags=["testpypi"], default_args=default_args, schedule_interval=timedelta(minutes=15),)
 
+
 def callable_virtualenv():
     """
     Example function that will be performed in a virtual environment.
