@@ -58,6 +58,14 @@ Scenario 3: need to update product and datasets
         "product": "s2_barest_earth"
     }
 
+Scenario 4: need to update datasets by STAC.json metadata file
+
+    {
+        "s3_glob": "s3://dea-public-data/derivative/ga_ls_fc_3/*/*.stac-item.json",
+        "product": "ga_ls_fc_3",
+        "index_by_stac": "True"
+    }
+
 """
 from datetime import datetime, timedelta
 
@@ -117,7 +125,11 @@ PRODUCT_OR_DATASET_UPDATE_CMD = [
             {% endfor %}
         {% endif %}
         {% if dag_run.conf.get('s3_glob') and dag_run.conf.get('product') %}
-            s3-to-dc --allow-unsafe --update-if-exists --no-sign-request {{ dag_run.conf.s3_glob}} {{dag_run.conf.product}}
+            {% if dag_run.conf.get('index_by_stac') %}
+                s3-to-dc --stac --allow-unsafe --update-if-exists --no-sign-request {{ dag_run.conf.s3_glob}} {{dag_run.conf.product}}
+            {% else %}
+                s3-to-dc --allow-unsafe --update-if-exists --no-sign-request {{ dag_run.conf.s3_glob}} {{dag_run.conf.product}}
+            {% endif %}
         {% endif %}
     """
     ),
