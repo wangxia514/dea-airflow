@@ -29,8 +29,8 @@ def callable_virtualenv():
     """
     from testpypi.testpypi import say_hello
 
-    name1=say_hello()
-    name2=say_hello("Everybody")
+    name1 = say_hello()
+    name2 = say_hello("Everybody")
     print(name1)
     print(name2)
     print("finished")
