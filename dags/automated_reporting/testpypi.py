@@ -6,7 +6,7 @@ testpypi
 # The DAG object; we'll need this to instantiate a DAG
 from airflow import DAG
 from airflow.operators.python import PythonVirtualenvOperator
-
+from datetime import datetime as dt, timedelta
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
@@ -45,6 +45,6 @@ def callable_virtualenv():
     print("finished")
 
 
-with pipeline:
+with dag:
 
     virtualenv_task = PythonVirtualenvOperator(task_id="virtualenv_python", python_callable=callable_virtualenv, requirements=["ga-reporting-etls==0.0.15"], system_site_packages=False,)
