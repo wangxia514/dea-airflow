@@ -239,7 +239,7 @@ def k8s_job_task(dag):
         image=CONFLUX_UNSTABLE_IMAGE,
         dag=dag,
         task_id="waterbodies-conflux-run",
-        get_logs=True,
+        get_logs=False,
         body=yaml,
     )
     return job_task
