@@ -29,20 +29,15 @@ def callable_virtualenv():
     Importing at the module level ensures that it will not attempt to import the
     library before it is installed.
     """
-    from time import sleep
+    from testpypi.testpypi import say_hello
 
-    from colorama import Back, Fore, Style
-
-    print(Fore.RED + 'some red text')
-    print(Back.GREEN + 'and with a green background')
-    print(Style.DIM + 'and in dim text')
-    print(Style.RESET_ALL)
-    for _ in range(10):
-        print(Style.DIM + 'Please wait...', flush=True)
-        sleep(10)
-    print('Finished')
+    name1 = say_hello()
+    name2 = say_hello("Everybody")
+    print(name1)
+    print(name2)
+    print("finished")
 
 
 with dag:
 
-    virtualenv_task = PythonVirtualenvOperator(task_id="virtualenv_python", python_callable=callable_virtualenv, requirements=["colorama==0.4.0"], system_site_packages=False,)
+    virtualenv_task = PythonVirtualenvOperator(task_id="virtualenv_python", python_callable=callable_virtualenv, requirements=["ga-reporting-etls==0.0.15"], system_site_packages=True,)
