@@ -136,7 +136,7 @@ def k8s_job_task(dag):
     mem = CONFLUX_POD_MEMORY_MB
     req_mem = "{}Mi".format(int(mem))
     lim_mem = "{}Mi".format(int(mem) * 2)
-    parallelism = 128
+    parallelism = 64
     yaml = {
         "apiVersion": "batch/v1",
         "kind": "Job",
@@ -239,7 +239,7 @@ def k8s_job_task(dag):
         image=CONFLUX_UNSTABLE_IMAGE,
         dag=dag,
         task_id="waterbodies-conflux-run",
-        get_logs=False,
+        get_logs=True,
         body=yaml,
     )
     return job_task
