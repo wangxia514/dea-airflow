@@ -17,6 +17,7 @@ There are three configuration arguments:
 - `product_definition_uri`: A HTTP/S url to a Product Definition YAML *(Optional)*
 - `s3_glob`: An S3 URL or Glob pattern, as recognised by `s3-to-dc` *(Optional)*
 - `product_name`: The name of the product
+- `skip_lineage`: Flag, if passesd in config, linage will be skipped in indexing
 
 The commands which are executed are:
 
@@ -46,6 +47,16 @@ Usecase C: Only need to add a product in this run, no datasets are ready for ind
 
     {
         "product_definition_uri": "https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/master/products/lccs/lc_ls_c2.odc-product.yaml",
+        "product_name": "lc_ls_landcover_class_cyear_2_0"
+    }
+
+### Flag
+
+Indexing with skip-lineage enabled, works for usecase A and B,
+
+    {
+        "s3_glob": "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
+        "skip_lineage": "Yes",
         "product_name": "lc_ls_landcover_class_cyear_2_0"
     }
 
@@ -174,6 +185,7 @@ with dag:
             "{{ dag_run.conf.s3_glob }}",
             "{{ dag_run.conf.product_name }}",
             "--no-sign-request",
+            "{% if dag_run.conf.get('skip_lineage') %} --skip-lineage {% endif %}",
         ],
         name="datacube-index",
         task_id=INDEXING_TASK_ID,
