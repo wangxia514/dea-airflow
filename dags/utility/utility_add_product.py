@@ -182,10 +182,10 @@ with dag:
             # "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
             # "cemp_insar_alos_displacement",
             # Jinja templates for arguments
-            "{{ dag_run.conf.s3_glob }}",
-            "{{ dag_run.conf.product_name }}",
             "--no-sign-request",
             "{% if dag_run.conf.get('skip_lineage') %} --skip_lineage {% endif %}",
+            "{{ dag_run.conf.s3_glob }}",
+            "{{ dag_run.conf.product_name }}",            
         ],
         name="datacube-index",
         task_id=INDEXING_TASK_ID,
