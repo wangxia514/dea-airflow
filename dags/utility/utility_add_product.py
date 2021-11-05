@@ -185,7 +185,7 @@ with dag:
             "{{ dag_run.conf.s3_glob }}",
             "{{ dag_run.conf.product_name }}",
             "--no-sign-request",
-            # "{% if dag_run.conf.get('skip_lineage') %} --skip-lineage {% endif %}",
+            "{% if dag_run.conf.get('skip_lineage') %} --skip_lineage {% endif %}",
         ],
         name="datacube-index",
         task_id=INDEXING_TASK_ID,
