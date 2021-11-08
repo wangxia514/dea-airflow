@@ -399,12 +399,12 @@ with dag:
     product = '{{ dag_run.conf.get("product", "wofs_albers") }}'
 
     getids = k8s_getids(dag, cmd, product)
-    makequeue = k8s_makequeue(dag)
+    #makequeue = k8s_makequeue(dag)
     # Populate the queues.
     push = k8s_queue_push(dag)
     # Now we'll do the main task.
     task = k8s_job_task(dag)
     # Finally delete the queue.
-    delqueue = k8s_delqueue(dag)
+    #delqueue = k8s_delqueue(dag)
     #getids >> makequeue >> push >> task >> delqueue
     getids >> push >> task
