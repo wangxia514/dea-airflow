@@ -41,7 +41,7 @@ from infra.images import CONFLUX_UNSTABLE_IMAGE, WATERBODIES_UNSTABLE_IMAGE
 
 from infra.variables import (
     DB_DATABASE,
-    DB_READER_HOSTNAME,
+    DB_PGBOUNCER,
     AWS_DEFAULT_REGION,
     DB_PORT,
     WATERBODIES_DEV_USER_SECRET,
@@ -54,7 +54,7 @@ CONFLUX_POD_MEMORY_MB = 3000
 # DAG CONFIGURATION
 SECRETS = {
     "env_vars": {
-        "DB_HOSTNAME": DB_READER_HOSTNAME,
+        "DB_HOSTNAME": DB_PGBOUNCER,
         "DB_DATABASE": DB_DATABASE,
         "DB_PORT": DB_PORT,
         "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
@@ -183,7 +183,7 @@ def k8s_job_task(dag):
                                 ),
                             ],
                             "env": [
-                                {"name": "DB_HOSTNAME", "value": DB_READER_HOSTNAME},
+                                {"name": "DB_HOSTNAME", "value": DB_PGBOUNCER},
                                 {"name": "DB_DATABASE", "value": DB_DATABASE},
                                 {"name": "AWS_NO_SIGN_REQUEST", "value": "YES"},
                                 {"name": "DB_PORT", "value": DB_PORT},
@@ -321,16 +321,18 @@ def k8s_makequeue(dag):
     # to make sure that we don't double-up if we're
     # running two DAGs simultaneously.
     queue_name = "waterbodies_conflux_sqs"
+    deadletter_name = "waterbodies_conflux_sqs_deadletter"
     makequeue_cmd = [
         "bash",
         "-c",
         dedent(
             """
             echo "Using dea-waterbodies image {image}"
-            python -m dea_waterbodies.queues make {name}
+            python -m dea-conflux make {name} --deadletter {deadletter_name}
             """.format(
                 image=WATERBODIES_UNSTABLE_IMAGE,
                 name=queue_name,
+                deadletter_name=deadletter_name,
             )
         ),
     ]
