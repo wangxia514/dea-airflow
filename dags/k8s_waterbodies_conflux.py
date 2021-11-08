@@ -406,4 +406,5 @@ with dag:
     task = k8s_job_task(dag)
     # Finally delete the queue.
     delqueue = k8s_delqueue(dag)
-    getids >> makequeue >> push >> task >> delqueue
+    #getids >> makequeue >> push >> task >> delqueue
+    getids >> push >> task
