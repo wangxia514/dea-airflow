@@ -37,7 +37,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 
 from textwrap import dedent
 
-from infra.images import CONFLUX_UNSTABLE_IMAGE, WATERBODIES_UNSTABLE_IMAGE
+from infra.images import CONFLUX_UNSTABLE_IMAGE
 
 from infra.variables import (
     DB_DATABASE,
@@ -327,17 +327,17 @@ def k8s_makequeue(dag):
         "-c",
         dedent(
             """
-            echo "Using dea-waterbodies image {image}"
+            echo "Using dea-conflux image {image}"
             python -m dea-conflux make {name} --deadletter {deadletter_name}
             """.format(
-                image=WATERBODIES_UNSTABLE_IMAGE,
+                image=CONFLUX_UNSTABLE_IMAGE,
                 name=queue_name,
                 deadletter_name=deadletter_name,
             )
         ),
     ]
     makequeue = KubernetesPodOperator(
-        image=WATERBODIES_UNSTABLE_IMAGE,
+        image=CONFLUX_UNSTABLE_IMAGE,
         name="waterbodies-conflux-makequeue",
         arguments=makequeue_cmd,
         image_pull_policy="IfNotPresent",
@@ -366,16 +366,16 @@ def k8s_delqueue(dag):
         "-c",
         dedent(
             """
-            echo "Using dea-waterbodies image {image}"
-            python -m dea_waterbodies.queues delete {name}
+            echo "Using dea-conflux image {image}"
+            python -m dea-conflux delete {name}
             """.format(
-                image=WATERBODIES_UNSTABLE_IMAGE,
+                image=CONFLUX_UNSTABLE_IMAGE,
                 name=queue_name,
             )
         ),
     ]
     delqueue = KubernetesPodOperator(
-        image=WATERBODIES_UNSTABLE_IMAGE,
+        image=CONFLUX_UNSTABLE_IMAGE,
         name="waterbodies-conflux-delqueue",
         arguments=delqueue_cmd,
         image_pull_policy="IfNotPresent",
