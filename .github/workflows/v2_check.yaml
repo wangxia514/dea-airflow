@@ -53,8 +53,8 @@ jobs:
       - name: Install airflow and run pylint
         run: |
           pip install apache-airflow[amazon,cncf.kubernetes,sftp,postgres,redis,ssh,celery,http]==${{ matrix.airflow-version }} -c constraints.txt
-          pip install airflow-kubernetes-job-operator SQLAlchemy==1.3.23 boto3 kubernetes cryptography apache-airflow-providers-docker
-          pip install pylint pylint-airflow
+          pip install -r requirements.txt -c constraints.txt
+          pip install pylint pylint-airflow -c constraints.txt
           pylint --load-plugins=pylint_airflow --disable=C,W --disable=similarities dags
       - name: setup airflow and check dags list
         run: |
