@@ -41,6 +41,7 @@ from infra.images import CONFLUX_UNSTABLE_IMAGE, WATERBODIES_UNSTABLE_IMAGE
 
 from infra.variables import (
     DB_DATABASE,
+    DB_READER_HOSTNAME,
     AWS_DEFAULT_REGION,
     DB_PORT,
     WATERBODIES_DEV_USER_SECRET,
@@ -53,7 +54,7 @@ CONFLUX_POD_MEMORY_MB = 3000
 # DAG CONFIGURATION
 SECRETS = {
     "env_vars": {
-        "DB_HOSTNAME": "pgbouncer",
+        "DB_HOSTNAME": DB_READER_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
         "DB_PORT": DB_PORT,
         "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
@@ -182,7 +183,7 @@ def k8s_job_task(dag):
                                 ),
                             ],
                             "env": [
-                                {"name": "DB_HOSTNAME", "value": "pgbouncer"},
+                                {"name": "DB_HOSTNAME", "value": DB_READER_HOSTNAME},
                                 {"name": "DB_DATABASE", "value": DB_DATABASE},
                                 {"name": "AWS_NO_SIGN_REQUEST", "value": "YES"},
                                 {"name": "DB_PORT", "value": DB_PORT},
