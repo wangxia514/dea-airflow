@@ -43,7 +43,6 @@ SECRET_EXPLORER_NCI_WRITER_NAME = Variable.get(
 DB_DATABASE = Variable.get("db_database", default_var="odc")  # qa
 DB_HOSTNAME = Variable.get("db_hostname", default_var="db-writer")  # qa
 DB_READER_HOSTNAME = Variable.get("db_reader_hostname", default_var="db-reader")
-DB_PGBOUNCER = Variable.get("db_pgbouncer", default_var="pgbouncer")
 DB_PORT = Variable.get("db_port", default_var="5432")  # qa
 
 AWS_DEFAULT_REGION = Variable.get("region", default_var="ap-southeast-2")  # qa
