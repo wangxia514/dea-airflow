@@ -88,7 +88,7 @@ with dag:
     virtualenv_task = PythonVirtualenvOperator(
         task_id="virtualenv_python",
         python_callable=callable_virtualenv,
-        requirements=["ga-reporting-etls==1.1.2"],
+        requirements=["ga-reporting-etls==1.1.3"],
         system_site_packages=True,
         op_kwargs=op_kwargs,
     )
