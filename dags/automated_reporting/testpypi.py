@@ -89,6 +89,6 @@ with dag:
         task_id="virtualenv_python",
         python_callable=callable_virtualenv,
         requirements=["ga-reporting-etls==1.1.3"],
-        system_site_packages=True,
+        system_site_packages=False,
         op_kwargs=op_kwargs,
     )
