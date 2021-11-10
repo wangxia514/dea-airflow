@@ -149,7 +149,7 @@ def k8s_job_task(dag, parallelism, queue_name):
         "metadata": {"name": "waterbodies-conflux-job",
                      "namespace": "processing"},
         "spec": {
-            "parallelism": parallelism,
+            "parallelism": int(parallelism),
             "backoffLimit": 3,
             "template": {
                 "spec": {
