@@ -136,7 +136,7 @@ def k8s_job_task(dag):
     mem = CONFLUX_POD_MEMORY_MB
     req_mem = "{}Mi".format(int(mem))
     lim_mem = "{}Mi".format(int(mem) * 2)
-    parallelism = 256
+    parallelism = 16
     yaml = {
         "apiVersion": "batch/v1",
         "kind": "Job",
