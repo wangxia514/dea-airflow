@@ -327,7 +327,7 @@ def k8s_makequeue(dag):
         dedent(
             """
             echo "Using dea-conflux image {image}"
-            python -m dea-conflux make {name}
+            dea-conflux make {name}
             """.format(
                 image=CONFLUX_UNSTABLE_IMAGE,
                 name=queue_name
@@ -365,7 +365,7 @@ def k8s_delqueue(dag):
         dedent(
             """
             echo "Using dea-conflux image {image}"
-            python -m dea-conflux delete {name}
+            dea-conflux delete {name}
             """.format(
                 image=CONFLUX_UNSTABLE_IMAGE,
                 name=queue_name,
