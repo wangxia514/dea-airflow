@@ -320,19 +320,17 @@ def k8s_makequeue(dag):
     # TODO(MatthewJA): Use the name/ID of this DAG
     # to make sure that we don't double-up if we're
     # running two DAGs simultaneously.
-    queue_name = "waterbodies_conflux_sqs"
-    deadletter_name = "waterbodies_conflux_sqs_deadletter"
+    queue_name = "waterbodies_conflux_sai_test_sqs"
     makequeue_cmd = [
         "bash",
         "-c",
         dedent(
             """
             echo "Using dea-conflux image {image}"
-            python -m dea-conflux make {name} --deadletter {deadletter_name}
+            python -m dea-conflux make {name}
             """.format(
                 image=CONFLUX_UNSTABLE_IMAGE,
-                name=queue_name,
-                deadletter_name=deadletter_name,
+                name=queue_name
             )
         ),
     ]
@@ -360,7 +358,7 @@ def k8s_delqueue(dag):
     # TODO(MatthewJA): Use the name/ID of this DAG
     # to make sure that we don't double-up if we're
     # running two DAGs simultaneously.
-    queue_name = "waterbodies_conflux_sqs"
+    queue_name = "waterbodies_conflux_sai_test_sqs"
     delqueue_cmd = [
         "bash",
         "-c",
@@ -399,12 +397,11 @@ with dag:
     product = '{{ dag_run.conf.get("product", "wofs_albers") }}'
 
     getids = k8s_getids(dag, cmd, product)
-    #makequeue = k8s_makequeue(dag)
+    makequeue = k8s_makequeue(dag)
     # Populate the queues.
     push = k8s_queue_push(dag)
     # Now we'll do the main task.
     task = k8s_job_task(dag)
     # Finally delete the queue.
-    #delqueue = k8s_delqueue(dag)
-    #getids >> makequeue >> push >> task >> delqueue
-    getids >> push >> task
+    delqueue = k8s_delqueue(dag)
+    getids >> makequeue >> push >> task >> delqueue
