@@ -18,6 +18,12 @@ cmd
 plugin
     Plugin to drill with. Default "waterbodies".
 
+queue_name
+    Amazon SQS queue name to save processing tasks. Default "waterbodies_conflux_sqs"
+
+parallelism
+    The number of pods running at any instant. Default 16
+
 flags
     Other flags to pass to Conflux.
 
@@ -132,11 +138,11 @@ dag = DAG(
 )
 
 
-def k8s_job_task(dag):
+def k8s_job_task(dag, parallelism):
     mem = CONFLUX_POD_MEMORY_MB
     req_mem = "{}Mi".format(int(mem))
     lim_mem = "{}Mi".format(int(mem) * 2)
-    parallelism = 16
+    
     yaml = {
         "apiVersion": "batch/v1",
         "kind": "Job",
@@ -245,7 +251,7 @@ def k8s_job_task(dag):
     return job_task
 
 
-def k8s_queue_push(dag):
+def k8s_queue_push(dag, queue_name):
     cmd = [
         "bash",
         "-c",
@@ -258,7 +264,7 @@ def k8s_queue_push(dag):
             # Push the IDs to the queue.
             dea-conflux push-to-queue --txt ids.txt --queue {queue}
             """.format(
-                queue="waterbodies_conflux_sqs",
+                queue=queue_name,
             )
         ),
     ]
@@ -316,11 +322,10 @@ def k8s_getids(dag, cmd, product):
     return getids
 
 
-def k8s_makequeue(dag):
+def k8s_makequeue(dag, queue_name):
     # TODO(MatthewJA): Use the name/ID of this DAG
     # to make sure that we don't double-up if we're
     # running two DAGs simultaneously.
-    queue_name = "waterbodies_conflux_sai_test_sqs"
     makequeue_cmd = [
         "bash",
         "-c",
@@ -354,11 +359,10 @@ def k8s_makequeue(dag):
     return makequeue
 
 
-def k8s_delqueue(dag):
+def k8s_delqueue(dag, queue_name):
     # TODO(MatthewJA): Use the name/ID of this DAG
     # to make sure that we don't double-up if we're
     # running two DAGs simultaneously.
-    queue_name = "waterbodies_conflux_sai_test_sqs"
     delqueue_cmd = [
         "bash",
         "-c",
@@ -395,14 +399,15 @@ def k8s_delqueue(dag):
 with dag:
     cmd = '{{ dag_run.conf.get("cmd", "--limit=1") }}'
     product = '{{ dag_run.conf.get("product", "wofs_albers") }}'
+    parallelism = '{{ dag_run.conf.get("parallelism", 16) }}'
+    queue_name = '{{ dag_run.conf.get("queue_name", "waterbodies_conflux_sqs") }}'
 
-    #getids = k8s_getids(dag, cmd, product)
+    getids = k8s_getids(dag, cmd, product)
     makequeue = k8s_makequeue(dag)
     # Populate the queues.
-    #push = k8s_queue_push(dag)
+    push = k8s_queue_push(dag)
     # Now we'll do the main task.
-    #task = k8s_job_task(dag)
+    task = k8s_job_task(dag, parallelism)
     # Finally delete the queue.
     delqueue = k8s_delqueue(dag)
-    #getids >> makequeue >> push >> task >> delqueue
-    makequeue >> delqueue
+    getids >> makequeue >> push >> task >> delqueue
