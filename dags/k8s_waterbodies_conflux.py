@@ -138,7 +138,7 @@ dag = DAG(
 )
 
 
-def k8s_job_task(dag, parallelism):
+def k8s_job_task(dag, parallelism, queue_name):
     mem = CONFLUX_POD_MEMORY_MB
     req_mem = "{}Mi".format(int(mem))
     lim_mem = "{}Mi".format(int(mem) * 2)
@@ -185,7 +185,7 @@ def k8s_job_task(dag, parallelism):
                                             --partial \
                                             --shapefile {{{{ dag_run.conf.get("shapefile", "s3://dea-public-data/projects/WaterBodies/DEA_Waterbodies_shapefile/AusWaterBodiesFINALStateLink.shp") }}}} \
                                             --output {{{{ dag_run.conf.get("outdir", "s3://dea-public-data-dev/waterbodies/conflux/") }}}} {{{{ dag_run.conf.get("flags", "") }}}}
-                                    """.format(queue="waterbodies_conflux_sqs")
+                                    """.format(queue=queue_name)
                                 ),
                             ],
                             "env": [
@@ -403,11 +403,11 @@ with dag:
     queue_name = '{{ dag_run.conf.get("queue_name", "waterbodies_conflux_sqs") }}'
 
     getids = k8s_getids(dag, cmd, product)
-    makequeue = k8s_makequeue(dag)
+    makequeue = k8s_makequeue(dag, queue_name)
     # Populate the queues.
-    push = k8s_queue_push(dag)
+    push = k8s_queue_push(dag, queue_name)
     # Now we'll do the main task.
-    task = k8s_job_task(dag, parallelism)
+    task = k8s_job_task(dag, parallelism, queue_name)
     # Finally delete the queue.
-    delqueue = k8s_delqueue(dag)
+    delqueue = k8s_delqueue(dag, queue_name)
     getids >> makequeue >> push >> task >> delqueue
