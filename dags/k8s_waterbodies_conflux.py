@@ -21,9 +21,6 @@ plugin
 queue_name
     Amazon SQS queue name to save processing tasks. Default "waterbodies_conflux_sqs"
 
-parallelism
-    The number of pods running at any instant. Default 16
-
 flags
     Other flags to pass to Conflux.
 
@@ -138,11 +135,11 @@ dag = DAG(
 )
 
 
-def k8s_job_task(dag, parallelism, queue_name):
+def k8s_job_task(dag, queue_name):
     mem = CONFLUX_POD_MEMORY_MB
     req_mem = "{}Mi".format(int(mem))
     lim_mem = "{}Mi".format(int(mem) * 2)
-    parallelism_value = int(parallelism)
+    parallelism = 16
 
     yaml = {
         "apiVersion": "batch/v1",
@@ -150,7 +147,7 @@ def k8s_job_task(dag, parallelism, queue_name):
         "metadata": {"name": "waterbodies-conflux-job",
                      "namespace": "processing"},
         "spec": {
-            "parallelism": parallelism_value,
+            "parallelism": parallelism,
             "backoffLimit": 3,
             "template": {
                 "spec": {
@@ -400,7 +397,6 @@ def k8s_delqueue(dag, queue_name):
 with dag:
     cmd = '{{ dag_run.conf.get("cmd", "--limit=1") }}'
     product = '{{ dag_run.conf.get("product", "wofs_albers") }}'
-    parallelism = '{{ dag_run.conf.get("parallelism", "16") }}'
     queue_name = '{{ dag_run.conf.get("queue_name", "waterbodies_conflux_sqs") }}'
 
     getids = k8s_getids(dag, cmd, product)
@@ -408,7 +404,7 @@ with dag:
     # Populate the queues.
     push = k8s_queue_push(dag, queue_name)
     # Now we'll do the main task.
-    task = k8s_job_task(dag, parallelism, queue_name)
+    task = k8s_job_task(dag, queue_name)
     # Finally delete the queue.
     delqueue = k8s_delqueue(dag, queue_name)
     getids >> makequeue >> push >> task >> delqueue
