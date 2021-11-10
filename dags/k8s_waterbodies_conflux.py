@@ -142,6 +142,7 @@ def k8s_job_task(dag, parallelism, queue_name):
     mem = CONFLUX_POD_MEMORY_MB
     req_mem = "{}Mi".format(int(mem))
     lim_mem = "{}Mi".format(int(mem) * 2)
+    parallelism_value = int(parallelism)
 
     yaml = {
         "apiVersion": "batch/v1",
@@ -149,7 +150,7 @@ def k8s_job_task(dag, parallelism, queue_name):
         "metadata": {"name": "waterbodies-conflux-job",
                      "namespace": "processing"},
         "spec": {
-            "parallelism": int(parallelism),
+            "parallelism": parallelism_value,
             "backoffLimit": 3,
             "template": {
                 "spec": {
@@ -399,7 +400,7 @@ def k8s_delqueue(dag, queue_name):
 with dag:
     cmd = '{{ dag_run.conf.get("cmd", "--limit=1") }}'
     product = '{{ dag_run.conf.get("product", "wofs_albers") }}'
-    parallelism = '{{ dag_run.conf.get("parallelism", 16) }}'
+    parallelism = '{{ dag_run.conf.get("parallelism", "16") }}'
     queue_name = '{{ dag_run.conf.get("queue_name", "waterbodies_conflux_sqs") }}'
 
     getids = k8s_getids(dag, cmd, product)
