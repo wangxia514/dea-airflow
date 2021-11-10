@@ -37,10 +37,15 @@ def callable_virtualenv(**kwargs):
     Importing at the module level ensures that it will not attempt to import the
     library before it is installed.
     """
-
     from nemo_reporting.google_analytics.etl import task
+    from datetime import datetime as dt
 
-    return task(**kwargs)
+    return task(
+        query_defs=kwargs["query_defs"],
+        rep_conn=kwargs["rep_conn"],
+        google_analytics_credentials=kwargs["google_analytics_credentials"],
+        execution_date=dt.strptime(kwargs["ds_nodash"], "%Y%m%d"),
+    )
 
 
 google_analytics_credentials = Variable.get(
