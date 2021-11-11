@@ -102,7 +102,7 @@ with dag:
     )
 
     write_xcom = KubernetesPodOperator(
-        namespace="default",
+        namespace="processing",
         image="python:3.8-slim-buster",
         cmds=["pip", "install", "ga-reporting-etls"],
         name="write-xcom",
