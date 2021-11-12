@@ -99,7 +99,7 @@ with dag:
         "echo Reporting task started: $(date)",
         "pip install ga-reporting-etls==1.1.7",
         "python3 -m nemo_reporting.google_analytics.etl",
-        'mkdir -p /airflow/xcom/; echo {\"status\": \"success\"} > /airflow/xcom/return.json',
+        "mkdir -p /airflow/xcom/; echo '{\"status\": \"success\"}' > /airflow/xcom/return.json",
     ]
 
     k8s_task = KubernetesPodOperator(
