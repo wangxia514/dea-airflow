@@ -94,10 +94,11 @@ with dag:
     )
 
     JOBS = [
-        "date",
+        "echo Reporting task started: $(date)",
         "pip install ga-reporting-etls==1.1.4",
         "python3 -m nemo_reporting.welcome Airflow",
         "ls /etc",
+        "mkdir -p /airflow/xcom/; echo '[1,2,3,4]' > /airflow/xcom/return.json",
     ]
 
     k8s_task = KubernetesPodOperator(
