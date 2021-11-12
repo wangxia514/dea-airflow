@@ -96,7 +96,7 @@ with dag:
 
     JOBS = [
         "echo Reporting task started: $(date)",
-        "pip install ga-reporting-etls==1.1.5",
+        "pip install ga-reporting-etls==1.1.6",
         "python3 -m nemo_reporting.google_analytics.etl",
         "mkdir -p /airflow/xcom/; echo l'[1,2,3,4]' > /airflow/xcom/return.json",
     ]
@@ -114,6 +114,7 @@ with dag:
         env_vars={
             "GOOGLE_ANALYTICS_CREDENTIALS": Variable.get("google_analytrics_apikey"),
             "QUERY_DEFS": json.dumps(website_query_defs),
+            "REP_CONN": None,
             "EXECUTION_DATE": "{{ ds }}",
         },
     )
