@@ -96,7 +96,7 @@ with dag:
 
     JOBS = [
         "echo Reporting task started: $(date)",
-        "pip install ga-reporting-etls==1.1.6",
+        "pip install ga-reporting-etls==1.1.7",
         "python3 -m nemo_reporting.google_analytics.etl",
         "mkdir -p /airflow/xcom/; echo l'[1,2,3,4]' > /airflow/xcom/return.json",
     ]
