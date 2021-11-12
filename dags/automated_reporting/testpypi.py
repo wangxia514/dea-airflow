@@ -5,10 +5,10 @@ testpypi
 """
 # The DAG object; we'll need this to instantiate a DAG
 from airflow import DAG
-from airflow.operators.python import PythonVirtualenvOperator
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
+
 from datetime import datetime as dt, timedelta
 from airflow.models import Variable
 
@@ -93,25 +93,23 @@ with dag:
         rep_conn=None,
     )
 
-    virtualenv_task = PythonVirtualenvOperator(
-        task_id="virtualenv_python",
-        python_callable=callable_virtualenv,
-        requirements=["ga-reporting-etls==1.1.3"],
-        system_site_packages=False,
-        op_kwargs=op_kwargs,
-    )
+    JOBS = [
+        "date",
+        "pip install ga-reporting-etls==1.1.4",
+        "python3 -m nemo_reporting.welcome Airflow",
+        "ls /etc",
+    ]
 
-    write_xcom = KubernetesPodOperator(
+    k8s_task = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
-        cmds=["pip", "install", "ga-reporting-etls"],
+        arguments=["bash", "-c", " &&\n".join(JOBS)],
         name="write-xcom",
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="write-xcom",
+        task_id="k8s_task",
         get_logs=True,
     )
 
-    write_xcom
-    virtualenv_task
+    k8s_task
