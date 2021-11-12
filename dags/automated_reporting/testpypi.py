@@ -12,6 +12,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 from datetime import datetime as dt, timedelta
 from airflow.models import Variable
 
+from airflow.kubernetes.secret import Secret
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
@@ -30,6 +31,15 @@ dag = DAG(
     tags=["reporting_tests"],
     default_args=default_args,
     schedule_interval=timedelta(minutes=15),
+    secrets=[
+        Secret(
+            "env",
+            "DB_NAME",
+            Variable.get("test_db_secret", deserialize_json=True),
+            "dbname",
+        ),
+        Secret("volume", "/etc/sql_conn", Variable.get("test_db_secret")),
+    ],
 )
 
 
@@ -97,8 +107,9 @@ with dag:
         "echo Reporting task started: $(date)",
         "pip install ga-reporting-etls==1.1.4",
         "python3 -m nemo_reporting.welcome Airflow",
-        "ls /etc",
-        "echo {{ ds }}",
+        "python3 -m nemo_reporting.etl {{ ds }}",
+        "echo $DB_NAME",
+        "cat /etc/sql_conn",
         "mkdir -p /airflow/xcom/; echo '[1,2,3,4]' > /airflow/xcom/return.json",
     ]
 
