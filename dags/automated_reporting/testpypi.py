@@ -3,6 +3,8 @@
 """
 testpypi
 """
+import json
+
 # The DAG object; we'll need this to instantiate a DAG
 from airflow import DAG
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
@@ -86,7 +88,7 @@ with dag:
         ],
     )
 
-    op_kwargs = dict(
+    task_context = dict(
         query_defs=website_query_defs,
         google_analytics_credentials=google_analytics_credentials,
         rep_conn=None,
@@ -95,9 +97,8 @@ with dag:
     JOBS = [
         "echo Reporting task started: $(date)",
         "pip install ga-reporting-etls==1.1.4",
-        "python3 -m nemo_reporting.welcome Airflow",
-        "echo $GOOGLE_ANALYTICS_CREDENTIALS",
-        "mkdir -p /airflow/xcom/; echo '[1,2,3,4]' > /airflow/xcom/return.json",
+        "python3 -m nemo_reporting.google_analytics.etl",
+        "mkdir -p /airflow/xcom/; echo l'[1,2,3,4]' > /airflow/xcom/return.json",
     ]
 
     k8s_task = KubernetesPodOperator(
@@ -110,7 +111,12 @@ with dag:
         in_cluster=True,
         task_id="k8s_task",
         get_logs=True,
-        env_vars={"GOOGLE_ANALYTICS_CREDENTIALS": Variable.get("test_db_secret")},
+        env_vars={
+            "GOOGLE_ANALYTICS_CREDENTIALS": Variable.get("google_analytrics_apikey"),
+            "REP_CONN": "None",
+            "QUERY_DEFS": json.dumps(website_query_defs),
+            "EXECUTION_DATE": "{{ ds }}",
+        },
     )
 
     k8s_task
