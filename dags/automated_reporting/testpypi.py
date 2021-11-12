@@ -98,6 +98,7 @@ with dag:
         "pip install ga-reporting-etls==1.1.4",
         "python3 -m nemo_reporting.welcome Airflow",
         "ls /etc",
+        "echo {{ ds }}",
         "mkdir -p /airflow/xcom/; echo '[1,2,3,4]' > /airflow/xcom/return.json",
     ]
 
