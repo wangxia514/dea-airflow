@@ -113,7 +113,6 @@ with dag:
         get_logs=True,
         env_vars={
             "GOOGLE_ANALYTICS_CREDENTIALS": Variable.get("google_analytrics_apikey"),
-            "REP_CONN": "None",
             "QUERY_DEFS": json.dumps(website_query_defs),
             "EXECUTION_DATE": "{{ ds }}",
         },
