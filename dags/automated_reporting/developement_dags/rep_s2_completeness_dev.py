@@ -111,7 +111,6 @@ with dag:
         task_id="compute_s2_l1_completeness",
         python_callable=s2_completeness_l1_task,
         op_kwargs=completeness_kwargs_l1,
-        provide_context=True,
     )
 
     completeness_kwargs_ard = {
@@ -131,7 +130,6 @@ with dag:
         task_id="compute_s2_ard_completeness",
         python_callable=s2_completeness_ard_task,
         op_kwargs=completeness_kwargs_ard,
-        provide_context=True,
     )
 
     completeness_kwargs_ard_prov = {
@@ -151,7 +149,6 @@ with dag:
         task_id="compute_s2_ard_completeness_prov",
         python_callable=s2_completeness_ard_task,
         op_kwargs=completeness_kwargs_ard_prov,
-        provide_context=True,
     )
 
     check_db >> [

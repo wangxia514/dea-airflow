@@ -88,7 +88,6 @@ with dag:
             task_id="expire_completeness_" + product_id,
             python_callable=expire_completeness_task,
             op_kwargs=expire_completeness_kwargs,
-            provide_context=True,
         )
 
     check_db >> [create_task(product_id) for product_id in products_list]

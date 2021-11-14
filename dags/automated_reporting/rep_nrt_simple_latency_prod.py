@@ -98,7 +98,6 @@ with dag:
             task_id="odc-latency_" + product_name,
             python_callable=odc_latency_task,
             op_kwargs=latency_kwargs,
-            provide_context=True,
         )
 
     sns_list = [("S2A_MSIL1C", "esa_s2a_msi_l1c"), ("S2B_MSIL1C", "esa_s2b_msi_l1c")]
@@ -117,7 +116,6 @@ with dag:
             task_id="sns-latency_" + product_id,
             python_callable=sns_latency_task,
             op_kwargs=latency_kwargs,
-            provide_context=True,
         )
 
     odc_tasks = [create_task(product_name) for product_name in products_list]
