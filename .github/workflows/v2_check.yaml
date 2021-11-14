@@ -74,6 +74,7 @@ jobs:
           airflow variables set 'db_rep_dev_secret' '{"pass":"PASS"}'
           airflow variables set 'db_rep_secret' '{"pass":"PASS"}'
           airflow variables set 'google_analytics_apikey' '{"pass":"PASS"}'
+          airflow variables set 'copernicus_api_password' '{"pass":"PASS"}'
           airflow info
           airflow dags list -v
 
