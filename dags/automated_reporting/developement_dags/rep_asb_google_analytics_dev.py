@@ -32,7 +32,7 @@ default_args = {
 dag = DAG(
     "rep_asb_google_analytics_dev",
     description="DAG pulling Google Analytics stats",
-    tags=["reporting_tests"],
+    tags=["reporting_dev"],
     default_args=default_args,
     schedule_interval="0 1 * * *",
 )
@@ -42,7 +42,7 @@ JOBS = [
     "echo Reporting task started: $(date)",
     f"pip install ga-reporting-etls=={REPORTING_PACKAGE_VERSION}",
     "python3 -m nemo_reporting.google_analytics.etl",
-    "mkdir -p /airflow/xcom/; echo '{\"status\": \"success\"}' > /airflow/xcom/return.json",
+    "mkdir -p /airflow/xcom/; echo '{\"exit_status\": '\"$?}\" > /airflow/xcom/return.json",
 ]
 
 with dag:

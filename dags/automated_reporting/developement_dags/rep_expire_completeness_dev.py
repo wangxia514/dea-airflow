@@ -40,7 +40,7 @@ default_args = {
 dag = DAG(
     "rep_expire_completeness_dev",
     description="Expire redundent completeness metrics",
-    tags=["reporting"],
+    tags=["reporting_dev"],
     default_args=default_args,
     schedule_interval="10 */2 * * *",  # try and avoid completeness generation
 )
