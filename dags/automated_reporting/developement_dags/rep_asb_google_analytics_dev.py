@@ -32,7 +32,7 @@ default_args = {
 dag = DAG(
     "rep_asb_google_analytics_dev",
     description="DAG pulling Google Analytics stats",
-    tags=["reporting_tests"],
+    tags=["reporting_dev"],
     default_args=default_args,
     schedule_interval="0 1 * * *",
 )

@@ -53,7 +53,7 @@ default_args = {
 dag = DAG(
     "rep_usgs_monitoring_dev",
     description="DAG for completeness and latency metric on USGS L1 C2 nrt product",
-    tags=["reporting"],
+    tags=["reporting_dev"],
     default_args=default_args,
     schedule_interval=timedelta(minutes=15),
 )

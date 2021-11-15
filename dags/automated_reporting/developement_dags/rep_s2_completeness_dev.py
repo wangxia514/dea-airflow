@@ -54,7 +54,7 @@ dag = DAG(
     "rep_s2_completeness_dev",
     description="Completeness metric on Sentinel nrt products: AWS ODC/Sentinel Catalog \
         -> AIRFLOW -> Reporting DB",
-    tags=["reporting"],
+    tags=["reporting_dev"],
     default_args=default_args,
     schedule_interval=timedelta(minutes=15),
     concurrency=1,

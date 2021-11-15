@@ -44,7 +44,7 @@ default_args = {
 dag = DAG(
     "rep_nrt_simple_latency_dev",
     description="DAG for simple latency metric on nrt products: AWS ODC -> AIRFLOW -> Reporting DB",
-    tags=["reporting"],
+    tags=["reporting_dev"],
     default_args=default_args,
     schedule_interval=timedelta(minutes=15),
 )
