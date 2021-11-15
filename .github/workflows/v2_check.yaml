@@ -71,6 +71,9 @@ jobs:
           airflow connections add 'db_rep_writer_prod' --conn-type 'postgres' --conn-login 'USERNAME' --conn-password 'PASS'
           airflow connections add 'db_odc_reader' --conn-type 'postgres' --conn-login 'USERNAME' --conn-password 'PASS'
           airflow variables set 'm2m_api_password' '{"pass":"PASS"}'
+          airflow variables set 'db_rep_dev_secret' '{"pass":"PASS"}'
+          airflow variables set 'db_rep_secret' '{"pass":"PASS"}'
+          airflow variables set 'google_analytics_apikey' '{"pass":"PASS"}'
           airflow variables set 'copernicus_api_password' '{"pass":"PASS"}'
           airflow info
           airflow dags list -v

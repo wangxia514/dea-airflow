@@ -119,7 +119,6 @@ with dag:
     usgs_acquisitions = PythonOperator(
         task_id="usgs_acquisitions",
         python_callable=usgs_acquisitions_task,
-        provide_context=True,
         op_kwargs=acquisitions_kwargs,
         task_concurrency=1,
     )
@@ -139,7 +138,6 @@ with dag:
     usgs_insert_acqs = PythonOperator(
         task_id="usgs_insert_acqs",
         python_callable=usgs_insert_acqs_xcom,
-        provide_context=True,
         op_kwargs=insert_acqs_kwargs,
     )
 
@@ -175,7 +173,6 @@ with dag:
     usgs_l1_completeness_ls8 = PythonOperator(
         task_id="usgs_l1_completeness_ls8",
         python_callable=usgs_l1_completeness_task,
-        provide_context=True,
         op_kwargs=usgs_l1_completness_ls8_kwargs,
     )
 
@@ -191,7 +188,6 @@ with dag:
     usgs_l1_completeness_ls7 = PythonOperator(
         task_id="usgs_l1_completeness_ls7",
         python_callable=usgs_l1_completeness_task,
-        provide_context=True,
         op_kwargs=usgs_l1_completness_ls7_kwargs,
     )
 
@@ -205,7 +201,6 @@ with dag:
     usgs_ard_completeness_ls8 = PythonOperator(
         task_id="usgs_ard_completeness_ls8",
         python_callable=usgs_ard_completeness_task,
-        provide_context=True,
         op_kwargs=usgs_ard_completness_ls8_kwargs,
     )
 
@@ -217,7 +212,6 @@ with dag:
     usgs_ard_completeness_ls7 = PythonOperator(
         task_id="usgs_ard_completeness_ls7",
         python_callable=usgs_ard_completeness_task,
-        provide_context=True,
         op_kwargs=usgs_ard_completness_ls7_kwargs,
     )
 
@@ -237,7 +231,6 @@ with dag:
     usgs_ls8_l1_latency = PythonOperator(
         task_id="usgs_ls8_l1_latency",
         python_callable=insert_ls8_l1_latency_xcom,
-        provide_context=True,
         op_kwargs=latency_kwargs,
     )
 
@@ -245,7 +238,6 @@ with dag:
     usgs_ls7_l1_latency = PythonOperator(
         task_id="usgs_ls7_l1_latency",
         python_callable=insert_ls7_l1_latency_xcom,
-        provide_context=True,
         op_kwargs=latency_kwargs,
     )
 
@@ -264,7 +256,6 @@ with dag:
     usgs_insert_hg_l0 = PythonOperator(
         task_id="usgs_insert_hg_l0",
         python_callable=usgs_insert_hg_l0_xcom,
-        provide_context=True,
         op_kwargs=completeness_kwargs,
     )
 
