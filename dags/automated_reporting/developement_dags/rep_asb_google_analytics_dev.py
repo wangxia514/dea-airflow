@@ -40,9 +40,10 @@ dag = DAG(
 # fmt: off
 JOBS = [
     "echo Reporting task started: $(date)",
+    "mkdir -p /airflow/xcom/",
     f"pip install ga-reporting-etls=={REPORTING_PACKAGE_VERSION}",
     "python3 -m nemo_reporting.google_analytics.etl",
-    "mkdir -p /airflow/xcom/; echo '{\"exit_status\": '\"$?}\" > /airflow/xcom/return.json",
+    "echo '{\"exit_status\": '\"$?}\" > /airflow/xcom/return.json",
 ]
 
 with dag:
