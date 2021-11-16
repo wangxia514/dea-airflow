@@ -21,7 +21,7 @@ GOOGLE_ANALYTICS_CREDENTIALS_STR = Variable.get("google_analytics_apikey")
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt(2021, 11, 1),
+    "start_date": dt(2021, 1, 1),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
