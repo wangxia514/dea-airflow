@@ -25,7 +25,7 @@ default_args = {
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
-    "retries": 2,
+    "retries": 3,
     "retry_delay": timedelta(minutes=60),
 }
 
@@ -141,6 +141,7 @@ with dag:
             is_delete_operator_pod=True,
             in_cluster=True,
             task_id=task_def["id"],
+            startup_timeout_seconds=120,
             get_logs=True,
             env_vars={
                 "GOOGLE_ANALYTICS_CREDENTIALS": GOOGLE_ANALYTICS_CREDENTIALS_STR,
