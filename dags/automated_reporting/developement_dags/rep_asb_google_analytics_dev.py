@@ -15,17 +15,17 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 from airflow.models import Variable
 
 REP_CONN_STR = Variable.get("db_rep_dev_secret")
-REPORTING_PACKAGE_VERSION = "1.1.7"
+REPORTING_PACKAGE_VERSION = "1.1.8"
 GOOGLE_ANALYTICS_CREDENTIALS_STR = Variable.get("google_analytics_apikey")
 
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt(2021, 11, 1),
+    "start_date": dt(2021, 1, 1),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
-    "retries": 2,
+    "retries": 3,
     "retry_delay": timedelta(minutes=60),
 }
 
@@ -40,9 +40,10 @@ dag = DAG(
 # fmt: off
 JOBS = [
     "echo Reporting task started: $(date)",
+    "mkdir -p /airflow/xcom/",
     f"pip install ga-reporting-etls=={REPORTING_PACKAGE_VERSION}",
     "python3 -m nemo_reporting.google_analytics.etl",
-    "mkdir -p /airflow/xcom/; echo '{\"exit_status\": '\"$?}\" > /airflow/xcom/return.json",
+    "echo '{\"exit_status\": '\"$?}\" > /airflow/xcom/return.json",
 ]
 
 with dag:
@@ -85,6 +86,7 @@ with dag:
             query_defs=dict(
                 view_id='184682265',  # AusSeabed Website All Data
                 name="AusSeabed Marine Portal",
+                landing_page="/persona/marine",
                 # List of dimensions and table to import data into
                 dimensions=[
                         dict(name=None,
@@ -134,11 +136,12 @@ with dag:
             namespace="processing",
             image="python:3.8-slim-buster",
             arguments=["bash", "-c", " &&\n".join(JOBS)],
-            name="write-xcom",
+            name="asb_google_analytics",
             do_xcom_push=True,
             is_delete_operator_pod=True,
             in_cluster=True,
             task_id=task_def["id"],
+            startup_timeout_seconds=120,
             get_logs=True,
             env_vars={
                 "GOOGLE_ANALYTICS_CREDENTIALS": GOOGLE_ANALYTICS_CREDENTIALS_STR,
