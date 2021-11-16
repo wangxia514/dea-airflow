@@ -136,7 +136,7 @@ with dag:
             namespace="processing",
             image="python:3.8-slim-buster",
             arguments=["bash", "-c", " &&\n".join(JOBS)],
-            name="write-xcom",
+            name="google_analytics",
             do_xcom_push=True,
             is_delete_operator_pod=True,
             in_cluster=True,
