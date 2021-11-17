@@ -46,7 +46,10 @@ schedule_interval = "0 10 * * *"
 
 params["index_arg"] = ""  # No indexing
 
-use_test_db = True   # False
+# "" means no ard is produced.
+params["run_ard_arg"] = ""
+
+use_test_db = False
 if use_test_db:
     params[
         "index_arg"
@@ -64,6 +67,7 @@ if use_test_db:
 
 # params["days_to_exclude_arg"] = ""
 #  if you use it it looks like """--days-to-exclude '["2020-06-26:2020-06-26"]'"""
+
 params["run_ard_arg"] = ""
 
 aws_develop = True
