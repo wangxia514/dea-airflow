@@ -52,7 +52,7 @@ from infra.variables import (
 )
 
 # Requested memory. Memory limit is twice this.
-CONFLUX_POD_MEMORY_MB = 6000
+CONFLUX_POD_MEMORY_MB = 3000
 
 # DAG CONFIGURATION
 SECRETS = {
