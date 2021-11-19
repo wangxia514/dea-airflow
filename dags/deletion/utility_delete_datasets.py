@@ -101,6 +101,8 @@ DELETE_DATASETS_CMD = [
 
         # start sql execution
         PGPASSWORD=$DB_PASSWORD psql -d $DB_DATABASE -U $DB_USERNAME -h $DB_HOSTNAME <<EOF
+        -- Error out if something goes wrong
+        \\set ON_ERROR_STOP on
 
         BEGIN;
         CREATE TEMPORARY TABLE to_delete (
@@ -110,7 +112,7 @@ DELETE_DATASETS_CMD = [
             location varchar,
             primary key (id)
         );
-        \\copy to_delete(id, status, product, location) FROM 'search_result.csv' DELIMITER ',' CSV HEADER;
+        \\copy to_delete(id, status, product, location) FROM '/tmp/search_result.csv' DELIMITER ',' CSV HEADER;
         DELETE FROM agdc.dataset_location WHERE dataset_ref IN (SELECT id FROM to_delete);
         DELETE FROM agdc.dataset_source WHERE source_dataset_ref IN (SELECT id FROM to_delete);
         DELETE FROM agdc.dataset_source WHERE dataset_ref IN (SELECT id FROM to_delete);
