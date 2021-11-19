@@ -98,18 +98,31 @@ DELETE_DATASETS_CMD = [
         """
         # get dataset ids
         datacube dataset search {{ dag_run.conf.dataset_search_query }} -f csv > /tmp/search_result.csv;
-        cat /tmp/search_result.csv | awk -F',' '{print $1}' | sed '1d' > /tmp/datasets.list;
-        sed -e "s/^/'/" -e "s/ /' '/g" -e 's/$/'"'"'/' /tmp/datasets.list > /tmp/datasets.txt
-        tr '\n' ',' < /tmp/datasets.txt > /tmp/id.list
-        sed s/,$// /tmp/id.list > /tmp/ids.list
 
         # start sql execution
-        PGPASSWORD=$DB_PASSWORD psql -d $DB_DATABASE -U $DB_USERNAME -h $DB_HOSTNAME -c "DELETE FROM agdc.dataset_location WHERE dataset_ref IN (`cat /tmp/ids.list`);"
-        PGPASSWORD=$DB_PASSWORD psql -d $DB_DATABASE -U $DB_USERNAME -h $DB_HOSTNAME -c "DELETE FROM agdc.dataset_source WHERE source_dataset_ref IN (`cat /tmp/ids.list`) OR dataset_ref IN (`cat /tmp/ids.list`);"
-        PGPASSWORD=$DB_PASSWORD psql -d $DB_DATABASE -U $DB_USERNAME -h $DB_HOSTNAME -c "DELETE FROM agdc.dataset WHERE id IN (`cat /tmp/ids.list`);"
+        PGPASSWORD=$DB_PASSWORD psql -d $DB_DATABASE -U $DB_USERNAME -h $DB_HOSTNAME <<EOF
+
+        BEGIN;
+        CREATE TEMPORARY TABLE to_delete (
+            id uuid,
+            status varchar,
+            product varchar,
+            location varchar,
+            primary key (id)
+        );
+        \\copy to_delete(id, status, product, location) FROM 'search_result.csv' DELIMITER ',' CSV HEADER;
+        DELETE FROM agdc.dataset_location WHERE dataset_ref IN (SELECT id FROM to_delete);
+        DELETE FROM agdc.dataset_source WHERE source_dataset_ref IN (SELECT id FROM to_delete);
+        DELETE FROM agdc.dataset_source WHERE dataset_ref IN (SELECT id FROM to_delete);
+        DELETE FROM agdc.dataset WHERE id IN (SELECT id FROM to_delete);
+        end;
+        EOF
         """
     ),
 ]
+
+"""
+"""
 
 # THE DAG
 dag = DAG(
