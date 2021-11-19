@@ -79,7 +79,7 @@ ancillary_volume_mount = V1VolumeMount(
 ancillary_volume = V1Volume(
     name="wagl-nrt-ancillary-volume",
     persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(
-        claim_name="wagl-nrt-ancillary-volume"
+        claim_name="wagl-nrt-ancillary-volume-pvc"
     ),
 )
 

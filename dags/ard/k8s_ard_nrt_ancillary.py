@@ -223,7 +223,7 @@ ancillary_volume_mount = k8s.V1VolumeMount(
 ancillary_volume = k8s.V1Volume(
     name="wagl-nrt-ancillary-volume",
     persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(
-        claim_name="wagl-nrt-ancillary-volume"
+        claim_name="wagl-nrt-ancillary-volume-pvc"
     ),
 )
 

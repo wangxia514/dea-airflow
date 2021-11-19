@@ -81,7 +81,7 @@ s3_backup_volume_mount = k8s.V1VolumeMount(
 
 s3_backup_volume = k8s.V1Volume(name="s3-backup-volume",
                                 persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(
-                                    claim_name="s3-backup-volume"
+                                    claim_name="s3-backup-volume-pvc"
                                 ))
 
 with dag:
