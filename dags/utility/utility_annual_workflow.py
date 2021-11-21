@@ -95,9 +95,9 @@ with dag:
             # "cemp_insar_alos_displacement",
             # Jinja templates for arguments
             "--skip-lineage",
+            "--no-sign-request",
             "{{ dag_run.conf.s3_glob }}",
             "{{ dag_run.conf.product }}",
-            "--no-sign-request",
         ],
         name="datacube-index",
         task_id="batch-indexing-task",

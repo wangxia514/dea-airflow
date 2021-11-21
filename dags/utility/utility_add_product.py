@@ -15,14 +15,14 @@ All list of utility dags here: https://github.com/GeoscienceAustralia/dea-airflo
 There are three configuration arguments:
 
 - `product_definition_uri`: A HTTP/S url to a Product Definition YAML *(Optional)*
-- `s3_glob`: An S3 URL or Glob pattern, as recognised by `s3-to-dc` *(Optional)*
+- `s3_glob`: An S3 URL or Glob pattern, as recognised by `s3-to-dc` *(Optional)* example valid s3_glob can be find here : https://github.com/opendatacube/odc-tools/blob/3b2c4856147eba5ee5ae5337d763e2311737dcd5/apps/cloud/odc/apps/cloud/s3_find.py#L19-L43
 - `product_name`: The name of the product
-- `skip_lineage`: Flag, if passesd in config, linage will be skipped in indexing
+- `flags`: Flag, if passesd in config, linage will be skipped in indexing *(Optional)* valid flags can be find here: https://github.com/opendatacube/odc-tools/blob/218ef9c85e5ebcbea00efb1297f7ed073f58d706/apps/dc_tools/README.md#s3-to-dc
 
 The commands which are executed are:
 
 1. `datacube product add`
-2. `s3-to-dc --no-sign-request`
+2. `s3-to-dc`
 3. update explorer
 
 
@@ -32,14 +32,14 @@ Usecase A: Need to add a product then index its' datasets.
 
     {
         "product_definition_uri": "https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/master/products/lccs/lc_ls_c2.odc-product.yaml",
-        "s3_glob": "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
+        "s3_glob": "s3://dea-public-data/cemp_insar/insar/displacement/alos/**/*.yaml",
         "product_name": "lc_ls_landcover_class_cyear_2_0"
     }
 
 Usecase B: Only needs to index additional datasets to an existing product.
 
     {
-        "s3_glob": "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
+        "s3_glob": "s3://dea-public-data/cemp_insar/insar/displacement/alos/**/*.yaml",
         "product_name": "lc_ls_landcover_class_cyear_2_0"
     }
 
@@ -50,13 +50,13 @@ Usecase C: Only need to add a product in this run, no datasets are ready for ind
         "product_name": "lc_ls_landcover_class_cyear_2_0"
     }
 
-### Flag
+### Flags
 
-Indexing with skip-lineage enabled, works for usecase A and B,
+Indexing with s3-to-dc cli flags, works for usecase where indexing is performed, for details of all the available flag options https://github.com/opendatacube/odc-tools/blob/218ef9c85e5ebcbea00efb1297f7ed073f58d706/apps/dc_tools/README.md#s3-to-dc
 
     {
-        "s3_glob": "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
-        "skip_lineage": "Yes",
+        "s3_glob": "s3://dea-public-data/cemp_insar/insar/displacement/alos/**/*.yaml",
+        "flags": "--skip-lineages --no-sign-request",
         "product_name": "lc_ls_landcover_class_cyear_2_0"
     }
 
@@ -65,6 +65,8 @@ Indexing with skip-lineage enabled, works for usecase A and B,
 from datetime import datetime, timedelta
 
 from airflow import DAG
+from textwrap import dedent
+
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
@@ -85,6 +87,8 @@ from infra.variables import (
     DB_PORT,
 )
 from dea_utils.update_explorer_summaries import explorer_refresh_operator
+
+INDEXER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/datacube-index:0.0.21"
 
 ADD_PRODUCT_TASK_ID = "add-product-task"
 
@@ -114,6 +118,17 @@ DEFAULT_ARGS = {
         Secret("env", "DB_PASSWORD", SECRET_ODC_WRITER_NAME, "postgres-password"),
     ],
 }
+
+S3_TO_DC_CMD = [
+    "bash",
+    "-c",
+    dedent(
+        """
+        s3-to-dc {% if dag_run.conf.get('flags') %} {{ dag_run.conf.flags }}{% endif %} {{ dag_run.conf.s3_glob }} {{ dag_run.conf.product_name }}
+        """
+    ),
+]
+
 
 # THE DAG
 dag = DAG(
@@ -177,16 +192,7 @@ with dag:
         image=INDEXER_IMAGE,
         image_pull_policy="IfNotPresent",
         labels={"step": "s3-to-dc"},
-        cmds=["s3-to-dc"],
-        arguments=[
-            # "s3://dea-public-data/cemp_insar/insar/displacement/alos//**/*.yaml",
-            # "cemp_insar_alos_displacement",
-            # Jinja templates for arguments
-            "--no-sign-request",
-            # "{% if dag_run.conf.get('skip_lineage') %}--skip-lineage{% endif %}",
-            "{{ dag_run.conf.s3_glob }}",
-            "{{ dag_run.conf.product_name }}",
-        ],
+        arguments=S3_TO_DC_CMD,
         name="datacube-index",
         task_id=INDEXING_TASK_ID,
         get_logs=True,
