@@ -17,7 +17,7 @@ There are three configuration arguments:
 - `product_definition_uri`: A HTTP/S url to a Product Definition YAML *(Optional)*
 - `s3_glob`: An S3 URL or Glob pattern, as recognised by `s3-to-dc` *(Optional)* example valid s3_glob can be find here : https://github.com/opendatacube/odc-tools/blob/3b2c4856147eba5ee5ae5337d763e2311737dcd5/apps/cloud/odc/apps/cloud/s3_find.py#L19-L43
 - `product_name`: The name of the product
-- `flags`: Flag, if passesd in config, linage will be skipped in indexing, valid flags can be find here: https://github.com/opendatacube/odc-tools/blob/218ef9c85e5ebcbea00efb1297f7ed073f58d706/apps/dc_tools/README.md#s3-to-dc
+- `flags`: Flag, if passesd in config, linage will be skipped in indexing *(Optional)* valid flags can be find here: https://github.com/opendatacube/odc-tools/blob/218ef9c85e5ebcbea00efb1297f7ed073f58d706/apps/dc_tools/README.md#s3-to-dc
 
 The commands which are executed are:
 
@@ -65,6 +65,8 @@ Indexing with s3-to-dc cli flags, works for usecase where indexing is performed,
 from datetime import datetime, timedelta
 
 from airflow import DAG
+from textwrap import dedent
+
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
