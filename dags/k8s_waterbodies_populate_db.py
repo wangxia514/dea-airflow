@@ -89,7 +89,7 @@ def k8s_stack(dag):
         "-c",
         dedent(
             """
-            if ["True" = "{{ dag_run.conf.get("drop", False) }}" ]; then
+            if [ "True" = "{{ dag_run.conf.get("drop", False) }}" ]; then
                 # drop the database
                 echo Dropping database...
                 dea-conflux stack --parquet-path {{ dag_run.conf["dir"] }} \
