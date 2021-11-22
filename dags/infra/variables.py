@@ -74,6 +74,9 @@ COP_API_REP_CREDS = "copernicus_api_password"
 WATERBODIES_DEV_USER_SECRET = Variable.get(
     "waterbodies_dev_user_secret", default_var="waterbodies-dev-user-creds"
 )
+WATERBODIES_DB_WRITER_SECRET = Variable.get(
+    "waterbodies_writer", default_var="waterbodies-writer"
+)
 
 # stats
 PROCESSING_STATS_USER_SECRET = Variable.get(
