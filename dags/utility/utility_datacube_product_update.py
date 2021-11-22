@@ -14,7 +14,7 @@ datacube -v product update \
 odc-tools command used for `dataset update`
 ```
 s3-to-dc --allow-unsafe --update-if-exists --no-sign-request \
-    s3://dea-public-data-dev/s2be//**/*.yaml s2_barest_earth
+    s3://dea-public-data-dev/s2be/**/*.yaml s2_barest_earth
 ```
 
 ## Note
