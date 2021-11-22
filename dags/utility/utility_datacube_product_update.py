@@ -14,7 +14,7 @@ datacube -v product update \
 odc-tools command used for `dataset update`
 ```
 s3-to-dc --allow-unsafe --update-if-exists --no-sign-request \
-    s3://dea-public-data-dev/s2be//**/*.yaml s2_barest_earth
+    s3://dea-public-data-dev/s2be/**/*.yaml s2_barest_earth
 ```
 
 ## Note
@@ -88,6 +88,7 @@ from infra.variables import (
 from infra.podconfig import (
     ONDEMAND_NODE_AFFINITY,
 )
+from dea_utils.s3_find_check import s3_find_operator
 
 DAG_NAME = "utility_datacube_product_dataset_update"
 

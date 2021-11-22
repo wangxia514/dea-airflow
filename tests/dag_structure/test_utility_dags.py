@@ -4,7 +4,7 @@ from utility.utility_explorer_summary import dag as explorer_utility_dag
 from utility.utility_annual_workflow import dag as annual_utility_dag
 from utility.utility_odc_db_backup_to_s3 import dag as db_backup_utility_dag
 
-# from utility.utility_add_product import dag as add_product_index_utility_dag
+from utility.utility_add_product import dag as add_product_index_utility_dag
 
 
 class testClass(unittest.TestCase):
@@ -63,13 +63,14 @@ class testClass(unittest.TestCase):
             db_backup_utility_dag,
         )
 
-    # def test_add_product_index_utility_dag(self):
-    #     self.assertDagDictEqual(
-    #         {
-    #             "check_dagrun_config": ["add-product-task", "batch-indexing-task"],
-    #             "add-product-task": ["batch-indexing-task"],
-    #             "batch-indexing-task": ["explorer-summary-task"],
-    #             "explorer-summary-task": [],
-    #         },
-    #         add_product_index_utility_dag,
-    #     )
+    def test_add_product_index_utility_dag(self):
+        self.assertDagDictEqual(
+            {
+                "check_dagrun_config": ["add-product-task", "s3-glob-validator-task"],
+                "add-product-task": ["s3-glob-validator-task"],
+                "s3-glob-validator-task": ["batch-indexing-task"],
+                "batch-indexing-task": ["explorer-summary-task"],
+                "explorer-summary-task": [],
+            },
+            add_product_index_utility_dag,
+        )
