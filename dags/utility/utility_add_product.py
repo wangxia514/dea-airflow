@@ -22,7 +22,7 @@ There are three configuration arguments:
 The commands which are executed are:
 
 1. `datacube product add`
-2. `s3-to-dc`
+2. `s3-to-dc --no-sign-request` (no iamrole provided)
 3. update explorer
 
 
@@ -52,11 +52,11 @@ Usecase C: Only need to add a product in this run, no datasets are ready for ind
 
 ### Flags
 
-Indexing with s3-to-dc cli flags, works for usecase where indexing is performed, for details of all the available flag options https://github.com/opendatacube/odc-tools/blob/218ef9c85e5ebcbea00efb1297f7ed073f58d706/apps/dc_tools/README.md#s3-to-dc
+Indexing with s3-to-dc cli flags, `--no-sign-request` flag is provided by default works for usecase where indexing is performed, for details of all the available flag options https://github.com/opendatacube/odc-tools/blob/218ef9c85e5ebcbea00efb1297f7ed073f58d706/apps/dc_tools/README.md#s3-to-dc
 
     {
         "s3_glob": "s3://dea-public-data/cemp_insar/insar/displacement/alos/**/*.yaml",
-        "flags": "--skip-lineages --no-sign-request",
+        "flags": "--skip-lineages",
         "product_name": "lc_ls_landcover_class_cyear_2_0"
     }
 
@@ -127,7 +127,7 @@ S3_TO_DC_CMD = [
     "-c",
     dedent(
         """
-        s3-to-dc {% if dag_run.conf.get('flags') %} {{ dag_run.conf.flags }}{% endif %} {{ dag_run.conf.s3_glob }} {{ dag_run.conf.product_name }}
+        s3-to-dc --no-sign-request {% if dag_run.conf.get('flags') %} {{ dag_run.conf.flags }}{% endif %} {{ dag_run.conf.s3_glob }} {{ dag_run.conf.product_name }}
         """
     ),
 ]
