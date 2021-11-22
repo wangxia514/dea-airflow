@@ -25,7 +25,7 @@ def s3_find_operator(s3_glob):
             f"""
             COUNT=`s3-find --no-sign-request {s3_glob} | wc -l`
             if [ $COUNT -eq 0 ]; then
-                echo no file found
+                echo no file found for s3_glob {s3_glob}
                 exit 1
             else
                 echo $COUNT files found
