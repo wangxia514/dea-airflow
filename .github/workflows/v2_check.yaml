@@ -72,6 +72,7 @@ jobs:
           airflow connections add 'db_odc_reader' --conn-type 'postgres' --conn-login 'USERNAME' --conn-password 'PASS'
           airflow variables set 'm2m_api_password' '{"pass":"PASS"}'
           airflow variables set 'copernicus_api_password' '{"pass":"PASS"}'
+          airflow variables set 'google_analytics_apikey' '{"pass":"PASS"}'
           airflow info
           airflow dags list -v
 
