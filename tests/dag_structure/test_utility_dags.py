@@ -62,13 +62,13 @@ class testClass(unittest.TestCase):
             db_backup_utility_dag,
         )
 
-    def test_add_product_index_utility_dag(self):
-        self.assertDagDictEqual(
-            {
-                "check_dagrun_config": ["add-product-task", "batch-indexing-task"],
-                "add-product-task": ["batch-indexing-task"],
-                "batch-indexing-task": ["explorer-summary-task"],
-                "explorer-summary-task": [],
-            },
-            add_product_index_utility_dag,
-        )
+    # def test_add_product_index_utility_dag(self):
+    #     self.assertDagDictEqual(
+    #         {
+    #             "check_dagrun_config": ["add-product-task", "batch-indexing-task"],
+    #             "add-product-task": ["batch-indexing-task"],
+    #             "batch-indexing-task": ["explorer-summary-task"],
+    #             "explorer-summary-task": [],
+    #         },
+    #         add_product_index_utility_dag,
+    #     )

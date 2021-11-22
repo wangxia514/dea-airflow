@@ -6,6 +6,7 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 
 from infra.images import INDEXER_IMAGE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
+from airflow.utils.trigger_rule import TriggerRule
 
 
 def s3_find_operator(s3_glob):
@@ -31,4 +32,5 @@ def s3_find_operator(s3_glob):
         is_delete_operator_pod=True,
         affinity=ONDEMAND_NODE_AFFINITY,
         log_events_on_failure=True,
+        trigger_rule=TriggerRule.NONE_FAILED_OR_SKIPPED,  # Needed in case add product was skipped
     )
