@@ -88,7 +88,6 @@ from infra.variables import (
 from infra.podconfig import (
     ONDEMAND_NODE_AFFINITY,
 )
-from dea_utils.s3_find_check import s3_find_operator
 
 DAG_NAME = "utility_datacube_product_dataset_update"
 
