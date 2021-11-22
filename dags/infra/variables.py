@@ -79,3 +79,7 @@ WATERBODIES_DEV_USER_SECRET = Variable.get(
 PROCESSING_STATS_USER_SECRET = Variable.get(
     "processing_stats_user_secret", default_var="processing-aws-creds-stats"
 )
+
+google_analytics_credentials = Variable.get(
+    "google_analytics_apikey", deserialize_json=True
+)
