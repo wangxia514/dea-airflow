@@ -4,6 +4,8 @@ A reusable Task for checking s3_glob
 
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 
+from textwrap import dedent
+
 from infra.images import INDEXER_IMAGE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
@@ -19,7 +21,17 @@ def s3_find_operator(s3_glob):
     S3_FIND_BASH_COMMAND = [
         "bash",
         "-c",
-        f"s3-find --no-sign-request {s3_glob}",
+        dedent(
+            f"""
+            COUNT=`s3-find --no-sign-request {s3_glob} | wc -l`
+            if [ $COUNT -eq 0 ]; then
+                echo no file found
+                exit 1
+            else
+                echo $COUNT files found
+            fi
+            """
+        ),
     ]
 
     return KubernetesPodOperator(
