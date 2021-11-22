@@ -3,7 +3,8 @@ from utility.utility_ows_update_extent import dag as ows_utility_dag
 from utility.utility_explorer_summary import dag as explorer_utility_dag
 from utility.utility_annual_workflow import dag as annual_utility_dag
 from utility.utility_odc_db_backup_to_s3 import dag as db_backup_utility_dag
-from utility.utility_add_product import dag as add_product_index_utility_dag
+
+# from utility.utility_add_product import dag as add_product_index_utility_dag
 
 
 class testClass(unittest.TestCase):
