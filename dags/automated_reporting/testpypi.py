@@ -53,7 +53,7 @@ def callable_virtualenv(**kwargs):
 
 
 google_analytics_credentials = Variable.get(
-    "google_analytrics_apikey", deserialize_json=True
+    "google_analytics_apikey", deserialize_json=True
 )
 
 
@@ -113,7 +113,7 @@ with dag:
         task_id="k8s_task",
         get_logs=True,
         env_vars={
-            "GOOGLE_ANALYTICS_CREDENTIALS": Variable.get("google_analytrics_apikey"),
+            "GOOGLE_ANALYTICS_CREDENTIALS": Variable.get("google_analytics_apikey"),
             "QUERY_DEFS": json.dumps(website_query_defs),
             "REP_CONN": None,
             "EXECUTION_DATE": "{{ ds }}",
