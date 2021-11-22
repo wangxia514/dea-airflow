@@ -87,6 +87,7 @@ from infra.variables import (
     DB_PORT,
 )
 from dea_utils.update_explorer_summaries import explorer_refresh_operator
+from dea_utils.s3_find_check import s3_find_operator
 
 INDEXER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/datacube-index:0.0.21"
 
@@ -187,6 +188,8 @@ with dag:
         is_delete_operator_pod=True,
     )
 
+    S3_GLOB_VALIDATOR = s3_find_operator("{{ dag_run.conf.s3_glob }}")
+
     INDEXING = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
@@ -203,5 +206,5 @@ with dag:
 
     EXPLORER_SUMMARY = explorer_refresh_operator("{{ dag_run.conf.product_name }}")
 
-    TASK_PLANNER >> [ADD_PRODUCT, INDEXING]
-    ADD_PRODUCT >> INDEXING >> EXPLORER_SUMMARY
+    TASK_PLANNER >> [ADD_PRODUCT, S3_GLOB_VALIDATOR]
+    ADD_PRODUCT >> S3_GLOB_VALIDATOR >> INDEXING >> EXPLORER_SUMMARY
