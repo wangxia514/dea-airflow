@@ -93,6 +93,8 @@ INDEXER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/
 
 ADD_PRODUCT_TASK_ID = "add-product-task"
 
+S3_GLOB_VALIDATOR_TASK_ID = "s3-glob-validator-task"
+
 INDEXING_TASK_ID = "batch-indexing-task"
 
 DAG_NAME = "utility_add_product_index_dataset_explorer_update"
@@ -147,11 +149,11 @@ def check_dagrun_config(product_definition_uri, s3_glob, **kwargs):
     determine task needed to perform
     """
     if product_definition_uri and s3_glob:
-        return [ADD_PRODUCT_TASK_ID, INDEXING_TASK_ID]
+        return [ADD_PRODUCT_TASK_ID, S3_GLOB_VALIDATOR_TASK_ID]
     elif product_definition_uri:
         return ADD_PRODUCT_TASK_ID
     elif s3_glob:
-        return INDEXING_TASK_ID
+        return S3_GLOB_VALIDATOR_TASK_ID
 
 
 CHECK_DAGRUN_CONFIG = "check_dagrun_config"
