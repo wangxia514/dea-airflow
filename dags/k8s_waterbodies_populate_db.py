@@ -5,6 +5,9 @@ Supported configuration arguments:
 
 dir
     Parquet directory. REQUIRED - no default.
+
+drop
+    Whether to drop the table first. Default False.
 """
 from datetime import datetime, timedelta
 
@@ -86,8 +89,15 @@ def k8s_stack(dag):
         "-c",
         dedent(
             """
-            dea-conflux stack --parquet-path {{ dag_run.conf["dir"] }} \
-                --mode waterbodies_db
+            if ["True" = "{{ dag_run.conf.get("drop", False) }}" ]; then
+                # drop the database
+                echo Dropping database...
+                dea-conflux stack --parquet-path {{ dag_run.conf["dir"] }} \
+                    --mode waterbodies_db --drop
+            else
+                dea-conflux stack --parquet-path {{ dag_run.conf["dir"] }} \
+                    --mode waterbodies_db
+            fi
             """
         ),
     ]
