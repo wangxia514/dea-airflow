@@ -7,7 +7,6 @@ values and the aoi summary values.
 """
 
 import logging
-from datetime import datetime as dt
 from datetime import timedelta
 import pendulum
 
