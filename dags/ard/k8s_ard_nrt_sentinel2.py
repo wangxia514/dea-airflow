@@ -227,7 +227,7 @@ with pipeline:
         tolerations=tolerations,
         startup_timeout_seconds=600,
         # this is the wagl_nrt user in the wagl container
-        security_context=dict(runAsUser=10015, runAsGroup=10015, fsGroup=10015),
+        security_context=dict(runAsUser=1000, runAsGroup=1000, fsGroup=1000),
         cmds=["/scripts/process-scene.sh"],
         arguments=[
             "{{ task_instance.xcom_pull(task_ids='receive_task', key='args')['granule_url'] }}",
