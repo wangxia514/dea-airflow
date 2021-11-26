@@ -24,7 +24,6 @@ from textwrap import dedent
 from infra.images import CONFLUX_UNSTABLE_IMAGE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.variables import (
-    DB_HOSTNAME,
     AWS_DEFAULT_REGION,
     DB_PORT,
     WATERBODIES_DEV_USER_SECRET,
