@@ -7,8 +7,8 @@ values and the aoi summary values.
 """
 
 import logging
-from datetime import datetime as dt
-from datetime import timedelta, timezone
+from datetime import timedelta
+import pendulum
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
@@ -29,7 +29,7 @@ log = logging.getLogger("airflow.task")
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt(2021, 7, 12, tzinfo=timezone.utc),
+    "start_date": pendulum.datetime(2021, 7, 12),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
