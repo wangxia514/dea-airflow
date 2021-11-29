@@ -141,7 +141,7 @@ dag = DAG(
     schedule_interval=None,  # manually trigger it every year
     catchup=False,
     tags=["k8s", "ls-c3-wofs-summary", "submit-stat-task"],
-    params={"labels": {"env": "dev"}},
+    params={"env": "dev"},
 )
 
 dag.trigger_arguments = {
