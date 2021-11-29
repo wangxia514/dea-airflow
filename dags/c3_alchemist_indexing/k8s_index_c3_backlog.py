@@ -15,10 +15,10 @@ from infra.images import INDEXER_IMAGE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
 DEFAULT_ARGS = {
-    "owner": "Alex Leith",
+    "owner": "Damien Ayers (from Alex)",
     "depends_on_past": False,
     "start_date": datetime(2020, 6, 14),
-    "email": ["alex.leith@ga.gov.au"],
+    "email": ["damien.ayers@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,

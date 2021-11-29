@@ -11,7 +11,9 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from airflow.operators.dummy_operator import DummyOperator
 from infra.variables import (
     DB_HOSTNAME,
@@ -22,10 +24,10 @@ from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.images import INDEXER_IMAGE
 
 DEFAULT_ARGS = {
-    "owner": "Alex Leith",
+    "owner": "Damien Ayers (from Alex)",
     "depends_on_past": False,
     "start_date": datetime(2020, 6, 1),
-    "email": ["alex.leith@ga.gov.au"],
+    "email": ["damien.ayers@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 1,

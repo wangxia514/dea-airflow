@@ -43,7 +43,7 @@ from infra.podconfig import ONDEMAND_NODE_AFFINITY
 
 
 DEFAULT_ARGS = {
-    "owner": "Alex Leith",
+    "owner": "Damien Ayers (from Alex)",
     "depends_on_past": False,
     "start_date": datetime(2020, 10, 1),
     "email": ["damien.ayers@ga.gov.au"],
