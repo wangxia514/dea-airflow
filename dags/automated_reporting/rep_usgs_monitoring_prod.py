@@ -10,7 +10,8 @@ This DAG
 """
 import os
 import pathlib
-from datetime import datetime as dt, timedelta, timezone
+from datetime import datetime as dt, timedelta
+import pendulum
 
 from airflow import DAG
 from airflow.configuration import conf
@@ -39,10 +40,12 @@ from automated_reporting.tasks.usgs_aquisitions import task as usgs_acquisitions
 from automated_reporting.tasks.usgs_insert_hg_l0 import task as usgs_insert_hg_l0_task
 from automated_reporting.tasks.usgs_insert_acqs import task as usgs_insert_acqs_task
 
+utc_tz = pendulum.timezone("UTC")
+
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt(2021, 8, 16, tzinfo=timezone.utc),
+    "start_date": dt(2021, 8, 16, tzinfo=utc_tz),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
