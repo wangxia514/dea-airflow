@@ -82,3 +82,8 @@ WATERBODIES_DB_WRITER_SECRET = Variable.get(
 PROCESSING_STATS_USER_SECRET = Variable.get(
     "processing_stats_user_secret", default_var="processing-aws-creds-stats"
 )
+
+# automated-reporting
+AWS_STATS_SECRET = Variable.get(
+    "aws_stats_secret", default_var="aws-stats"
+)  # qa
