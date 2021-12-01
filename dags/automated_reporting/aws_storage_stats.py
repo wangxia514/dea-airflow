@@ -35,7 +35,7 @@ dag = DAG(
     description="DAG for aws storage stats",
     tags=["aws_storage_stats"],
     default_args=default_args,
-    schedule_interval=timedelta(None),
+    schedule_interval=None,
 )
 
 with dag:
