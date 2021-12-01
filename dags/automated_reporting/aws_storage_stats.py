@@ -83,4 +83,4 @@ with dag:
             },
         )
     for key in metrics_tasks.items():
-        k8s_task_download_inventory >> k8s_task_calc_metrics[key]
+        k8s_task_download_inventory >> metrics_tasks[key]
