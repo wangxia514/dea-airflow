@@ -66,9 +66,9 @@ with dag:
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     inventory_json = ("{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}")
-    k8s_task_calc_metrics = []
+    k8s_task_calc_metrics = {} 
     for file in inventory_json:
-        metrics_task = KubernetesPodOperator(
+        metrics_task[file] = KubernetesPodOperator(
             namespace="processing",
             image="python:3.8-slim-buster",
             arguments=["bash", "-c", " &&\n".join(JOBS2)],
@@ -82,7 +82,5 @@ with dag:
                 "INVENTORY_FILE": "{{ file }}",
             },
         )
-        k8s_task_calc_metrics.append(metrics_task)
-
-    for i in k8s_task_calc_metrics:
-        k8s_task_download_inventory >> i
+    for key in k8s_task_calc_metrics.items():
+        k8s_task_download_inventory >> k8s_task_calc_metrics[key]
