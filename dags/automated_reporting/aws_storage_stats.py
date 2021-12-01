@@ -76,7 +76,7 @@ with dag:
             do_xcom_push=True,
             is_delete_operator_pod=True,
             in_cluster=True,
-            task_id=f"calc_metrics_for_{file}",
+            task_id="calc_metrics_for_" + file,
             get_logs=True,
             env_vars={
                 "INVENTORY_FILE": "{{ file }}",
