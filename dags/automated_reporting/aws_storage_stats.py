@@ -35,32 +35,54 @@ dag = DAG(
     description="DAG for aws storage stats",
     tags=["aws_storage_stats"],
     default_args=default_args,
-    schedule_interval=timedelta(minutes=15),
+    schedule_interval=timedelta(None),
 )
 
 with dag:
-
-    # fmt: off
-    JOBS = [
+    JOBS1 = [
         "echo AWS Storage job started: $(date)",
         "pip install ga-reporting-etls==1.2.16",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import downloadinventory; downloadinventory.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
-
-    k8s_task = KubernetesPodOperator(
+    k8s_task_download_inventory = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
-        arguments=["bash", "-c", " &&\n".join(JOBS)],
+        arguments=["bash", "-c", " &&\n".join(JOBS1)],
         name="write-xcom",
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="k8s_task_aws_storage_stats",
+        task_id="get_inventory_files",
         get_logs=True,
         env_vars={
             "GOOGLE_ANALYTICS_CREDENTIALS": Variable.get("google_analytics"),
         },
     )
+    JOBS2 = [
+        "echo AWS Storage job started: $(date)",
+        "pip install ga-reporting-etls==1.2.16",
+        "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import process; process.task()'`",
+        "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
+    ]
+    inventory_json = ("{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}")
+    k8s_task_calc_metrics = []
+    for file in inventory_json:
+        metrics_task = KubernetesPodOperator(
+            namespace="processing",
+            image="python:3.8-slim-buster",
+            arguments=["bash", "-c", " &&\n".join(JOBS2)],
+            name="write-xcom",
+            do_xcom_push=True,
+            is_delete_operator_pod=True,
+            in_cluster=True,
+            task_id="calc_metrics",
+            get_logs=True,
+            env_vars={
+                "INVENTORY_FILE": "{{ file }}",
+            },
+        )
+        k8s_task_calc_metrics.append(metrics_task)
 
-    k8s_task
+    for i in k8s_task_calc_metrics:
+        k8s_task_download_inventory >> i
