@@ -67,6 +67,7 @@ with dag:
     ]
     inventory_json = ("{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}")
     metrics_tasks = {} 
+    counter = 1
     for file in inventory_json:
         metrics_tasks[file] = KubernetesPodOperator(
             namespace="processing",
@@ -76,11 +77,12 @@ with dag:
             do_xcom_push=True,
             is_delete_operator_pod=True,
             in_cluster=True,
-            task_id=file,
+            task_id=f"calc_metrics{counter}",
             get_logs=True,
             env_vars={
                 "INVENTORY_FILE": "{{ file }}",
             },
         )
+        counter = counter + 1
     for key in metrics_tasks.items():
         k8s_task_download_inventory >> metrics_tasks[key]
