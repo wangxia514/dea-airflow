@@ -41,7 +41,7 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo AWS Storage job started: $(date)",
-        "pip install ga-reporting-etls==1.2.16",
+        "pip install ga-reporting-etls==1.2.17",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import downloadinventory; downloadinventory.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
@@ -59,30 +59,4 @@ with dag:
             "GOOGLE_ANALYTICS_CREDENTIALS": Variable.get("google_analytics"),
         },
     )
-    JOBS2 = [
-        "echo AWS Storage job started: $(date)",
-        "pip install ga-reporting-etls==1.2.17",
-        "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import process; process.task()'`",
-        "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
-    ]
-    inventory_json = ("{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}")
-    metrics_tasks = {} 
-    counter = 1
-    for file in inventory_json:
-        metrics_tasks[file] = KubernetesPodOperator(
-            namespace="processing",
-            image="python:3.8-slim-buster",
-            arguments=["bash", "-c", " &&\n".join(JOBS2)],
-            name="write-xcom",
-            do_xcom_push=True,
-            is_delete_operator_pod=True,
-            in_cluster=True,
-            task_id=f"calc_metrics{counter}",
-            get_logs=True,
-            env_vars={
-                "INVENTORY_FILE": "{{ file }}",
-            },
-        )
-        counter = counter + 1
-    for key in metrics_tasks.items():
-        k8s_task_download_inventory >> metrics_tasks[key]
+    k8s_task_download_inventory
