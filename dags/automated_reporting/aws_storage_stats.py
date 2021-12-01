@@ -61,7 +61,7 @@ with dag:
     )
     JOBS2 = [
         "echo AWS Storage job started: $(date)",
-        "pip install ga-reporting-etls==1.2.16",
+        "pip install ga-reporting-etls==1.2.17",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import process; process.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
@@ -76,7 +76,7 @@ with dag:
             do_xcom_push=True,
             is_delete_operator_pod=True,
             in_cluster=True,
-            task_id="calc_metrics",
+            task_id=f"calc_metrics_for_{file}",
             get_logs=True,
             env_vars={
                 "INVENTORY_FILE": "{{ file }}",
