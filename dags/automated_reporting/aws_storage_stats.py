@@ -48,8 +48,9 @@ def get_dictionary(**context):
     print(inventory_files_dict)
     return inventory_files_dict
     inventory_files_json = ("{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}")
-    """
     xcom_data = context['ti'].xcom_pull(task_ids='get_inventory_files', key='return_value')
+    """
+    xcom_data = task_instance.xcom_pull(task_ids='get_inventory_files')
     print(xcom_data)
 
 
@@ -67,7 +68,6 @@ with dag:
         arguments=["bash", "-c", " &&\n".join(JOBS1)],
         name="write-xcom",
         do_xcom_push=True,
-        provide_context=True,
         is_delete_operator_pod=True,
         in_cluster=True,
         task_id="get_inventory_files",
