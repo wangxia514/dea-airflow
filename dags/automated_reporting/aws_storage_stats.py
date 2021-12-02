@@ -50,6 +50,7 @@ def get_dictionary(**context):
     inventory_files_json = ("{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}")
     xcom_data = context['ti'].xcom_pull(task_ids='get_inventory_files', key='return_value')
     """
+    task_instance = context['task_instance']
     xcom_data = task_instance.xcom_pull(task_ids='get_inventory_files')
     print(xcom_data)
 
