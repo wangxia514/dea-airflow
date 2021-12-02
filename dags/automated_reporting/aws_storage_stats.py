@@ -53,6 +53,7 @@ def get_dictionary(**context):
     task_instance = context['task_instance']
     xcom_data = task_instance.xcom_pull(task_ids='get_inventory_files')
     print(xcom_data)
+    return xcom_data
 
 
 with dag:
