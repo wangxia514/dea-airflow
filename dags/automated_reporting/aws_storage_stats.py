@@ -83,7 +83,6 @@ with dag:
             "GOOGLE_ANALYTICS_CREDENTIALS": Variable.get("google_analytics"),
         },
     )
-    file_to_process = xcom_data['file1']
     metrics_task = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
@@ -95,8 +94,8 @@ with dag:
         task_id="metrics_collector",
         get_logs=True,
         env_vars={
-                "INVENTORY_FILE": "{{ file_to_process }}",
+                "INVENTORY_FILE": "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')['file1'] }}",
         },
     )
     inventory_files_dict = PythonOperator(task_id='inv_files_dictionary', python_callable=get_dictionary, provide_context=True)
-    k8s_task_download_inventory >> inventory_files_dict >> metrics_task
+    k8s_task_download_inventory >> metrics_task
