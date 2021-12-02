@@ -33,7 +33,7 @@ jobs:
     strategy:
       matrix:
         python-version: [3.8]
-        airflow-version: [2.1.3]
+        airflow-version: [2.2.2]
     name: Airflow ${{ matrix.airflow-version }}
     steps:
       - name: checkout git

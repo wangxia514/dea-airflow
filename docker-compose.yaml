@@ -56,7 +56,7 @@ x-airflow-common:
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'true'
     AIRFLOW__API__AUTH_BACKEND: 'airflow.api.auth.backend.basic_auth'
-    AIRFLOW__METRICS__STATSD_HOST: "prometheus-statsd-exporter"
+    AIRFLOW__METRICS__STATSD_HOST: "statsd-exporter"
     AIRFLOW__METRICS__STATSD_ON: "True"
     AIRFLOW__METRICS__STATSD_PORT: "8125"
     AIRFLOW__METRICS__STATSD_PREFIX: "airflow"
@@ -74,6 +74,22 @@ x-airflow-common:
       condition: service_healthy
 
 services:
+  statsd-exporter:
+    image: prom/statsd-exporter
+    container_name: airflow-statsd-exporter
+    # command: "--statsd.listen-udp=:8125 --web.listen-address=:9102 --statsd.mapping-config=/tmp/statsd_mapping.conf"
+    ports:
+      - 9102:9102
+      - 8125:8125/udp
+    volumes:
+      - ./statsd_mapping.conf:/tmp/statsd_mapping.conf
+  prometheus:
+      image: prom/prometheus
+      command: "--web.listen-address '0.0.0.0:9090' --config.file=/tmp/prometheus.yml"
+      ports:
+        - "9090:9090"
+      volumes:
+        - ./prometheus.yml:/tmp/prometheus.yml
   postgres:
     image: postgres:13
     environment:
