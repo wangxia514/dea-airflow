@@ -80,5 +80,5 @@ with dag:
     )
     inventory_files_dict = PythonOperator(task_id='inv_files_dictionary', python_callable=get_dictionary, provide_context=True)
     print("dict")
-    print(invenvory_files_dict)
+    print(inventory_files_dict)
     k8s_task_download_inventory >> inventory_files_dict
