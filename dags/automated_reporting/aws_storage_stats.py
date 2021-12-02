@@ -48,6 +48,7 @@ def get_dictionary():
     print(inventory_files_dict)
     return inventory_files_dict
 
+
 with dag:
     JOBS1 = [
         "echo AWS Storage job started: $(date)",
