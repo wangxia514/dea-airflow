@@ -58,7 +58,7 @@ except ImportError:
 
 # airflow-db-cleanup
 DAG_ID = os.path.basename(__file__).replace(".pyc", "").replace(".py", "")
-START_DATE = days_ago(1)
+START_DATE = days_ago(1, timezone="Sydney/Australia")
 # How often to Run. @daily - Once a day at Midnight (UTC)
 SCHEDULE_INTERVAL = "@daily"
 # Who is listed as the owner of this DAG in the Airflow Web Server
