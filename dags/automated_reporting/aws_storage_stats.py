@@ -68,12 +68,12 @@ with dag:
         "pip install ga-reporting-etls==1.2.18",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import process; process.task()'`",
     ]
-    metrics_task={}
-    json_dict = json.loads(INVENTORY_FILES_JSON) 
+    metrics_task = {}
+    json_dict = json.loads(INVENTORY_FILES_JSON)
     for i in range(1, len(json_dict)):
-        fileelement=f"file{i}"
+        fileelement = f"file{i}"
         task_id_key = f"calc_metrics_{fileelement}"
-        file=json_dict[fileelement]
+        file = json_dict[fileelement]
         metrics_task[task_id_key] = KubernetesPodOperator(
             namespace="processing",
             image="python:3.8-slim-buster",
