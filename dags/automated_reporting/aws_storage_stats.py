@@ -14,7 +14,7 @@ from airflow.operators.python_operator import PythonOperator
 from datetime import datetime as dt, timedelta
 from airflow.models import Variable
 from infra.variables import AWS_STATS_SECRET
-xcom_data = {} 
+xcom_data = {}
 default_args = {
     "owner": "Ramkumar Ramagopalan",
     "depends_on_past": False,
