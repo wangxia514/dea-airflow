@@ -14,7 +14,6 @@ from airflow.operators.python_operator import BranchPythonOperator
 from datetime import datetime as dt, timedelta
 from airflow.models import Variable
 from infra.variables import AWS_STATS_SECRET
-import json
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
@@ -41,7 +40,7 @@ dag = DAG(
 
 
 def get_dictionary(**context):
-    """ pulls xcom json file 
+    """ pulls xcom json file
     print("inventory files json from xcom pull")
     print(inventory_files_json)
     inventory_files = str(inventory_files_json).replace("'", '"')
@@ -76,5 +75,5 @@ with dag:
             "GOOGLE_ANALYTICS_CREDENTIALS": Variable.get("google_analytics"),
         },
     )
-    inventory_files_dict = BranchPythonOperator(task_id='inv_files_dictionary', python_callable=get_dictionary,provide_context=true)
+    inventory_files_dict = BranchPythonOperator(task_id='inv_files_dictionary', python_callable=get_dictionary, provide_context=True)
     k8s_task_download_inventory >> inventory_files_dict
