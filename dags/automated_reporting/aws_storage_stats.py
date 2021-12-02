@@ -14,7 +14,7 @@ from airflow.operators.python_operator import PythonOperator
 from datetime import datetime as dt, timedelta
 from airflow.models import Variable
 from infra.variables import AWS_STATS_SECRET
-
+xcom_data = ""
 default_args = {
     "owner": "Ramkumar Ramagopalan",
     "depends_on_past": False,
@@ -83,5 +83,20 @@ with dag:
             "GOOGLE_ANALYTICS_CREDENTIALS": Variable.get("google_analytics"),
         },
     )
+    file_to_process = xcom['file1']
+    metrics_task = KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(JOBS2)],
+        name="write-xcom",
+        do_xcom_push=True,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="metrics_collector",
+        get_logs=True,
+        env_vars={
+                "INVENTORY_FILE": "{{ file_to_process }}",
+        },
+    )
     inventory_files_dict = PythonOperator(task_id='inv_files_dictionary', python_callable=get_dictionary, provide_context=True)
-    k8s_task_download_inventory >> inventory_files_dict
+    k8s_task_download_inventory >> inventory_files_dict >> metrics_task
