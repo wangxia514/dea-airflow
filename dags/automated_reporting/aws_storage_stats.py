@@ -73,6 +73,7 @@ with dag:
     for i in range(1, len(json_dict)):
         fileelement=f"file{i}"
         task_id_key = f"calc_metrics_{fileelement}"
+        file=json_dict[fileelement]
         metrics_task[task_id_key] = KubernetesPodOperator(
             namespace="processing",
             image="python:3.8-slim-buster",
@@ -84,7 +85,7 @@ with dag:
             task_id=task_id_key,
             get_logs=True,
             env_vars={
-                "INVENTORY_FILE": "{{ json_dict[file_element] }}",
+                "INVENTORY_FILE": "{{ file }}",
             },
         )
         k8s_task_download_inventory >> metrics_task[task_id_key]
