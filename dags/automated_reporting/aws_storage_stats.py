@@ -90,4 +90,4 @@ with dag:
                 "INVENTORY_FILE": "{{ file }}",
             },
         )
-        k8s_task_download_inventory >> metrics_task[task_id_key] 
+        k8s_task_download_inventory >> metrics_task[task_id_key]
