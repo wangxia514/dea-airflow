@@ -43,6 +43,8 @@ dag = DAG(
 def get_dictionary():
     """ pulls xcom json file """
     inventory_files_json = ("{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}")
+    print("inventory files json from xcom pull")
+    print(inventory_files_json)
     inventory_files = str(inventory_files_json).replace("'", '"')
     inventory_files_dict = json.loads(inventory_files)
     print(inventory_files_dict)
