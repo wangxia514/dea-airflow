@@ -97,5 +97,5 @@ with dag:
         env_vars={
                 "INVENTORY_FILE": "{{ file }}",
         },
-        )
+    )
     k8s_task_download_inventory >> inventory_files_dict >> metrics_task
