@@ -10,7 +10,7 @@ from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-from airflow.operators.python_operator import BranchPythonOperator
+from airflow.operators.python_operator import PythonOperator
 from datetime import datetime as dt, timedelta
 from airflow.models import Variable
 from infra.variables import AWS_STATS_SECRET
@@ -78,5 +78,7 @@ with dag:
             "GOOGLE_ANALYTICS_CREDENTIALS": Variable.get("google_analytics"),
         },
     )
-    inventory_files_dict = BranchPythonOperator(task_id='inv_files_dictionary', python_callable=get_dictionary, provide_context=True)
+    inventory_files_dict = PythonOperator(task_id='inv_files_dictionary', python_callable=get_dictionary, provide_context=True)
+    print("dict")
+    print(invenvory_files_dict)
     k8s_task_download_inventory >> inventory_files_dict
