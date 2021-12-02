@@ -72,10 +72,11 @@ with dag:
         },
     )
     metrics_task = {}
-    json_dict = json.loads(INVENTORY_FILES_JSON)
-    for i in range(1, len(json_dict)):
+    inventory_files =str(INVENTORY_FILES_JSON).replace("'", '"')
+    inventory_files_dict = json.loads(inventory_files)
+    for i in range(1, len(inventory_files_dict)):
         task_id_key = f"calc_metrics_file{i}"
-        file = json_dict[f"file{i}"]
+        file = inventory_files_dict[f"file{i}"]
         metrics_task[task_id_key] = KubernetesPodOperator(
             namespace="processing",
             image="python:3.8-slim-buster",
