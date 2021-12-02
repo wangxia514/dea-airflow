@@ -14,7 +14,7 @@ from airflow.operators.python_operator import PythonOperator
 from datetime import datetime as dt, timedelta
 from airflow.models import Variable
 from infra.variables import AWS_STATS_SECRET
-xcom_data = ""
+xcom_data = {} 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
     "depends_on_past": False,
@@ -83,7 +83,7 @@ with dag:
             "GOOGLE_ANALYTICS_CREDENTIALS": Variable.get("google_analytics"),
         },
     )
-    file_to_process = xcom['file1']
+    file_to_process = xcom_data['file1']
     metrics_task = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
