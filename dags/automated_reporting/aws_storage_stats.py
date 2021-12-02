@@ -70,9 +70,5 @@ with dag:
             "GOOGLE_ANALYTICS_CREDENTIALS": Variable.get("google_analytics"),
         },
     )
-    inventory_files_dict = BranchPythonOperator(
-                            task_id='inv_files_dictionary',
-                            python_callable=get_dictionary
-                        )
-    k8s_task_download_inventory >> inventory_files_dict 
-
+    inventory_files_dict = BranchPythonOperator(task_id='inv_files_dictionary', python_callable=get_dictionary)
+    k8s_task_download_inventory >> inventory_files_dict
