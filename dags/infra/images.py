@@ -28,4 +28,4 @@ S5CMD_IMAGE = "peakcom/s5cmd:latest"
 EXPLORER_UNSTABLE_IMAGE = "opendatacube/explorer:2.5.0-3-gd9f5a67"
 
 WATERBODIES_UNSTABLE_IMAGE = "geoscienceaustralia/dea-waterbodies:1.1.5-47-gea919a5"
-CONFLUX_UNSTABLE_IMAGE = "geoscienceaustralia/dea-conflux:0.1.9-12-ga7be1b8"
+CONFLUX_UNSTABLE_IMAGE = "geoscienceaustralia/dea-conflux:0.1.9-13-ge8ea5c4"

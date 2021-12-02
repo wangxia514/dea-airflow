@@ -4,10 +4,13 @@ Populate the DEA Waterbodies interstitial DB with Conflux.
 Supported configuration arguments:
 
 dir
-    Parquet directory. REQUIRED - no default.
+    Parquet or CSV directory. REQUIRED - no default.
 
 drop
     Whether to drop the table first. Default False.
+
+mode
+    POPULATE or STACK.
 """
 from datetime import datetime, timedelta
 
@@ -88,14 +91,21 @@ def k8s_stack(dag):
         "-c",
         dedent(
             """
-            if [ "True" = "{{ dag_run.conf.get("drop", False) }}" ]; then
-                # drop the database
-                echo Dropping database...
-                dea-conflux stack --parquet-path {{ dag_run.conf["dir"] }} \
-                    --mode waterbodies_db --drop
+            if [ "POPULATE" = "{{ dag_run.conf.get("mode") }}" ]; then
+                if [ "True" = "{{ dag_run.conf.get("drop", False) }}" ]; then
+                    # drop the database
+                    echo Dropping database...
+                    dea-conflux stack --parquet-path {{ dag_run.conf["dir"] }} \
+                        --mode waterbodies_db --drop
+                else
+                    dea-conflux stack --parquet-path {{ dag_run.conf["dir"] }} \
+                        --mode waterbodies_db
+                fi
+            elif [ "STACK" = "{{ dag_run.conf.get("mode") }}" ]; then
+                echo Stacking...
+                dea-conflux db-to-csv {{ dag_run.conf["dir"] }}
             else
-                dea-conflux stack --parquet-path {{ dag_run.conf["dir"] }} \
-                    --mode waterbodies_db
+                echo No mode specified.
             fi
             """
         ),
