@@ -14,7 +14,6 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 from datetime import datetime as dt, timedelta
 from airflow.models import Variable
 from infra.variables import AWS_STATS_SECRET
-import json
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
