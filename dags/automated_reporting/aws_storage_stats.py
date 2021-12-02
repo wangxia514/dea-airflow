@@ -63,7 +63,11 @@ with dag:
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import downloadinventory; downloadinventory.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
-
+    JOBS2 = [
+        "echo AWS Storage job started: $(date)",
+        "pip install ga-reporting-etls==1.2.19",
+        "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import process; process.task()'`",
+    ]
     k8s_task_download_inventory = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
@@ -79,6 +83,19 @@ with dag:
         },
     )
     inventory_files_dict = PythonOperator(task_id='inv_files_dictionary', python_callable=get_dictionary, provide_context=True)
-    print("dict")
-    print(inventory_files_dict)
-    k8s_task_download_inventory >> inventory_files_dict
+    file = inventory_files_dict['file1']
+    metrics_task = KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(JOBS2)],
+        name="write-xcom",
+        do_xcom_push=True,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id='metrics_collector',
+        get_logs=True,
+        env_vars={
+                "INVENTORY_FILE": "{{ file }}",
+        },
+        )
+    k8s_task_download_inventory >> inventory_files_dict >> metrics_task
