@@ -40,15 +40,18 @@ dag = DAG(
 )
 
 
-def get_dictionary():
-    """ pulls xcom json file """
-    inventory_files_json = ("{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}")
+def get_dictionary(**context):
+    """ pulls xcom json file 
     print("inventory files json from xcom pull")
     print(inventory_files_json)
     inventory_files = str(inventory_files_json).replace("'", '"')
     inventory_files_dict = json.loads(inventory_files)
     print(inventory_files_dict)
     return inventory_files_dict
+    inventory_files_json = ("{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}")
+    """
+    xcom_data = context['ti'].xcom_pull(task_ids='get_inventory_files', key='return_value')
+    print(xcom_data)
 
 
 with dag:
@@ -73,5 +76,5 @@ with dag:
             "GOOGLE_ANALYTICS_CREDENTIALS": Variable.get("google_analytics"),
         },
     )
-    inventory_files_dict = BranchPythonOperator(task_id='inv_files_dictionary', python_callable=get_dictionary)
+    inventory_files_dict = BranchPythonOperator(task_id='inv_files_dictionary', python_callable=get_dictionary,provide_context=true)
     k8s_task_download_inventory >> inventory_files_dict
