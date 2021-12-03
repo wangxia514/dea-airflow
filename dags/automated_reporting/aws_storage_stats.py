@@ -5,6 +5,7 @@ aws storage stats dag
 """
 
 # The DAG object; we'll need this to instantiate a DAG
+import os
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
@@ -46,7 +47,8 @@ def load_subdag(parent_dag_name, child_dag_name, args, config_task_name):
     subdag = DAG(
         dag_id=f"{parent_dag_name}.{child_dag_name}", default_args=args, catchup=False
     )
-    file = "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')['file1'] }}"
+    inventory_file_json = os.environ.get("INVENTORY_FILE_JSON")
+    file = inventory_file_json['file1']
     JOBS2 = [
         "echo AWS Storage job started: $(date)",
         "pip install ga-reporting-etls==1.2.19",
@@ -97,5 +99,8 @@ with dag:
         subdag=load_subdag('aws_storage_stats', 'metrics_collector', default_args, 'get_inventory_files'),
         default_args=default_args,
         dag=dag,
+        env_vars={
+            "INVENTORY_FILE_JSON": "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}",
+        },
     )
     k8s_task_download_inventory >> INDEX
