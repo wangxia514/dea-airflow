@@ -14,7 +14,6 @@ from airflow.operators.subdag_operator import SubDagOperator
 from datetime import datetime as dt, timedelta
 from airflow.models import Variable
 from infra.variables import AWS_STATS_SECRET
-import json
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
@@ -44,18 +43,16 @@ def load_subdag(parent_dag_name, child_dag_name, args, config_task_name):
     """
     Make us a subdag to hide all the sub tasks
     """
-    key_name = 'return_value'
     subdag = DAG(
         dag_id=f"{parent_dag_name}.{child_dag_name}", default_args=args, catchup=False
     )
-
-    inventory_files_json = "{{{{ task_instance.xcom_pull(dag_id='{}', task_ids='{}',key='{}') }}}}".format(
-        parent_dag_name, config_task_name, key_name
-    )
-    inventory_files = str(inventory_files_json).replace("'", '"')
-    inventory_files_dict = json.loads(inventory_files)
-    file = inventory_files_dict('file1')
-    print(file)
+    file = "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')['file1'] }}"
+    JOBS2 = [
+        "echo AWS Storage job started: $(date)",
+        "pip install ga-reporting-etls==1.2.19",
+        "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import process; process.calc_size_and_count()'`",
+        "mkdir -p /airflow/xcom/; echo '{\"status\": \"success\"}' > /airflow/xcom/return.json",
+    ]
     metrics_task = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
@@ -80,12 +77,6 @@ with dag:
         "pip install ga-reporting-etls==1.2.19",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import downloadinventory; downloadinventory.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
-    ]
-    JOBS2 = [
-        "echo AWS Storage job started: $(date)",
-        "pip install ga-reporting-etls==1.2.19",
-        "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import process; process.calc_size_and_count()'`",
-        "mkdir -p /airflow/xcom/; echo '{\"status\": \"success\"}' > /airflow/xcom/return.json",
     ]
     k8s_task_download_inventory = KubernetesPodOperator(
         namespace="processing",
