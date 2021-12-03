@@ -14,6 +14,7 @@ from airflow.operators.subdag_operator import SubDagOperator
 from datetime import datetime as dt, timedelta
 from airflow.models import Variable
 from infra.variables import AWS_STATS_SECRET
+import json
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
@@ -48,10 +49,14 @@ def load_subdag(parent_dag_name, child_dag_name, args, config_task_name):
         dag_id=f"{parent_dag_name}.{child_dag_name}", default_args=args, catchup=False
     )
 
-    config = "{{{{ task_instance.xcom_pull(dag_id='{}', task_ids='{}',key='{}')['{}'] }}}}".format(
-        parent_dag_name, config_task_name, key_name, 'file1'
+    inventory_files_json = "{{{{ task_instance.xcom_pull(dag_id='{}', task_ids='{}',key='{}') }}}}".format(
+        parent_dag_name, config_task_name, key_name
     )
-
+    
+    inventory_files = str(inventory_files_json).replace("'", '"')
+    inventory_files_dict = json.loads(inventory_files)
+    file = inventory_files_dict('file1') 
+    print(file)
     metrics_task = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
@@ -63,7 +68,7 @@ def load_subdag(parent_dag_name, child_dag_name, args, config_task_name):
         task_id="metrics_collector_file1",
         get_logs=True,
         env_vars={
-                "INVENTORY_FILE": config,
+                "INVENTORY_FILE": file,
         },
     )
 
