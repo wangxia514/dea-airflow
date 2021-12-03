@@ -67,7 +67,7 @@ def load_subdag(parent_dag_name, child_dag_name, args, config_task_name):
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="metrics_collector",
+        task_id="metrics_collector_file1",
         get_logs=True,
         env_vars={
                 "INVENTORY_FILE": "{{ filename }}",
