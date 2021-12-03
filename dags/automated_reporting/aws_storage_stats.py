@@ -5,17 +5,15 @@ aws storage stats dag
 """
 
 # The DAG object; we'll need this to instantiate a DAG
-import os
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-from airflow.operators.subdag_operator import SubDagOperator
+from airflow.operators.python_operator import PythonOperator
 from datetime import datetime as dt, timedelta
 from airflow.models import Variable
 from infra.variables import AWS_STATS_SECRET
-
 default_args = {
     "owner": "Ramkumar Ramagopalan",
     "depends_on_past": False,
@@ -39,46 +37,18 @@ dag = DAG(
     schedule_interval=None,
 )
 
-
-def load_subdag(parent_dag_name, child_dag_name, args, config_task_name):
-    """
-    Make us a subdag to hide all the sub tasks
-    """
-    subdag = DAG(
-        dag_id=f"{parent_dag_name}.{child_dag_name}", default_args=args, catchup=False
-    )
-    inventory_file_json = os.environ.get("INVENTORY_FILE_JSON")
-    file = inventory_file_json['file1']
-    JOBS2 = [
-        "echo AWS Storage job started: $(date)",
-        "pip install ga-reporting-etls==1.2.19",
-        "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import process; process.calc_size_and_count()'`",
-        "mkdir -p /airflow/xcom/; echo '{\"status\": \"success\"}' > /airflow/xcom/return.json",
-    ]
-    metrics_task = KubernetesPodOperator(
-        namespace="processing",
-        image="python:3.8-slim-buster",
-        arguments=["bash", "-c", " &&\n".join(JOBS2)],
-        name="write-xcom",
-        do_xcom_push=True,
-        is_delete_operator_pod=True,
-        in_cluster=True,
-        task_id="metrics_collector_file1",
-        get_logs=True,
-        env_vars={
-                "INVENTORY_FILE": file,
-        },
-    )
-
-    return subdag
-
-
 with dag:
     JOBS1 = [
         "echo AWS Storage job started: $(date)",
         "pip install ga-reporting-etls==1.2.19",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import downloadinventory; downloadinventory.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
+    ]
+    JOBS2 = [
+        "echo AWS Storage job started: $(date)",
+        "pip install ga-reporting-etls==1.2.19",
+        "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import process; process.calc_size_and_count()'`",
+        "mkdir -p /airflow/xcom/; echo '{\"status\": \"success\"}' > /airflow/xcom/return.json",
     ]
     k8s_task_download_inventory = KubernetesPodOperator(
         namespace="processing",
@@ -94,13 +64,18 @@ with dag:
             "GOOGLE_ANALYTICS_CREDENTIALS": Variable.get("google_analytics"),
         },
     )
-    INDEX = SubDagOperator(
-        task_id='metrics_collector',
-        subdag=load_subdag('aws_storage_stats', 'metrics_collector', default_args, 'get_inventory_files'),
-        default_args=default_args,
-        dag=dag,
+    metrics_task = KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(JOBS2)],
+        name="write-xcom",
+        do_xcom_push=True,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="metrics_collector",
+        get_logs=True,
         env_vars={
-            "INVENTORY_FILE_JSON": "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}",
+                "INVENTORY_FILE": "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')['file1'] }}",
         },
     )
-    k8s_task_download_inventory >> INDEX
+    k8s_task_download_inventory >> metrics_task
