@@ -11,10 +11,12 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from airflow.operators.python_operator import PythonOperator
+from airflow.operators.subdag_operator import SubDagOperator
 from datetime import datetime as dt, timedelta
 from airflow.models import Variable
 from infra.variables import AWS_STATS_SECRET
-xcom_data = {}
+import json
+
 default_args = {
     "owner": "Ramkumar Ramagopalan",
     "depends_on_past": False,
@@ -39,23 +41,41 @@ dag = DAG(
 )
 
 
-def get_dictionary(**context):
-    """ pulls xcom json file
-    print("inventory files json from xcom pull")
-    print(inventory_files_json)
-    inventory_files = str(inventory_files_json).replace("'", '"')
-    inventory_files_dict = json.loads(inventory_files)
-    print(inventory_files_dict)
-    return inventory_files_dict
-    inventory_files_json = ("{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}")
-    xcom_data = context['ti'].xcom_pull(task_ids='get_inventory_files', key='return_value')
+def load_subdag(parent_dag_name, child_dag_name, args, config_task_name):
     """
-    task_instance = context['task_instance']
-    xcom_data = task_instance.xcom_pull(task_ids='get_inventory_files')
-    print("xcom data is getting printed")
-    print(xcom_data)
-    return xcom_data
+    Make us a subdag to hide all the sub tasks
+    """
+    key_name = 'return_value'
+    subdag = DAG(
+        dag_id=f"{parent_dag_name}.{child_dag_name}", default_args=args, catchup=False
+    )
 
+    config = "{{{{ task_instance.xcom_pull(dag_id='{}', task_ids='{}',key_id='{}') }}}}".format(
+        parent_dag_name, config_task_name, key_name
+    )
+
+    try:
+        config = json.loads(config)
+    except json.decoder.JSONDecodeError:
+        config = {}
+
+    filename = config.get('file1')
+    metrics_task = KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(JOBS2)],
+        name="write-xcom",
+        do_xcom_push=True,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="metrics_collector",
+        get_logs=True,
+        env_vars={
+                "INVENTORY_FILE": "{{ filename }}",
+        },
+    )
+
+    return subdag
 
 with dag:
     JOBS1 = [
@@ -84,19 +104,11 @@ with dag:
             "GOOGLE_ANALYTICS_CREDENTIALS": Variable.get("google_analytics"),
         },
     )
-    metrics_task = KubernetesPodOperator(
-        namespace="processing",
-        image="python:3.8-slim-buster",
-        arguments=["bash", "-c", " &&\n".join(JOBS2)],
-        name="write-xcom",
-        do_xcom_push=True,
-        is_delete_operator_pod=True,
-        in_cluster=True,
-        task_id="metrics_collector",
-        get_logs=True,
-        env_vars={
-                "INVENTORY_FILE": "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')['file1'] }}",
-        },
-    )
-    inventory_files_dict = PythonOperator(task_id='inv_files_dictionary', python_callable=get_dictionary, provide_context=True)
-    k8s_task_download_inventory >> metrics_task
+    
+    INDEX = SubDagOperator(
+        task_id='metrics_collector',
+        subdag=load_subdag('aws_storage_stats', 'metrics_collector', default_args, 'get_inventory_files'),
+        default_args=default_args,
+        dag=dag,
+    ) 
+    k8s_task_download_inventory >> INDEX 
