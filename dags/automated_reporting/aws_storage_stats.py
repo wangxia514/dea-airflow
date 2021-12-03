@@ -57,8 +57,8 @@ def load_subdag(parent_dag_name, child_dag_name, args, config_task_name):
         config = json.loads(config)
     except json.decoder.JSONDecodeError:
         config = {}
-
     filename = config.get('file1')
+    print(f" file name passed to k8soperator {filename}")
     metrics_task = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
@@ -70,7 +70,7 @@ def load_subdag(parent_dag_name, child_dag_name, args, config_task_name):
         task_id="metrics_collector_file1",
         get_logs=True,
         env_vars={
-                "INVENTORY_FILE": "{{ filename }}",
+                "INVENTORY_FILE": filename,
         },
     )
 
