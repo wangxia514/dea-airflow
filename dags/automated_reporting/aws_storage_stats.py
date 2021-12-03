@@ -52,10 +52,9 @@ def load_subdag(parent_dag_name, child_dag_name, args, config_task_name):
     inventory_files_json = "{{{{ task_instance.xcom_pull(dag_id='{}', task_ids='{}',key='{}') }}}}".format(
         parent_dag_name, config_task_name, key_name
     )
-    
     inventory_files = str(inventory_files_json).replace("'", '"')
     inventory_files_dict = json.loads(inventory_files)
-    file = inventory_files_dict('file1') 
+    file = inventory_files_dict('file1')
     print(file)
     metrics_task = KubernetesPodOperator(
         namespace="processing",
