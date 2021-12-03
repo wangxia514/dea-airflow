@@ -10,7 +10,6 @@ from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-from airflow.operators.python_operator import PythonOperator
 from airflow.operators.subdag_operator import SubDagOperator
 from datetime import datetime as dt, timedelta
 from airflow.models import Variable
@@ -77,6 +76,7 @@ def load_subdag(parent_dag_name, child_dag_name, args, config_task_name):
 
     return subdag
 
+
 with dag:
     JOBS1 = [
         "echo AWS Storage job started: $(date)",
@@ -104,11 +104,10 @@ with dag:
             "GOOGLE_ANALYTICS_CREDENTIALS": Variable.get("google_analytics"),
         },
     )
-    
     INDEX = SubDagOperator(
         task_id='metrics_collector',
         subdag=load_subdag('aws_storage_stats', 'metrics_collector', default_args, 'get_inventory_files'),
         default_args=default_args,
         dag=dag,
-    ) 
-    k8s_task_download_inventory >> INDEX 
+    )
+    k8s_task_download_inventory >> INDEX
