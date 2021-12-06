@@ -35,6 +35,10 @@ docker-compose up
 Connect to the [Local Airflow Webserver](http://localhost:8080/) in your browser, and login with Username: `airflow`,
 Password: `airflow`.
 
+Connect to the [Local Prometheus webserver](http://localhost:9090/) in your browser
+
+Connect to the [Local statsd-exporter Webserver](http://localhost:9102/) in your browser
+
 #### Troubleshooting
 if you are experiencing issues with the docker-compose file, please ensure to check your docker-compose version, it is confirmed to work
 with version `1.29.2`
