@@ -47,7 +47,7 @@ with dag:
     JOBS2 = [
         "echo AWS Storage job started: $(date)",
         "pip install ga-reporting-etls==1.2.22",
-        "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import process; process.calc_size_and_count()'`",
+        "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import process; process.printvar()'`",
         "mkdir -p /airflow/xcom/; echo '{\"status\": \"success\"}' > /airflow/xcom/return.json",
     ]
     k8s_task_download_inventory = KubernetesPodOperator(
