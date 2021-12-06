@@ -66,6 +66,7 @@ with dag:
     )
     metrics_task = {}
     for counter in range(1, int(AWS_STORAGE_STATS_POD_COUNT) + 1):
+        inventory_file = "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')['metrics_collector_"+str(counter)+ "']"
         metrics_task[counter] = KubernetesPodOperator(
             namespace="processing",
             image="python:3.8-slim-buster",
@@ -77,7 +78,7 @@ with dag:
             task_id=f"metrics_collector{counter}",
             get_logs=True,
             env_vars={
-                "INVENTORY_FILE": "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')['metrics_collector_'" + str(counter) + "] }}",
+                "INVENTORY_FILE" : inventory_file
             },
         )
         k8s_task_download_inventory >> metrics_task[counter]
