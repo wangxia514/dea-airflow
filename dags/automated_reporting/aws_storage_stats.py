@@ -76,7 +76,7 @@ with dag:
             task_id="metrics_collector",
             get_logs=True,
             env_vars={
-                "INVENTORY_FILE": "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')['metrics_collector_'" + counter + "] }}",
+                "INVENTORY_FILE": "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')['metrics_collector_'" + str(counter) + "] }}",
             },
         )
     k8s_task_download_inventory >> metrics_task
