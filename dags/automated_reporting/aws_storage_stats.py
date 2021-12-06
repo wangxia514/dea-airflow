@@ -13,7 +13,6 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 from datetime import datetime as dt, timedelta
 from infra.variables import AWS_STATS_SECRET
 from infra.variables import AWS_STORAGE_STATS_POD_COUNT
-from airflow.models import Variable
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
