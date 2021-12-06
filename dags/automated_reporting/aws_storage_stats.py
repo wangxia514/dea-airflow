@@ -30,6 +30,7 @@ default_args = {
     ],
 }
 
+
 def get_dictionary(**context):
     """ pulls xcom json file
     print("inventory files json from xcom pull")
@@ -45,7 +46,8 @@ def get_dictionary(**context):
     xcom_data = task_instance.xcom_pull(task_ids='get_inventory_files')
     print("xcom data is getting printed")
     print(xcom_data)
-    return xcom_data 
+    return xcom_data
+
 
 dag = DAG(
     "aws_storage_stats",
