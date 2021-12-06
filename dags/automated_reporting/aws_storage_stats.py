@@ -10,7 +10,6 @@ from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-from airflow.operators.python_operator import PythonOperator
 from datetime import datetime as dt, timedelta
 from infra.variables import AWS_STATS_SECRET
 from airflow.models import Variable
