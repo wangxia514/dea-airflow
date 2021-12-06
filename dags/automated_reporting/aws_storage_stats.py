@@ -10,6 +10,7 @@ from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
+from airflow.operators.python_operator import PythonOperator
 from datetime import datetime as dt, timedelta
 from infra.variables import AWS_STATS_SECRET
 from infra.variables import AWS_STORAGE_STATS_POD_COUNT
@@ -28,6 +29,23 @@ default_args = {
         Secret("env", "SECRET_KEY", AWS_STATS_SECRET, "SECRET_KEY"),
     ],
 }
+
+def get_dictionary(**context):
+    """ pulls xcom json file
+    print("inventory files json from xcom pull")
+    print(inventory_files_json)
+    inventory_files = str(inventory_files_json).replace("'", '"')
+    inventory_files_dict = json.loads(inventory_files)
+    print(inventory_files_dict)
+    return inventory_files_dict
+    inventory_files_json = ("{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}")
+    xcom_data = context['ti'].xcom_pull(task_ids='get_inventory_files', key='return_value')
+    """
+    task_instance = context['task_instance']
+    xcom_data = task_instance.xcom_pull(task_ids='get_inventory_files')
+    print("xcom data is getting printed")
+    print(xcom_data)
+    return xcom_data 
 
 dag = DAG(
     "aws_storage_stats",
@@ -81,4 +99,5 @@ with dag:
                 "INVENTORY_FILE" : inventory_file
             },
         )
-        k8s_task_download_inventory >> metrics_task[counter]
+        inventory_files_dict = PythonOperator(task_id='inv_files_dictionary', python_callable=get_dictionary, provide_context=True)
+        k8s_task_download_inventory >> inventory_files_dict >> metrics_task[counter]
