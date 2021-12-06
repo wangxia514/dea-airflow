@@ -13,7 +13,8 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 from airflow.operators.python_operator import PythonOperator
 from datetime import datetime as dt, timedelta
 from infra.variables import AWS_STATS_SECRET
-xcom_data = {}
+from airflow.models import Variable
+
 default_args = {
     "owner": "Ramkumar Ramagopalan",
     "depends_on_past": False,
@@ -36,25 +37,6 @@ dag = DAG(
     default_args=default_args,
     schedule_interval=None,
 )
-
-
-def get_dictionary(**context):
-    """ pulls xcom json file
-    print("inventory files json from xcom pull")
-    print(inventory_files_json)
-    inventory_files = str(inventory_files_json).replace("'", '"')
-    inventory_files_dict = json.loads(inventory_files)
-    print(inventory_files_dict)
-    return inventory_files_dict
-    inventory_files_json = ("{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}")
-    xcom_data = context['ti'].xcom_pull(task_ids='get_inventory_files', key='return_value')
-    """
-    task_instance = context['task_instance']
-    xcom_data = task_instance.xcom_pull(task_ids='get_inventory_files')
-    print("xcom data is getting printed")
-    print(xcom_data)
-    return xcom_data
-
 
 with dag:
     JOBS1 = [
@@ -79,6 +61,9 @@ with dag:
         in_cluster=True,
         task_id="get_inventory_files",
         get_logs=True,
+        env_vars={
+            "POD_COUNT": Variable.get("AWS_STORAGE_STATS_POD_COUNT"),
+        },
     )
     metrics_task = KubernetesPodOperator(
         namespace="processing",
@@ -94,5 +79,4 @@ with dag:
                 "INVENTORY_FILE": "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')['file1'] }}",
         },
     )
-    inventory_files_dict = PythonOperator(task_id='inv_files_dictionary', python_callable=get_dictionary, provide_context=True, do_xcom_push=False)
-    k8s_task_download_inventory >> inventory_files_dict >> metrics_task
+    k8s_task_download_inventory >> metrics_task
