@@ -61,7 +61,7 @@ with dag:
         task_id="get_inventory_files",
         get_logs=True,
         env_vars={
-            "POD_COUNT": int(AWS_STORAGE_STATS_POD_COUNT),
+            "POD_COUNT": AWS_STORAGE_STATS_POD_COUNT,
         },
     )
     metrics_task = KubernetesPodOperator(
