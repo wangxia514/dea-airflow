@@ -12,6 +12,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 )
 from datetime import datetime as dt, timedelta
 from infra.variables import AWS_STATS_SECRET
+from infra.variables import AWS_STORAGE_STATS_POD_COUNT
 from airflow.models import Variable
 
 default_args = {
@@ -61,7 +62,7 @@ with dag:
         task_id="get_inventory_files",
         get_logs=True,
         env_vars={
-            "POD_COUNT": Variable.get("AWS_STORAGE_STATS_POD_COUNT"),
+            "POD_COUNT": AWS_STORAGE_STATS_POD_COUNT,
         },
     )
     metrics_task = KubernetesPodOperator(
