@@ -94,7 +94,7 @@ with dag:
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id=f"metrics_collector1",
+        task_id="metrics_collector1",
         get_logs=True,
         env_vars={
             "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
@@ -108,7 +108,7 @@ with dag:
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id=f"metrics_collector2",
+        task_id="metrics_collector2",
         get_logs=True,
         env_vars={
             "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
@@ -122,7 +122,7 @@ with dag:
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id=f"metrics_collector3",
+        task_id="metrics_collector3",
         get_logs=True,
         env_vars={
             "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
@@ -136,7 +136,7 @@ with dag:
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id=f"metrics_collector4",
+        task_id="metrics_collector4",
         get_logs=True,
         env_vars={
             "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
@@ -150,7 +150,7 @@ with dag:
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id=f"metrics_collector5",
+        task_id="metrics_collector5",
         get_logs=True,
         env_vars={
             "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
@@ -164,7 +164,7 @@ with dag:
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id=f"metrics_collector6",
+        task_id="metrics_collector6",
         get_logs=True,
         env_vars={
             "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
@@ -178,7 +178,7 @@ with dag:
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id=f"metrics_collector7",
+        task_id="metrics_collector7",
         get_logs=True,
         env_vars={
             "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
@@ -192,7 +192,7 @@ with dag:
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id=f"metrics_collector8",
+        task_id="metrics_collector8",
         get_logs=True,
         env_vars={
             "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
@@ -206,7 +206,7 @@ with dag:
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id=f"metrics_collector9",
+        task_id="metrics_collector9",
         get_logs=True,
         env_vars={
             "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
@@ -220,7 +220,7 @@ with dag:
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id=f"metrics_collector10",
+        task_id="metrics_collector10",
         get_logs=True,
         env_vars={
             "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
