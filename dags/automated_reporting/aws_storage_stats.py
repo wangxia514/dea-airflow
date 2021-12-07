@@ -86,20 +86,144 @@ with dag:
     )
     inventory_files_dict = PythonOperator(task_id='inv_files_dictionary', python_callable=get_dictionary, provide_context=True)
     metrics_task = {}
-    for counter in range(1, int(AWS_STORAGE_STATS_POD_COUNT) + 1):
-        metrics_task[counter] = KubernetesPodOperator(
-            namespace="processing",
-            image="python:3.8-slim-buster",
-            arguments=["bash", "-c", " &&\n".join(JOBS2)],
-            name="write-xcom",
-            do_xcom_push=True,
-            is_delete_operator_pod=True,
-            in_cluster=True,
-            task_id=f"metrics_collector{counter}",
-            get_logs=True,
-            env_vars={
-                "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}",
-                "COUNTER" : counter,
-            },
-        )
-        k8s_task_download_inventory >> inventory_files_dict >> metrics_task[counter]
+    metrics_task[1] = KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(JOBS2)],
+        name="write-xcom",
+        do_xcom_push=True,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id=f"metrics_collector1",
+        get_logs=True,
+        env_vars={
+            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
+        },
+    )
+    metrics_task[2] = KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(JOBS2)],
+        name="write-xcom",
+        do_xcom_push=True,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id=f"metrics_collector2",
+        get_logs=True,
+        env_vars={
+            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
+        },
+    )
+    metrics_task[3] = KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(JOBS2)],
+        name="write-xcom",
+        do_xcom_push=True,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id=f"metrics_collector3",
+        get_logs=True,
+        env_vars={
+            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
+        },
+    )
+    metrics_task[4] = KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(JOBS2)],
+        name="write-xcom",
+        do_xcom_push=True,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id=f"metrics_collector4",
+        get_logs=True,
+        env_vars={
+            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
+        },
+    )
+    metrics_task[5] = KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(JOBS2)],
+        name="write-xcom",
+        do_xcom_push=True,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id=f"metrics_collector5",
+        get_logs=True,
+        env_vars={
+            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
+        },
+    )
+    metrics_task[6] = KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(JOBS2)],
+        name="write-xcom",
+        do_xcom_push=True,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id=f"metrics_collector6",
+        get_logs=True,
+        env_vars={
+            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
+        },
+    )
+    metrics_task[7] = KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(JOBS2)],
+        name="write-xcom",
+        do_xcom_push=True,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id=f"metrics_collector7",
+        get_logs=True,
+        env_vars={
+            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
+        },
+    )
+    metrics_task[8] = KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(JOBS2)],
+        name="write-xcom",
+        do_xcom_push=True,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id=f"metrics_collector8",
+        get_logs=True,
+        env_vars={
+            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
+        },
+    )
+    metrics_task[9] = KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(JOBS2)],
+        name="write-xcom",
+        do_xcom_push=True,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id=f"metrics_collector9",
+        get_logs=True,
+        env_vars={
+            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
+        },
+    )
+    metrics_task[10] = KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(JOBS2)],
+        name="write-xcom",
+        do_xcom_push=True,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id=f"metrics_collector10",
+        get_logs=True,
+        env_vars={
+            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
+        },
+    )
+    k8s_task_download_inventory >> inventory_files_dict >> metrics_task[1] >> metrics_task[2] >> metrics_task[3] >> metrics_task[4] >> metrics_task[5] >> metrics_task[6] >> metrics_task[7] >> metrics_task[8] >> metrics_task[9] >> metrics_task[10]
