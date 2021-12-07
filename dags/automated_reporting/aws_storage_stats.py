@@ -92,4 +92,4 @@ with dag:
             "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')['metrics_collector_2] }}",
         },
     )
-    k8s_task_download_inventory >> [ metrics_task1, metrics_task2 ]
+    k8s_task_download_inventory >> [metrics_task1, metrics_task2]
