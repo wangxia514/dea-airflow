@@ -97,7 +97,7 @@ with dag:
         task_id="metrics_collector1",
         get_logs=True,
         env_vars={
-            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
+            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')['metrics_collector_1'] }}",
         },
     )
     metrics_task[2] = KubernetesPodOperator(
@@ -111,7 +111,7 @@ with dag:
         task_id="metrics_collector2",
         get_logs=True,
         env_vars={
-            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
+            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')['metrics_collector_2'] }}",
         },
     )
     metrics_task[3] = KubernetesPodOperator(
@@ -125,7 +125,7 @@ with dag:
         task_id="metrics_collector3",
         get_logs=True,
         env_vars={
-            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
+            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')['metrics_collector_3'] }}",
         },
     )
     metrics_task[4] = KubernetesPodOperator(
@@ -139,7 +139,7 @@ with dag:
         task_id="metrics_collector4",
         get_logs=True,
         env_vars={
-            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
+            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')['metrics_collector_4'] }}",
         },
     )
     metrics_task[5] = KubernetesPodOperator(
@@ -153,7 +153,7 @@ with dag:
         task_id="metrics_collector5",
         get_logs=True,
         env_vars={
-            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
+            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')['metrics_collector_5'] }}",
         },
     )
     metrics_task[6] = KubernetesPodOperator(
@@ -167,7 +167,7 @@ with dag:
         task_id="metrics_collector6",
         get_logs=True,
         env_vars={
-            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
+            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')['metrics_collector_6'] }}",
         },
     )
     metrics_task[7] = KubernetesPodOperator(
@@ -181,7 +181,7 @@ with dag:
         task_id="metrics_collector7",
         get_logs=True,
         env_vars={
-            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
+            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')['metrics_collector_7'] }}",
         },
     )
     metrics_task[8] = KubernetesPodOperator(
@@ -195,7 +195,7 @@ with dag:
         task_id="metrics_collector8",
         get_logs=True,
         env_vars={
-            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
+            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')['metrics_collector_8'] }}",
         },
     )
     metrics_task[9] = KubernetesPodOperator(
@@ -209,7 +209,7 @@ with dag:
         task_id="metrics_collector9",
         get_logs=True,
         env_vars={
-            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
+            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')['metrics_collector_9'] }}",
         },
     )
     metrics_task[10] = KubernetesPodOperator(
@@ -223,7 +223,7 @@ with dag:
         task_id="metrics_collector10",
         get_logs=True,
         env_vars={
-            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')[metrics_collector_1] }}",
+            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')['metrics_collector_10'] }}",
         },
     )
     k8s_task_download_inventory >> inventory_files_dict >> [metrics_task[1], metrics_task[2], metrics_task[3], metrics_task[4], metrics_task[5], metrics_task[6], metrics_task[7], metrics_task[8], metrics_task[9], metrics_task[10]]
