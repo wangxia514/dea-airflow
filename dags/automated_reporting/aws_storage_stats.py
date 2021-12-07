@@ -40,14 +40,20 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo AWS Storage job started: $(date)",
-        "pip install ga-reporting-etls==1.2.31",
+        "pip install ga-reporting-etls==1.2.32",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import downloadinventory; downloadinventory.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS2 = [
         "echo AWS Storage job started: $(date)",
-        "pip install ga-reporting-etls==1.2.31",
+        "pip install ga-reporting-etls==1.2.32",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import process; process.printvar()'`",
+        "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
+    ]
+    JOBS3 = [
+        "echo AWS Storage job started: $(date)",
+        "pip install ga-reporting-etls==1.2.32",
+        "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import process; process.printvar2()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     k8s_task_download_inventory = KubernetesPodOperator(
@@ -78,4 +84,18 @@ with dag:
             "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')['metrics_collector_1'] }}",
         },
     )
-    k8s_task_download_inventory >> metrics_task1
+    metrics_task2 = KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(JOBS3)],
+        name="write-xcom",
+        do_xcom_push=True,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="metrics_collector2",
+        get_logs=True,
+        env_vars={
+            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}",
+        },
+    )
+    k8s_task_download_inventory >> metrics_task1 >> metrics_task2
