@@ -72,7 +72,7 @@ with dag:
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="metrics_collector3",
+        task_id="metrics_collector1",
         get_logs=True,
         env_vars={
             "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')['metrics_collector_1'] }}",
