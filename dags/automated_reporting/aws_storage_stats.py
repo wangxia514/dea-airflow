@@ -97,7 +97,7 @@ with dag:
         task_id="metrics_collector1",
         get_logs=True,
         env_vars={
-            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value')['metrics_collector_1'] }}",
+            "INVENTORY_FILE" : "abc",
         },
     )
     metrics_task[2] = KubernetesPodOperator(
