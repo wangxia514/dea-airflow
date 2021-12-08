@@ -40,19 +40,19 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo AWS Storage job started: $(date)",
-        "pip install ga-reporting-etls==1.2.35",
+        "pip install ga-reporting-etls==1.2.36",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import downloadinventory; downloadinventory.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS2 = [
         "echo AWS Storage job started: $(date)",
-        "pip install ga-reporting-etls==1.2.35",
+        "pip install ga-reporting-etls==1.2.36",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import process; process.printvar()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS3 = [
         "echo AWS Storage job started: $(date)",
-        "pip install ga-reporting-etls==1.2.35",
+        "pip install ga-reporting-etls==1.2.36",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import process; process.printvarv2()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
