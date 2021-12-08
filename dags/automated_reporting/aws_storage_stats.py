@@ -139,4 +139,4 @@ with dag:
                 "COUNTER" : counter,
             },
         )
-        k8s_task_download_inventory >> [metrics_task1, metrics_task2, metrics_task3] >> metrics_tasks[i]
+        k8s_task_download_inventory >> metrics_tasks[i]
