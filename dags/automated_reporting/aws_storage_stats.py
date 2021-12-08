@@ -123,6 +123,7 @@ with dag:
     # k8s_task_download_inventory >> metrics_task1 >> metrics_task2 >> metrics_task3
     metrics_tasks = {}
     for i in range(1, AWS_STORAGE_STATS_POD_COUNT):
+        counter = str(i)
         metrics_tasks[i] = KubernetesPodOperator(
             namespace="processing",
             image="python:3.8-slim-buster",
@@ -135,7 +136,7 @@ with dag:
             get_logs=True,
             env_vars={
                 "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}",
-                "COUNTER" : str(i),
+                "COUNTER" : counter,
             },
         )
         k8s_task_download_inventory >> [metrics_task1, metrics_task2, metrics_task3] >> metrics_tasks[i]
