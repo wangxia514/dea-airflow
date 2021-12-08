@@ -15,13 +15,13 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 from airflow.models import Variable
 
 REP_CONN_STR = Variable.get("db_rep_secret")
-REPORTING_PACKAGE_VERSION = "1.1.7"
+REPORTING_PACKAGE_VERSION = "1.1.8"
 GOOGLE_ANALYTICS_CREDENTIALS_STR = Variable.get("google_analytics_apikey")
 
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt(2021, 11, 1),
+    "start_date": dt(2020, 6, 15),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
@@ -85,6 +85,7 @@ with dag:
             query_defs=dict(
                 view_id='184682265',  # AusSeabed Website All Data
                 name="AusSeabed Marine Portal",
+                landing_page="/persona/marine",
                 # List of dimensions and table to import data into
                 dimensions=[
                         dict(name=None,
