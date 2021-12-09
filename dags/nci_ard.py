@@ -17,7 +17,7 @@ from sensors.pbs_job_complete_sensor import PBSJobSensor
 params = {
     "project": "v10",
     "queue": "copyq",
-    "module_ass": "ard-scene-select-py3-dea/20211115",
+    "module_ass": "ard-scene-select-py3-dea/20211209",
     "index_arg": "--index-datacube-env "
     "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
     "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl.env",
