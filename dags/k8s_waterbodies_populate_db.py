@@ -103,7 +103,7 @@ def k8s_stack(dag):
                 fi
             elif [ "STACK" = "{{ dag_run.conf.get("mode") }}" ]; then
                 echo Stacking...
-                dea-conflux db-to-csv --output {{ dag_run.conf["dir"] }} --jobs 64
+                dea-conflux db-to-csv --output {{ dag_run.conf["dir"] }} --jobs 64 --verbose
             else
                 echo No mode specified.
             fi
