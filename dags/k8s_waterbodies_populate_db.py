@@ -37,7 +37,7 @@ from infra.variables import (
 # DAG CONFIGURATION
 SECRETS = {
     "env_vars": {
-        "WATERBODIES_DB_HOST": "pgbouncer",
+        "WATERBODIES_DB_HOST": "pgbouncer.service.svc.cluster.local",
         "WATERBODIES_DB_PORT": DB_PORT,
         "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
     },
