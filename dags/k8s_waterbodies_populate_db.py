@@ -103,7 +103,7 @@ def k8s_stack(dag):
                 fi
             elif [ "STACK" = "{{ dag_run.conf.get("mode") }}" ]; then
                 echo Stacking...
-                dea-conflux db-to-csv --output {{ dag_run.conf["dir"] }}
+                dea-conflux db-to-csv --output {{ dag_run.conf["dir"] }} --jobs 64
             else
                 echo No mode specified.
             fi
@@ -121,7 +121,7 @@ def k8s_stack(dag):
         affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
         resources={
-            "request_cpu": "1000m",
+            "request_cpu": "2000m",
             "request_memory": "512Mi",
         },
         namespace="processing",
