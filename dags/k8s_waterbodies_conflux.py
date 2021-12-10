@@ -197,7 +197,7 @@ def k8s_job_task(dag, queue_name):
                                 dedent(
                                     """
                                     echo Default region $AWS_DEFAULT_REGION
-                                    hostname -I
+                                    echo DB host is $WATERBODIES_DB_HOST
                                     dea-conflux run-from-queue -v \
                                             --plugin examples/{{{{ dag_run.conf.get("plugin", "{plugin}") }}}}.conflux.py \
                                             --queue {queue} \
