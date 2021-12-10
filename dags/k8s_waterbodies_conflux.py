@@ -216,6 +216,8 @@ def k8s_job_task(dag, queue_name):
                             "env": [
                                 {"name": "DB_HOSTNAME", "value": DB_READER_HOSTNAME},
                                 {"name": "DB_DATABASE", "value": DB_DATABASE},
+                                {"name": "WATERBODIES_DB_HOST", "value": SECRETS['env_vars']['WATERBODIES_DB_HOST']},
+                                {"name": "WATERBODIES_DB_PORT", "value": SECRETS['env_vars']['WATERBODIES_DB_PORT']},
                                 {"name": "AWS_NO_SIGN_REQUEST", "value": "YES"},
                                 {"name": "DB_PORT", "value": DB_PORT},
                                 {
@@ -255,6 +257,33 @@ def k8s_job_task(dag, queue_name):
                                         "secretKeyRef": {
                                             "name": WATERBODIES_DEV_USER_SECRET,
                                             "key": "AWS_SECRET_ACCESS_KEY",
+                                        },
+                                    },
+                                },
+                                {
+                                    "name": "WATERBODIES_DB_USER",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": WATERBODIES_DB_WRITER_SECRET,
+                                            "key": "postgres-username",
+                                        },
+                                    },
+                                },
+                                {
+                                    "name": "WATERBODIES_DB_PASS",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": WATERBODIES_DB_WRITER_SECRET,
+                                            "key": "postgres-password",
+                                        },
+                                    },
+                                },
+                                {
+                                    "name": "WATERBODIES_DB_NAME",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": WATERBODIES_DB_WRITER_SECRET,
+                                            "key": "database-name",
                                         },
                                     },
                                 },
