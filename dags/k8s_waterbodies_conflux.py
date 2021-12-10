@@ -4,22 +4,25 @@ DEA Waterbodies processing using Conflux.
 Supported configuration arguments:
 
 shapefile
-    Default "s3://dea-public-data/projects/WaterBodies/DEA_Waterbodies_shapefile/AusWaterBodiesFINALStateLink.shp"
+    Default "s3://dea-public-data-dev/projects/WaterBodies/c3_shp/8-WB_C3_metadata.shp"
 
 outdir
-    Default "s3://dea-public-data-dev/waterbodies/conflux/default-out"
+    Default "s3://dea-public-data-dev/projects/WaterBodies/timeseries_pq_v2"
 
 product
-    Default "wofs_albers".
+    Default "ga_ls_wo_3".
 
 cmd
-    Datacube query to run. Default "--limit 1"
+    Datacube query to run. Default "'time > 2021-01-01'"
 
 plugin
-    Plugin to drill with. Default "waterbodies".
+    Plugin to drill with. Default "waterbodies_c3".
 
 queue_name
     Amazon SQS queue name to save processing tasks. Default "waterbodies_conflux_sqs"
+
+csvdir
+    Default "s3://dea-public-data-dev/derivative/dea_waterbodies/2-0-0/timeseries"
 
 flags
     Other flags to pass to Conflux.
@@ -50,6 +53,17 @@ from infra.variables import (
     WATERBODIES_DEV_USER_SECRET,
     SECRET_ODC_READER_NAME,
     WATERBODIES_DB_WRITER_SECRET,
+)
+
+# Default config parameters.
+DEFAULT_PARAMS = dict(
+    shapefile="s3://dea-public-data-dev/projects/WaterBodies/c3_shp/8-WB_C3_metadata.shp",
+    outdir="s3://dea-public-data-dev/projects/WaterBodies/timeseries_pq_v2",
+    product="ga_ls_wo_3",
+    cmd="'time > 2021-01-01'",
+    plugin="waterbodies_c3",
+    queue_name="waterbodies_conflux_sqs",
+    csvdir="s3://dea-public-data-dev/derivative/dea_waterbodies/2-0-0/timeseries",
 )
 
 # Requested memory. Memory limit is twice this.
@@ -183,14 +197,18 @@ def k8s_job_task(dag, queue_name):
                                     echo Default region $AWS_DEFAULT_REGION
                                     hostname -I
                                     dea-conflux run-from-queue -v \
-                                            --plugin examples/{{{{ dag_run.conf.get("plugin", "waterbodies") }}}}.conflux.py \
+                                            --plugin examples/{{{{ dag_run.conf.get("plugin", "{plugin}") }}}}.conflux.py \
                                             --queue {queue} \
                                             --overedge \
                                             --partial \
                                             --db \
-                                            --shapefile {{{{ dag_run.conf.get("shapefile", "s3://dea-public-data/projects/WaterBodies/DEA_Waterbodies_shapefile/AusWaterBodiesFINALStateLink.shp") }}}} \
-                                            --output {{{{ dag_run.conf.get("outdir", "s3://dea-public-data-dev/waterbodies/conflux/") }}}} {{{{ dag_run.conf.get("flags", "") }}}}
-                                    """.format(queue=queue_name)
+                                            --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} \
+                                            --output {{{{ dag_run.conf.get("outdir", "{outdir}") }}}} {{{{ dag_run.conf.get("flags", "") }}}}
+                                    """.format(queue=queue_name,
+                                               shapefile=DEFAULT_PARAMS['shapefile'],
+                                               outdir=DEFAULT_PARAMS['outdir'],
+                                               plugin=DEFAULT_PARAMS['plugin'],
+                                            )
                                 ),
                             ],
                             "env": [
@@ -408,9 +426,10 @@ def k8s_makecsvs(dag):
         dedent(
             """
             echo "Using dea-conflux image {image}"
-            dea-conflux db-to-csv --output {{ dag_run.conf["csvdir"] }} --jobs 64 --verbose
+            dea-conflux db-to-csv --output {{ dag_run.conf.get("csvdir", "{csvdir}") }} --jobs 64 --verbose
             """.format(
                 image=CONFLUX_UNSTABLE_IMAGE,
+                csvdir=DEFAULT_PARAMS['csvdir'],
             )
         ),
     ]
@@ -435,9 +454,15 @@ def k8s_makecsvs(dag):
 
 
 with dag:
-    cmd = '{{ dag_run.conf.get("cmd", "--limit=1") }}'
-    product = '{{ dag_run.conf.get("product", "wofs_albers") }}'
-    queue_name = '{{ dag_run.conf.get("queue_name", "waterbodies_conflux_sqs") }}'
+    cmd = '{{{{ dag_run.conf.get("cmd", "{cmd}") }}}}'.format(
+        cmd=DEFAULT_PARAMS['cmd'],
+    )
+    product = '{{{{ dag_run.conf.get("product", "{product}") }}}}'.format(
+        product=DEFAULT_PARAMS['product'],
+    )
+    queue_name = '{{{{ dag_run.conf.get("queue_name", "{queue_name}") }}}}'.format(
+        queue_name=DEFAULT_PARAMS['queue_name'],
+    )
 
     getids = k8s_getids(dag, cmd, product)
     makequeue = k8s_makequeue(dag, queue_name)
