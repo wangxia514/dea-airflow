@@ -49,6 +49,7 @@ from infra.variables import (
     DB_PORT,
     WATERBODIES_DEV_USER_SECRET,
     SECRET_ODC_READER_NAME,
+    WATERBODIES_DB_WRITER_SECRET,
 )
 
 # Requested memory. Memory limit is twice this.
@@ -61,9 +62,14 @@ SECRETS = {
         "DB_DATABASE": DB_DATABASE,
         "DB_PORT": DB_PORT,
         "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
+        "WATERBODIES_DB_HOST": "pgbouncer.service.svc.cluster.local",
+        "WATERBODIES_DB_PORT": DB_PORT,
     },
     # Lift secrets into environment variables
     "secrets": [
+        Secret("env", "WATERBODIES_DB_NAME", WATERBODIES_DB_WRITER_SECRET, "database-name"),
+        Secret("env", "WATERBODIES_DB_USER", WATERBODIES_DB_WRITER_SECRET, "postgres-username"),
+        Secret("env", "WATERBODIES_DB_PASS", WATERBODIES_DB_WRITER_SECRET, "postgres-password"),
         Secret("env", "DB_USERNAME", SECRET_ODC_READER_NAME, "postgres-username"),
         Secret("env", "DB_PASSWORD", SECRET_ODC_READER_NAME, "postgres-password"),
         Secret(
@@ -181,6 +187,7 @@ def k8s_job_task(dag, queue_name):
                                             --queue {queue} \
                                             --overedge \
                                             --partial \
+                                            --db \
                                             --shapefile {{{{ dag_run.conf.get("shapefile", "s3://dea-public-data/projects/WaterBodies/DEA_Waterbodies_shapefile/AusWaterBodiesFINALStateLink.shp") }}}} \
                                             --output {{{{ dag_run.conf.get("outdir", "s3://dea-public-data-dev/waterbodies/conflux/") }}}} {{{{ dag_run.conf.get("flags", "") }}}}
                                     """.format(queue=queue_name)
@@ -394,6 +401,39 @@ def k8s_delqueue(dag, queue_name):
     return delqueue
 
 
+def k8s_makecsvs(dag):
+    makecsvs_cmd = [
+        "bash",
+        "-c",
+        dedent(
+            """
+            echo "Using dea-conflux image {image}"
+            dea-conflux db-to-csv --output {{ dag_run.conf["csvdir"] }} --jobs 64 --verbose
+            """.format(
+                image=CONFLUX_UNSTABLE_IMAGE,
+            )
+        ),
+    ]
+    makecsvs = KubernetesPodOperator(
+        image=CONFLUX_UNSTABLE_IMAGE,
+        name="waterbodies-conflux-makecsvs",
+        arguments=makecsvs_cmd,
+        image_pull_policy="IfNotPresent",
+        labels={"app": "waterbodies-conflux-makecsvs"},
+        get_logs=True,
+        affinity=affinity,
+        is_delete_operator_pod=True,
+        resources={
+            "request_cpu": "1000m",
+            "request_memory": "512Mi",
+        },
+        namespace="processing",
+        tolerations=tolerations,
+        task_id="waterbodies-conflux-makecsvs",
+    )
+    return makecsvs
+
+
 with dag:
     cmd = '{{ dag_run.conf.get("cmd", "--limit=1") }}'
     product = '{{ dag_run.conf.get("product", "wofs_albers") }}'
@@ -407,4 +447,6 @@ with dag:
     task = k8s_job_task(dag, queue_name)
     # Finally delete the queue.
     delqueue = k8s_delqueue(dag, queue_name)
-    getids >> makequeue >> push >> task >> delqueue
+    # Then update the DB -> CSV.
+    makecsvs = k8s_makecsvs(dag)
+    getids >> makequeue >> push >> task >> delqueue >> makecsvs
