@@ -60,7 +60,9 @@ DEFAULT_PARAMS = dict(
     shapefile="s3://dea-public-data-dev/projects/WaterBodies/c3_shp/8-WB_C3_metadata.shp",
     outdir="s3://dea-public-data-dev/projects/WaterBodies/timeseries_pq_v2",
     product="ga_ls_wo_3",
-    cmd="'time > 2021-01-01'",
+    # this will break in 2100
+    # good luck y'all future folks
+    cmd="'time in [2021-01-01, 2099-01-01]'",
     plugin="waterbodies_c3",
     queue_name="waterbodies_conflux_sqs",
     csvdir="s3://dea-public-data-dev/derivative/dea_waterbodies/2-0-0/timeseries",
