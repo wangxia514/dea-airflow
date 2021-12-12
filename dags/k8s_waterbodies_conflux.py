@@ -210,7 +210,7 @@ def k8s_job_task(dag, queue_name):
                                                shapefile=DEFAULT_PARAMS['shapefile'],
                                                outdir=DEFAULT_PARAMS['outdir'],
                                                plugin=DEFAULT_PARAMS['plugin'],
-                                              )
+                                        )
                                 ),
                             ],
                             "env": [
