@@ -81,17 +81,17 @@ def aggregate_metrics_from_collections(task_instance):
                     old_count_dict[key] = old_count_dict[key] + float(value)
                 else:
                     old_count_dict[key] = float(value)
-        # totalsizelatest = data["totalsizelatest"]
-        # totalsizeold = data["totalsizeold"]
-        # totalcountlatest = data["totalcountlatest"]
-        # totalcountold = data["totalcountold"]
+    # totalsizelatest = data["totalsizelatest"]
+    # totalsizeold = data["totalsizeold"]
+    # totalcountlatest = data["totalcountlatest"]
+    # totalcountold = data["totalcountold"]
     result = {}
-    result["latestsize"] = latest_size_dict 
-    result["latestcount"] = latest_count_dict 
-    result["oldsize"] = old_size_dict 
-    result["oldcount"] = old_count_dict 
+    result["latestsize"] = latest_size_dict
+    result["latestcount"] = latest_count_dict
+    result["oldsize"] = old_size_dict
+    result["oldcount"] = old_count_dict
     json_result = json.dumps(result)
-    task_instance.xcom_push(key="aggregator", value=json_result) 
+    task_instance.xcom_push(key="aggregator", value=json_result)
     # Now do a xcom push of the final result
 
 with dag:
