@@ -148,4 +148,4 @@ with dag:
             },
         )
         k8s_task_download_inventory >> metrics_tasks[i]
-    metrics_tasks >> aggregate_metrics
+    metrics_tasks.values() >> aggregate_metrics
