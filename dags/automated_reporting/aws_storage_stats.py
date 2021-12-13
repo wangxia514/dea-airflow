@@ -149,4 +149,4 @@ with dag:
         provide_context=True,
     )
     metrics_tasks = [create_task(i) for i in range(1, int(AWS_STORAGE_STATS_POD_COUNT) + 1)]
-    k8s_task_download_inventory >> [metrics_tasks] >> aggregate_metrics
+    k8s_task_download_inventory >> metrics_tasks >> aggregate_metrics
