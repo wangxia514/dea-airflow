@@ -148,4 +148,4 @@ with dag:
             },
         )
         k8s_task_download_inventory >> metrics_tasks[i]
-    metric_tasks[AWS_STORAGE_STATS_POD_COUNT] >> aggregate_metrics
+    metrics_tasks[AWS_STORAGE_STATS_POD_COUNT] >> aggregate_metrics
