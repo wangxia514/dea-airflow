@@ -148,5 +148,4 @@ with dag:
             },
         )
         metrics_tasks.append(task_id)
-    for task_b in metrics_tasks:
-        k8s_task_download_inventory >> task_b >> aggregate_metrics 
+    k8s_task_download_inventory >> metrics_tasks >> aggregate_metrics 
