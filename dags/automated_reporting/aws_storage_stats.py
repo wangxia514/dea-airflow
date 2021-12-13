@@ -39,6 +39,25 @@ dag = DAG(
     schedule_interval=None,
 )
 
+def create_task(counter):
+    """
+    Function to generate PythonOperator tasks with id based on `product_name`
+    """
+    return KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(JOBS2)],
+        name="write-xcom",
+        do_xcom_push=True,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id=f"collection{counter}",
+        get_logs=True,
+        env_vars={
+           "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}",
+           "COUNTER" : counter,
+        },
+    )
 
 def aggregate_metrics_from_collections(task_instance):
     """ pull metrics from the colletors, aggregate and xcom_push """
@@ -122,31 +141,10 @@ with dag:
             "POD_COUNT": AWS_STORAGE_STATS_POD_COUNT,
         },
     )
-
     aggregate_metrics = PythonOperator(
         task_id="aggregate_metrics",
         python_callable=aggregate_metrics_from_collections,
         provide_context=True,
     )
-
-    # k8s_task_download_inventory >> metrics_task1 >> metrics_task2 >> metrics_task3
-    metrics_tasks = []
-    for i in range(1, int(AWS_STORAGE_STATS_POD_COUNT) + 1):
-        counter = str(i)
-        task_id = KubernetesPodOperator(
-            namespace="processing",
-            image="python:3.8-slim-buster",
-            arguments=["bash", "-c", " &&\n".join(JOBS2)],
-            name="write-xcom",
-            do_xcom_push=True,
-            is_delete_operator_pod=True,
-            in_cluster=True,
-            task_id=f"collection{i}",
-            get_logs=True,
-            env_vars={
-                "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}",
-                "COUNTER" : counter,
-            },
-        )
-        metrics_tasks.append(task_id)
+    metrics_tasks = [create_task(i) for i in range(1, AWS_STORAGE_STATS_POD_COUNT + 1)]
     k8s_task_download_inventory >> metrics_tasks >> aggregate_metrics
