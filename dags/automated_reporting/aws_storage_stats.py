@@ -40,27 +40,6 @@ dag = DAG(
 )
 
 
-def create_task(counter):
-    """
-    Function to generate PythonOperator tasks with id based on `product_name`
-    """
-    return KubernetesPodOperator(
-        namespace="processing",
-        image="python:3.8-slim-buster",
-        arguments=["bash", "-c", " &&\n".join(JOBS2)],
-        name="write-xcom",
-        do_xcom_push=True,
-        is_delete_operator_pod=True,
-        in_cluster=True,
-        task_id=f"collection{counter}",
-        get_logs=True,
-        env_vars={
-            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}",
-            "COUNTER" : counter,
-        },
-    )
-
-
 def aggregate_metrics_from_collections(task_instance):
     """ pull metrics from the colletors, aggregate and xcom_push """
     # Do a xcompull from 10 collectors based on the pod count
@@ -71,31 +50,31 @@ def aggregate_metrics_from_collections(task_instance):
 
     for i in range(1, int(AWS_STORAGE_STATS_POD_COUNT) + 1):
         task_id = f"collection{i}"
-        collection_metrics = task_instance.xcom_pull(task_ids=task_id)
+        collection_metrics = task_instance.xcom_pull(task_ids=task_id) 
         collection_metrics_v2 = str(collection_metrics).replace("'", '"')
         data = json.loads(collection_metrics_v2)
-        # Get non zero elements of latest size
+        #Get non zero elements of latest size
         for key, value in data["latestsize"].items():
             if float(value) > 0.0:
                 if key in latest_size_dict:
                     latest_size_dict[key] = latest_size_dict[key] + float(value)
                 else:
                     latest_size_dict[key] = float(value)
-        # Get non zero elements of latest count
+        #Get non zero elements of latest count
         for key, value in data["latestcount"].items():
             if float(value) > 0.0:
                 if key in latest_count_dict:
                     latest_count_dict[key] = latest_count_dict[key] + float(value)
                 else:
                     latest_count_dict[key] = float(value)
-        # Get non zero elements of old size
+        #Get non zero elements of old size
         for key, value in data["oldsize"].items():
             if float(value) > 0.0:
                 if key in old_size_dict:
                     old_size_dict[key] = old_size_dict[key] + float(value)
                 else:
                     old_size_dict[key] = float(value)
-        # Get non zero elements of old size
+        #Get non zero elements of old size
         for key, value in data["oldcount"].items():
             if float(value) > 0.0:
                 if key in old_count_dict:
@@ -114,7 +93,6 @@ def aggregate_metrics_from_collections(task_instance):
     json_result = json.dumps(result)
     task_instance.xcom_push(key="aggregator", value=json_result)
     # Now do a xcom push of the final result
-
 
 with dag:
     JOBS1 = [
@@ -143,10 +121,30 @@ with dag:
             "POD_COUNT": AWS_STORAGE_STATS_POD_COUNT,
         },
     )
+
     aggregate_metrics = PythonOperator(
         task_id="aggregate_metrics",
         python_callable=aggregate_metrics_from_collections,
         provide_context=True,
     )
-    metrics_tasks = [create_task(i) for i in range(1, int(AWS_STORAGE_STATS_POD_COUNT) + 1)]
-    k8s_task_download_inventory >> metrics_tasks >> aggregate_metrics
+
+    # k8s_task_download_inventory >> metrics_task1 >> metrics_task2 >> metrics_task3
+    metrics_tasks = {}
+    for i in range(1, int(AWS_STORAGE_STATS_POD_COUNT) + 1):
+        counter = str(i)
+        metrics_tasks[i] = KubernetesPodOperator(
+            namespace="processing",
+            image="python:3.8-slim-buster",
+            arguments=["bash", "-c", " &&\n".join(JOBS2)],
+            name="write-xcom",
+            do_xcom_push=True,
+            is_delete_operator_pod=True,
+            in_cluster=True,
+            task_id=f"collection{i}",
+            get_logs=True,
+            env_vars={
+                "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}",
+                "COUNTER" : counter,
+            },
+        )
+        k8s_task_download_inventory >> metrics_tasks[i] >> aggregate_metrics
