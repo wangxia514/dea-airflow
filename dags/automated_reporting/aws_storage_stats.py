@@ -147,4 +147,4 @@ with dag:
                 "COUNTER" : counter,
             },
         )
-        k8s_task_download_inventory >> metrics_tasks[i] >> aggregate_metrics
+        k8s_task_download_inventory >> [metrics_tasks[i]] >> aggregate_metrics
