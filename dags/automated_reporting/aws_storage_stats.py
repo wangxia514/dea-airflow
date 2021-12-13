@@ -50,7 +50,7 @@ def aggregate_metrics_from_collections(task_instance):
 
     for i in range(1, int(AWS_STORAGE_STATS_POD_COUNT) + 1):
         task_id = f"collection{i}"
-        collection_metrics = task_instance.xcom_pull(task_ids=task_id) 
+        collection_metrics = task_instance.xcom_pull(task_ids=task_id)
         collection_metrics_v2 = str(collection_metrics).replace("'", '"')
         data = json.loads(collection_metrics_v2)
         # Get non zero elements of latest size
