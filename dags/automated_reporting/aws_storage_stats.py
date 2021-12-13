@@ -39,6 +39,7 @@ dag = DAG(
     schedule_interval=None,
 )
 
+
 def create_task(counter):
     """
     Function to generate PythonOperator tasks with id based on `product_name`
@@ -54,10 +55,11 @@ def create_task(counter):
         task_id=f"collection{counter}",
         get_logs=True,
         env_vars={
-           "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}",
-           "COUNTER" : counter,
+            "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}",
+            "COUNTER" : counter,
         },
     )
+
 
 def aggregate_metrics_from_collections(task_instance):
     """ pull metrics from the colletors, aggregate and xcom_push """
