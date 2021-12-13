@@ -53,28 +53,28 @@ def aggregate_metrics_from_collections(task_instance):
         collection_metrics = task_instance.xcom_pull(task_ids=task_id) 
         collection_metrics_v2 = str(collection_metrics).replace("'", '"')
         data = json.loads(collection_metrics_v2)
-        #Get non zero elements of latest size
+        # Get non zero elements of latest size
         for key, value in data["latestsize"].items():
             if float(value) > 0.0:
                 if key in latest_size_dict:
                     latest_size_dict[key] = latest_size_dict[key] + float(value)
                 else:
                     latest_size_dict[key] = float(value)
-        #Get non zero elements of latest count
+        # Get non zero elements of latest count
         for key, value in data["latestcount"].items():
             if float(value) > 0.0:
                 if key in latest_count_dict:
                     latest_count_dict[key] = latest_count_dict[key] + float(value)
                 else:
                     latest_count_dict[key] = float(value)
-        #Get non zero elements of old size
+        # Get non zero elements of old size
         for key, value in data["oldsize"].items():
             if float(value) > 0.0:
                 if key in old_size_dict:
                     old_size_dict[key] = old_size_dict[key] + float(value)
                 else:
                     old_size_dict[key] = float(value)
-        #Get non zero elements of old size
+        # Get non zero elements of old size
         for key, value in data["oldcount"].items():
             if float(value) > 0.0:
                 if key in old_count_dict:
@@ -93,6 +93,7 @@ def aggregate_metrics_from_collections(task_instance):
     json_result = json.dumps(result)
     task_instance.xcom_push(key="aggregator", value=json_result)
     # Now do a xcom push of the final result
+
 
 with dag:
     JOBS1 = [
@@ -129,7 +130,7 @@ with dag:
     )
 
     # k8s_task_download_inventory >> metrics_task1 >> metrics_task2 >> metrics_task3
-    metrics_tasks = [] 
+    metrics_tasks = []
     for i in range(1, int(AWS_STORAGE_STATS_POD_COUNT) + 1):
         counter = str(i)
         task_id = KubernetesPodOperator(
@@ -148,4 +149,4 @@ with dag:
             },
         )
         metrics_tasks.append(task_id)
-    k8s_task_download_inventory >> metrics_tasks >> aggregate_metrics 
+    k8s_task_download_inventory >> metrics_tasks >> aggregate_metrics
