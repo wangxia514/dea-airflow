@@ -129,10 +129,10 @@ with dag:
     )
 
     # k8s_task_download_inventory >> metrics_task1 >> metrics_task2 >> metrics_task3
-    metrics_tasks = {}
+    metrics_tasks = [] 
     for i in range(1, int(AWS_STORAGE_STATS_POD_COUNT) + 1):
         counter = str(i)
-        metrics_tasks[i] = KubernetesPodOperator(
+        task_id = KubernetesPodOperator(
             namespace="processing",
             image="python:3.8-slim-buster",
             arguments=["bash", "-c", " &&\n".join(JOBS2)],
@@ -147,5 +147,6 @@ with dag:
                 "COUNTER" : counter,
             },
         )
-        k8s_task_download_inventory >> metrics_tasks[i]
-    metrics_tasks.values() >> aggregate_metrics
+        metrics_tasks.append(task_id)
+    for task_b in metrics_tasks:
+        k8s_task_download_inventory >> task_b >> aggregate_metrics 
