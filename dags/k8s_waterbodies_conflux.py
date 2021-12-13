@@ -78,7 +78,7 @@ SECRETS = {
         "DB_DATABASE": DB_DATABASE,
         "DB_PORT": DB_PORT,
         "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
-        "WATERBODIES_DB_HOST": "pgbouncer.service.svc.cluster.local",
+        "WATERBODIES_DB_HOST": DB_HOSTNAME,
         "WATERBODIES_DB_PORT": DB_PORT,
     },
     # Lift secrets into environment variables
