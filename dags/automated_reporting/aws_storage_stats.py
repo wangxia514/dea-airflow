@@ -115,13 +115,14 @@ with dag:
         "echo AWS Storage job started: $(date)",
         "pip install ga-reporting-etls==1.2.45",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import etl; etl.task()'`",
+        "mkdir -p /airflow/xcom/; echo '{\"status\": \"success\"}' > /airflow/xcom/return.json",
     ]
     k8s_task_download_inventory = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(JOBS1)],
         name="write-xcom",
-        do_xcom_push=False,
+        do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
         task_id="get_inventory_files",
