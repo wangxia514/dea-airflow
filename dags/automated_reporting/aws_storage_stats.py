@@ -94,7 +94,7 @@ def aggregate_metrics_from_collections(task_instance):
     result["oldsize"] = old_size_dict
     result["oldcount"] = old_count_dict
     json_result = json.dumps(result)
-    task_instance.xcom_push(key="aggregator", value=json_result)
+    task_instance.xcom_push(key="metrics", value=json_result)
     # Now do a xcom push of the final result
 
 
@@ -149,7 +149,7 @@ with dag:
         task_id="push_to_db",
         get_logs=True,
         env_vars={
-            "METRICS" : "{{ task_instance.xcom_pull(task_ids='aggregator', key='return_value') }}",
+            "METRICS" : "{{ task_instance.xcom_pull(task_ids='aggregate_metrics', key='metrics') }}",
         },
     )
 
