@@ -28,6 +28,9 @@ default_args = {
     "secrets": [
         Secret("env", "ACCESS_KEY", AWS_STATS_SECRET, "ACCESS_KEY"),
         Secret("env", "SECRET_KEY", AWS_STATS_SECRET, "SECRET_KEY"),
+        Secret("env", "DB_HOST", AWS_STATS_SECRET, "DB_HOST"),
+        Secret("env", "DB_USER", AWS_STATS_SECRET, "DB_USER"),
+        Secret("env", "DB_PASSWORD", AWS_STATS_SECRET, "DB_PASSWORD"),
     ],
 }
 
@@ -98,22 +101,27 @@ def aggregate_metrics_from_collections(task_instance):
 with dag:
     JOBS1 = [
         "echo AWS Storage job started: $(date)",
-        "pip install ga-reporting-etls==1.2.43",
+        "pip install ga-reporting-etls==1.2.45",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import downloadinventory; downloadinventory.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS2 = [
         "echo AWS Storage job started: $(date)",
-        "pip install ga-reporting-etls==1.2.43",
+        "pip install ga-reporting-etls==1.2.45",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import process; process.calc_size_and_count()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
+    ]
+    JOBS3 = [
+        "echo AWS Storage job started: $(date)",
+        "pip install ga-reporting-etls==1.2.45",
+        "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import etl; etl.task()'`",
     ]
     k8s_task_download_inventory = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(JOBS1)],
         name="write-xcom",
-        do_xcom_push=True,
+        do_xcom_push=False,
         is_delete_operator_pod=True,
         in_cluster=True,
         task_id="get_inventory_files",
@@ -127,6 +135,18 @@ with dag:
         task_id="aggregate_metrics",
         python_callable=aggregate_metrics_from_collections,
         provide_context=True,
+    )
+
+    push_to_db = KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(JOBS3)],
+        name="write-xcom",
+        do_xcom_push=True,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="push_to_db",
+        get_logs=True,
     )
 
     # k8s_task_download_inventory >> metrics_task1 >> metrics_task2 >> metrics_task3
@@ -148,4 +168,4 @@ with dag:
                 "COUNTER" : counter,
             },
         )
-        k8s_task_download_inventory >> metrics_tasks[i] >> aggregate_metrics
+        k8s_task_download_inventory >> metrics_tasks[i] >> aggregate_metrics >> push_to_db
