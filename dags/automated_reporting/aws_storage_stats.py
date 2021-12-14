@@ -148,6 +148,9 @@ with dag:
         in_cluster=True,
         task_id="push_to_db",
         get_logs=True,
+        env_vars={
+            "METRICS" : "{{ task_instance.xcom_pull(task_ids='aggregate_metrics', key='return_value') }}",
+        },
     )
 
     # k8s_task_download_inventory >> metrics_task1 >> metrics_task2 >> metrics_task3
