@@ -55,3 +55,9 @@ AWS_DEFAULT_REGION = Variable.get("region", "ap-southeast-2")  # qa
 SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET = Variable.get(
     "sentinel_2_ard_indexing_aws_user_secret", "sentinel-2-ard-indexing-creds"
 )
+
+# automated-reporting
+AWS_STATS_SECRET = Variable.get(
+    "aws_stats_secret", default_var="aws-stats"
+)  # qa
+AWS_STORAGE_STATS_POD_COUNT = Variable.get("AWS_STORAGE_STATS_POD_COUNT", default_var="10")
