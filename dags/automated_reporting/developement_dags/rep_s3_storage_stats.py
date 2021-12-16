@@ -35,7 +35,7 @@ default_args = {
 }
 
 dag = DAG(
-    "aws_storage_stats",
+    "rep_aws_storage_stats_dev",
     description="DAG for aws storage stats",
     tags=["reporting_dev"],
     default_args=default_args,
