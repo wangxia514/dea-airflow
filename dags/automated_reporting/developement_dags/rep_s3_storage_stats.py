@@ -19,7 +19,7 @@ import json
 default_args = {
     "owner": "Ramkumar Ramagopalan",
     "depends_on_past": False,
-    "start_date": dt.now() - timedelta(hours=1),
+    "start_date": dt(2021, 12, 19),
     "email": ["ramkumar.ramagopalan@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
@@ -40,7 +40,6 @@ dag = DAG(
     tags=["reporting_dev"],
     default_args=default_args,
     schedule_interval="0 1 * * *",  # daily at 1am
-    schedule_interval=None,
 )
 
 
