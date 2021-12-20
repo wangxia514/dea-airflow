@@ -439,7 +439,7 @@ with dag:
 
     makecsvs = k8s_makecsvs(dag)
 
-    for wit_input in WIT_INPUTS.items():
+    for wit_input in WIT_INPUTS:
         product = wit_input['product']
         plugin = wit_input['plugin']
         queue = wit_input['queue']
