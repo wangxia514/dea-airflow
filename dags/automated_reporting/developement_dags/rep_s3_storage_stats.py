@@ -39,7 +39,7 @@ dag = DAG(
     description="DAG for aws storage stats",
     tags=["reporting_dev"],
     default_args=default_args,
-    schedule_interval="0 1 * * *",  # daily at 1am
+    schedule_interval="0 14 * * *",  # daily at 1am AEDT
 )
 
 
