@@ -26,7 +26,7 @@ log.addHandler(handler)
 class CompletenessTests_USGS_L1(unittest.TestCase):
 
     completeness_kwargs = {
-        "next_execution_date": parser.isoparse("2021-05-20T20:30:00.000000+00:00"),
+        "data_interval_end": parser.isoparse("2021-05-20T20:30:00.000000+00:00"),
         "rep_conn": "rep_conn",
         # "task_instance": task_instance,
         "aux_data_path": "some_data_path",
@@ -160,7 +160,7 @@ class CompletenessTests_USGS_L1(unittest.TestCase):
 class CompletenessTests_USGS_ARD(unittest.TestCase):
 
     completeness_kwargs = {
-        "next_execution_date": parser.isoparse("2021-05-20T20:30:00.000000+00:00"),
+        "data_interval_end": parser.isoparse("2021-05-20T20:30:00.000000+00:00"),
         "rep_conn": "rep_conn",
         "odc_conn": "odc_conn",
         "product": dict(acq_code="sdfsdf", odc_code="ga_ls8c_ard_provisional_3"),

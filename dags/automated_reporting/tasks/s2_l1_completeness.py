@@ -19,7 +19,7 @@ def filter_expected_to_sensor(expected_products, sensor):
 def task(
     s2a,
     s2b,
-    next_execution_date,
+    data_interval_end,
     days,
     rep_conn,
     aux_data_path,
@@ -30,7 +30,7 @@ def task(
     Task to compute Sentinel2 ARD completeness
     """
     # Correct issue with running at start of scheduled period
-    execution_date = next_execution_date
+    execution_date = data_interval_end
 
     # query Copernicus API for for all S2 L1 products for last X days
     expected_products = copernicus_api.query(
