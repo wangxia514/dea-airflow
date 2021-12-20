@@ -59,6 +59,9 @@ CONFLUX_POD_MEMORY_MB = 6000
 # DAG CONFIGURATION
 SECRETS = {
     "env_vars": {
+        "DB_HOSTNAME": DB_READER_HOSTNAME,
+        "DB_DATABASE": DB_DATABASE,
+        "DB_PORT": DB_PORT,
         "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
     },
     # Lift secrets into environment variables
