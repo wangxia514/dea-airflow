@@ -66,6 +66,8 @@ SECRETS = {
     },
     # Lift secrets into environment variables
     "secrets": [
+        Secret("env", "DB_USERNAME", SECRET_ODC_READER_NAME, "postgres-username"),
+        Secret("env", "DB_PASSWORD", SECRET_ODC_READER_NAME, "postgres-password"),
         Secret(
             "env",
             "AWS_ACCESS_KEY_ID",
