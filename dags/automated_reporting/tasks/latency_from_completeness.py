@@ -9,12 +9,12 @@ from automated_reporting.databases import reporting_db
 log = logging.getLogger("airflow.task")
 
 
-def task(rep_conn, next_execution_date, completeness_summary, **kwargs):
+def task(rep_conn, data_interval_end, completeness_summary, **kwargs):
     """
     Task for inserting latency from the latest completeness record
     """
     # Correct issue with running at start of scheduled period
-    execution_date = next_execution_date
+    execution_date = data_interval_end
 
     # Convert pendulum to python datetime to make stripping timezone possible
     execution_date = helpers.python_dt(execution_date)
