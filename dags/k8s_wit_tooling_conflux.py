@@ -299,8 +299,8 @@ def k8s_getids(dag, cmd, product):
         "-c",
         dedent(
             """
-            echo "Writing to /airflow/xcom/{product}.json"
-            dea-conflux get-ids {product} {cmd} --s3 > /airflow/xcom/{product}.json
+            echo "Writing to /airflow/xcom/return.json"
+            dea-conflux get-ids {product} {cmd} --s3 > /airflow/xcom/return.json
             """.format(cmd=cmd, product=product)
         ),
     ]
