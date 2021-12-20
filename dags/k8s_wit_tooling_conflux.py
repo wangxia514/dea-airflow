@@ -115,7 +115,7 @@ tolerations = [
     {
         "key": "dedicated",
         "operator": "Equal",
-        "value": "wit",
+        "value": "waterbodies",
         "effect": "NoSchedule",
     }
 ]
@@ -260,7 +260,7 @@ def k8s_queue_push(dag, queue_name, filename, product):
         dedent(
             """
             # Download the IDs file from xcom.
-            echo "Downloading {{{{ ti.xcom_pull(task_ids='wit-conflux-getids')['ids_path'] }}}}"
+            echo "Downloading {{{{ ti.xcom_pull(task_ids={task_id})['ids_path'] }}}}"
             aws s3 cp {{{{ ti.xcom_pull(task_ids={task_id})['ids_path'] }}}} {filename}
 
             # Push the IDs to the queue.
