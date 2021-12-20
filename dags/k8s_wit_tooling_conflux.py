@@ -185,6 +185,7 @@ def k8s_job_task(dag, queue_name, plugin, product):
                                             --queue {queue} \
                                             --overedge \
                                             --partial \
+                                            --no-db \
                                             --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} \
                                             --output {{{{ dag_run.conf.get("intermediatedir", "{intermediatedir}") }}}} {{{{ dag_run.conf.get("flags", "") }}}}
                                     """.format(queue=queue_name,
