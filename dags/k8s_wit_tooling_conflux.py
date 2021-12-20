@@ -256,9 +256,7 @@ def k8s_job_task(dag, queue_name, plugin, product):
     return job_task
 
 
-def k8s_queue_push(dag, queue_name, filename, product):
-    task_id = 'wit-conflux-getids' + '-' + product
-
+def k8s_queue_push(dag, queue_name, filename, product, task_id):
     cmd = [
         "bash",
         "-c",
@@ -269,7 +267,7 @@ def k8s_queue_push(dag, queue_name, filename, product):
             aws s3 cp {{{{ ti.xcom_pull(task_ids={task_id})['ids_path'] }}}} {filename}
 
             # Push the IDs to the queue.
-            dea-conflux push-to-queue --txt ids.txt --queue {queue}
+            dea-conflux push-to-queue --txt {filename} --queue {queue}
             """.format(
                 queue=queue_name,
                 filename=filename,
@@ -454,7 +452,7 @@ with dag:
 
         getids = k8s_getids(dag, cmd, product)
         makequeue = k8s_makequeue(dag, queue, product)
-        push = k8s_queue_push(dag, queue, product + '-id.txt', product)
+        push = k8s_queue_push(dag, queue, product + '-id.txt', product, 'wit-conflux-getids-' + product)
         task = k8s_job_task(dag, queue, plugin, product)
         delqueue = k8s_delqueue(dag, queue, product)
 
