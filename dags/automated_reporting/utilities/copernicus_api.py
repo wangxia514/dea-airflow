@@ -84,7 +84,7 @@ def query(execution_date, days, copernicus_api_creds):
         urls = [format_url(offset) for offset in range(100, count, 100)]
 
         # populate responses list with a multithreaded download
-        with futures.ThreadPoolExecutor(max_workers=20) as executor:
+        with futures.ThreadPoolExecutor(max_workers=6) as executor:
             res = executor.map(get, urls)
             responses += list(res)
 
