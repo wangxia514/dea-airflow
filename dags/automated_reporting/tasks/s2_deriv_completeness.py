@@ -44,7 +44,7 @@ def map_odc_to_expected(datasets):
 def task(
     upstream,
     target,
-    next_execution_date,
+    data_interval_end,
     days,
     rep_conn,
     odc_conn,
@@ -55,7 +55,7 @@ def task(
     Task to compute Sentinel2 derivative completeness
     """
     # Correct issue with running at start of scheduled period
-    execution_date = next_execution_date
+    execution_date = data_interval_end
 
     # query ODC for for all upstream products for last X days
     expected_datasets_odc = list()

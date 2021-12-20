@@ -10,12 +10,12 @@ log = logging.getLogger("airflow.task")
 
 
 # Task callable
-def task(rep_conn, odc_conn, next_execution_date, product_name, **kwargs):
+def task(rep_conn, odc_conn, data_interval_end, product_name, **kwargs):
     """
     Task to query AWS ODC with supplied `product_name` and insert a summary of latest timestamps into reporting DB
     """
     # Correct issue with running at start of scheduled period
-    execution_date = next_execution_date
+    execution_date = data_interval_end
 
     # Convert pendulum to python datetime to make stripping timezone possible
     execution_date = helpers.python_dt(execution_date)

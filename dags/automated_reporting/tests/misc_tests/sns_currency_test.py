@@ -34,7 +34,7 @@ def main():
     sns_latency.task(
         pipeline="S2A_MSIL1C",
         product_id="s2a_l1_nrt",
-        next_execution_date=parser.isoparse("2021-09-21T11:45:00.000000+00:00"),
+        data_interval_end=parser.isoparse("2021-09-21T11:45:00.000000+00:00"),
         rep_conn=dict(config["reporting_db"]),
     )
 

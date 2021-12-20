@@ -10,7 +10,7 @@ from automated_reporting.databases import reporting_db_usgs, reporting_db
 log = logging.getLogger("airflow.task")
 
 
-def task(next_execution_date, product, rep_conn, days, aux_data_path, **kwargs):
+def task(data_interval_end, product, rep_conn, days, aux_data_path, **kwargs):
     """
     Main function
     :return:
@@ -18,7 +18,7 @@ def task(next_execution_date, product, rep_conn, days, aux_data_path, **kwargs):
     log.info("Starting completness calc for: {}".format(product["rep_code"]))
 
     # Correct issue with running at start of scheduled period
-    execution_date = next_execution_date
+    execution_date = data_interval_end
     execution_date = helpers.python_dt(execution_date)
 
     # Get path row list
