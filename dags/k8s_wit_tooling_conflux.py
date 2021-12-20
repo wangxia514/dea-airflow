@@ -136,7 +136,7 @@ WIT_INPUTS = [{"product": "ga_ls5t_ard_3", "plugin": "wit_ls5", "queue": "waterb
               {"product": "ga_ls8c_ard_3", "plugin": "wit_ls8", "queue": "waterbodies_conflux_sai_test_ls8_sqs"}]
 
 
-def k8s_job_task(dag, queue_name, plugin):
+def k8s_job_task(dag, queue_name, plugin, product):
     mem = CONFLUX_POD_MEMORY_MB
     req_mem = "{}Mi".format(int(mem))
     lim_mem = "{}Mi".format(int(mem) * 2)
@@ -244,14 +244,14 @@ def k8s_job_task(dag, queue_name, plugin):
     job_task = KubernetesJobOperator(
         image=CONFLUX_WIT_IMAGE,
         dag=dag,
-        task_id="wit-conflux-run",
+        task_id="wit-conflux-run" + "-" + product,
         get_logs=False,
         body=yaml,
     )
     return job_task
 
 
-def k8s_queue_push(dag, queue_name, filename):
+def k8s_queue_push(dag, queue_name, filename, product):
     cmd = [
         "bash",
         "-c",
@@ -285,7 +285,7 @@ def k8s_queue_push(dag, queue_name, filename):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="wit-conflux-push",
+        task_id="wit-conflux-push" + "-" + product,
     )
 
 
@@ -318,12 +318,12 @@ def k8s_getids(dag, cmd, product):
         do_xcom_push=True,
         namespace="processing",
         tolerations=tolerations,
-        task_id="wit-conflux-getids",
+        task_id="wit-conflux-getids" + "-" + product,
     )
     return getids
 
 
-def k8s_makequeue(dag, queue_name):
+def k8s_makequeue(dag, queue_name, product):
     # TODO(MatthewJA): Use the name/ID of this DAG
     # to make sure that we don't double-up if we're
     # running two DAGs simultaneously.
@@ -355,12 +355,12 @@ def k8s_makequeue(dag, queue_name):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="wit-conflux-makequeue",
+        task_id="wit-conflux-makequeue" + "-" + product,
     )
     return makequeue
 
 
-def k8s_delqueue(dag, queue_name):
+def k8s_delqueue(dag, queue_name, product):
     # TODO(MatthewJA): Use the name/ID of this DAG
     # to make sure that we don't double-up if we're
     # running two DAGs simultaneously.
@@ -392,7 +392,7 @@ def k8s_delqueue(dag, queue_name):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="wit-conflux-delqueue",
+        task_id="wit-conflux-delqueue" + "-" + product,
     )
     return delqueue
 
@@ -445,9 +445,9 @@ with dag:
         queue = wit_input['queue']
 
         getids = k8s_getids(dag, cmd, product)
-        makequeue = k8s_makequeue(dag, queue)
-        push = k8s_queue_push(dag, queue, product + '-id.txt')
-        task = k8s_job_task(dag, queue, plugin)
-        delqueue = k8s_delqueue(dag, queue)
+        makequeue = k8s_makequeue(dag, queue, product)
+        push = k8s_queue_push(dag, queue, product + '-id.txt', product)
+        task = k8s_job_task(dag, queue, plugin, product)
+        delqueue = k8s_delqueue(dag, queue, product)
 
         getids >> makequeue >> push >> task >> delqueue >> makecsvs
