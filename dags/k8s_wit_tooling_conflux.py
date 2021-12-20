@@ -250,7 +250,7 @@ def k8s_job_task(dag, queue_name, plugin, product):
         image=CONFLUX_WIT_IMAGE,
         dag=dag,
         task_id="wit-conflux-run" + "-" + product,
-        get_logs=False,
+        get_logs=True,
         body=yaml,
     )
     return job_task
