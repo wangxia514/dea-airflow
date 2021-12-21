@@ -61,3 +61,6 @@ AWS_STATS_SECRET = Variable.get(
     "aws_stats_secret", default_var="aws-stats"
 )  # qa
 AWS_STORAGE_STATS_POD_COUNT = Variable.get("AWS_STORAGE_STATS_POD_COUNT", default_var="10")
+AWS_STATS_SECRET_MASTER = Variable.get(
+    "aws_stats_secret_master", default_var="aws-stats-master"
+)
