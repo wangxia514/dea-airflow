@@ -96,6 +96,7 @@ with dag:
         "odc_conn": odc_conn,
         "copernicus_api_credentials": copernicus_api_creds,
         "aux_data_path": aux_data_path,
+        "execution_timeout": timedelta(minutes=5),
     }
 
     completeness_kwargs_l1 = {
