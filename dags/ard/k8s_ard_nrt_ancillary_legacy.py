@@ -41,7 +41,7 @@ def brdf_doys(doy):
             clip(((doy // 8) + 1) * 8 + 1),
         }
         
-     doys.add(361)    # hack to fix start of year mishaps
+    doys.add(361)    # hack to fix start of year mishaps
 
     return {str(d).zfill(3) for d in doys}
 
