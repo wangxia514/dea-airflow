@@ -33,7 +33,7 @@ utc_tz = pendulum.timezone("UTC")
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt(2021, 12, 31, 20, 0, 0, tzinfo=utc_tz),
+    "start_date": dt(2021, 11, 1, 20, 0, 0, tzinfo=utc_tz),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
