@@ -88,6 +88,7 @@ with dag:
             "rep_conn": rep_conn,
             "odc_conn": odc_conn,
             "product_name": product_name,
+            "product_suffix": "aws",
             "days": 90,
         }
         return PythonOperator(
