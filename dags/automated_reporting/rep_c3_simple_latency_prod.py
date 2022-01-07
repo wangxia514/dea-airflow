@@ -88,6 +88,7 @@ with dag:
             "rep_conn": rep_conn,
             "odc_conn": odc_conn,
             "product_name": product_name,
+            "days": 90,
         }
         return PythonOperator(
             task_id="odc-latency_" + product_name,
