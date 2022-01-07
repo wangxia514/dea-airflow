@@ -10,7 +10,15 @@ log = logging.getLogger("airflow.task")
 
 
 # Task callable
-def task(rep_conn, odc_conn, data_interval_end, product_name, days, **kwargs):
+def task(
+    rep_conn,
+    odc_conn,
+    data_interval_end,
+    product_name,
+    days,
+    product_suffix=None,
+    **kwargs
+):
     """
     Task to query AWS ODC with supplied `product_name` and insert a summary of latest timestamps into reporting DB
     """
@@ -48,9 +56,15 @@ def task(rep_conn, odc_conn, data_interval_end, product_name, days, **kwargs):
 
     # Insert latest processing and satellite acquisition time for current execution time into reporting database
     # for landsat.dervivative data the table is not TZ aware acq_date and processing_date are in UTC, last_updated is in AEST.
+
+    out_product_name = product_name
+    if product_suffix:
+        out_product_name += "-"
+        out_product_name += product_suffix
+
     reporting_db.insert_latency(
         rep_conn,
-        product_name,
+        out_product_name,
         latest_sat_acq_ts,
         latest_processing_ts,
         execution_date,
