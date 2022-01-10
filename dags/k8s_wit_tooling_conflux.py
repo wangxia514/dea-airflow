@@ -41,7 +41,7 @@ from infra.variables import (
     DB_READER_HOSTNAME,
     AWS_DEFAULT_REGION,
     DB_PORT,
-    WATERBODIES_DEV_USER_SECRET,
+    WIT_DEV_USER_SECRET,
     SECRET_ODC_READER_NAME,
 )
 
@@ -71,13 +71,13 @@ SECRETS = {
         Secret(
             "env",
             "AWS_ACCESS_KEY_ID",
-            WATERBODIES_DEV_USER_SECRET,
+            WIT_DEV_USER_SECRET,
             "AWS_ACCESS_KEY_ID",
         ),
         Secret(
             "env",
             "AWS_SECRET_ACCESS_KEY",
-            WATERBODIES_DEV_USER_SECRET,
+            WIT_DEV_USER_SECRET,
             "AWS_SECRET_ACCESS_KEY",
         ),
     ],
@@ -106,7 +106,7 @@ affinity = {
                             "key": "nodegroup",
                             "operator": "In",
                             "values": [
-                                "r5-4xl-waterbodies",
+                                "r5-4xl-wit-tooling",
                             ],
                         }
                     ]
@@ -120,7 +120,7 @@ tolerations = [
     {
         "key": "dedicated",
         "operator": "Equal",
-        "value": "waterbodies",
+        "value": "wit_tooling",
         "effect": "NoSchedule",
     }
 ]
@@ -136,9 +136,9 @@ dag = DAG(
     tags=["k8s", "landsat", "wit", "conflux"],
 )
 
-WIT_INPUTS = [{"product": "ga_ls5t_ard_3", "plugin": "wit_ls5", "queue": "waterbodies_conflux_sai_test_ls5_sqs"},
-              {"product": "ga_ls7e_ard_3", "plugin": "wit_ls7", "queue": "waterbodies_conflux_sai_test_ls7_sqs"},
-              {"product": "ga_ls8c_ard_3", "plugin": "wit_ls8", "queue": "waterbodies_conflux_sai_test_ls8_sqs"}]
+WIT_INPUTS = [{"product": "ga_ls5t_ard_3", "plugin": "wit_ls5", "queue": "wit_conflux_sai_test_ls5_sqs"},
+              {"product": "ga_ls7e_ard_3", "plugin": "wit_ls7", "queue": "wit_conflux_sai_test_ls7_sqs"},
+              {"product": "ga_ls8c_ard_3", "plugin": "wit_ls8", "queue": "wit_conflux_sai_test_ls8_sqs"}]
 
 
 def k8s_job_task(dag, queue_name, plugin, product):
@@ -225,7 +225,7 @@ def k8s_job_task(dag, queue_name, plugin, product):
                                     "name": "AWS_ACCESS_KEY_ID",
                                     "valueFrom": {
                                         "secretKeyRef": {
-                                            "name": WATERBODIES_DEV_USER_SECRET,
+                                            "name": WIT_DEV_USER_SECRET,
                                             "key": "AWS_ACCESS_KEY_ID",
                                         },
                                     },
@@ -234,7 +234,7 @@ def k8s_job_task(dag, queue_name, plugin, product):
                                     "name": "AWS_SECRET_ACCESS_KEY",
                                     "valueFrom": {
                                         "secretKeyRef": {
-                                            "name": WATERBODIES_DEV_USER_SECRET,
+                                            "name": WIT_DEV_USER_SECRET,
                                             "key": "AWS_SECRET_ACCESS_KEY",
                                         },
                                     },
