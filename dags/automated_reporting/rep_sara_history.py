@@ -43,12 +43,12 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo AWS Storage job started: $(date)",
-        "pip install ga-reporting-etls==1.2.52",
+        "pip install ga-reporting-etls==1.2.53",
         "jsonresult=`python3 -c 'from nemo_reporting.sara_history import sara_history_ingestion; sara_history_ingestion.task()'`",
     ]
     JOBS2 = [
         "echo AWS Storage job started: $(date)",
-        "pip install ga-reporting-etls==1.2.52",
+        "pip install ga-reporting-etls==1.2.53",
         "jsonresult=`python3 -c 'from nemo_reporting.sara_history import sara_history_processing; sara_history_processing.task()'`",
     ]
     sara_history_ingestion = KubernetesPodOperator(
