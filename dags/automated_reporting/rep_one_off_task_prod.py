@@ -47,14 +47,12 @@ dag = DAG(
 
 with dag:
 
-    CONF_STR = {{dag_run.conf}}  # pylint: disable-msg=E0602
-
     # fmt: off
     JOBS = [
         "echo Reporting task started: $(date)",
         f"pip install ga-reporting-etls=={REPORTING_PACKAGE_VERSION}",
-        "echo $CONF",
-        "python3 -m nemo_reporting.{{ dag_run.conf['module'] }}",
+        "echo $KWARGS",
+        "python3 -m nemo_reporting.$MODULE",
         "echo Reporting task completed: $(date)",
     ]
 
@@ -70,7 +68,8 @@ with dag:
         env_vars={
             "REP_CONN": REP_CONN_STR,
             "ODC_CONN": ODC_CONN_STR,
-            "CONF": CONF_STR,
+            "KWARGS": {{dag_run.conf["kwargs"]}}, # pylint: disable-msg=E0602
+            "MODULE": {{dag_run.conf["module"]}}, # pylint: disable-msg=E0602
             "EXECUTION_DATE": "{{ ds }}",
         }
     )
