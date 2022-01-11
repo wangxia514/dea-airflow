@@ -68,8 +68,8 @@ with dag:
         env_vars={
             "REP_CONN": REP_CONN_STR,
             "ODC_CONN": ODC_CONN_STR,
-            "KWARGS": {{dag_run.conf["kwargs"]}}, # pylint: disable-msg=E0602
-            "MODULE": {{dag_run.conf["module"]}}, # pylint: disable-msg=E0602
+            "KWARGS": "{{dag_run.conf['kwargs']}}",
+            "MODULE": "{{dag_run.conf['module']}}",
             "EXECUTION_DATE": "{{ ds }}",
         }
     )
