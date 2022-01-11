@@ -96,7 +96,7 @@ DATABASE_OBJECTS = [
     },
     {
         "airflow_db_model": TaskInstance,
-        "age_check_column": TaskInstance.execution_date,
+        "age_check_column": TaskInstance.queued_dttm,
         "keep_last": False,
         "keep_last_filters": None,
         "keep_last_group_by": None,
