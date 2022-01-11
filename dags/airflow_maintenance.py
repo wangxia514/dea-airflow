@@ -40,7 +40,7 @@ import dateutil.parser
 from airflow import settings
 from airflow.configuration import conf
 from airflow.jobs.base_job import BaseJob
-from airflow.models import DAG, DagModel, DagRun, Log, SlaMiss, XCom
+from airflow.models import DAG, DagModel, DagRun, Log, SlaMiss, XCom, TaskInstance
 from airflow.operators.python import PythonOperator
 from sqlalchemy import and_, func
 from sqlalchemy.exc import ProgrammingError
@@ -87,20 +87,20 @@ DATABASE_OBJECTS = [
         "keep_last_filters": None,
         "keep_last_group_by": None,
     },
-    #     {
-    #     "airflow_db_model": DagRun,
-    #     "age_check_column": DagRun.execution_date,
-    #     "keep_last": True,
-    #     "keep_last_filters": [DagRun.external_trigger.is_(False)],
-    #     "keep_last_group_by": DagRun.dag_id
-    # },
-    #     {
-    #     "airflow_db_model": TaskInstance,
-    #     "age_check_column": TaskInstance.execution_date,
-    #     "keep_last": False,
-    #     "keep_last_filters": None,
-    #     "keep_last_group_by": None
-    # },
+    {
+        "airflow_db_model": DagRun,
+        "age_check_column": DagRun.execution_date,
+        "keep_last": True,
+        "keep_last_filters": [DagRun.external_trigger.is_(False)],
+        "keep_last_group_by": DagRun.dag_id,
+    },
+    {
+        "airflow_db_model": TaskInstance,
+        "age_check_column": TaskInstance.execution_date,
+        "keep_last": False,
+        "keep_last_filters": None,
+        "keep_last_group_by": None,
+    },
     {
         "airflow_db_model": Log,
         "age_check_column": Log.dttm,
@@ -139,7 +139,7 @@ try:
     DATABASE_OBJECTS.append(
         {
             "airflow_db_model": TaskReschedule,
-            "age_check_column": TaskReschedule.execution_date,
+            "age_check_column": TaskReschedule.reschedule_date,
             "keep_last": False,
             "keep_last_filters": None,
             "keep_last_group_by": None,
