@@ -40,7 +40,16 @@ import dateutil.parser
 from airflow import settings
 from airflow.configuration import conf
 from airflow.jobs.base_job import BaseJob
-from airflow.models import DAG, DagModel, DagRun, Log, SlaMiss, XCom, TaskInstance
+from airflow.models import (
+    DAG,
+    DagModel,
+    DagRun,
+    Log,
+    SlaMiss,
+    XCom,
+    TaskInstance,
+    Variable,
+)
 from airflow.operators.python import PythonOperator
 from sqlalchemy import and_, func
 from sqlalchemy.exc import ProgrammingError
@@ -68,9 +77,9 @@ ALERT_EMAIL_ADDRESSES = ["damien.ayers@ga.gov.au"]
 # Length to retain the log files if not already provided in the conf. If this
 # is set to 30, the job will remove those files that arE 30 days old or older.
 
-# DEFAULT_MAX_DB_ENTRY_AGE_IN_DAYS = int(
-#    Variable.get("airflow_db_cleanup__max_db_entry_age_in_days", 30))
-DEFAULT_MAX_DB_ENTRY_AGE_IN_DAYS = 90
+DEFAULT_MAX_DB_ENTRY_AGE_IN_DAYS = int(
+    Variable.get("airflow_db_cleanup__max_db_entry_age_in_days", 30)
+)
 # Prints the database entries which will be getting deleted; set to False
 # to avoid printing large lists and slowdown process
 PRINT_DELETES = False
@@ -244,7 +253,7 @@ default_args = {
 }
 
 dag = DAG(
-    DAG_ID,
+    dag_id=DAG_ID,
     default_args=default_args,
     schedule_interval=SCHEDULE_INTERVAL,
     start_date=START_DATE,
@@ -260,9 +269,7 @@ def print_configuration_function(**context):
     logging.info("Loading Configurations...")
     dag_run_conf = context.get("dag_run").conf
     logging.info("dag_run.conf: " + str(dag_run_conf))
-    max_db_entry_age_in_days = 10000
-    if dag_run_conf:
-        max_db_entry_age_in_days = dag_run_conf.get("maxDBEntryAgeInDays", None)
+    max_db_entry_age_in_days = dag_run_conf.get("maxDBEntryAgeInDays", None)
     logging.info("maxDBEntryAgeInDays from dag_run.conf: " + str(dag_run_conf))
     if max_db_entry_age_in_days is None or max_db_entry_age_in_days < 1:
         logging.info(
