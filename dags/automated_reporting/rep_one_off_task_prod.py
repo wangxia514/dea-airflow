@@ -35,7 +35,6 @@ default_args = {
     "email_on_failure": False,
     "retries": 0,
     "secrets": [
-        Secret("env", "ODC_DB_HOST", SECRET_ODC_READER_NAME, "postgres-host"),
         Secret("env", "ODC_DB_USER", SECRET_ODC_READER_NAME, "postgres-username"),
         Secret("env", "ODC_DB_PASSWORD", SECRET_ODC_READER_NAME, "postgres-password"),
     ],
@@ -55,7 +54,6 @@ with dag:
     JOBS = [
         "echo Reporting task started: $(date)",
         f"pip install ga-reporting-etls",
-        "echo $ODC_DB_HOST",
         "echo $KWARGS",
         "python3 -m nemo_reporting.$MODULE",
         "echo Reporting task completed: $(date)",
