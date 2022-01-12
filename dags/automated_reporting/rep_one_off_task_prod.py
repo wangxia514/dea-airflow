@@ -5,7 +5,7 @@ Automated Reporting - ASB - Google Analytics
 """
 
 import json
-from datetime import datetime as dt, timedelta
+from datetime import datetime as dt
 
 # The DAG object; we'll need this to instantiate a DAG
 from airflow import DAG
