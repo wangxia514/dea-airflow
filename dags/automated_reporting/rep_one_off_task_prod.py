@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Automated Reporting - ASB - Google Analytics
+Automated Reporting - A task to run one-off tasks in the k8s cluster
 """
 
 import json
@@ -46,7 +46,6 @@ with dag:
     JOBS = [
         "echo Reporting task started: $(date)",
         f"pip install ga-reporting-etls",
-        "echo $ODC_DB_HOST",
         "python3 -m nemo_reporting.$MODULE",
         "echo Reporting task completed: $(date)",
     ]
