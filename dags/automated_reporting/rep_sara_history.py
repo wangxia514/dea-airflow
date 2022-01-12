@@ -32,7 +32,7 @@ default_args = {
 }
 
 dag = DAG(
-    "rep_sara_history",
+    "rep_sara_history_prod",
     description="DAG for sara history ingestion and processing",
     tags=["reporting"],
     default_args=default_args,
