@@ -16,7 +16,9 @@ from airflow.models import Variable
 from infra import connections as infra_connections
 from automated_reporting.utilities import helpers
 from airflow.hooks.base_hook import BaseHook
-import json
+from airflow.kubernetes.secret import Secret
+
+from infra.variables import AWS_STATS_SECRET, SECRET_ODC_READER_NAME
 
 REP_CONN_STR = Variable.get("db_rep_secret")
 ODC_CONN_STR = json.dumps(
@@ -24,17 +26,19 @@ ODC_CONN_STR = json.dumps(
         BaseHook.get_connection(infra_connections.DB_ODC_READER_CONN)
     )
 )
-REPORTING_PACKAGE_VERSION = "1.1.8"
 
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
     "start_date": dt(2020, 6, 15),
     "email": ["tom.mcadam@ga.gov.au"],
-    "email_on_failure": True,
-    "email_on_retry": False,
-    "retries": 2,
-    "retry_delay": timedelta(minutes=60),
+    "email_on_failure": False,
+    "retries": 0,
+    "secrets": [
+        Secret("env", "ODC_DB_HOST", SECRET_ODC_READER_NAME, "postgres-host"),
+        Secret("env", "ODC_DB_USER", SECRET_ODC_READER_NAME, "postgres-username"),
+        Secret("env", "ODC_DB_PASSWORD", SECRET_ODC_READER_NAME, "postgres-password"),
+    ],
 }
 
 dag = DAG(
@@ -50,7 +54,8 @@ with dag:
     # fmt: off
     JOBS = [
         "echo Reporting task started: $(date)",
-        f"pip install ga-reporting-etls=={REPORTING_PACKAGE_VERSION}",
+        f"pip install ga-reporting-etls",
+        "echo $ODC_DB_HOST",
         "echo $KWARGS",
         "python3 -m nemo_reporting.$MODULE",
         "echo Reporting task completed: $(date)",
@@ -66,8 +71,6 @@ with dag:
         task_id="one_off_task",
         get_logs=True,
         env_vars={
-            "REP_CONN": REP_CONN_STR,
-            "ODC_CONN": ODC_CONN_STR,
             "KWARGS": "{{dag_run.conf['kwargs']}}",
             "MODULE": "{{dag_run.conf['module']}}",
             "EXECUTION_DATE": "{{ ds }}",
