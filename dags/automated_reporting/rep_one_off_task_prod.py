@@ -18,7 +18,7 @@ from automated_reporting.utilities import helpers
 from airflow.hooks.base_hook import BaseHook
 from airflow.kubernetes.secret import Secret
 
-from infra.variables import SECRET_ODC_READER_NAME, DB_HOSTNAME, DB_PORT
+from infra.variables import SECRET_ODC_READER_NAME, DB_HOSTNAME, DB_PORT, DB_DATABASE
 
 REP_CONN_STR = Variable.get("db_rep_secret")
 ODC_CONN_STR = json.dumps(
@@ -71,6 +71,7 @@ with dag:
         env_vars={
             "ODC_DB_HOST": DB_HOSTNAME,
             "ODC_DB_PORT": DB_PORT,
+            "ODC_DB_DBNAME": DB_DATABASE,
             "KWARGS": "{{dag_run.conf['kwargs']}}",
             "MODULE": "{{dag_run.conf['module']}}",
             "EXECUTION_DATE": "{{ ds }}"
