@@ -13,19 +13,11 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from airflow.models import Variable
-from infra import connections as infra_connections
 from automated_reporting.utilities import helpers
 from airflow.hooks.base_hook import BaseHook
 from airflow.kubernetes.secret import Secret
 
 from infra.variables import SECRET_ODC_READER_NAME, DB_HOSTNAME, DB_PORT, DB_DATABASE
-
-REP_CONN_STR = Variable.get("db_rep_secret")
-ODC_CONN_STR = json.dumps(
-    helpers.parse_connection(
-        BaseHook.get_connection(infra_connections.DB_ODC_READER_CONN)
-    )
-)
 
 default_args = {
     "owner": "Tom McAdam",
