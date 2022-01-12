@@ -13,7 +13,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 )
 from airflow.kubernetes.secret import Secret
 
-from infra.variables import SECRET_ODC_WRITER_NAME, DB_HOSTNAME, DB_PORT, DB_DATABASE
+from infra.variables import SECRET_ODC_READER_NAME, DB_HOSTNAME, DB_PORT, DB_DATABASE
 
 default_args = {
     "owner": "Tom McAdam",
@@ -23,8 +23,8 @@ default_args = {
     "email_on_failure": False,
     "retries": 0,
     "secrets": [
-        Secret("env", "ODC_DB_USER", SECRET_ODC_WRITER_NAME, "postgres-username"),
-        Secret("env", "ODC_DB_PASSWORD", SECRET_ODC_WRITER_NAME, "postgres-password"),
+        Secret("env", "ODC_DB_USER", SECRET_ODC_READER_NAME, "postgres-username"),
+        Secret("env", "ODC_DB_PASSWORD", SECRET_ODC_READER_NAME, "postgres-password"),
     ],
 }
 
