@@ -18,7 +18,7 @@ from automated_reporting.utilities import helpers
 from airflow.hooks.base_hook import BaseHook
 from airflow.kubernetes.secret import Secret
 
-from infra.variables import AWS_STATS_SECRET, SECRET_ODC_READER_NAME
+from infra.variables import SECRET_ODC_READER_NAME, DB_HOSTNAME, DB_PORT
 
 REP_CONN_STR = Variable.get("db_rep_secret")
 ODC_CONN_STR = json.dumps(
@@ -54,7 +54,7 @@ with dag:
     JOBS = [
         "echo Reporting task started: $(date)",
         f"pip install ga-reporting-etls",
-        "echo $KWARGS",
+        "echo $ODC_DB_HOST",
         "python3 -m nemo_reporting.$MODULE",
         "echo Reporting task completed: $(date)",
     ]
@@ -69,8 +69,10 @@ with dag:
         task_id="one_off_task",
         get_logs=True,
         env_vars={
+            "ODC_DB_HOST": DB_HOSTNAME,
+            "ODC_DB_PORT": DB_PORT,
             "KWARGS": "{{dag_run.conf['kwargs']}}",
             "MODULE": "{{dag_run.conf['module']}}",
-            "EXECUTION_DATE": "{{ ds }}",
+            "EXECUTION_DATE": "{{ ds }}"
         }
     )
