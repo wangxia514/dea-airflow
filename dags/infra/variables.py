@@ -23,6 +23,7 @@ SECRET_EXPLORER_WRITER_NAME = Variable.get(
 )  # qa
 SECRET_OWS_WRITER_NAME = Variable.get("db_ows_writer_secret", "ows-writer")  # qa
 SECRET_ODC_WRITER_NAME = Variable.get("db_odc_writer_secret", "odc-writer")  # qa
+SECRET_ODC_READER_NAME = Variable.get("db_odc_reader_secret", "odc-reader")  # qa
 SECRET_DBA_ADMIN_NAME = Variable.get("db_dba_admin_secret", "dba-admin")  # qa
 
 SECRET_ODC_ADMIN_NAME = Variable.get("db_odc_admin_secret", default_var="odc-admin")
@@ -57,10 +58,10 @@ SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET = Variable.get(
 )
 
 # automated-reporting
-AWS_STATS_SECRET = Variable.get(
-    "aws_stats_secret", default_var="aws-stats"
-)  # qa
-AWS_STORAGE_STATS_POD_COUNT = Variable.get("AWS_STORAGE_STATS_POD_COUNT", default_var="10")
+AWS_STATS_SECRET = Variable.get("aws_stats_secret", default_var="aws-stats")  # qa
+AWS_STORAGE_STATS_POD_COUNT = Variable.get(
+    "AWS_STORAGE_STATS_POD_COUNT", default_var="10"
+)
 AWS_STATS_SECRET_MASTER = Variable.get(
     "aws_stats_secret_master", default_var="aws-stats-master"
 )
