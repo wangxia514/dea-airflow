@@ -9,13 +9,13 @@ from automated_reporting.databases import reporting_db
 log = logging.getLogger("airflow.task")
 
 
-def task(rep_conn, next_execution_date, pipeline, product_id, **kwargs):
+def task(rep_conn, data_interval_end, pipeline, product_id, **kwargs):
     """
     Task to query reporting DB SNS table with supplied `product_name`
     and insert a summary of latest timestamps into reporting DB
     """
     # Correct issue with running at start of scheduled period
-    execution_date = next_execution_date
+    execution_date = data_interval_end
 
     # Convert pendulum to python datetime to make stripping timezone possible
     execution_date = helpers.python_dt(execution_date)

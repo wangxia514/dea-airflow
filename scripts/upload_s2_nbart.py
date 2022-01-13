@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import sys
+import uuid
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures._base import as_completed
 from pathlib import Path
@@ -30,6 +31,7 @@ from c3_to_s3_rolling import (
     sync_granule,
 )
 
+S2_NBART_NCI = uuid.UUID("3ab25466-5e34-4c84-a760-a89d40a838e1")
 NCI_DIR = "/g/data/if87/datacube/002/S2_MSI_ARD/packaged"
 S3_BUCKET = "dea-public-data"
 WORK_DIR = Path("/g/data/v10/work/s2_nbart_rolling_archive")
@@ -273,9 +275,11 @@ def create_eo3(granule_dir, granule_id):
     except KeyError:
         expand_valid_data = True
 
+    dataset_id = uuid.uuid5(S2_NBART_NCI, metadata["id"])
     assembler = DatasetAssembler(
         dataset_location=granule_dir,
         metadata_path=granule_dir / "dummy",
+        dataset_id=dataset_id,
     )
 
     assembler.product_family = "ard"

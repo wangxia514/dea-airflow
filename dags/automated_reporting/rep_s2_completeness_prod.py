@@ -14,13 +14,14 @@ import os
 import pathlib
 import logging
 from datetime import datetime as dt
-from datetime import timedelta, timezone
+from datetime import timedelta
 
 from airflow import DAG
 from airflow.configuration import conf
 from airflow.models import Variable
 from airflow.operators.python import PythonOperator
 from airflow.hooks.base_hook import BaseHook
+import pendulum
 
 from automated_reporting import variables
 from automated_reporting import connections
@@ -41,10 +42,11 @@ from automated_reporting.tasks.s2_ard_completeness import (
 
 log = logging.getLogger("airflow.task")
 
+utc_tz = pendulum.timezone("UTC")
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt(2021, 5, 1, tzinfo=timezone.utc),
+    "start_date": dt(2021, 5, 1, tzinfo=utc_tz),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
@@ -94,6 +96,7 @@ with dag:
         "odc_conn": odc_conn,
         "copernicus_api_credentials": copernicus_api_creds,
         "aux_data_path": aux_data_path,
+        "execution_timeout": timedelta(minutes=5),
     }
 
     completeness_kwargs_l1 = {
@@ -113,7 +116,6 @@ with dag:
         task_id="compute_s2_l1_completeness",
         python_callable=s2_completeness_l1_task,
         op_kwargs=completeness_kwargs_l1,
-        provide_context=True,
     )
 
     completeness_kwargs_ard = {
@@ -133,7 +135,6 @@ with dag:
         task_id="compute_s2_ard_completeness",
         python_callable=s2_completeness_ard_task,
         op_kwargs=completeness_kwargs_ard,
-        provide_context=True,
     )
 
     completeness_kwargs_ard_prov = {
@@ -153,7 +154,6 @@ with dag:
         task_id="compute_s2_ard_completeness_prov",
         python_callable=s2_completeness_ard_task,
         op_kwargs=completeness_kwargs_ard_prov,
-        provide_context=True,
     )
 
     check_db >> [

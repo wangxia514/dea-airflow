@@ -8,7 +8,8 @@ values and the aoi summary values.
 
 import logging
 from datetime import datetime as dt
-from datetime import timedelta, timezone
+from datetime import timedelta
+import pendulum
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
@@ -26,10 +27,12 @@ from automated_reporting.tasks.expire_completeness import (
 
 log = logging.getLogger("airflow.task")
 
+utc_tz = pendulum.timezone("UTC")
+
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt(2021, 7, 12, tzinfo=timezone.utc),
+    "start_date": dt(2021, 7, 12, tzinfo=utc_tz),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
@@ -40,7 +43,7 @@ default_args = {
 dag = DAG(
     "rep_expire_completeness_dev",
     description="Expire redundent completeness metrics",
-    tags=["reporting"],
+    tags=["reporting_dev"],
     default_args=default_args,
     schedule_interval="10 */2 * * *",  # try and avoid completeness generation
 )
@@ -88,7 +91,6 @@ with dag:
             task_id="expire_completeness_" + product_id,
             python_callable=expire_completeness_task,
             op_kwargs=expire_completeness_kwargs,
-            provide_context=True,
         )
 
     check_db >> [create_task(product_id) for product_id in products_list]

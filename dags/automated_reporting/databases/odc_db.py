@@ -18,6 +18,11 @@ SQL_QUERY = {
     "ga_s2_wo_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE2,
     "ga_ls7e_ard_provisional_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE3,
     "ga_ls8c_ard_provisional_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE3,
+    "ga_ls5t_ard_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE3,
+    "ga_ls7e_ard_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE3,
+    "ga_ls8c_ard_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE3,
+    "ga_ls_wo_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE3,
+    "ga_ls_fc_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE3,
     "ga_s2am_ard_provisional_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE4,
     "ga_s2bm_ard_provisional_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE4,
     "ga_s2_ba_provisional_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE4,
@@ -64,7 +69,7 @@ def query(connection_parameters, product_id, execution_date, days):
     return datasets
 
 
-def query_stepped(connection_parameters, product_id, execution_date, steps):
+def query_latency(connection_parameters, product_id, execution_date, days):
     """Query odc progressively until a result is returned"""
 
     odc_conn = None
@@ -74,27 +79,18 @@ def query_stepped(connection_parameters, product_id, execution_date, steps):
         with psycopg2.connect(**connection_parameters) as odc_conn:
             with odc_conn.cursor() as odc_cursor:
 
-                # Loop through the time_delta list until we get some data back. Prevents returning a huge amount of data unecessarily from ODC.
-                for days_previous in steps:
+                # caluclate a start and end time for the AWS ODC query
+                end_time = execution_date
+                start_time = end_time - timedelta(days=days)
 
-                    # caluclate a start and end time for the AWS ODC query
-                    end_time = execution_date
-                    start_time = end_time - timedelta(days=days_previous)
-
-                    # extact a processing and acquisition timestamps from AWS for product and timerange, print logs of query and row count
-                    odc_cursor.execute(
-                        SQL_QUERY[product_id],
-                        (product_id, start_time, end_time),
-                    )
-                    log.info("ODC Query for: {} days".format(days_previous))
-                    log.info("ODC Executed SQL: {}".format(odc_cursor.query.decode()))
-                    log.info("ODC query returned: {} rows".format(odc_cursor.rowcount))
-
-                    # if nothing is returned in the given timeframe, loop again and go back further in time
-                    if odc_cursor.rowcount > 0:
-                        break
-                    else:
-                        continue
+                # extact a processing and acquisition timestamps from AWS for product and timerange, print logs of query and row count
+                odc_cursor.execute(
+                    SQL_QUERY[product_id],
+                    (product_id, start_time, end_time),
+                )
+                log.info("ODC Query for: {} days".format(days))
+                log.info("ODC Executed SQL: {}".format(odc_cursor.query.decode()))
+                log.info("ODC query returned: {} rows".format(odc_cursor.rowcount))
 
                 for row in odc_cursor:
                     (
@@ -114,6 +110,7 @@ def query_stepped(connection_parameters, product_id, execution_date, steps):
                         "processing_dt": processing_ts,
                     }
                     results.append(row)
+
     except Exception as e:
         raise e
     finally:

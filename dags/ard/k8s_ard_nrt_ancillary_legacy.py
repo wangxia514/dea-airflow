@@ -41,6 +41,10 @@ def brdf_doys(doy):
             clip(((doy // 8) + 1) * 8 + 1),
         }
 
+    # hack to fix start of year mishaps
+    doys.add(1)
+    doys.add(361)
+
     return {str(d).zfill(3) for d in doys}
 
 
@@ -111,6 +115,7 @@ SYNC_JOBS = [
         )
         for doy in brdf_doys(DOY)
     ],
+    "echo synched " + str(brdf_doys(DOY)),
     "echo synching elevation",
     sync(
         '--exclude "*" --include dsm1sv1_0_Clean.h5',
@@ -166,10 +171,10 @@ SYNC_JOBS = [
         )
         for sat_path in range(88, 117)
     ],
-    "echo synching modtran",
-    sync("s3://dea-dev-bucket/ard-nrt/MODTRAN6.0.2.3G/", "/ancillary/MODTRAN6.0.2.3G/"),
     "echo listing ancillaries on disk",
     "find /ancillary/ -type f",
+    "echo synching modtran",
+    sync("s3://dea-dev-bucket/ard-nrt/MODTRAN6.0.2.3G/", "/ancillary/MODTRAN6.0.2.3G/"),
     # this is needed because we want the wagl_nrt user to have write access
     "echo changing ancillary file permissions",
     "find /ancillary/ -type d | xargs chmod g+w",
@@ -223,15 +228,15 @@ ancillary_volume_mount = k8s.V1VolumeMount(
 ancillary_volume = k8s.V1Volume(
     name="wagl-nrt-ancillary-volume",
     persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(
-        claim_name="wagl-nrt-ancillary-volume-pvc"
+        claim_name="wagl-nrt-ancillary-volume"
     ),
 )
 
 pipeline = DAG(
-    "k8s_ard_nrt_ancillary",
+    "k8s_ard_nrt_ancillary_legacy",
     doc_md=__doc__,
     default_args=default_args,
-    description="DEA ARD NRT fetch ancillary",
+    description="DEA ARD NRT fetch ancillary (legacy)",
     concurrency=1,
     max_active_runs=1,
     catchup=False,
@@ -247,7 +252,7 @@ with pipeline:
         annotations={"iam.amazonaws.com/role": "svc-dea-sandbox-eks-ard-nrt-ancillary"},
         cmds=["bash", "-c", " &&\n".join(SYNC_JOBS)],
         image_pull_policy="IfNotPresent",
-        name="sync_ancillaries",
+        name="sync_ancillaries_legacy",
         task_id="sync_ancillaries",
         get_logs=True,
         startup_timeout_seconds=300,

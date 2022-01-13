@@ -12,12 +12,13 @@ import os
 import pathlib
 import logging
 from datetime import datetime as dt
-from datetime import timedelta, timezone
+from datetime import timedelta
 
 from airflow import DAG
 from airflow.configuration import conf
 from airflow.operators.python import PythonOperator
 from airflow.hooks.base_hook import BaseHook
+import pendulum
 
 from automated_reporting import connections
 from automated_reporting.databases import schemas
@@ -31,10 +32,12 @@ from automated_reporting.tasks.sns_latency import task as sns_latency_task
 
 log = logging.getLogger("airflow.task")
 
+utc_tz = pendulum.timezone("UTC")
+
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt(2021, 9, 22, tzinfo=timezone.utc),
+    "start_date": dt(2021, 9, 22, tzinfo=utc_tz),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
@@ -93,12 +96,12 @@ with dag:
             "rep_conn": rep_conn,
             "odc_conn": odc_conn,
             "product_name": product_name,
+            "days": 30,
         }
         return PythonOperator(
             task_id="odc-latency_" + product_name,
             python_callable=odc_latency_task,
             op_kwargs=latency_kwargs,
-            provide_context=True,
         )
 
     sns_list = [("S2A_MSIL1C", "esa_s2a_msi_l1c"), ("S2B_MSIL1C", "esa_s2b_msi_l1c")]
@@ -117,7 +120,6 @@ with dag:
             task_id="sns-latency_" + product_id,
             python_callable=sns_latency_task,
             op_kwargs=latency_kwargs,
-            provide_context=True,
         )
 
     odc_tasks = [create_task(product_name) for product_name in products_list]

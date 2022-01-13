@@ -35,13 +35,13 @@ def main():
 
     acquisitions = usgs_aquisitions.task(
         product_ids=product_ids,
-        next_execution_date=dt.now(),
+        data_interval_end=dt.now(),
         m2m_credentials=dict(config["usgs_m2m"]),
         aux_data_path=os.path.join(AR_FOLDER, "aux_data"),
     )
 
     usgs_insert_hg_l0.task(
-        next_execution_date=dt.now(),
+        data_interval_end=dt.now(),
         rep_conn=dict(config["reporting_db"]),
         acquisitions=acquisitions,
     )

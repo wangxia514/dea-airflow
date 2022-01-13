@@ -10,7 +10,9 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 
 from infra.images import INDEXER_IMAGE
 from infra.variables import (

@@ -65,8 +65,9 @@ class testClass(unittest.TestCase):
     def test_add_product_index_utility_dag(self):
         self.assertDagDictEqual(
             {
-                "check_dagrun_config": ["add-product-task", "batch-indexing-task"],
-                "add-product-task": ["batch-indexing-task"],
+                "check_dagrun_config": ["add-product-task", "s3-glob-validator-task"],
+                "add-product-task": ["s3-glob-validator-task"],
+                "s3-glob-validator-task": ["batch-indexing-task"],
                 "batch-indexing-task": ["explorer-summary-task"],
                 "explorer-summary-task": [],
             },

@@ -10,7 +10,8 @@ This DAG
 """
 import os
 import pathlib
-from datetime import datetime as dt, timedelta, timezone
+from datetime import datetime as dt, timedelta
+import pendulum
 
 from airflow import DAG
 from airflow.configuration import conf
@@ -39,10 +40,12 @@ from automated_reporting.tasks.usgs_aquisitions import task as usgs_acquisitions
 from automated_reporting.tasks.usgs_insert_hg_l0 import task as usgs_insert_hg_l0_task
 from automated_reporting.tasks.usgs_insert_acqs import task as usgs_insert_acqs_task
 
+utc_tz = pendulum.timezone("UTC")
+
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt(2021, 8, 16, tzinfo=timezone.utc),
+    "start_date": dt(2021, 8, 16, tzinfo=utc_tz),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
@@ -119,7 +122,6 @@ with dag:
     usgs_acquisitions = PythonOperator(
         task_id="usgs_acquisitions",
         python_callable=usgs_acquisitions_task,
-        provide_context=True,
         op_kwargs=acquisitions_kwargs,
         task_concurrency=1,
     )
@@ -139,7 +141,6 @@ with dag:
     usgs_insert_acqs = PythonOperator(
         task_id="usgs_insert_acqs",
         python_callable=usgs_insert_acqs_xcom,
-        provide_context=True,
         op_kwargs=insert_acqs_kwargs,
     )
 
@@ -175,7 +176,6 @@ with dag:
     usgs_l1_completeness_ls8 = PythonOperator(
         task_id="usgs_l1_completeness_ls8",
         python_callable=usgs_l1_completeness_task,
-        provide_context=True,
         op_kwargs=usgs_l1_completness_ls8_kwargs,
     )
 
@@ -191,7 +191,6 @@ with dag:
     usgs_l1_completeness_ls7 = PythonOperator(
         task_id="usgs_l1_completeness_ls7",
         python_callable=usgs_l1_completeness_task,
-        provide_context=True,
         op_kwargs=usgs_l1_completness_ls7_kwargs,
     )
 
@@ -205,7 +204,6 @@ with dag:
     usgs_ard_completeness_ls8 = PythonOperator(
         task_id="usgs_ard_completeness_ls8",
         python_callable=usgs_ard_completeness_task,
-        provide_context=True,
         op_kwargs=usgs_ard_completness_ls8_kwargs,
     )
 
@@ -217,7 +215,6 @@ with dag:
     usgs_ard_completeness_ls7 = PythonOperator(
         task_id="usgs_ard_completeness_ls7",
         python_callable=usgs_ard_completeness_task,
-        provide_context=True,
         op_kwargs=usgs_ard_completness_ls7_kwargs,
     )
 
@@ -237,7 +234,6 @@ with dag:
     usgs_ls8_l1_latency = PythonOperator(
         task_id="usgs_ls8_l1_latency",
         python_callable=insert_ls8_l1_latency_xcom,
-        provide_context=True,
         op_kwargs=latency_kwargs,
     )
 
@@ -245,7 +241,6 @@ with dag:
     usgs_ls7_l1_latency = PythonOperator(
         task_id="usgs_ls7_l1_latency",
         python_callable=insert_ls7_l1_latency_xcom,
-        provide_context=True,
         op_kwargs=latency_kwargs,
     )
 
@@ -264,7 +259,6 @@ with dag:
     usgs_insert_hg_l0 = PythonOperator(
         task_id="usgs_insert_hg_l0",
         python_callable=usgs_insert_hg_l0_xcom,
-        provide_context=True,
         op_kwargs=completeness_kwargs,
     )
 
