@@ -25,6 +25,11 @@ from infra.s3_buckets import S2_NRT_TRANSFER_BUCKET
 from infra.sqs_queues import ARD_NRT_S2_PROCESS_SCENE_QUEUE
 from infra.variables import S2_NRT_AWS_CREDS
 
+# band-aid
+WAGL_IMAGE = (
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dev/wagl:debug-20210116-1417"
+)
+
 _LOG = logging.getLogger()
 
 default_args = {
@@ -45,7 +50,8 @@ ESTIMATED_COMPLETION_TIME = 3 * 60 * 60
 BUCKET_REGION = "ap-southeast-2"
 S3_PREFIX = "s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/"
 
-MAX_ACTIVE_RUNS = 150
+# band-aid MAX_ACTIVE_RUNS = 150
+MAX_ACTIVE_RUNS = 15
 
 affinity = {
     "nodeAffinity": {
