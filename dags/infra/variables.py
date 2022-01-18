@@ -95,3 +95,6 @@ AWS_STORAGE_STATS_POD_COUNT = Variable.get("AWS_STORAGE_STATS_POD_COUNT", defaul
 SARA_HISTORY_SECRET = Variable.get(
     "sara_history_secret", default_var="sara-history"
 )  # qa
+ARCHIE_SECRET = Variable.get(
+    "archie_secret", default_var="archie"
+)  
