@@ -140,6 +140,19 @@ with dag:
             "EXECUTION_DATE": "{{ ds }}",
         },
     )
+    archie_processing_esatoncitask = KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(JOBS5)],
+        name="archie_processing_EsaToNciTask",
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="archie_processing_EsaToNciTask",
+        get_logs=True,
+        env_vars={
+            "EXECUTION_DATE": "{{ ds }}",
+        },
+    )
     archie_processing_esatoncis1task = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
