@@ -97,4 +97,4 @@ SARA_HISTORY_SECRET = Variable.get(
 )  # qa
 ARCHIE_SECRET = Variable.get(
     "archie_secret", default_var="archie"
-)  
+)
