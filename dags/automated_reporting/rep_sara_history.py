@@ -138,7 +138,7 @@ with dag:
             "EXECUTION_DATE": "{{ ds }}",
         },
     )
-    archie_processing_esatoncitask = KubernetesPodOperator( 
+    archie_processing_esatoncitask = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(JOBS5)],
