@@ -87,7 +87,7 @@ with dag:
         "pip install ga-reporting-etls==1.2.57",
         "jsonresult=`python3 -c 'from nemo_reporting.archie import archie_processing; archie_processing.Downloads()'`",
     ]
-    START = DummyOperator(task_id="nci-monthly-stats") 
+    START = DummyOperator(task_id="nci-monthly-stats")
     sara_history_ingestion = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
