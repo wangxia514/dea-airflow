@@ -138,7 +138,7 @@ with dag:
             "EXECUTION_DATE": "{{ ds }}",
         },
     )
-    archie_processing_esatoncitask= KubernetesPodOperator(
+    archie_processing_esatoncitask = KubernetesPodOperator( 
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(JOBS5)],
@@ -151,7 +151,7 @@ with dag:
             "EXECUTION_DATE": "{{ ds }}",
         },
     )
-    archie_processing_esatoncis1task= KubernetesPodOperator(
+    archie_processing_esatoncis1task = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(JOBS6)],
@@ -164,7 +164,7 @@ with dag:
             "EXECUTION_DATE": "{{ ds }}",
         },
     )
-    archie_processing_esatoncis2task= KubernetesPodOperator(
+    archie_processing_esatoncis2task = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(JOBS7)],
@@ -177,7 +177,7 @@ with dag:
             "EXECUTION_DATE": "{{ ds }}",
         },
     )
-    archie_processing_esatoncis3task= KubernetesPodOperator(
+    archie_processing_esatoncis3task = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(JOBS8)],
@@ -190,7 +190,7 @@ with dag:
             "EXECUTION_DATE": "{{ ds }}",
         },
     )
-    archie_processing_downloads= KubernetesPodOperator(
+    archie_processing_downloads = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(JOBS9)],
@@ -206,7 +206,7 @@ with dag:
     sara_history_ingestion >> sara_history_processing
     archie_ingestion >> archie_processing_sattoesa
     archie_ingestion >> archie_processing_esatoncitask
-    archie_ingestion >> archie_processing_esatoncis1task 
-    archie_ingestion >> archie_processing_esatoncis2task 
-    archie_ingestion >> archie_processing_esatoncis3task 
+    archie_ingestion >> archie_processing_esatoncis1task
+    archie_ingestion >> archie_processing_esatoncis2task
+    archie_ingestion >> archie_processing_esatoncis3task
     archie_ingestion >> archie_processing_downloads
