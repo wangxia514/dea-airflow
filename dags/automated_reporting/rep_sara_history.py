@@ -86,6 +86,7 @@ with dag:
         "pip install ga-reporting-etls==1.2.57",
         "jsonresult=`python3 -c 'from nemo_reporting.archie import archie_processing; archie_processing.Downloads()'`",
     ]
+    START = DummyOperator(task_id="nci-monthly-stats") 
     sara_history_ingestion = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
@@ -203,7 +204,8 @@ with dag:
             "EXECUTION_DATE": "{{ ds }}",
         },
     )
-    sara_history_ingestion >> sara_history_processing
+    START >> sara_history_ingestion >> sara_history_processing
+    START >> archie_ingestion
     archie_ingestion >> archie_processing_sattoesa
     archie_ingestion >> archie_processing_esatoncitask
     archie_ingestion >> archie_processing_esatoncis1task
