@@ -12,6 +12,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 )
 from datetime import datetime as dt, timedelta
 from infra.variables import SARA_HISTORY_SECRET
+from airflow.operators.dummy_operator import DummyOperator
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
