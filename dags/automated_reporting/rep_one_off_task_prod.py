@@ -4,7 +4,6 @@
 Automated Reporting - A task to run one-off tasks in the k8s cluster
 """
 
-import json
 from datetime import datetime as dt
 
 # The DAG object; we'll need this to instantiate a DAG
@@ -12,9 +11,6 @@ from airflow import DAG
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-from airflow.models import Variable
-from automated_reporting.utilities import helpers
-from airflow.hooks.base_hook import BaseHook
 from airflow.kubernetes.secret import Secret
 
 from infra.variables import SECRET_ODC_READER_NAME, DB_HOSTNAME, DB_PORT, DB_DATABASE
@@ -45,7 +41,7 @@ with dag:
     # fmt: off
     JOBS = [
         "echo Reporting task started: $(date)",
-        f"pip install ga-reporting-etls",
+        "pip install ga-reporting-etls",
         "python3 -m nemo_reporting.$MODULE",
         "echo Reporting task completed: $(date)",
     ]
