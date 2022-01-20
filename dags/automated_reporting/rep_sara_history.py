@@ -225,7 +225,7 @@ with dag:
     )
     START >> sara_history_ingestion >> sara_history_processing
     START >> archie_ingestion
-    START >> fj7_disk_usage 
+    START >> fj7_disk_usage
     archie_ingestion >> archie_processing_sattoesa
     archie_ingestion >> archie_processing_esatoncitask
     archie_ingestion >> archie_processing_esatoncis1task
