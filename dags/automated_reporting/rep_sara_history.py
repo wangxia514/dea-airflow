@@ -87,6 +87,11 @@ with dag:
         "pip install ga-reporting-etls==1.2.57",
         "jsonresult=`python3 -c 'from nemo_reporting.archie import archie_processing; archie_processing.Downloads()'`",
     ]
+    JOBS10 = [
+        "echo fj7 disk usage download and processing: $(date)",
+        "pip install ga-reporting-etls==1.3.0",
+        "jsonresult=`python3 -c 'from nemo_reporting.fj7_storage import fj7_disk_usage; fj7_disk_usage.task()'`",
+    ]
     START = DummyOperator(task_id="nci-monthly-stats")
     sara_history_ingestion = KubernetesPodOperator(
         namespace="processing",
@@ -205,8 +210,22 @@ with dag:
             "EXECUTION_DATE": "{{ ds }}",
         },
     )
+    fj7_disk_usage = KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(JOBS10)],
+        name="fj7_disk_usage",
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="fj7_disk_usage",
+        get_logs=True,
+        env_vars={
+            "EXECUTION_DATE": "{{ ds }}",
+        },
+    )
     START >> sara_history_ingestion >> sara_history_processing
     START >> archie_ingestion
+    START >> fj7_disk_usage 
     archie_ingestion >> archie_processing_sattoesa
     archie_ingestion >> archie_processing_esatoncitask
     archie_ingestion >> archie_processing_esatoncis1task
