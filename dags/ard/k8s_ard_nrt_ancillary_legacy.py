@@ -45,6 +45,7 @@ def brdf_doys(doy):
     doys.add(1)
     doys.add(9)
     doys.add(361)
+    doys.add(353)
 
     return {str(d).zfill(3) for d in doys}
 
