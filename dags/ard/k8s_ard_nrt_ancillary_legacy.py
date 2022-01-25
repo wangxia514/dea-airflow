@@ -43,6 +43,7 @@ def brdf_doys(doy):
 
     # hack to fix start of year mishaps
     doys.add(1)
+    doys.add(9)
     doys.add(361)
 
     return {str(d).zfill(3) for d in doys}
@@ -82,8 +83,8 @@ SYNC_JOBS = [
             "/ancillary/water_vapour",
         )
         # if first week of year, fetch last year as well
-        for year in [NOW.year]
-        + ([NOW.year - 1] if NOW.month == 1 and NOW.day < 7 else [])
+        for year in [NOW.year] + ([NOW.year - 1] if NOW.month == 1 else [])
+        # + ([NOW.year - 1] if NOW.month == 1 and NOW.day < 7 else [])
     ],
     "echo removing existing brdf",
     "mkdir -p /ancillary/brdf-jl/",
