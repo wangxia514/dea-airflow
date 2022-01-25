@@ -57,6 +57,10 @@ ALCHEMIST_C3_USER_SECRET = Variable.get(
     "alchemist_c3_user_secret", default_var="alchemist-c3-user-creds"
 )
 
+ALCHEMIST_S2_C3_WO_NRT_USER_SECRET = Variable.get(
+    "alchemist_s2_c3_wo_nrt_user_secret", default_var="alchemist-s2-c3-nrt-wo-user-creds"
+)
+
 LANDSAT_C3_AWS_USER_SECRET = Variable.get(
     "landsat_c3_aws_user_secret", default_var="processing-landsat-3-aws-creds"
 )
