@@ -4,7 +4,7 @@ DEA Waterbodies processing using Conflux.
 Supported configuration arguments:
 
 shapefile
-    Default "s3://dea-public-data-dev/projects/WaterBodies/c3_shp/8-WB_C3_metadata.shp"
+    Default "s3://dea-public-data-dev/projects/WaterBodies/c3_shp/ga_ls_wb_3_v2_dev.shp"
 
 outdir
     Default "s3://dea-public-data-dev/projects/WaterBodies/timeseries_pq_v2"
@@ -60,7 +60,7 @@ from infra.variables import (
 
 # Default config parameters.
 DEFAULT_PARAMS = dict(
-    shapefile="s3://dea-public-data-dev/projects/WaterBodies/c3_shp/8-WB_C3_metadata.shp",
+    shapefile="s3://dea-public-data-dev/projects/WaterBodies/c3_shp/ga_ls_wb_3_v2_dev.shp",
     outdir="s3://dea-public-data-dev/projects/WaterBodies/timeseries_pq_v2",
     product="ga_ls_wo_3",
     # this will break in 2100
