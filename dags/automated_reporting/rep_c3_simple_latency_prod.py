@@ -72,12 +72,16 @@ with dag:
     # Product list to extract the metric for, could potentially be part of dag configuration and managed in airflow UI?
     products_list = [
         # Baseline
-        "ga_ls5t_ard_3",  # static product, no longer generated
         "ga_ls7e_ard_3",
         "ga_ls8c_ard_3",
         # Derivavtives
         "ga_ls_wo_3",
         "ga_ls_fc_3",
+        "ga_ls8c_nbart_gm_cyear_3",
+        "ga_ls7e_nbart_gm_cyear_3",
+        "ga_ls_wo_fq_cyear_3",
+        "ga_ls_wo_fq_apr_oct_3",
+        "ga_ls_wo_fq_nov_mar_3",
     ]
 
     def create_task(product_name):

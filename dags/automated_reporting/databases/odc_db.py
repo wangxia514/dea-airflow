@@ -26,6 +26,11 @@ SQL_QUERY = {
     "ga_s2am_ard_provisional_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE4,
     "ga_s2bm_ard_provisional_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE4,
     "ga_s2_ba_provisional_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE4,
+    "ga_ls7e_nbart_gm_cyear_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE5,
+    "ga_ls8c_nbart_gm_cyear_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE5,
+    "ga_ls_wo_fq_cyear_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE5,
+    "ga_ls_wo_fq_apr_oct_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE5,
+    "ga_ls_wo_fq_nov_mar_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE5,
 }
 
 

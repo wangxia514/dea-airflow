@@ -91,6 +91,32 @@ SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE4 = """
         dataset.added <= %s;
 """
 
+# ga_ls8c_nbart_gm_cyear_3
+# ga_ls7e_nbart_gm_cyear_3
+# ga_ls_wo_fq_cyear_3
+# ga_ls_wo_fq_apr_oct_3
+# ga_ls_wo_fq_nov_mar_3
+SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE5 = """
+    SELECT
+        dataset.id,
+        dataset.added AS indexed_time,
+        dataset.metadata #>> '{label}'::text[] as granule_id,
+        'none' as parent_id,
+        dataset.metadata #>> '{properties,odc:region_code}'::text[] as tile_id,
+        agdc.common_timestamp(dataset.metadata #>> '{properties,datetime}'::text[]) as satellite_acquisition_time,
+        agdc.common_timestamp(dataset.metadata #>> '{properties,odc:processing_datetime}'::text[]) AS processing_time
+    FROM agdc.dataset
+        JOIN agdc.dataset_type ON dataset_type.id = dataset.dataset_type_ref
+    WHERE
+        dataset.archived IS NULL
+    AND
+        dataset_type.name = %s
+    AND
+        dataset.added > %s
+    AND
+        dataset.added <= %s;
+"""
+
 SELECT_SCHEMA = """SELECT * FROM information_schema.schemata WHERE catalog_name=%s and schema_name=%s;"""
 
 SELECT_TABLE = """SELECT * FROM information_schema.tables WHERE table_catalog=%s AND table_schema=%s AND table_name=%s;"""
