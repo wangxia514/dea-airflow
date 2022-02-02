@@ -64,6 +64,7 @@ with dag:
         get_logs=True,
         env_vars={
             "EXECUTION_DATE": "{{ ds }}",
+            "FILE_TO_PROCESS": "fj7",
         },
     )
     fj7_processing = KubernetesPodOperator(
