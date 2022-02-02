@@ -12,11 +12,10 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 )
 from datetime import datetime, timedelta
 from infra.variables import SARA_HISTORY_SECRET
-from airflow.operators.dummy_operator import DummyOperator
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
-    "depends_on_past": False,
+    "depends_on_past": True,
     "start_date": datetime(2021, 10, 1),
     "email": ["ramkumar.ramagopalan@ga.gov.au"],
     "email_on_failure": True,
@@ -53,7 +52,6 @@ with dag:
         "pip install ga-reporting-etls==1.4.0",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fj7_user_stats_processing; fj7_user_stats_processing.task()'`",
     ]
-    START = DummyOperator(task_id="fj7-ungrouped-user-stats")
     fj7_ingestion = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
@@ -81,4 +79,4 @@ with dag:
             "EXECUTION_DATE": "{{ ds }}",
         },
     )
-    START >> fj7_ingestion >> fj7_processing
+    fj7_ingestion >> fj7_processing
