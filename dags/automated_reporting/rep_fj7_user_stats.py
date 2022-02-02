@@ -72,11 +72,13 @@ with dag:
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(JOBS2)],
         name="fj7_processing",
+        do_xcom_push=False,
         is_delete_operator_pod=True,
         in_cluster=True,
         task_id="fj7_processing",
         get_logs=True,
         env_vars={
+            "AGGREGATION_MONTHS" : "{{ task_instance.xcom_pull(task_ids='fj7_ingestion') }}",
             "EXECUTION_DATE": "{{ ds }}",
         },
     )
