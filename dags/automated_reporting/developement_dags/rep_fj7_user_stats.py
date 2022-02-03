@@ -43,13 +43,13 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo fj7 user stats ingestion: $(date)",
-        "pip install ga-reporting-etls==1.4.2",
+        "pip install ga-reporting-etls==1.4.3",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fj7_user_stats_ingestion; fj7_user_stats_ingestion.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS2 = [
         "echo fj7 user stats processing: $(date)",
-        "pip install ga-reporting-etls==1.4.2",
+        "pip install ga-reporting-etls==1.4.3",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fj7_user_stats_processing; fj7_user_stats_processing.task()'`",
     ]
     fj7_ingestion = KubernetesPodOperator(
