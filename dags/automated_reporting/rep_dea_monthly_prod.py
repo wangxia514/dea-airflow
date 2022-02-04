@@ -121,5 +121,5 @@ with dag:
             "EXECUTION_DATE": "{{ ds }}",
         },
     )
-    START >> fk4_ungrouped_user_stats_ingestion >> fk4_ungrouped_user_stats_processing
-    START >> rs0_ungrouped_user_stats_ingestion >> rs0_ungrouped_user_stats_processing
+    fk4_ungrouped_user_stats_ingestion >> fk4_ungrouped_user_stats_processing
+    rs0_ungrouped_user_stats_ingestion >> rs0_ungrouped_user_stats_processing
