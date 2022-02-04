@@ -5,13 +5,13 @@ cophub monthly dag for prod
 """
 
 # The DAG object; we'll need this to instantiate a DAG
+from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from airflow.operators.dummy import DummyOperator
-from datetime import datetime, timedelta
 from infra.variables import SARA_HISTORY_SECRET_MASTER
 
 default_args = {
@@ -233,7 +233,7 @@ with dag:
             "EXECUTION_DATE": "{{ ds }}",
         },
     )
-    fj7_ingestion = KubernetesPodOperator(
+    fj7_ungrouped_user_stats_ingestion = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(JOBS11)],
@@ -241,22 +241,22 @@ with dag:
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="fj7_ingestion",
+        task_id="fj7_ungrouped_user_stats_ingestion",
         get_logs=True,
         env_vars={
             "EXECUTION_DATE": "{{ ds }}",
             "FILE_TO_PROCESS": "fj7",
         },
     )
-    fj7_processing = KubernetesPodOperator(
+    fj7_ungrouped_user_stats_processing = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(JOBS12)],
-        name="fj7_processing",
+        name="fj7_ungrouped_user_stats_processing",
         do_xcom_push=False,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="fj7_processing",
+        task_id="fj7_ungrouped_user_stats_processing",
         get_logs=True,
         env_vars={
             "AGGREGATION_MONTHS" : "{{ task_instance.xcom_pull(task_ids='fj7_ingestion') }}",
@@ -264,7 +264,7 @@ with dag:
         },
     )
     START >> sara_history_ingestion >> sara_history_processing
-    START >> fj7_ingestion >> fj7_processing
+    START >> fj7_ungrouped_user_stats_ingestion >> fj7_ungrouped_user_stats_processing
     START >> archie_ingestion
     START >> fj7_disk_usage
     archie_ingestion >> archie_processing_sattoesa
