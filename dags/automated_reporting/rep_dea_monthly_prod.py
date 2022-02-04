@@ -62,7 +62,7 @@ with dag:
         "pip install ga-reporting-etls==1.4.4",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import rs0_user_stats_processing; rs0_user_stats_processing.task()'`",
     ]
-    START = DummyOperator(task_id="rep_dea_monthly_prod")
+    START = DummyOperator(task_id="dea-monthly-prod")
     fk4_ungrouped_user_stats_ingestion = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
