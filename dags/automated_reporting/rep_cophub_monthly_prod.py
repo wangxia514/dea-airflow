@@ -11,7 +11,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from airflow.operators.dummy import DummyOperator
-from datetime import datetime as dt, timedelta
+from datetime import datetime, timedelta
 from infra.variables import SARA_HISTORY_SECRET_MASTER
 
 default_args = {
@@ -264,7 +264,7 @@ with dag:
         },
     )
     START >> sara_history_ingestion >> sara_history_processing
-    START >> fj7_ingestion >> fj7_processing 
+    START >> fj7_ingestion >> fj7_processing
     START >> archie_ingestion
     START >> fj7_disk_usage
     archie_ingestion >> archie_processing_sattoesa
