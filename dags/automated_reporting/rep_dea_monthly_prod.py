@@ -18,7 +18,7 @@ from infra.variables import SARA_HISTORY_SECRET_MASTER
 default_args = {
     "owner": "Ramkumar Ramagopalan",
     "depends_on_past": True,
-    "start_date": datetime(2022, 9, 1),
+    "start_date": datetime(2021, 9, 1),
     "email": ["ramkumar.ramagopalan@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
