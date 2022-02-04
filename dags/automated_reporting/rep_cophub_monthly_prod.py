@@ -259,7 +259,7 @@ with dag:
         task_id="fj7_ungrouped_user_stats_processing",
         get_logs=True,
         env_vars={
-            "AGGREGATION_MONTHS" : "{{ task_instance.xcom_pull(task_ids='fj7_ingestion') }}",
+            "AGGREGATION_MONTHS" : "{{ task_instance.xcom_pull(task_ids='fj7_ungrouped_user_stats_ingestion') }}",
             "EXECUTION_DATE": "{{ ds }}",
         },
     )
