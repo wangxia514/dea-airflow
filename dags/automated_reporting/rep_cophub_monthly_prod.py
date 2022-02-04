@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-sara_history dag for prod
+cophub monthly dag for prod
 """
 
 # The DAG object; we'll need this to instantiate a DAG
@@ -16,8 +16,8 @@ from infra.variables import SARA_HISTORY_SECRET_MASTER
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
-    "depends_on_past": False,
-    "start_date": dt.now() - timedelta(hours=1),
+    "depends_on_past": True,
+    "start_date": datetime(2022, 2, 1),
     "email": ["ramkumar.ramagopalan@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
@@ -39,7 +39,6 @@ dag = DAG(
     default_args=default_args,
     schedule_interval="0 14 1 * *",
 )
-
 
 with dag:
     JOBS1 = [
@@ -91,6 +90,17 @@ with dag:
         "echo fj7 disk usage download and processing: $(date)",
         "pip install ga-reporting-etls==1.3.0",
         "jsonresult=`python3 -c 'from nemo_reporting.fj7_storage import fj7_disk_usage; fj7_disk_usage.task()'`",
+    ]
+    JOBS11 = [
+        "echo fj7 user stats ingestion: $(date)",
+        "pip install ga-reporting-etls==1.4.4",
+        "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fj7_user_stats_ingestion; fj7_user_stats_ingestion.task()'`",
+        "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
+    ]
+    JOBS12 = [
+        "echo fj7 user stats processing: $(date)",
+        "pip install ga-reporting-etls==1.4.4",
+        "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fj7_user_stats_processing; fj7_user_stats_processing.task()'`",
     ]
     START = DummyOperator(task_id="nci-monthly-stats")
     sara_history_ingestion = KubernetesPodOperator(
@@ -223,7 +233,38 @@ with dag:
             "EXECUTION_DATE": "{{ ds }}",
         },
     )
+    fj7_ingestion = KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(JOBS11)],
+        name="write-xcom",
+        do_xcom_push=True,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="fj7_ingestion",
+        get_logs=True,
+        env_vars={
+            "EXECUTION_DATE": "{{ ds }}",
+            "FILE_TO_PROCESS": "fj7",
+        },
+    )
+    fj7_processing = KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(JOBS12)],
+        name="fj7_processing",
+        do_xcom_push=False,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="fj7_processing",
+        get_logs=True,
+        env_vars={
+            "AGGREGATION_MONTHS" : "{{ task_instance.xcom_pull(task_ids='fj7_ingestion') }}",
+            "EXECUTION_DATE": "{{ ds }}",
+        },
+    )
     START >> sara_history_ingestion >> sara_history_processing
+    START >> fj7_ingestion >> fj7_processing 
     START >> archie_ingestion
     START >> fj7_disk_usage
     archie_ingestion >> archie_processing_sattoesa
