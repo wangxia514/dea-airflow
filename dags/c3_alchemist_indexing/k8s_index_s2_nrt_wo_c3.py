@@ -108,7 +108,7 @@ with dag:
                 "-c",
                 f"echo ${queue} && "
                 "echo ${WO_SQS_INDEXING_QUEUE} && "
-                "sqs-to-dc --stac "  # continue
+                "sqs-to-dc "  # continue
                 f"--update-if-exists --allow-unsafe ${queue} {product}",
             ],
             labels={"step": "sqs-dc-indexing"},
