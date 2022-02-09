@@ -93,7 +93,7 @@ dag = DAG(
 
 queue_to_product = {
     # Provisional water dataset indexing
-    "WO_SQS_INDEXING_QUEUE": "ga_s2_nrt_c3_wo",
+    "WO_SQS_INDEXING_QUEUE": "ga_s2_wo_provisional_3",
 }
 
 with dag:
