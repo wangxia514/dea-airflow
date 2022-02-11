@@ -91,7 +91,7 @@ def update_metadata(dag):
         dedent(
             """
             # Download update script
-            echo "Downloading {{{{ dag_run.conf.get("script_path", "{script_path}") }}}}
+            echo "Downloading {{{{ dag_run.conf.get("script_path", "{script_path}") }}}}"
             wget {{{{ dag_run.conf.get("script_path", "{script_path}") }}}}
 
             # Push the IDs to the queue.
