@@ -70,6 +70,8 @@ SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE3 = """
 # ga_s2am_ard_provisional_3
 # ga_s2bm_ard_provisional_3
 # ga_s2_ba_provisional_3
+# s2a_ard_granule
+# s2b_ard_granule
 SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE4 = """
     SELECT
         dataset.id,
