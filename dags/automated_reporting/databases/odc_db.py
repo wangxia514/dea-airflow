@@ -21,6 +21,8 @@ SQL_QUERY = {
     "ga_ls5t_ard_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE3,
     "ga_ls7e_ard_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE3,
     "ga_ls8c_ard_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE3,
+    "s2a_ard_granule": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE4,
+    "s2b_ard_granule": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE4,
     "ga_ls_wo_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE3,
     "ga_ls_fc_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE3,
     "ga_s2am_ard_provisional_3": sql.SELECT_BY_PRODUCT_AND_TIME_RANGE_TYPE4,

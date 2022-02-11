@@ -74,6 +74,8 @@ with dag:
         # Baseline
         "ga_ls7e_ard_3",
         "ga_ls8c_ard_3",
+        "s2a_ard_granule",
+        "s2b_ard_granule",
         # Derivavtives
         "ga_ls_wo_3",
         "ga_ls_fc_3",
