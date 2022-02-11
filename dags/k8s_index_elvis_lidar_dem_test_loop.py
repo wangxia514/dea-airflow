@@ -33,9 +33,10 @@ from infra.podconfig import (
 
 from infra.variables import (
     WATERBODIES_DEV_USER_SECRET,
+    SECRET_ODC_WRITER_NAME,
 )
 
-INDEXER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/datacube-index:0.0.21"
+INDEXER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/datacube-index:latest"
 
 DEFAULT_PARAMS = dict(
     script_path="https://raw.githubusercontent.com/GeoscienceAustralia/dea-airflow/develop/scripts/elvis_lidar_metadata_changing.py",
@@ -57,6 +58,8 @@ SECRETS = {
             WATERBODIES_DEV_USER_SECRET,
             "AWS_SECRET_ACCESS_KEY",
         ),
+        Secret("env", "DB_USERNAME", SECRET_ODC_WRITER_NAME, "postgres-username"),
+        Secret("env", "DB_PASSWORD", SECRET_ODC_WRITER_NAME, "postgres-password"),
     ],
 }
 DEFAULT_ARGS = {
