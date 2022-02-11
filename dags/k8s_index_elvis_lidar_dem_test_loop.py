@@ -34,6 +34,9 @@ from infra.podconfig import (
 from infra.variables import (
     WATERBODIES_DEV_USER_SECRET,
     SECRET_ODC_WRITER_NAME,
+    DB_DATABASE,
+    DB_HOSTNAME,
+    DB_PORT,
 )
 
 INDEXER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/datacube-index:latest"
@@ -72,6 +75,11 @@ DEFAULT_ARGS = {
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "startup_timeout_seconds": 5 * 60,
+    "env_vars": {
+        "DB_HOSTNAME": DB_HOSTNAME,
+        "DB_DATABASE": DB_DATABASE,
+        "DB_PORT": DB_PORT,
+    },
     **SECRETS,
 }
 
