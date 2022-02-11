@@ -17,7 +17,7 @@ def modify_json_content(old_metadata_content: dict) -> dict:
     # assume all JSON files follow the same schema to save development time
     collection = old_metadata_content['collection']
     old_metadata_content['properties']['odc:collection'] = collection
-    return old_metadata_content
+    return old_metadata_content, old_metadata_content['properties']['odc:product']
 
 
 def main():
@@ -44,7 +44,7 @@ def main():
         s3_conn = boto3.client('s3', config=Config(signature_version=UNSIGNED))
 
         content_object = s3_conn.get_object(Bucket=original_bucket_name, Key=original_file_key)
-        new_json_content = modify_json_content(json.loads(content_object["Body"].read()))
+        new_json_content, product_name = modify_json_content(json.loads(content_object["Body"].read()))
 
         # turn on the sign-in cause we will upload to a private bucket
         s3_conn = boto3.client('s3')
@@ -52,7 +52,7 @@ def main():
         s3_conn.put_object(
             Body=json.dumps(new_json_content),
             Bucket=new_bucket_name,
-            Key=new_prefix + original_file_key
+            Key=new_prefix + product_name + "/" + original_file_key
         )
 
 

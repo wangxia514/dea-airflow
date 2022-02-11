@@ -136,7 +136,8 @@ S3_TO_DC_CMD = [
     "-c",
     dedent(
         """
-        s3-to-dc s3://dea-public-data-dev/projects/elvis-lidar/**/*.json --absolute --stac --no-sign-request --skip-lineage dem_1m
+        s3-to-dc s3://dea-public-data-dev/projects/elvis-lidar/dem_1m/**/*.json --absolute --stac --no-sign-request --skip-lineage dem_1m
+        s3-to-dc s3://dea-public-data-dev/projects/elvis-lidar/dem_5m/**/*.json --absolute --stac --no-sign-request --skip-lineage dem_5m
         """
     ),
 ]
