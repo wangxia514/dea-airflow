@@ -102,3 +102,6 @@ SARA_HISTORY_SECRET = Variable.get(
 ARCHIE_SECRET = Variable.get(
     "archie_secret", default_var="archie"
 )
+UPTIME_ROBOT_SECRET= Variable.get(
+    "uptime_robot_secret", default_var="uptime-robot"
+)
