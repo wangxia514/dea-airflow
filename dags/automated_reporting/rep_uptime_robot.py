@@ -43,7 +43,7 @@ with dag:
     JOBS1 = [
         "echo uptime robot processing dea started: $(date)",
         "pip install ga-reporting-etls==1.5.0",
-        "jsonresult=`python3 -c 'from nemo_reporting.import uptime_robot.dea_uptime_robot_processing; dea_uptime_robot_processing.task()'`",
+        "jsonresult=`python3 -c 'from nemo_reporting.uptime_robot import dea_uptime_robot_processing; dea_uptime_robot_processing.task()'`",
     ]
     uptime_robot_processing_dea = KubernetesPodOperator(
         namespace="processing",
