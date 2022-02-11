@@ -71,3 +71,4 @@ SARA_HISTORY_SECRET = Variable.get(
 SARA_HISTORY_SECRET_MASTER = Variable.get(
     "sara_history_secret_master", default_var="sara-history-master"
 )
+UPTIME_ROBOT_SECRET = Variable.get("uptime_robot_secret", default_var="uptime-robot")
