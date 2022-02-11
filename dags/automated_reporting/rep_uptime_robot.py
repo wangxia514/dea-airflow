@@ -45,7 +45,7 @@ with dag:
         "pip install ga-reporting-etls==1.5.0",
         "jsonresult=`python3 -c 'from nemo_reporting.import uptime_robot.dea_uptime_robot_processing; dea_uptime_robot_processing.task()'`",
     ]
-    uptime_robot_processing_dea= KubernetesPodOperator(
+    uptime_robot_processing_dea = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(JOBS1)],
