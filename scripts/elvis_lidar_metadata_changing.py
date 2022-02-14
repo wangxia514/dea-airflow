@@ -16,7 +16,7 @@ from botocore.config import Config
 
 # these collection items will map to S3 URI
 # s3://elvis-stac/{collection_name}/collection.json
-COLLECTION_LIST = ["Collarenebri201210", "Bellata201207", "Bellata201401"]
+COLLECTION_LIST = ["Collarenebri201210", "Bellata201207", "Bellata201401", "WestNarranLake2014"]
 ORIGINAL_BUKCET_NAME = "elvis-stac"
 NWE_BUCKET_NAME = "dea-public-data-dev"
 NEW_PREFIX = "projects/elvis-lidar/"
@@ -44,7 +44,7 @@ def main():
     for collection_name in COLLECTION_LIST:
         original_file_list = get_metadata_path(collection_name)
 
-        for original_file in original_file_list[:10]:
+        for original_file in original_file_list:
 
             original_file_key = urlparse(original_file).path[1:]
 
