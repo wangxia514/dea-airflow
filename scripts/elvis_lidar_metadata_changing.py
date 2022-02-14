@@ -8,9 +8,18 @@
 
 import json
 import boto3
+from urllib.parse import urlparse
 
 from botocore import UNSIGNED
 from botocore.config import Config
+
+
+# these collection items will map to S3 URI
+# s3://elvis-stac/{collection_name}/collection.json
+COLLECTION_LIST = ["Collarenebri201210", "Bellata201207", "Bellata201401"]
+ORIGINAL_BUKCET_NAME = "elvis-stac"
+NWE_BUCKET_NAME = "dea-public-data-dev"
+NEW_PREFIX = "projects/elvis-lidar/"
 
 
 def modify_json_content(old_metadata_content: dict) -> dict:
@@ -20,40 +29,39 @@ def modify_json_content(old_metadata_content: dict) -> dict:
     return old_metadata_content, old_metadata_content['properties']['odc:product']
 
 
+def get_metadata_path(collection_name):
+    collection_key = f"{collection_name}/collection.json"
+
+    s3_conn = boto3.client('s3', config=Config(signature_version=UNSIGNED))
+    collection_content = s3_conn.get_object(Bucket=ORIGINAL_BUKCET_NAME, Key=collection_key)
+    return [e['href'] for e in json.loads(collection_content["Body"].read())['links'] if e['rel'] == 'item']
+
+
 def main():
 
     # the following values would be passed by Airflow, but consider it is a temp solution, let us
     # leave the hard-code values here to pass the test
-    original_bucket_name = "elvis-stac"
-    original_prefix = "Collarenebri201210/Collarenebri201210-LID1-AHD_6486724_55_0002_0002_1m/"
+    for collection_name in COLLECTION_LIST:
+        original_file_list = get_metadata_path(collection_name)
 
-    new_bucket_name = "dea-public-data-dev"
-    new_prefix = "projects/elvis-lidar/"
+        for original_file in original_file_list[:10]:
 
-    s3_conn = boto3.client('s3', config=Config(signature_version=UNSIGNED))
-    s3_result = s3_conn.list_objects_v2(Bucket=original_bucket_name, Prefix=original_prefix, Delimiter="/")
+            original_file_key = urlparse(original_file).path[1:]
 
-    original_file_list = []
+            # it is a loop, so unsign when load the orignal metadata file
+            s3_conn = boto3.client('s3', config=Config(signature_version=UNSIGNED))
 
-    for key in s3_result['Contents']:
-        original_file_list.append(key['Key'])
+            content_object = s3_conn.get_object(Bucket=ORIGINAL_BUKCET_NAME, Key=original_file_key)
+            new_json_content, product_name = modify_json_content(json.loads(content_object["Body"].read()))
 
-    for original_file_key in original_file_list:
+            # turn on the sign-in cause we will upload to a private bucket
+            s3_conn = boto3.client('s3')
 
-        # it is a loop, so unsign when load the orignal metadata file
-        s3_conn = boto3.client('s3', config=Config(signature_version=UNSIGNED))
-
-        content_object = s3_conn.get_object(Bucket=original_bucket_name, Key=original_file_key)
-        new_json_content, product_name = modify_json_content(json.loads(content_object["Body"].read()))
-
-        # turn on the sign-in cause we will upload to a private bucket
-        s3_conn = boto3.client('s3')
-
-        s3_conn.put_object(
-            Body=json.dumps(new_json_content),
-            Bucket=new_bucket_name,
-            Key=new_prefix + product_name + "/" + original_file_key
-        )
+            s3_conn.put_object(
+                Body=json.dumps(new_json_content),
+                Bucket=NWE_BUCKET_NAME,
+                Key=NEW_PREFIX + product_name + "/" + original_file_key
+            )
 
 
 if __name__ == "__main__":
