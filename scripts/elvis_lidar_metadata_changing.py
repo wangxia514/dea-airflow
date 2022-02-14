@@ -9,6 +9,7 @@
 import json
 import boto3
 from urllib.parse import urlparse
+import logging
 
 from botocore import UNSIGNED
 from botocore.config import Config
@@ -16,7 +17,7 @@ from botocore.config import Config
 
 # these collection items will map to S3 URI
 # s3://elvis-stac/{collection_name}/collection.json
-COLLECTION_LIST = ["Collarenebri201210", "Bellata201207", "Bellata201401"]
+COLLECTION_LIST = ["Collarenebri201210", "Bellata201207", "Bellata201401", "Bellata201106"]
 ORIGINAL_BUKCET_NAME = "elvis-stac"
 NWE_BUCKET_NAME = "dea-public-data-dev"
 NEW_PREFIX = "projects/elvis-lidar/"
@@ -66,9 +67,9 @@ def main():
                     Key=NEW_PREFIX + product_name + "/" + original_file_key
                 )
             except KeyError:
-                print(f"{original_file_key} cannot parse its product name")
+                logging.warning(f"{original_file_key} cannot parse its product name")
             except:
-                print(f"{original_file_key} cannot modify its content and dump to temp S3 bucket")
+                logging.warning(f"{original_file_key} cannot modify its content and dump to temp S3 bucket")
 
 
 if __name__ == "__main__":
