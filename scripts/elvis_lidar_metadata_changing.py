@@ -16,7 +16,7 @@ from botocore.config import Config
 
 # these collection items will map to S3 URI
 # s3://elvis-stac/{collection_name}/collection.json
-COLLECTION_LIST = ["Collarenebri201210", "Bellata201207", "Bellata201401", "WestNarranLake2014"]
+COLLECTION_LIST = ["Collarenebri201210", "Bellata201207", "Bellata201401"]
 ORIGINAL_BUKCET_NAME = "elvis-stac"
 NWE_BUCKET_NAME = "dea-public-data-dev"
 NEW_PREFIX = "projects/elvis-lidar/"
@@ -26,7 +26,7 @@ def modify_json_content(old_metadata_content: dict) -> dict:
     # assume all JSON files follow the same schema to save development time
     collection = old_metadata_content['collection']
     old_metadata_content['properties']['odc:collection'] = collection
-    return old_metadata_content, old_metadata_content['properties']['odc:product']
+    return old_metadata_content
 
 
 def get_metadata_path(collection_name):
@@ -52,16 +52,23 @@ def main():
             s3_conn = boto3.client('s3', config=Config(signature_version=UNSIGNED))
 
             content_object = s3_conn.get_object(Bucket=ORIGINAL_BUKCET_NAME, Key=original_file_key)
-            new_json_content, product_name = modify_json_content(json.loads(content_object["Body"].read()))
+            old_metadata_content = json.loads(content_object["Body"].read())
+            try:
+                product_name = old_metadata_content['properties']['odc:product']
+                new_json_content = modify_json_content(old_metadata_content)
 
-            # turn on the sign-in cause we will upload to a private bucket
-            s3_conn = boto3.client('s3')
+                # turn on the sign-in cause we will upload to a private bucket
+                s3_conn = boto3.client('s3')
 
-            s3_conn.put_object(
-                Body=json.dumps(new_json_content),
-                Bucket=NWE_BUCKET_NAME,
-                Key=NEW_PREFIX + product_name + "/" + original_file_key
-            )
+                s3_conn.put_object(
+                    Body=json.dumps(new_json_content),
+                    Bucket=NWE_BUCKET_NAME,
+                    Key=NEW_PREFIX + product_name + "/" + original_file_key
+                )
+            except KeyError:
+                print(f"{original_file_key} cannot parse its product name")
+            except:
+                print(f"{original_file_key} cannot modify its content and dump to temp S3 bucket")
 
 
 if __name__ == "__main__":
