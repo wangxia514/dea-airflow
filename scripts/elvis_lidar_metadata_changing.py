@@ -17,7 +17,14 @@ from botocore.config import Config
 
 # these collection items will map to S3 URI
 # s3://elvis-stac/{collection_name}/collection.json
-COLLECTION_LIST = ["Collarenebri201210", "Bellata201207", "Bellata201401", "Bellata201106"]
+COLLECTION_LIST = ["Bellata201207", "Bellata201401", "Bellata202008", "WeeWaa201605", "Collarenebri201210", "Narrabri201401",
+                    "Narrabri201406", "Pilliga201410", "WeeWaa201207", "Bellata201106", "BunnaBunna201604", "Collarenebri200908",
+                    "Narrabri201209", "Narrabri201604", "Pilliga201703", "BrokenHill2009", "MacquarieMarshes2008", "NirrandaLidar2016",
+                    "WestNarranLake2014", "WaggaWaggaLidar2009", "Pyap2008", "VictorHarbor2011", "NullaBasalt2018", "MurrumbidgeeLidar2009",
+                    "MountWellingtonRiverDerwent2010", "LakeGeorgeLidar2014", "LowerDarling2013", "KatarapkoLidar2007", "KakaduLidar2011",
+                    "HuonRiverValleyLiDAR2013", "GwydirValley2013", "Gwydir2008", "GreaterHobartLiDAR2013", "BurnieDevonportLauncestonLiDAR2013",
+                    "BendigoRegion2013", "BendigoRegion2012"]
+
 ORIGINAL_BUKCET_NAME = "elvis-stac"
 NWE_BUCKET_NAME = "dea-public-data-dev"
 NEW_PREFIX = "projects/elvis-lidar/"
