@@ -88,7 +88,7 @@ with dag:
     ]
     JOBS10 = [
         "echo fj7 disk usage download and processing: $(date)",
-        "pip install ga-reporting-etls==1.3.0",
+        "pip install ga-reporting-etls==1.5.1",
         "jsonresult=`python3 -c 'from nemo_reporting.fj7_storage import fj7_disk_usage; fj7_disk_usage.task()'`",
     ]
     JOBS11 = [
