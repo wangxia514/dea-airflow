@@ -54,6 +54,7 @@ with dag:
         get_logs=True,
         env_vars={
             "MONITORING_IDS": "785233301, 785236465, 785236456, 785233316, 785233317, 785233343, 785233341, 785251927, 785251954, 785252068, 785252069, 790085518",
+            "EXECUTION_DATE": "{{ ds }}",
         },
     )
     uptime_robot_processing_marine
