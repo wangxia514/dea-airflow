@@ -19,8 +19,8 @@ default_args = {
     "email": ["ramkumar.ramagopalan@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
-    "retries": 1,
-    "retry_delay": timedelta(minutes=5),
+    "retries": 3,
+    "retry_delay": timedelta(days=1),
     "secrets": [
         Secret("env", "DB_HOST", SARA_HISTORY_SECRET_MASTER, "DB_HOST"),
         Secret("env", "DB_USER", SARA_HISTORY_SECRET_MASTER, "DB_USER"),
@@ -40,7 +40,7 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo uptime robot processing marine started: $(date)",
-        "pip install ga-reporting-etls==1.5.3",
+        "pip install ga-reporting-etls==1.5.4",
         "jsonresult=`python3 -c 'from nemo_reporting.uptime_robot import marine_uptime_robot_processing; marine_uptime_robot_processing.task()'`",
     ]
     uptime_robot_processing_marine = KubernetesPodOperator(
