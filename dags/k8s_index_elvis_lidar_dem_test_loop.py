@@ -40,6 +40,7 @@ from infra.podconfig import (
 from infra.variables import (
     WATERBODIES_DEV_USER_SECRET,
     SECRET_ODC_WRITER_NAME,
+    SECRET_ODC_ADMIN_NAME,
     DB_DATABASE,
     DB_HOSTNAME,
     DB_PORT,
@@ -199,6 +200,10 @@ def add_products(dag):
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
+        secrets=[
+            Secret("env", "DB_USERNAME", SECRET_ODC_ADMIN_NAME, "postgres-username"),
+            Secret("env", "DB_PASSWORD", SECRET_ODC_ADMIN_NAME, "postgres-password"),
+        ],
     )
 
 
