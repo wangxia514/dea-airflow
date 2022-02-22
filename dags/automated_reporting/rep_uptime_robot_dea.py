@@ -17,7 +17,7 @@ from infra.variables import UPTIME_ROBOT_SECRET
 default_args = {
     "owner": "Ramkumar Ramagopalan",
     "depends_on_past": False,
-    "start_date": dt(2022, 2, 17),
+    "start_date": dt(2022, 2, 22),
     "email": ["ramkumar.ramagopalan@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
@@ -32,7 +32,7 @@ default_args = {
 }
 
 dag = DAG(
-    "uptime_robot_dea_prod",
+    "rep_uptime_robot_dea_prod",
     description="DAG for uptime robot dea",
     tags=["reporting"],
     default_args=default_args,
