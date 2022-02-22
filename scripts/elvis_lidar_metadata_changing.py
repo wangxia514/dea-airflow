@@ -12,18 +12,11 @@ from urllib.parse import urlparse
 import logging
 import os
 
-
 # these collection items will map to S3 URI
 # s3://elvis-stac/{product_name}/{collection_name}/collection.json
 PRODUCT_LIST = ["dem_1m"]
 
-COLLECTION_LIST = ["Bellata201207", "Bellata201401", "Bellata202008", "WeeWaa201605", "Collarenebri201210", "Narrabri201401",
-                   "Narrabri201406", "Pilliga201410", "WeeWaa201207", "Bellata201106", "BunnaBunna201604", "Collarenebri200908",
-                   "Narrabri201209", "Narrabri201604", "Pilliga201703", "BrokenHill2009", "MacquarieMarshes2008", "NirrandaLidar2016",
-                   "WestNarranLake2014", "WaggaWaggaLidar2009", "Pyap2008", "VictorHarbor2011", "NullaBasalt2018", "MurrumbidgeeLidar2009",
-                   "MountWellingtonRiverDerwent2010", "LakeGeorgeLidar2014", "LowerDarling2013", "KatarapkoLidar2007", "KakaduLidar2011",
-                   "HuonRiverValleyLiDAR2013", "GwydirValley2013", "Gwydir2008", "GreaterHobartLiDAR2013", "BurnieDevonportLauncestonLiDAR2013",
-                   "BendigoRegion2013", "BendigoRegion2012"]
+COLLECTION_LIST = ["CecilPlains2010Twn"]
 
 ORIGINAL_BUKCET_NAME = "elvis-stac"
 NWE_BUCKET_NAME = "dea-public-data-dev"
@@ -39,10 +32,13 @@ def modify_json_content(old_metadata_content: dict) -> dict:
 
 def get_metadata_path(product_name, collection_name):
     collection_key = f"{product_name}/{collection_name}/collection.json"
-
+    logging.info(f"Try to access{collection_key}")
     s3_conn = boto3.client('s3', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID_READ'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY_READ'])
-    collection_content = s3_conn.get_object(Bucket=ORIGINAL_BUKCET_NAME, Key=collection_key)
-    return [e['href'] for e in json.loads(collection_content["Body"].read())['links'] if e['rel'] == 'item']
+    try:
+        collection_content = s3_conn.get_object(Bucket=ORIGINAL_BUKCET_NAME, Key=collection_key)
+        return [e['href'] for e in json.loads(collection_content["Body"].read())['links'] if e['rel'] == 'item']
+    except:
+        return []
 
 
 def main():
