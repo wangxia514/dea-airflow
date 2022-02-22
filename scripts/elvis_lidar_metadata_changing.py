@@ -63,12 +63,8 @@ def main():
 
                 # turn on the sign-in cause we will upload to a private bucket
                 s3_conn = boto3.client('s3', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID_WRITE'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY_WRITE'])
+                logging.info(f'upload to {NEW_PREFIX + original_file_key}')
 
-                s3_conn.put_object(
-                    Body=json.dumps(new_json_content),
-                    Bucket=NWE_BUCKET_NAME,
-                    Key=NEW_PREFIX + original_file_key
-                )
             except KeyError:
                 logging.warning(f"{original_file_key} cannot parse its product name")
             except:
