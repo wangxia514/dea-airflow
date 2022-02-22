@@ -10,9 +10,7 @@ import json
 import boto3
 from urllib.parse import urlparse
 import logging
-
-from botocore import UNSIGNED
-from botocore.config import Config
+import os
 
 
 # these collection items will map to S3 URI
@@ -39,7 +37,7 @@ def modify_json_content(old_metadata_content: dict) -> dict:
 def get_metadata_path(collection_name):
     collection_key = f"{collection_name}/collection.json"
 
-    s3_conn = boto3.client('s3', config=Config(signature_version=UNSIGNED))
+    s3_conn = boto3.client('s3', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID_READ'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY_READ'])
     collection_content = s3_conn.get_object(Bucket=ORIGINAL_BUKCET_NAME, Key=collection_key)
     return [e['href'] for e in json.loads(collection_content["Body"].read())['links'] if e['rel'] == 'item']
 
@@ -55,22 +53,21 @@ def main():
 
             original_file_key = urlparse(original_file).path[1:]
 
-            # it is a loop, so unsign when load the orignal metadata file
-            s3_conn = boto3.client('s3', config=Config(signature_version=UNSIGNED))
+            # connect to s3 by elvis-stac creds
+            s3_conn = boto3.client('s3', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID_READ'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY_READ'])
 
             content_object = s3_conn.get_object(Bucket=ORIGINAL_BUKCET_NAME, Key=original_file_key)
             old_metadata_content = json.loads(content_object["Body"].read())
             try:
-                product_name = old_metadata_content['properties']['odc:product']
                 new_json_content = modify_json_content(old_metadata_content)
 
                 # turn on the sign-in cause we will upload to a private bucket
-                s3_conn = boto3.client('s3')
+                s3_conn = boto3.client('s3', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID_WRITE'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY_WRITE'])
 
                 s3_conn.put_object(
                     Body=json.dumps(new_json_content),
                     Bucket=NWE_BUCKET_NAME,
-                    Key=NEW_PREFIX + product_name + "/" + original_file_key
+                    Key=NEW_PREFIX + original_file_key
                 )
             except KeyError:
                 logging.warning(f"{original_file_key} cannot parse its product name")

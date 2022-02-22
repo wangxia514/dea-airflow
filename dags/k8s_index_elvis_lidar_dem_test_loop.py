@@ -39,6 +39,7 @@ from infra.podconfig import (
 
 from infra.variables import (
     WATERBODIES_DEV_USER_SECRET,
+    ELVIS_DEV_USER_SECRET,
     SECRET_ODC_WRITER_NAME,
     SECRET_ODC_ADMIN_NAME,
     DB_DATABASE,
@@ -58,14 +59,26 @@ SECRETS = {
     "secrets": [
         Secret(
             "env",
-            "AWS_ACCESS_KEY_ID",
+            "AWS_ACCESS_KEY_ID_WRITE",
             WATERBODIES_DEV_USER_SECRET,
             "AWS_ACCESS_KEY_ID",
         ),
         Secret(
             "env",
-            "AWS_SECRET_ACCESS_KEY",
+            "AWS_SECRET_ACCESS_KEY_WRITE",
             WATERBODIES_DEV_USER_SECRET,
+            "AWS_SECRET_ACCESS_KEY",
+        ),
+        Secret(
+            "env",
+            "AWS_ACCESS_KEY_ID_READ",
+            ELVIS_DEV_USER_SECRET,
+            "AWS_ACCESS_KEY_ID",
+        ),
+        Secret(
+            "env",
+            "AWS_SECRET_ACCESS_KEY_READ",
+            ELVIS_DEV_USER_SECRET,
             "AWS_SECRET_ACCESS_KEY",
         ),
         Secret("env", "DB_USERNAME", SECRET_ODC_WRITER_NAME, "postgres-username"),
@@ -143,8 +156,8 @@ S3_TO_DC_CMD = [
     "-c",
     dedent(
         """
-        s3-to-dc s3://dea-public-data-dev/projects/elvis-lidar/dem_1m/**/*.json --absolute --stac --no-sign-request --skip-lineage dem_1m
-        s3-to-dc s3://dea-public-data-dev/projects/elvis-lidar/dem_5m/**/*.json --absolute --stac --no-sign-request --skip-lineage dem_5m
+        s3-to-dc s3://dea-public-data-dev/projects/elvis-lidar/dem_1m/*/*/*.json --absolute --stac --no-sign-request --skip-lineage dem_1m
+        s3-to-dc s3://dea-public-data-dev/projects/elvis-lidar/dem_5m/*/*/*.json --absolute --stac --no-sign-request --skip-lineage dem_5m
         """
     ),
 ]
