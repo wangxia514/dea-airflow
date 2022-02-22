@@ -14,7 +14,9 @@ import os
 
 
 # these collection items will map to S3 URI
-# s3://elvis-stac/{collection_name}/collection.json
+# s3://elvis-stac/{product_name}/{collection_name}/collection.json
+PRODUCT_LIST = ["dem_1m"]
+
 COLLECTION_LIST = ["Bellata201207", "Bellata201401", "Bellata202008", "WeeWaa201605", "Collarenebri201210", "Narrabri201401",
                    "Narrabri201406", "Pilliga201410", "WeeWaa201207", "Bellata201106", "BunnaBunna201604", "Collarenebri200908",
                    "Narrabri201209", "Narrabri201604", "Pilliga201703", "BrokenHill2009", "MacquarieMarshes2008", "NirrandaLidar2016",
@@ -22,6 +24,7 @@ COLLECTION_LIST = ["Bellata201207", "Bellata201401", "Bellata202008", "WeeWaa201
                    "MountWellingtonRiverDerwent2010", "LakeGeorgeLidar2014", "LowerDarling2013", "KatarapkoLidar2007", "KakaduLidar2011",
                    "HuonRiverValleyLiDAR2013", "GwydirValley2013", "Gwydir2008", "GreaterHobartLiDAR2013", "BurnieDevonportLauncestonLiDAR2013",
                    "BendigoRegion2013", "BendigoRegion2012"]
+
 ORIGINAL_BUKCET_NAME = "elvis-stac"
 NWE_BUCKET_NAME = "dea-public-data-dev"
 NEW_PREFIX = "projects/elvis-lidar/"
@@ -34,8 +37,8 @@ def modify_json_content(old_metadata_content: dict) -> dict:
     return old_metadata_content
 
 
-def get_metadata_path(collection_name):
-    collection_key = f"{collection_name}/collection.json"
+def get_metadata_path(product_name, collection_name):
+    collection_key = f"{product_name}/{collection_name}/collection.json"
 
     s3_conn = boto3.client('s3', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID_READ'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY_READ'])
     collection_content = s3_conn.get_object(Bucket=ORIGINAL_BUKCET_NAME, Key=collection_key)
@@ -46,29 +49,32 @@ def main():
 
     # the following values would be passed by Airflow, but consider it is a temp solution, let us
     # leave the hard-code values here to pass the test
-    for collection_name in COLLECTION_LIST:
-        original_file_list = get_metadata_path(collection_name)
+    for product_name in PRODUCT_LIST:
 
-        for original_file in original_file_list:
+        for collection_name in COLLECTION_LIST:
 
-            original_file_key = urlparse(original_file).path[1:]
+            original_file_list = get_metadata_path(product_name, collection_name)
 
-            # connect to s3 by elvis-stac creds
-            s3_conn = boto3.client('s3', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID_READ'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY_READ'])
+            for original_file in original_file_list:
 
-            content_object = s3_conn.get_object(Bucket=ORIGINAL_BUKCET_NAME, Key=original_file_key)
-            old_metadata_content = json.loads(content_object["Body"].read())
-            try:
-                new_json_content = modify_json_content(old_metadata_content)
+                original_file_key = urlparse(original_file).path[1:]
 
-                # turn on the sign-in cause we will upload to a private bucket
-                s3_conn = boto3.client('s3', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID_WRITE'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY_WRITE'])
-                logging.info(f'upload to {NEW_PREFIX + original_file_key}')
+                # connect to s3 by elvis-stac creds
+                s3_conn = boto3.client('s3', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID_READ'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY_READ'])
 
-            except KeyError:
-                logging.warning(f"{original_file_key} cannot parse its product name")
-            except:
-                logging.warning(f"{original_file_key} cannot modify its content and dump to temp S3 bucket")
+                content_object = s3_conn.get_object(Bucket=ORIGINAL_BUKCET_NAME, Key=original_file_key)
+                old_metadata_content = json.loads(content_object["Body"].read())
+                try:
+                    new_json_content = modify_json_content(old_metadata_content)
+
+                    # turn on the sign-in cause we will upload to a private bucket
+                    s3_conn = boto3.client('s3', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID_WRITE'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY_WRITE'])
+                    logging.info(f'upload to {NEW_PREFIX + original_file_key}')
+
+                except KeyError:
+                    logging.warning(f"{original_file_key} cannot parse its product name")
+                except:
+                    logging.warning(f"{original_file_key} cannot modify its content and dump to temp S3 bucket")
 
 
 if __name__ == "__main__":
