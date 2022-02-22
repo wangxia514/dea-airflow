@@ -126,7 +126,7 @@ def update_metadata(dag):
             wget {{{{ dag_run.conf.get("script_path", "{script_path}") }}}}
 
             # Push the IDs to the queue.
-            python elvis_lidar_metadata_changing.py
+            python elvis_lidar_metadata_changing.py --log=INFO
             """.format(
                 script_path=DEFAULT_PARAMS['script_path'],
             )
