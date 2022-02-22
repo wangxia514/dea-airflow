@@ -32,7 +32,7 @@ def modify_json_content(old_metadata_content: dict) -> dict:
 
 def get_metadata_path(product_name, collection_name):
     collection_key = f"{product_name}/{collection_name}/collection.json"
-    logging.info(f"Try to access{collection_key}")
+    logging.warning(f"Try to access{collection_key}")
     s3_conn = boto3.client('s3', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID_READ'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY_READ'])
     try:
         collection_content = s3_conn.get_object(Bucket=ORIGINAL_BUKCET_NAME, Key=collection_key)
@@ -65,7 +65,7 @@ def main():
 
                     # turn on the sign-in cause we will upload to a private bucket
                     s3_conn = boto3.client('s3', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID_WRITE'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY_WRITE'])
-                    logging.info(f'upload to {NEW_PREFIX + original_file_key}')
+                    logging.warning(f'upload to {NEW_PREFIX + original_file_key}')
 
                 except KeyError:
                     logging.warning(f"{original_file_key} cannot parse its product name")
