@@ -6,7 +6,7 @@ marine ungrouped user stats dag
 # pylint: disable=C0301
 # pylint: disable=W0104
 # pylint: disable=E0401
-from datetime import datetime, timedelta
+from datetime import datetime
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
@@ -22,8 +22,6 @@ default_args = {
     "email": ["ramkumar.ramagopalan@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
-    "retries": 90,
-    "retry_delay": timedelta(days=1),
     "secrets": [
         Secret("env", "ACCESS_KEY", SARA_HISTORY_SECRET, "ACCESS_KEY"),
         Secret("env", "SECRET_KEY", SARA_HISTORY_SECRET, "SECRET_KEY"),
