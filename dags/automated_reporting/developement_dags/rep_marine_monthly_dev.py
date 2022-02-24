@@ -6,7 +6,7 @@ marine ungrouped user stats dag
 # pylint: disable=C0301
 # pylint: disable=W0104
 # pylint: disable=E0401
-from datetime import datetime, timedelta
+from datetime import datetime
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
