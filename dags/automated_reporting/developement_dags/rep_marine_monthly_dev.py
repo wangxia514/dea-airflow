@@ -22,8 +22,6 @@ default_args = {
     "email": ["ramkumar.ramagopalan@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
-    "retries": 90,
-    "retry_delay": timedelta(days=1),
     "secrets": [
         Secret("env", "ACCESS_KEY", SARA_HISTORY_SECRET, "ACCESS_KEY"),
         Secret("env", "SECRET_KEY", SARA_HISTORY_SECRET, "SECRET_KEY"),
