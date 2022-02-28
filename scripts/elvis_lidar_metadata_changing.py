@@ -16,7 +16,9 @@ import os
 # s3://elvis-stac/{product_name}/{collection_name}/collection.json
 PRODUCT_LIST = ["dem_1m"]
 
-COLLECTION_LIST = ["CecilPlains2010Twn"]
+COLLECTION_LIST = ["Applethorpe2012Twn", "AuchmahSwamp2013Prj", "Brookstead2012Twn", "BungunyatoToobeah2012Rgn",
+                   "CecilPlains2010Twn", "Chinchilla2010Twn", "Dirranbandi2011Twn", "Hebel2011Twn", "LowerBalonne2018Prj",
+                   "Nindigully2012Twn", "StGeorge2011Twn", "Surat2011Twn", "Talwood2011Twn", "Thallon2011Twn"]
 
 ORIGINAL_BUKCET_NAME = "elvis-stac"
 NWE_BUCKET_NAME = "dea-public-data-dev"
