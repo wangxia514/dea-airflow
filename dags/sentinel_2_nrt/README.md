@@ -1,4 +1,4 @@
-# SQS Processing Workflow
+# SQS indexing Workflow
 
 ## Background
 This workflow is designed to automate the process where new dataset for an ODC product has been created and stored in AWS S3. The application/software this workflow is based on are:
