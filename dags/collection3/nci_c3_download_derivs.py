@@ -46,9 +46,14 @@ products = ["ga_ls_fc_3",
 with dag:
 
     for product in products:
-        sync = SSHOperator(
-            task_id=f"sync_{product}",
+        download = SSHOperator(
+            task_id=f"download_{product}",
+            # Run on the Gadi Data Mover node, it's specifically spec'd for data transfers, and
+            # we use s5cmd to transfer using lots of threads to max out the network pipe, and quickly
+            # walk both the S3 tree and the Lustre FS tree.
             remote_host="gadi-dm.nci.org.au",
+            # There have been random READ failures when performing this download. So retry a few times.
+            # Append to the log file so that we don't lose track of any downloaded files.
             command=dedent(
                 f"""
                 set -eux
@@ -73,6 +78,10 @@ with dag:
                 xargs -P 4 datacube -v dataset add --no-verify-lineage --product {product}
                 """
             ),
+            # Attempt to index downloaded datasets, even if there were some failures in the download task
+            # We want to avoid missing indexing anything, and any gaps will get filled in next time
+            # the download runs.
+            trigger_rule="all_done",
         )
 
-        sync >> index
+        download >> index
