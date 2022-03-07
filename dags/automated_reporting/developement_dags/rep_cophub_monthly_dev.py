@@ -5,37 +5,35 @@ cophub monthly dag for prod
 """
 
 # The DAG object; we'll need this to instantiate a DAG
-from datetime import datetime, timedelta
+from datetime import datetime
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from airflow.operators.dummy import DummyOperator
-from infra.variables import SARA_HISTORY_SECRET_MASTER
+from infra.variables import SARA_HISTORY_SECRET
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
     "depends_on_past": False,
-    "start_date": datetime(2022, 3, 1),
+    "start_date": datetime(2019, 6, 1),
     "email": ["ramkumar.ramagopalan@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
-    "retries": 90,
-    "retry_delay": timedelta(days=1),
     "secrets": [
-        Secret("env", "ACCESS_KEY", SARA_HISTORY_SECRET_MASTER, "ACCESS_KEY"),
-        Secret("env", "SECRET_KEY", SARA_HISTORY_SECRET_MASTER, "SECRET_KEY"),
-        Secret("env", "DB_HOST", SARA_HISTORY_SECRET_MASTER, "DB_HOST"),
-        Secret("env", "DB_USER", SARA_HISTORY_SECRET_MASTER, "DB_USER"),
-        Secret("env", "DB_PASSWORD", SARA_HISTORY_SECRET_MASTER, "DB_PASSWORD"),
+        Secret("env", "ACCESS_KEY", SARA_HISTORY_SECRET, "ACCESS_KEY"),
+        Secret("env", "SECRET_KEY", SARA_HISTORY_SECRET, "SECRET_KEY"),
+        Secret("env", "DB_HOST", SARA_HISTORY_SECRET, "DB_HOST"),
+        Secret("env", "DB_USER", SARA_HISTORY_SECRET, "DB_USER"),
+        Secret("env", "DB_PASSWORD", SARA_HISTORY_SECRET, "DB_PASSWORD"),
     ],
 }
 
 dag = DAG(
-    "rep_cophub_monthly_prod",
-    description="DAG for sara history ingestion and processing",
-    tags=["reporting"],
+    "rep_cophub_monthly_dev",
+    description="DAG for sara history ingestion and processing DEV",
+    tags=["reporting_dev"],
     default_args=default_args,
     schedule_interval="0 14 1 * *",
 )
