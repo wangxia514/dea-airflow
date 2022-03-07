@@ -68,14 +68,21 @@ with dag:
 
         index = SSHOperator(
             task_id=f"index_{product}",
+            # Keep FC LS7 version 2.5.0 indexing
+            # Suspend FC LS8 version 2.5.1 indexing
             command=dedent(
                 f"""
                 set -eux
                 module load dea
                 cd /g/data/v10/work/c3_download_derivs/{{{{ts_nodash}}}}
 
+                if [ {product} = "ga_ls_fc_3" ]; then
+                awk '/odc-metadata.yaml/ {{print "/g/data/jw04/ga/{product}/2-5-0/" $3}}' {product}.download.log  | \
+                xargs -P 4 datacube -v dataset add --no-verify-lineage --product {product}
+                else
                 awk '/odc-metadata.yaml/ {{print "/g/data/jw04/ga/{product}/" $3}}' {product}.download.log  | \
                 xargs -P 4 datacube -v dataset add --no-verify-lineage --product {product}
+                fi
                 """
             ),
             # Attempt to index downloaded datasets, even if there were some failures in the download task
