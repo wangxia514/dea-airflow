@@ -16,9 +16,19 @@ import os
 # s3://elvis-stac/{product_name}/{collection_name}/collection.json
 PRODUCT_LIST = ["dem_1m"]
 
-COLLECTION_LIST = ["Applethorpe2012Twn", "AuchmahSwamp2013Prj", "Brookstead2012Twn", "BungunyatoToobeah2012Rgn",
-                   "CecilPlains2010Twn", "Chinchilla2010Twn", "Dirranbandi2011Twn", "Hebel2011Twn", "LowerBalonne2018Prj",
-                   "Nindigully2012Twn", "StGeorge2011Twn", "Surat2011Twn", "Talwood2011Twn", "Thallon2011Twn"]
+COLLECTION_LIST = ["Applethorpe2012Twn", "AuchmahSwamp2013Prj", "Brookstead2012Twn",
+                   "BungunyatoToobeah2012Rgn", "CecilPlains2010Twn", "Chinchilla2010Twn",
+                   "Clifton2010Twn", "Clifton2014Twn", "Condamine2011Twn", "CondamineRivTwmba2014Prj",
+                   "Dalby2010Twn", "Dirranbandi2011Twn", "EastGreenmount2014Twn", "Goondiwindi2011Twn",
+                   "Hebel2011Twn", "Inglewood2011Twn", "Jandowae2010Twn", "Jimbour2012Twn",
+                   "Kaimkillenbun2012Twn", "LowerBalonne2018Prj", "Macalister2013Twn",
+                   "MaryvaletoGoomburra2012Rgn", "MyallCkToowoomba2014Prj", "Nindigully2012Twn",
+                   "Pittsworth2010Twn", "SouthernDowns2010Rgn", "SpringCkNthBiddeston2014Prj",
+                   "SpringCkSthWestbrook2014Prj", "SquaretopKaimkillenbun2013Prj", "StGeorge2011Twn",
+                   "Stanthorpe2011Twn", "Surat2011Twn", "Talwood2011Twn", "Texas2011Twn", "Thallon2011Twn",
+                   "TheSummittoDalveen2013Prj", "Toowoomba2010Prj", "Toowoomba2010Rgn", "Toowoomba2011Prj",
+                   "Toowoomba2015Prj", "Tummaville2010Loc", "Tummaville2011Loc", "Wallangarra2013Twn",
+                   "Warra2011Twn", "Yelarbon2011Twn"]
 
 ORIGINAL_BUKCET_NAME = "elvis-stac"
 NWE_BUCKET_NAME = "dea-public-data-dev"
