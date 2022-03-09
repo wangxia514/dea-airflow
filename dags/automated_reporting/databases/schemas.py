@@ -7,7 +7,7 @@ COMPLETENESS_SCHEMA = {
         "name": "reporting",
         "schemas": [
             {
-                "name": "reporting",
+                "name": "dea",
                 "tables": [
                     {
                         "name": "completeness",
@@ -90,7 +90,7 @@ USGS_COMPLETENESS_SCHEMA = {
         "name": "reporting",
         "schemas": [
             {
-                "name": "reporting",
+                "name": "dea",
                 "tables": [
                     {
                         "name": "completeness",
