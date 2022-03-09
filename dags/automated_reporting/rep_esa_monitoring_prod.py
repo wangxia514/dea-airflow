@@ -71,7 +71,7 @@ with dag:
     insert_s2_acquisitions = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
-        arguments=["bash", "-c", " &&\n".join(SCIHUB_ACQS_TASK)],
+        arguments=["bash", "-c", " &&\n".join(INSERT_ACQS_TASK)],
         name="insert_s2_acquisitions",
         is_delete_operator_pod=True,
         in_cluster=True,
