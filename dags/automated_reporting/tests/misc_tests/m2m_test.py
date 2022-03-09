@@ -11,7 +11,7 @@ from datetime import datetime as dt
 
 from automated_reporting.tasks import usgs_insert_hg_l0, usgs_aquisitions
 
-AR_FOLDER = os.path.dirname(os.path.dirname(__file__))
+AR_FOLDER = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
 config = configparser.ConfigParser()
 config.read(os.path.join(AR_FOLDER, "tests", ".env"))
