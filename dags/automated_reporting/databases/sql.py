@@ -144,26 +144,26 @@ SELECT_SNS_COMPLETENESS = """
 """
 
 INSERT_COMPLETENESS = """
-    INSERT INTO reporting.completeness (geo_ref, completeness, expected_count, actual_count,
+    INSERT INTO dea.completeness (geo_ref, completeness, expected_count, actual_count,
         product_id, sat_acq_time, processing_time, last_updated)
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
     RETURNING id;"""
 
 INSERT_COMPLETENESS_MISSING = """
-    INSERT INTO reporting.completeness_missing (completeness_id, dataset_id, last_updated)
+    INSERT INTO dea.completeness_missing (completeness_id, dataset_id, last_updated)
     VALUES (%s, %s, %s);"""
 
 EXPIRE_COMPLETENESS = """
-    DELETE FROM reporting.completeness
+    DELETE FROM dea.completeness
     WHERE product_id = %(product_id)s
     AND geo_ref NOT LIKE 'all_%%'
     AND id NOT IN (
         SELECT rr.id from (
             SELECT geo_ref, max(last_updated) AS last_updated
-            FROM reporting.completeness
+            FROM dea.completeness
             WHERE product_id = %(product_id)s
             GROUP BY geo_ref ) r
-        INNER JOIN reporting.completeness rr
+        INNER JOIN dea.completeness rr
         ON rr.geo_ref = r.geo_ref AND rr.last_updated = r.last_updated
         AND rr.product_id = %(product_id)s);"""
 
