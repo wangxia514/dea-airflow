@@ -53,6 +53,7 @@ with dag:
         in_cluster=True,
         task_id="scihub_s2_acquisitions",
         get_logs=True,
+        task_concurrency=1,
         env_vars={
             "SCIHUB_CREDENTIALS": SCIHUB_CREDENTIALS_STR,
             "S3_CREDENTIALS": S3_CREDENTIALS_STR,
