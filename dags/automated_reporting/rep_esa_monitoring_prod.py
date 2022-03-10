@@ -82,7 +82,7 @@ with dag:
         env_vars={
             "S3_CREDENTIALS": S3_CREDENTIALS_STR,
             "DB_CREDS": REP_CONN_STR,
-            "S3_OBJECT_NAME": "{{ task_instance.xcom_pull(task_ids='scihub_s2_acquisitions', key='return_value') }}",
+            "S2_ACQ_XCOM": "{{ task_instance.xcom_pull(task_ids='scihub_s2_acquisitions', key='return_value') }}",
         },
     )
 
