@@ -60,7 +60,7 @@ with dag:
             "SCIHUB_CREDENTIALS": SCIHUB_CREDENTIALS_STR,
             "S3_CREDENTIALS": S3_CREDENTIALS_STR,
             "DB_CREDS": REP_CONN_STR,
-            "EXECUTION_DATE": "{{ ds }}",
+            "EXECUTION_DATE": "{{ ts }}",
         },
     )
 
