@@ -41,8 +41,8 @@ with dag:
     SCIHUB_ACQS_TASK = [
         "echo Get SCIHUB acquisitions: $(date)",
         "pip install ga-reporting-etls",
-        "jsonresult=`python3 -c 'from nemo_reporting.esa_monitoring import s2_acquisitions; s2_acquisitions.task_env()'`",
-        "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
+        "python3 -c 'from nemo_reporting.esa_monitoring import s2_acquisitions; s2_acquisitions.task_env()'",
+        "mkdir -p /airflow/xcom/; echo '{\"xcom_test\":true}' > /airflow/xcom/return.json",
     ]
     scihub_s2_acquisitions = KubernetesPodOperator(
         namespace="processing",
