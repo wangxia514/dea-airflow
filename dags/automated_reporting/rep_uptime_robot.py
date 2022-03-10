@@ -44,7 +44,7 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo uptime robot processing dea started: $(date)",
-        "pip install ga-reporting-etls==1.5.0",
+        "pip install ga-reporting-etls==1.7.9",
         "jsonresult=`python3 -c 'from nemo_reporting.uptime_robot import dea_uptime_robot_processing; dea_uptime_robot_processing.task()'`",
     ]
     uptime_robot_processing_dea = KubernetesPodOperator(
