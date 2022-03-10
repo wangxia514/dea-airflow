@@ -13,7 +13,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 )
 from datetime import datetime as dt, timedelta
 from infra.variables import REPORTING_IAM_DEA_S3_SECRET
-from infra.variables import REPORTING_DB_DEV_SECRET 
+from infra.variables import REPORTING_DB_DEV_SECRET
 from infra.variables import AWS_STORAGE_STATS_POD_COUNT
 import json
 
