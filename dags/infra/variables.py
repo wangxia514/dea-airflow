@@ -106,3 +106,19 @@ ARCHIE_SECRET = Variable.get(
     "archie_secret", default_var="archie"
 )
 UPTIME_ROBOT_SECRET = Variable.get("uptime_robot_secret", default_var="uptime-robot")
+
+REPORTING_ASB_ANALYTICS_API_SECRET = Variable.get("reporting_asb_analytics_api_secret", default_var="reporting-asb-analytics-api")
+
+REPORTING_DB_DEV_SECRET = Variable.get("reporting_db_dev_secret", default_var="reporting-db-dev")
+
+REPORTING_IAM_DEA_S3_SECRET = Variable.get("reporting_iam_dea_s3_secret", default_var="reporting-iam-dea-s3")
+
+REPORTING_IAM_REP_S3_SECRET = Variable.get("reporting_iam_rep_s3_secret", default_var="reporting-iam-rep-s3")
+
+REPORTING_ODC_DB_SECRET = Variable.get("reporting_odc_db_secret", default_var="reporting-odc-db")
+
+REPORTING_SCIHUB_API_SECRET = Variable.get("reporting_scihub_api_secret", default_var="reporting-scihub-api")
+
+REPORTING_UPTIME_API_SECRET = Variable.get("reporting_uptime_api_secret", default_var="reporting-uptime-api")
+
+REPORTING_USGSM2M_API_SECRET = Variable.get("reporting_usgsm2m_api_secret", default_var="reporting-usgsm2m-api")
