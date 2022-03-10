@@ -13,7 +13,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 )
 from airflow.kubernetes.secret import Secret
 
-from infra.variables import SECRET_ODC_READER_NAME, DB_HOSTNAME, DB_PORT, DB_DATABASE
+from infra.variables import REPORTING_ODC_DB_SECRET
 
 default_args = {
     "owner": "Tom McAdam",
@@ -23,8 +23,11 @@ default_args = {
     "email_on_failure": False,
     "retries": 0,
     "secrets": [
-        Secret("env", "ODC_DB_USER", SECRET_ODC_READER_NAME, "postgres-username"),
-        Secret("env", "ODC_DB_PASSWORD", SECRET_ODC_READER_NAME, "postgres-password"),
+        Secret("env", "ODC_DB_HOST", REPORTING_ODC_DB_SECRET, "DB_HOST"),
+        Secret("env", "ODC_DB_NAME", REPORTING_ODC_DB_SECRET, "DB_NAME"),
+        Secret("env", "ODC_DB_PORT", REPORTING_ODC_DB_SECRET, "DB_PORT"),
+        Secret("env", "ODC_DB_USER", REPORTING_ODC_DB_SECRET, "DB_USER"),
+        Secret("env", "ODC_DB_PASSWORD", REPORTING_ODC_DB_SECRET, "DB_PASSWORD"),
     ],
 }
 
@@ -56,9 +59,6 @@ with dag:
         task_id="one_off_task",
         get_logs=True,
         env_vars={
-            "ODC_DB_HOST": DB_HOSTNAME,
-            "ODC_DB_PORT": DB_PORT,
-            "ODC_DB_DBNAME": DB_DATABASE,
             "KWARGS": "{{dag_run.conf['kwargs']}}",
             "MODULE": "{{dag_run.conf['module']}}",
             "EXECUTION_DATE": "{{ ds }}"

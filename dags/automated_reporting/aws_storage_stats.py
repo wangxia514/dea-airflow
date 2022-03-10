@@ -12,7 +12,8 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from datetime import datetime as dt, timedelta
-from infra.variables import AWS_STATS_SECRET
+from infra.variables import REPORTING_IAM_DEA_S3_SECRET
+from infra.variables import REPORTING_DB_DEV_SECRET 
 from infra.variables import AWS_STORAGE_STATS_POD_COUNT
 import json
 
@@ -26,11 +27,13 @@ default_args = {
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "secrets": [
-        Secret("env", "ACCESS_KEY", AWS_STATS_SECRET, "ACCESS_KEY"),
-        Secret("env", "SECRET_KEY", AWS_STATS_SECRET, "SECRET_KEY"),
-        Secret("env", "DB_HOST", AWS_STATS_SECRET, "DB_HOST"),
-        Secret("env", "DB_USER", AWS_STATS_SECRET, "DB_USER"),
-        Secret("env", "DB_PASSWORD", AWS_STATS_SECRET, "DB_PASSWORD"),
+        Secret("env", "ACCESS_KEY", REPORTING_IAM_DEA_S3_SECRET , "ACCESS_KEY"),
+        Secret("env", "SECRET_KEY", REPORTING_IAM_DEA_S3_SECRET , "SECRET_KEY"),
+        Secret("env", "DB_HOST", REPORTING_DB_DEV_SECRET , "DB_HOST"),
+        Secret("env", "DB_NAME", REPORTING_DB_DEV_SECRET , "DB_NAME"),
+        Secret("env", "DB_PORT", REPORTING_DB_DEV_SECRET , "DB_PORT"),
+        Secret("env", "DB_USER", REPORTING_DB_DEV_SECRET , "DB_USER"),
+        Secret("env", "DB_PASSWORD", REPORTING_DB_DEV_SECRET , "DB_PASSWORD"),
     ],
 }
 

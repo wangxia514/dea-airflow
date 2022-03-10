@@ -11,7 +11,8 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from datetime import datetime as dt, timedelta
-from infra.variables import SARA_HISTORY_SECRET
+from infra.variables import REPORTING_IAM_REP_S3_SECRET
+from infra.variables import REPORTING_DB_DEV_SECRET
 from airflow.operators.dummy_operator import DummyOperator
 
 default_args = {
@@ -24,11 +25,13 @@ default_args = {
     "retries": 90,
     "retry_delay": timedelta(minutes=1440),
     "secrets": [
-        Secret("env", "ACCESS_KEY", SARA_HISTORY_SECRET, "ACCESS_KEY"),
-        Secret("env", "SECRET_KEY", SARA_HISTORY_SECRET, "SECRET_KEY"),
-        Secret("env", "DB_HOST", SARA_HISTORY_SECRET, "DB_HOST"),
-        Secret("env", "DB_USER", SARA_HISTORY_SECRET, "DB_USER"),
-        Secret("env", "DB_PASSWORD", SARA_HISTORY_SECRET, "DB_PASSWORD"),
+        Secret("env", "ACCESS_KEY", REPORTING_IAM_REP_S3_SECRET, "ACCESS_KEY"),
+        Secret("env", "SECRET_KEY", REPORTING_IAM_REP_S3_SECRET, "SECRET_KEY"),
+        Secret("env", "DB_HOST", REPORTING_DB_DEV_SECRET, "DB_HOST"),
+        Secret("env", "DB_NAME", REPORTING_DB_DEV_SECRET, "DB_NAME"),
+        Secret("env", "DB_PORT", REPORTING_DB_DEV_SECRET, "DB_PORT"),
+        Secret("env", "DB_USER", REPORTING_DB_DEV_SECRET, "DB_USER"),
+        Secret("env", "DB_PASSWORD", REPORTING_DB_DEV_SECRET, "DB_PASSWORD"),
     ],
 }
 
