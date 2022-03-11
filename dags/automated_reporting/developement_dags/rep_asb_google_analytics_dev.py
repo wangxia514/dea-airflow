@@ -6,7 +6,7 @@ Automated Reporting - ASB - Google Analytics
 
 import json
 from datetime import datetime as dt, timedelta
-
+from airflow.kubernetes.secret import Secret
 # The DAG object; we'll need this to instantiate a DAG
 from airflow import DAG
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
@@ -28,8 +28,7 @@ default_args = {
     "retries": 3,
     "retry_delay": timedelta(minutes=60),
     "secrets": [
-        Secret("env", "GOOGLE_ANALYTICS_CREDENTIALS", REPORTING_IAM_REP_S3_SECRET, "ASB_ANALYTICS_KEY"),
-        Secret("env", "SECRET_KEY", REPORTING_IAM_REP_S3_SECRET, "SECRET_KEY"),
+        Secret("env", "GOOGLE_ANALYTICS_CREDENTIALS", REPORTING_ASB_ANALYTICS_API_SECRET, "ASB_ANALYTICS_KEY"),
         Secret("env", "DB_HOST", REPORTING_DB_DEV_SECRET, "DB_HOST"),
         Secret("env", "DB_NAME", REPORTING_DB_DEV_SECRET, "DB_NAME"),
         Secret("env", "DB_PORT", REPORTING_DB_DEV_SECRET, "DB_PORT"),

@@ -14,7 +14,8 @@ from airflow.operators.dummy import DummyOperator
 from datetime import datetime as dt, timedelta
 from infra.variables import REPORTING_IAM_REP_S3_SECRET
 from infra.variables import REPORTING_DB_DEV_SECRET
-REPORTING_PACKAGE=1.7.10
+
+REPORTING_PACKAGE = 1.7.10
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",

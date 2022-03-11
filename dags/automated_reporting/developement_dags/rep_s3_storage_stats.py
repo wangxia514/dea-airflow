@@ -12,11 +12,12 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from datetime import datetime as dt, timedelta
+import json
 from infra.variables import REPORTING_IAM_DEA_S3_SECRET
 from infra.variables import REPORTING_DB_DEV_SECRET
 from infra.variables import AWS_STORAGE_STATS_POD_COUNT
-import json
-REPORTING_PACKAGE=1.7.10
+
+REPORTING_PACKAGE = 1.7.10
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",

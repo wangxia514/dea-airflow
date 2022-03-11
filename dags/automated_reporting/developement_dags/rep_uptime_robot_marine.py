@@ -11,7 +11,8 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 from datetime import datetime as dt, timedelta
 from infra.variables import REPORTING_DB_DEV_SECRET
 from infra.variables import REPORTING_UPTIME_API_SECRET 
-REPORTING_PACKAGE=1.7.10
+
+REPORTING_PACKAGE = 1.7.10
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
