@@ -12,9 +12,10 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from datetime import datetime as dt, timedelta
-from infra.variables import AWS_STATS_SECRET
-from infra.variables import AWS_STORAGE_STATS_POD_COUNT
 import json
+from infra.variables import REPORTING_IAM_DEA_S3_SECRET
+from infra.variables import REPORTING_DB_DEV_SECRET
+from infra.variables import AWS_STORAGE_STATS_POD_COUNT
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
@@ -26,11 +27,13 @@ default_args = {
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "secrets": [
-        Secret("env", "ACCESS_KEY", AWS_STATS_SECRET, "ACCESS_KEY"),
-        Secret("env", "SECRET_KEY", AWS_STATS_SECRET, "SECRET_KEY"),
-        Secret("env", "DB_HOST", AWS_STATS_SECRET, "DB_HOST"),
-        Secret("env", "DB_USER", AWS_STATS_SECRET, "DB_USER"),
-        Secret("env", "DB_PASSWORD", AWS_STATS_SECRET, "DB_PASSWORD"),
+        Secret("env", "ACCESS_KEY", REPORTING_IAM_DEA_S3_SECRET, "ACCESS_KEY"),
+        Secret("env", "SECRET_KEY", REPORTING_IAM_DEA_S3_SECRET, "SECRET_KEY"),
+        Secret("env", "DB_HOST", REPORTING_DB_DEV_SECRET, "DB_HOST"),
+        Secret("env", "DB_NAME", REPORTING_DB_DEV_SECRET, "DB_NAME"),
+        Secret("env", "DB_PORT", REPORTING_DB_DEV_SECRET, "DB_PORT"),
+        Secret("env", "DB_USER", REPORTING_DB_DEV_SECRET, "DB_USER"),
+        Secret("env", "DB_PASSWORD", REPORTING_DB_DEV_SECRET, "DB_PASSWORD"),
     ],
 }
 
@@ -101,19 +104,19 @@ def aggregate_metrics_from_collections(task_instance):
 with dag:
     JOBS1 = [
         "echo AWS Storage job started: $(date)",
-        "pip install ga-reporting-etls==1.2.50",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import downloadinventory; downloadinventory.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS2 = [
         "echo AWS Storage job started: $(date)",
-        "pip install ga-reporting-etls==1.2.50",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import process; process.calc_size_and_count()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS3 = [
         "echo AWS Storage job started: $(date)",
-        "pip install ga-reporting-etls==1.2.50",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import etl; etl.task()'`",
         "mkdir -p /airflow/xcom/; echo '{\"status\": \"success\"}' > /airflow/xcom/return.json",
     ]
