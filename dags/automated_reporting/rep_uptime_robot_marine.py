@@ -10,7 +10,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 )
 from datetime import datetime as dt, timedelta
 from infra.variables import REPORTING_DB_SECRET
-from infra.variables import REPORTING_UPTIME_API_SECRET 
+from infra.variables import REPORTING_UPTIME_API_SECRET
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
@@ -22,7 +22,7 @@ default_args = {
     "retries": 3,
     "retry_delay": timedelta(days=1),
     "secrets": [
-        Secret("env", "API_KEY", UPTIME_ROBOT_SECRET, "API_KEY"),
+        Secret("env", "API_KEY", REPORTING_UPTIME_API_SECRET, "API_KEY"),
         Secret("env", "DB_HOST", REPORTING_DB_SECRET, "DB_HOST"),
         Secret("env", "DB_NAME", REPORTING_DB_SECRET, "DB_NAME"),
         Secret("env", "DB_PORT", REPORTING_DB_SECRET, "DB_PORT"),
