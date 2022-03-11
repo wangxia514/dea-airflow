@@ -118,7 +118,7 @@ with dag:
         "product_ids": product_ids,
         "m2m_credentials": m2m_credentials,
         "aux_data_path": aux_data_path,
-        "days": int("{{ dag_run.conf['acquisition_days'] | default('3') }}"),
+        "days": int("{{ dag_run.conf['acquisition_days'] | default(3) }}"),
     }
     usgs_acquisitions = PythonOperator(
         task_id="usgs_acquisitions",
