@@ -16,8 +16,6 @@ from airflow.operators.dummy import DummyOperator
 from infra.variables import REPORTING_IAM_REP_S3_SECRET
 from infra.variables import REPORTING_DB_DEV_SECRET
 
-REPORTING_PACKAGE = 1.7.10
-
 default_args = {
     "owner": "Ramkumar Ramagopalan",
     "depends_on_past": False,
@@ -48,35 +46,35 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo fk1 user stats ingestion: $(date)",
-        f"pip install ga-reporting-etls=={REPORTING_PACKAGE}",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fk1_user_stats_ingestion; fk1_user_stats_ingestion.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS2 = [
         "echo fk1 user stats processing: $(date)",
-        f"pip install ga-reporting-etls=={REPORTING_PACKAGE}",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fk1_user_stats_processing; fk1_user_stats_processing.task()'`",
     ]
     JOBS3 = [
         "echo iy57 user stats ingestion: $(date)",
-        f"pip install ga-reporting-etls=={REPORTING_PACKAGE}",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import iy57_user_stats_ingestion; iy57_user_stats_ingestion.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS4 = [
         "echo iy57 user stats processing: $(date)",
-        f"pip install ga-reporting-etls=={REPORTING_PACKAGE}",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import iy57_user_stats_processing; iy57_user_stats_processing.task()'`",
     ]
     JOBS5 = [
         "echo pw31 user stats ingestion: $(date)",
-        f"pip install ga-reporting-etls=={REPORTING_PACKAGE}",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import pw31_user_stats_ingestion; pw31_user_stats_ingestion.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS6 = [
         "echo pw31 user stats processing: $(date)",
-        f"pip install ga-reporting-etls=={REPORTING_PACKAGE}",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import pw31_user_stats_processing; pw31_user_stats_processing.task()'`",
     ]
     START = DummyOperator(task_id="marine-ungrouped-user-stats")

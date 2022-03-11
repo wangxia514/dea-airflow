@@ -17,8 +17,6 @@ from infra.variables import REPORTING_IAM_DEA_S3_SECRET
 from infra.variables import REPORTING_DB_DEV_SECRET
 from infra.variables import AWS_STORAGE_STATS_POD_COUNT
 
-REPORTING_PACKAGE = 1.7.10
-
 default_args = {
     "owner": "Ramkumar Ramagopalan",
     "depends_on_past": False,
@@ -106,19 +104,19 @@ def aggregate_metrics_from_collections(task_instance):
 with dag:
     JOBS1 = [
         "echo AWS Storage job started: $(date)",
-        f"pip install ga-reporting-etls=={REPORTING_PACKAGE}",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import downloadinventory; downloadinventory.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS2 = [
         "echo AWS Storage job started: $(date)",
-        f"pip install ga-reporting-etls=={REPORTING_PACKAGE}",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import process; process.calc_size_and_count()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS3 = [
         "echo AWS Storage job started: $(date)",
-        f"pip install ga-reporting-etls=={REPORTING_PACKAGE}",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import etl; etl.task()'`",
         "mkdir -p /airflow/xcom/; echo '{\"status\": \"success\"}' > /airflow/xcom/return.json",
     ]

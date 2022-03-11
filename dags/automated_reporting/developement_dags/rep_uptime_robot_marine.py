@@ -12,8 +12,6 @@ from datetime import datetime as dt, timedelta
 from infra.variables import REPORTING_DB_DEV_SECRET
 from infra.variables import REPORTING_UPTIME_API_SECRET 
 
-REPORTING_PACKAGE = 1.7.10
-
 default_args = {
     "owner": "Ramkumar Ramagopalan",
     "depends_on_past": False,
@@ -44,7 +42,7 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo uptime robot processing marine started: $(date)",
-        f"pip install ga-reporting-etls=={REPORTING_PACKAGE}",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.uptime_robot import marine_uptime_robot_processing; marine_uptime_robot_processing.task()'`",
     ]
     uptime_robot_processing_marine = KubernetesPodOperator(

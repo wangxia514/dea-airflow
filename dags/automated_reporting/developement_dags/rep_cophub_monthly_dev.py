@@ -14,7 +14,6 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 from airflow.operators.dummy import DummyOperator
 from infra.variables import REPORTING_IAM_REP_S3_SECRET
 from infra.variables import REPORTING_DB_DEV_SECRET
-REPROTING_PACKAGE=1.7.10
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
@@ -45,63 +44,63 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo AWS Storage job started: $(date)",
-        f"pip install ga-reporting-etls=={REPORTING_PACKAGE}",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.sara_history import sara_history_ingestion; sara_history_ingestion.task()'`",
     ]
     JOBS2 = [
         "echo AWS Storage job started: $(date)",
-        "pip install ga-reporting-etls=={REPORTING_PACKAGE}",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.sara_history import sara_history_processing; sara_history_processing.task()'`",
     ]
     JOBS3 = [
         "echo archie ingestion started: $(date)",
-        "pip install ga-reporting-etls=={REPORTING_PACKAGE}",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.archie import archie_ingestion; archie_ingestion.task()'`",
     ]
     JOBS4 = [
         "echo archie processing - SatToEsa started: $(date)",
-        "pip install ga-reporting-etls=={REPORTING_PACKAGE}",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.archie import archie_processing; archie_processing.SatToEsaTask()'`",
     ]
     JOBS5 = [
         "echo archie processing - EsaToNciTask started: $(date)",
-        "pip install ga-reporting-etls=={REPORTING_PACKAGE}",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.archie import archie_processing; archie_processing.EsaToNciTask()'`",
     ]
     JOBS6 = [
         "echo archie processing - EsaToNciS1Task started: $(date)",
-        "pip install ga-reporting-etls=={REPORTING_PACKAGE}",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.archie import archie_processing; archie_processing.EsaToNciS1Task()'`",
     ]
     JOBS7 = [
         "echo archie processing - EsaToNciS2Task started: $(date)",
-        "pip install ga-reporting-etls=={REPORTING_PACKAGE}",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.archie import archie_processing; archie_processing.EsaToNciS2Task()'`",
     ]
     JOBS8 = [
         "echo archie processing - EsaToNciS3Task started: $(date)",
-        "pip install ga-reporting-etls=={REPORTING_PACKAGE}",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.archie import archie_processing; archie_processing.EsaToNciS3Task()'`",
     ]
     JOBS9 = [
         "echo archie processing - Downloads started: $(date)",
-        "pip install ga-reporting-etls=={REPORTING_PACKAGE}",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.archie import archie_processing; archie_processing.DownloadsTask()'`",
     ]
     JOBS10 = [
         "echo fj7 disk usage download and processing: $(date)",
-        "pip install ga-reporting-etls=={REPORTING_PACKAGE}",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.fj7_storage import fj7_disk_usage; fj7_disk_usage.task()'`",
     ]
     JOBS11 = [
         "echo fj7 user stats ingestion: $(date)",
-        "pip install ga-reporting-etls=={REPORTING_PACKAGE}",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fj7_user_stats_ingestion; fj7_user_stats_ingestion.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS12 = [
         "echo fj7 user stats processing: $(date)",
-        "pip install ga-reporting-etls=={REPORTING_PACKAGE}",
+        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fj7_user_stats_processing; fj7_user_stats_processing.task()'`",
     ]
     START = DummyOperator(task_id="nci-monthly-stats")
