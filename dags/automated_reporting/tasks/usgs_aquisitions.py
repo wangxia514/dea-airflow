@@ -9,7 +9,9 @@ from automated_reporting.utilities import m2m_api, helpers
 log = logging.getLogger("airflow.task")
 
 
-def task(product_ids, data_interval_end, m2m_credentials, aux_data_path, **kwargs):
+def task(
+    product_ids, data_interval_end, m2m_credentials, aux_data_path, days, **kwargs
+):
     """
     Task to fetch recent USGS aquisitions and write to reporting database
     """
@@ -24,7 +26,7 @@ def task(product_ids, data_interval_end, m2m_credentials, aux_data_path, **kwarg
         results = m2m_api.get(
             dataset=product_id,
             start_time=execution_date,
-            days=3,
+            days=days,
             credentials=m2m_credentials,
         )
 
