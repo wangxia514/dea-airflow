@@ -143,6 +143,7 @@ with dag:
             "S3_CREDENTIALS": S3_CREDENTIALS_STR,
             "DB_CREDS": REP_CONN_STR,
             "ODC_CREDS": ODC_CONN_STR,
+            "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
         },
     )
     compute_s2_ard_completeness = KubernetesPodOperator(
@@ -159,6 +160,7 @@ with dag:
             "S3_CREDENTIALS": S3_CREDENTIALS_STR,
             "DB_CREDS": REP_CONN_STR,
             "ODC_CREDS": ODC_CONN_STR,
+            "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
         },
     )
 
