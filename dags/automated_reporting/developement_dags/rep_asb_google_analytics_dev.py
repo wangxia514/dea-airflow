@@ -13,10 +13,10 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from airflow.models import Variable
+from infra.variables import REPORTING_DB_DEV_SECRET
+from infra.variables import REPORTING_ASB_ANALYTICS_API_SECRET
 
-REP_CONN_STR = Variable.get("db_rep_dev_secret")
-REPORTING_PACKAGE_VERSION = "1.1.8"
-GOOGLE_ANALYTICS_CREDENTIALS_STR = Variable.get("google_analytics_apikey")
+REPORTING_PACKAGE_VERSION = "1.7.10"
 
 default_args = {
     "owner": "Tom McAdam",
@@ -27,6 +27,15 @@ default_args = {
     "email_on_retry": False,
     "retries": 3,
     "retry_delay": timedelta(minutes=60),
+    "secrets": [
+        Secret("env", "GOOGLE_ANALYTICS_CREDENTIALS", REPORTING_IAM_REP_S3_SECRET, "ASB_ANALYTICS_KEY"),
+        Secret("env", "SECRET_KEY", REPORTING_IAM_REP_S3_SECRET, "SECRET_KEY"),
+        Secret("env", "DB_HOST", REPORTING_DB_DEV_SECRET, "DB_HOST"),
+        Secret("env", "DB_NAME", REPORTING_DB_DEV_SECRET, "DB_NAME"),
+        Secret("env", "DB_PORT", REPORTING_DB_DEV_SECRET, "DB_PORT"),
+        Secret("env", "DB_USER", REPORTING_DB_DEV_SECRET, "DB_USER"),
+        Secret("env", "DB_PASSWORD", REPORTING_DB_DEV_SECRET, "DB_PASSWORD"),
+    ],
 }
 
 dag = DAG(
@@ -144,9 +153,7 @@ with dag:
             startup_timeout_seconds=120,
             get_logs=True,
             env_vars={
-                "GOOGLE_ANALYTICS_CREDENTIALS": GOOGLE_ANALYTICS_CREDENTIALS_STR,
                 "QUERY_DEFS": json.dumps(task_def["query_defs"]),
-                "REP_CONN": REP_CONN_STR,
                 "EXECUTION_DATE": "{{ ds }}",
             }
         )

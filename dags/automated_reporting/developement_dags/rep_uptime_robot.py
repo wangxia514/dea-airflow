@@ -11,8 +11,10 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from datetime import datetime as dt, timedelta
-from infra.variables import SARA_HISTORY_SECRET
-from infra.variables import UPTIME_ROBOT_SECRET
+from infra.variables import REPORTING_IAM_REP_S3_SECRET 
+from infra.variables import REPORTING_UPTIME_API_SECRET 
+
+REPORTING_PACKAGE=1.7.10
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
@@ -24,10 +26,12 @@ default_args = {
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "secrets": [
-        Secret("env", "DB_HOST", SARA_HISTORY_SECRET, "DB_HOST"),
-        Secret("env", "DB_USER", SARA_HISTORY_SECRET, "DB_USER"),
-        Secret("env", "DB_PASSWORD", SARA_HISTORY_SECRET, "DB_PASSWORD"),
-        Secret("env", "API_KEY", UPTIME_ROBOT_SECRET, "API_KEY"),
+        Secret("env", "API_KEY", REPORTING_UPTIME_API_SECRET, "UPTIME_KEY"),
+        Secret("env", "DB_HOST", REPORTING_DB_DEV_SECRET, "DB_HOST"),
+        Secret("env", "DB_NAME", REPORTING_DB_DEV_SECRET, "DB_NAME"),
+        Secret("env", "DB_PORT", REPORTING_DB_DEV_SECRET, "DB_PORT"),
+        Secret("env", "DB_USER", REPORTING_DB_DEV_SECRET, "DB_USER"),
+        Secret("env", "DB_PASSWORD", REPORTING_DB_DEV_SECRET, "DB_PASSWORD"),
     ],
 }
 
@@ -42,7 +46,7 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo uptime robot processing dea started: $(date)",
-        "pip install ga-reporting-etls==1.5.0",
+        f"pip install ga-reporting-etls=={REPORTING_PACKAGE}",
         "jsonresult=`python3 -c 'from nemo_reporting.uptime_robot import dea_uptime_robot_processing; dea_uptime_robot_processing.task()'`",
     ]
     uptime_robot_processing_dea = KubernetesPodOperator(
