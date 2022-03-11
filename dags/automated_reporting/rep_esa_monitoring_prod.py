@@ -60,8 +60,8 @@ with dag:
             "SCIHUB_CREDENTIALS": SCIHUB_CREDENTIALS_STR,
             "S3_CREDENTIALS": S3_CREDENTIALS_STR,
             "DB_CREDS": REP_CONN_STR,
-            "ACQUISITION_DAYS": "{{ dag_run.conf['acquisition_days'] | default('3') }}",
-            "EXECUTION_DATE": "{{  dag_run.data_interval_end | ts  }}",
+            "ACQUISITION_DAYS": "{{ dag_run.conf['acquisition_days'] | default(3) }}",
+            "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
         },
     )
 
