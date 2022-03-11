@@ -26,7 +26,7 @@ def task(
         results = m2m_api.get(
             dataset=product_id,
             start_time=execution_date,
-            days=days,
+            days=int(days),
             credentials=m2m_credentials,
         )
 
