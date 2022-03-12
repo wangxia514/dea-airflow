@@ -109,7 +109,7 @@ with dag:
     ARD_CONFIG = {
         "title": "AWS ARD ODC",
         "source": "odc-nrt",
-        "use_identifier": True,
+        "use_identifier": False,
         "days": 30,
         "sensors": [
             {
