@@ -124,6 +124,25 @@ with dag:
             },
         ],
     }
+    ARDP_CONFIG = {
+        "title": "AWS ARD P ODC",
+        "source": "odc-nrt",
+        "use_identifier": False,
+        "days": 30,
+        "sensors": [
+            {
+                "id": "s2a",
+                "odc_code": "ga_s2am_ard_provisional_3",
+                "rep_code": "ga_s2am_ard_provisional_3",
+            },
+            {
+                "id": "s2b",
+                "odc_code": "ga_s2bm_ard_provisional_3",
+                "rep_code": "ga_s2bm_ard_provisional_3",
+            },
+        ],
+    }
+
     COMPUTE_COMPLETENESS_TASK = [
         "echo Compute S2 L1 Completeness: $(date)",
         "pip install ga-reporting-etls",
@@ -163,9 +182,30 @@ with dag:
             "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
         },
     )
+    compute_s2_ardp_completeness = KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(COMPUTE_COMPLETENESS_TASK)],
+        name="compute_s2_ardp_completeness",
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="compute_s2_ardp_completeness",
+        get_logs=True,
+        env_vars={
+            "COMPLETENESS_CONFIG": json.dumps(ARDP_CONFIG),
+            "S3_CREDENTIALS": S3_CREDENTIALS_STR,
+            "DB_CREDS": REP_CONN_STR,
+            "ODC_CREDS": ODC_CONN_STR,
+            "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
+        },
+    )
 
     (
         scihub_s2_acquisitions
         >> insert_s2_acquisitions
-        >> [compute_s2_l1_completeness, compute_s2_ard_completeness]
+        >> [
+            compute_s2_l1_completeness,
+            compute_s2_ard_completeness,
+            compute_s2_ardp_completeness,
+        ]
     )
