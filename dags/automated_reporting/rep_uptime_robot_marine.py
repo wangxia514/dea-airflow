@@ -22,7 +22,7 @@ default_args = {
     "retries": 3,
     "retry_delay": timedelta(days=1),
     "secrets": [
-        Secret("env", "API_KEY", REPORTING_UPTIME_API_SECRET, "API_KEY"),
+        Secret("env", "API_KEY", REPORTING_UPTIME_API_SECRET, "UPTIME_KEY"),
         Secret("env", "DB_HOST", REPORTING_DB_SECRET, "DB_HOST"),
         Secret("env", "DB_NAME", REPORTING_DB_SECRET, "DB_NAME"),
         Secret("env", "DB_PORT", REPORTING_DB_SECRET, "DB_PORT"),
