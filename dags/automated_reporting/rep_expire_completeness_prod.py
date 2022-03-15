@@ -65,8 +65,8 @@ with dag:
     )
 
     products_list = [
-        "ga_s2a_msi_ard_c3",
-        "ga_s2b_msi_ard_c3",
+        "s2a_nrt_granule",
+        "s2b_nrt_granule",
         "usgs_ls8c_level1_nrt_c2",
         "usgs_ls7e_level1_nrt_c2",
         "ga_s2am_ard_provisional_3",
