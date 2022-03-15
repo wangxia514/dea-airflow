@@ -1,21 +1,37 @@
 #!/usr/bin/env bash
 set -ex
 
-airflow dags list-runs -d deletion_utility_select_dataset_in_years -v > run_delete_dataset_result.txt
 
-if grep -rniw './run_delete_dataset_result.txt' -e 'Failed'; then
-   echo "Tests failed, both dag run for delete_datasets_in_years should pass."
+# test delete datasets by years
+test_dag=deletion_utility_select_dataset_in_years
+
+if airflow dags list-runs -d $test_dag -v  2>&1 | grep $test_dag | grep -i 'failed'; then
+   echo "Tests failed, both dag run for $test_dag"
    exit 1
 fi
 
-airflow dags list-runs -d deletion_utility_datacube_dataset_location -v > run_delete_location_result.txt
+# test delete datasets by uri pattern
 
-if (( $(grep -wc "failed" run_delete_location_result.txt) != 2 )) ; then
-   echo "Tests failed, there should be 2 failed dag runs for utility_delete_location"
+test_dag=deletion_utility_datacube_dataset_location
+
+if [ $(airflow dags list-runs -d $test_dag -v  2>&1 | grep $test_dag | grep -i 'failed' | wc -l) != 2 ]; then
+   echo "Tests failed, there should be 2 failed dag runs for $test_dag"
    exit 1
 fi
 
-if (( $(grep -wc "success" run_delete_location_result.txt) != 1 )); then
-   echo "Tests failed, there should be 1 success dag run for utility_delete_location"
+if [ $(airflow dags list-runs -d $test_dag -v  2>&1 | grep $test_dag | grep -i 'success' | wc -l) != 1 ]; then
+   echo "Tests failed, there should be 1 success dag run for $test_dag"
+   exit 1
+fi
+
+test_dag=deletion_utility_datasets_version_sensor
+
+if [ $(airflow dags list-runs -d $test_dag -v  2>&1 | grep $test_dag | grep -i 'success' | wc -l) != 1 ]; then
+   echo "Tests failed, there should be 1 success dag run for $test_dag"
+   exit 1
+fi
+
+if [ $(airflow dags list-runs -d $test_dag -v  2>&1 | grep $test_dag | grep -i 'failed' | wc -l) != 1 ]; then
+   echo "Tests failed, there should be 1 success dag run for $test_dag"
    exit 1
 fi

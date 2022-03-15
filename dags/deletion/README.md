@@ -13,3 +13,8 @@ Scope: delete product from explorer, delete product from ows, delete datasets an
 Use case: need to delete selected year(s) of datasets from a product.
 
 Scope: delete datasets, force update explorer and update ows extent.
+
+### Delete datasets from product by version and sensor
+Use case: need to delete datasets by specific version and sensor
+
+Scope: delete datasets, force update explorer and update ows extent.
