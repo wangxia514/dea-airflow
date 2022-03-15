@@ -115,12 +115,12 @@ with dag:
             {
                 "id": "s2a",
                 "odc_code": "s2a_nrt_granule",
-                "rep_code": "ga_s2a_msi_ard_c3",
+                "rep_code": "s2a_nrt_granule",
             },
             {
                 "id": "s2b",
                 "odc_code": "s2b_nrt_granule",
-                "rep_code": "ga_s2b_msi_ard_c3",
+                "rep_code": "s2b_nrt_granule",
             },
         ],
     }
