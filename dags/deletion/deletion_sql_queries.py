@@ -2,6 +2,26 @@
 select sql query for deletion dag
 """
 
+DATASET_COUNT_BY_ANY_CLAUSE = """
+    SELECT
+        count(*)
+    FROM
+        agdc.dataset ds
+    WHERE
+        ds.dataset_type_ref =
+        ( -- limit to the product name
+            SELECT
+                id
+            FROM
+                agdc.dataset_type dt
+            WHERE
+                dt.NAME = '{product_name}'
+        )
+        AND ( --
+                {clause}
+        );
+"""
+
 DATASET_COUNT_CONFIRMATION = """
     SELECT
         count(*)

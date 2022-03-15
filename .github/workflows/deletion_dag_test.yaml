@@ -6,7 +6,7 @@ on:
     paths:
       - 'dags/deletion/**'
       - '.github/workflows/deletion_dag_test.yaml'
-      - 'integration_test/check_dags.sh'
+      - 'integration_test/check_deletion_dags_result.sh'
   pull_request:
     types: [opened, reopened]
     branches:
@@ -15,7 +15,7 @@ on:
     paths:
       - 'dags/deletion/**'
       - '.github/workflows/deletion_dag_test.yaml'
-      - 'integration_test/check_dags.sh'
+      - 'integration_test/check_deletion_dags_result.sh'
 
 jobs:
   build:
@@ -49,12 +49,14 @@ jobs:
           docker-compose -f docker-compose.workflow.yaml run airflow-worker airflow dags trigger --conf '{"product_name": "s2b_nrt_granule", "uri_pattern": "data.dea.ga.gov.au/L2"}' deletion_utility_datacube_dataset_location
           docker-compose -f docker-compose.workflow.yaml run airflow-worker airflow dags trigger --conf '{"product_name": "s2b_nrt_granule", "uri_pattern": "L2/sentinel-2-nrt/S2MSIARD"}' deletion_utility_datacube_dataset_location
           docker-compose -f docker-compose.workflow.yaml run airflow-worker airflow dags trigger --conf '{"product_name": "s2b_nrt_granule", "uri_pattern": "dea-public-data/L2/sentinel-2-nrt"}' deletion_utility_datacube_dataset_location
+          docker-compose -f docker-compose.workflow.yaml run airflow-worker airflow dags unpause deletion_utility_datasets_version_sensor
+          docker-compose -f docker-compose.workflow.yaml run airflow-worker airflow dags trigger --conf '{"product_name": "ga_ls7e_ard_provisional_3", "version": "3.2.0", "sensor": "landsat-7"}' deletion_utility_datasets_version_sensor
+          docker-compose -f docker-compose.workflow.yaml run airflow-worker airflow dags trigger --conf '{"product_name": "ga_ls7e_ard_provisional_3", "version": "3.2.1", "sensor": "landsat-7"}' deletion_utility_datasets_version_sensor
       - name: Wait 300s for all dags to complete
         uses: jakejarvis/wait-action@master
         with:
           time: '300s'
       - name: check integration test result
         run: |
-          docker-compose -f docker-compose.workflow.yaml run airflow-worker airflow dags list-runs -d deletion_utility_datacube_dataset_location -v
           docker-compose -f docker-compose.workflow.yaml exec -T airflow-worker /bin/bash -c "cd /opt/airflow/integration_tests; ./check_deletion_dags_result.sh"
           docker-compose -f docker-compose.workflow.yaml down
