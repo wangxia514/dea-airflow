@@ -12,7 +12,6 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from datetime import datetime as dt, timedelta
-import json
 from infra.variables import REPORTING_IAM_DEA_S3_SECRET
 from infra.variables import REPORTING_DB_DEV_SECRET
 
@@ -60,5 +59,5 @@ with dag:
         task_id="aws_s3_usage_stats_ingestion",
         get_logs=True,
     )
-    aws_s3_usage_stats_ingestion 
+    aws_s3_usage_stats_ingestion
 
