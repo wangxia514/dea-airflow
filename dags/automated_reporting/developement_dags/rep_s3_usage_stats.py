@@ -7,7 +7,6 @@ aws usage stats dag
 # The DAG object; we'll need this to instantiate a DAG
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.operators.python_operator import PythonOperator
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
