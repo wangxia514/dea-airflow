@@ -60,4 +60,3 @@ with dag:
         get_logs=True,
     )
     aws_s3_usage_stats_ingestion
-
