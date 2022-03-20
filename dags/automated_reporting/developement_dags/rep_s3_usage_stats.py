@@ -45,7 +45,7 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo AWS Usage job started: $(date)",
-        "pip install ga-reporting-etls==1.9.3",
+        "pip install ga-reporting-etls==1.9.4",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_usage_stats import aws_usage_stats_ingestion; aws_usage_stats_ingestion.task()'`",
     ]
     aws_s3_usage_stats_ingestion = KubernetesPodOperator(
