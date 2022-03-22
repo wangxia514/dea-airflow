@@ -87,7 +87,7 @@ with dag:
         "pip install ga-reporting-etls==1.10.1",
         "marine-elvis-ingestion",
     ]
-    START = DummyOperator(task_id="marine-ungrouped-user-stats")
+    START = DummyOperator(task_id="marine-monthly-stats")
     fk1_ingestion = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
