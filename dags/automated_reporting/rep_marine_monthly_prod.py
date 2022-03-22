@@ -7,12 +7,15 @@ marine ungrouped user stats dag
 # pylint: disable=W0104
 # pylint: disable=E0401
 from datetime import datetime, timedelta
+
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from airflow.operators.dummy import DummyOperator
+from airflow.models import Variable
+
 from infra.variables import REPORTING_IAM_REP_S3_SECRET
 from infra.variables import REPORTING_DB_SECRET
 
@@ -79,6 +82,11 @@ with dag:
         "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import pw31_user_stats_processing; pw31_user_stats_processing.task()'`",
     ]
+    JOBS7 = [
+        "echo Elvis ingestion processing: $(date)",
+        "pip install ga-reporting-etls==1.10.1",
+        "marine-elvis-ingestion",
+    ]
     START = DummyOperator(task_id="marine-ungrouped-user-stats")
     fk1_ingestion = KubernetesPodOperator(
         namespace="processing",
@@ -106,7 +114,7 @@ with dag:
         task_id="fk1_processing",
         get_logs=True,
         env_vars={
-            "AGGREGATION_MONTHS" : "{{ task_instance.xcom_pull(task_ids='fk1_ingestion') }}",
+            "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fk1_ingestion') }}",
             "EXECUTION_DATE": "{{ ds }}",
         },
     )
@@ -136,7 +144,7 @@ with dag:
         task_id="iy57_processing",
         get_logs=True,
         env_vars={
-            "AGGREGATION_MONTHS" : "{{ task_instance.xcom_pull(task_ids='iy57_ingestion') }}",
+            "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='iy57_ingestion') }}",
             "EXECUTION_DATE": "{{ ds }}",
         },
     )
@@ -166,10 +174,26 @@ with dag:
         task_id="pw31_processing",
         get_logs=True,
         env_vars={
-            "AGGREGATION_MONTHS" : "{{ task_instance.xcom_pull(task_ids='pw31_ingestion') }}",
+            "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='pw31_ingestion') }}",
             "EXECUTION_DATE": "{{ ds }}",
+        },
+    )
+    elvis_ingestion = KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(JOBS7)],
+        name="elvis_ingestion",
+        do_xcom_push=False,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="elvis_ingestion",
+        get_logs=True,
+        env_vars={
+            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_BUCKET": Variable.get("reporting_s3_bucket"),
         },
     )
     START >> fk1_ingestion >> fk1_processing
     START >> iy57_ingestion >> iy57_processing
     START >> pw31_ingestion >> pw31_processing
+    START >> elvis_ingestion
