@@ -1,11 +1,12 @@
 """
-# Sentinel-3 indexing automation
+# Bulk Index ALL Sentinel-2 ARD Data in `dea-public-data`
 
-DAG to bulk index Sentinel-2 NBART data.
+This DAG runs weekly, attempting to index all the Sentinel-2 ARD data
+we have in s3://dea-public-data/ .
 
-This DAG uses k8s executors and in cluster with relevant tooling
-and configuration installed.
-
+In theory, this shouldn't be necessary, as we're indexing from SQS message queues
+and watch for failed indexing in the Dead-letter queue. In practice, this is
+a simple method to make sure we haven't missed anything.
 """
 from datetime import datetime, timedelta
 
@@ -59,11 +60,11 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval="@weekly",
     catchup=False,
-    tags=["k8s", "s2_nbart"],
+    tags=["k8s", "s2", "ard"],
 )
 
 with dag:
-    for year in range(2015, 2022):
+    for year in range(2015, datetime.now().year + 1):
         for i, quarter in enumerate(["0[123]", "0[456]", "0[789]", "1[012]"]):
             INDEXING = KubernetesPodOperator(
                 namespace="processing",
@@ -73,10 +74,11 @@ with dag:
                     "s3-to-dc",
                     "--skip-lineage",
                     "--allow-unsafe",
-                    "--skip-check",
                     "--update-if-exists",
                     "--no-sign-request",
-                    "{% raw %}s3://dea-public-data/baseline/s2[ab]_ard_granule/{% endraw %}" + f"{year}-{quarter}" + "{% raw %}-*/*/eo3-ARD-METADATA.odc-metadata.yaml{% endraw %}",
+                    "s3://dea-public-data/baseline/s2[ab]_ard_granule/"
+                    + f"{year}-{quarter}"
+                    + "-*/*/eo3-ARD-METADATA.odc-metadata.yaml",
                     dag.default_args["products"],
                 ],
                 labels={"step": "s3-dc-indexing"},
