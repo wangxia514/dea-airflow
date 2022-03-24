@@ -4,7 +4,7 @@ This DAG aims speed up the ELVIS Lidar (Digital Elevation Model) data indexing t
 It includes following main steps:
 
 1. add ELVIS Lidar product metadata-type configures to odc
-2. add ELVIS Lidar product configures (dem_1m, dem_5m) to odc
+2. add ELVIS Lidar product configures (dem_1m, dem_2m, dem_5m) to odc
 3. load metadata files from s3://elvis-stac bucket (belongs to NLI team, we better not modify files in that bucket)
 4. modify the metadata content (will pass this change to NLI team once everyone happy with the DEM products)
 5. dump the updated metadata to s3://dea-public-data-dev/projects/elvis-lidar
@@ -157,6 +157,7 @@ S3_TO_DC_CMD = [
     dedent(
         """
         s3-to-dc s3://dea-public-data-dev/projects/elvis-lidar/dem_1m/*/*/*.json --absolute --stac --no-sign-request --skip-lineage dem_1m
+        s3-to-dc s3://dea-public-data-dev/projects/elvis-lidar/dem_2m/*/*/*.json --absolute --stac --no-sign-request --skip-lineage dem_2m
         s3-to-dc s3://dea-public-data-dev/projects/elvis-lidar/dem_5m/*/*/*.json --absolute --stac --no-sign-request --skip-lineage dem_5m
         """
     ),
@@ -180,6 +181,7 @@ ADD_PRODUCTS_CMD = [
     dedent(
         """
         datacube product add https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/feature/add-elvis-dem_1m/products/others/elvis/dem_1m.yaml
+        datacube product add https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/feature/add-elvis-dem_1m/products/others/elvis/dem_2m.yaml
         datacube product add https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/feature/add-elvis-dem_1m/products/others/elvis/dem_5m.yaml
         """
     ),
