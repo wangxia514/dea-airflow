@@ -200,6 +200,10 @@ def add_metadata_type(dag):
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
+        secrets=[
+            Secret("env", "DB_USERNAME", SECRET_HNRS_DC_ADMIN_NAME, "postgres-username"),
+            Secret("env", "DB_PASSWORD", SECRET_HNRS_DC_ADMIN_NAME, "postgres-password"),
+        ]
     )
 
 
