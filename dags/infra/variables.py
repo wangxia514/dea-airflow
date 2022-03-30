@@ -45,6 +45,18 @@ DB_HOSTNAME = Variable.get("db_hostname", default_var="db-writer")  # qa
 DB_READER_HOSTNAME = Variable.get("db_reader_hostname", default_var="db-reader")
 DB_PORT = Variable.get("db_port", default_var="5432")  # qa
 
+# HNRS ((Hydrometric Networks and Remote Sensing) DB config
+# Note: this DB run within same DB cluster as odc, so reuse
+# the odc db hostname and port. 
+HNRS_DB_DATABASE = Variable.get("hnrs_db_database", default_var="hnrs_dc") 
+SECRET_HNRS_DC_ADMIN_NAME = Variable.get(
+    "db_hnrs_dc_admin_secret", default_var="hnrs-dc-admin"
+)
+
+SECRET_HNRS_DC_WRITER_NAME = Variable.get(
+    "db_hnrs_dc_writer_secret", default_var="hnrs-dc-writer"
+) 
+
 AWS_DEFAULT_REGION = Variable.get("region", default_var="ap-southeast-2")  # qa
 
 # dea-access

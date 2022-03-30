@@ -40,9 +40,9 @@ from infra.podconfig import (
 from infra.variables import (
     WATERBODIES_DEV_USER_SECRET,
     ELVIS_DEV_USER_SECRET,
-    SECRET_ODC_WRITER_NAME,
-    SECRET_ODC_ADMIN_NAME,
-    DB_DATABASE,
+    SECRET_HNRS_DC_WRITER_NAME,
+    SECRET_HNRS_DC_ADMIN_NAME,
+    HNRS_DB_DATABASE,
     DB_HOSTNAME,
     DB_PORT,
 )
@@ -81,8 +81,8 @@ SECRETS = {
             ELVIS_DEV_USER_SECRET,
             "AWS_SECRET_ACCESS_KEY",
         ),
-        Secret("env", "DB_USERNAME", SECRET_ODC_WRITER_NAME, "postgres-username"),
-        Secret("env", "DB_PASSWORD", SECRET_ODC_WRITER_NAME, "postgres-password"),
+        Secret("env", "DB_USERNAME", SECRET_HNRS_DC_WRITER_NAME, "postgres-username"),
+        Secret("env", "DB_PASSWORD", SECRET_HNRS_DC_WRITER_NAME, "postgres-password"),
     ],
 }
 DEFAULT_ARGS = {
@@ -97,7 +97,7 @@ DEFAULT_ARGS = {
     "startup_timeout_seconds": 5 * 60,
     "env_vars": {
         "DB_HOSTNAME": DB_HOSTNAME,
-        "DB_DATABASE": DB_DATABASE,
+        "DB_DATABASE": HNRS_DB_DATABASE,
         "DB_PORT": DB_PORT,
     },
     **SECRETS,
@@ -216,8 +216,8 @@ def add_products(dag):
         affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
         secrets=[
-            Secret("env", "DB_USERNAME", SECRET_ODC_ADMIN_NAME, "postgres-username"),
-            Secret("env", "DB_PASSWORD", SECRET_ODC_ADMIN_NAME, "postgres-password"),
+            Secret("env", "DB_USERNAME", SECRET_HNRS_DC_ADMIN_NAME, "postgres-username"),
+            Secret("env", "DB_PASSWORD", SECRET_HNRS_DC_ADMIN_NAME, "postgres-password"),
         ],
     )
 
