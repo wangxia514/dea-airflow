@@ -169,7 +169,7 @@ ADD_METADATA_TYPE_CMD = [
     "-c",
     dedent(
         """
-        datacube metadata add https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/feature/add-elvis-dem_1m/product_metadata/eo3_dem.odc-type.yaml --allow-unsafe
+        datacube metadata add https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/feature/add-elvis-dem_1m/product_metadata/eo3_dem.odc-type.yaml
         """
     ),
 ]
