@@ -57,5 +57,8 @@ with dag:
         in_cluster=True,
         task_id="aws_s3_cost_stats_ingestion",
         get_logs=True,
+        env_vars={
+            "EXECUTION_DATE": "{{ ds }}",
+        },
     )
     aws_s3_cost_stats_ingestion
