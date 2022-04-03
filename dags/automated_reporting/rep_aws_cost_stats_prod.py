@@ -17,7 +17,7 @@ from infra.variables import REPORTING_DB_SECRET
 default_args = {
     "owner": "Ramkumar Ramagopalan",
     "depends_on_past": False,
-    "start_date": dt(2022, 4, 4),
+    "start_date": dt(2022, 4, 3),
     "email": ["ramkumar.ramagopalan@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
