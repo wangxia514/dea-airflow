@@ -17,7 +17,7 @@ from infra.variables import REPORTING_DB_SECRET
 default_args = {
     "owner": "Ramkumar Ramagopalan",
     "depends_on_past": True,
-    "start_date": dt(2022, 3, 1),
+    "start_date": dt(2022, 2, 1),
     "email": ["ramkumar.ramagopalan@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
@@ -45,7 +45,7 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo AWS Usage job started: $(date)",
-        "pip install ga-reporting-etls==1.12.0",
+        "pip install ga-reporting-etls==1.13.0",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_cost_stats import aws_cost_stats_ingestion; aws_cost_stats_ingestion.task()'`",
     ]
     aws_s3_cost_stats_ingestion = KubernetesPodOperator(
