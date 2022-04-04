@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-aws cost stats dag
+aws cost stats dag for ga-aws-dea
 """
 
 # The DAG object; we'll need this to instantiate a DAG
@@ -35,8 +35,8 @@ default_args = {
 }
 
 dag = DAG(
-    "rep_aws_cost_stats_prod",
-    description="DAG for aws cost stats prod",
+    "rep_aws_cost_stats_prod_ga_aws_dea",
+    description="DAG for aws cost stats prod ga-aws-dea",
     tags=["reporting"],
     default_args=default_args,
     schedule_interval="0 14 * * *",  # daily at 1am AEDT
