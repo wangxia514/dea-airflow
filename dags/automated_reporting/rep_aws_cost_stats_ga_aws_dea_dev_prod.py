@@ -35,8 +35,8 @@ default_args = {
 }
 
 dag = DAG(
-    "rep_aws_cost_stats_prod_ga-aws-dea",
-    description="DAG for aws cost stats prod ga-aws-dea",
+    "rep_aws_cost_stats_prod_ga_aws_dea_dev",
+    description="DAG for aws cost stats prod ga-aws-dea-dev",
     tags=["reporting"],
     default_args=default_args,
     schedule_interval="0 14 * * *",  # daily at 1am AEDT
