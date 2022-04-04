@@ -81,7 +81,7 @@ REPORTING_DB_SECRET = Variable.get("reporting_db_secret", default_var="reporting
 
 REPORTING_IAM_DEA_S3_SECRET = Variable.get("reporting_iam_dea_s3_secret", default_var="reporting-iam-dea-s3")
 
-REPORTING_IAM_DEA_S3_SECRET = Variable.get("reporting_iam_dea_dev_secret", default_var="reporting-iam-dea-dev")
+REPORTING_IAM_DEA_DEV_SECRET = Variable.get("reporting_iam_dea_dev_secret", default_var="reporting-iam-dea-dev")
 
 REPORTING_IAM_REP_S3_SECRET = Variable.get("reporting_iam_rep_s3_secret", default_var="reporting-iam-rep-s3")
 
