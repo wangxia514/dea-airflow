@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-aws cost stats dag
+aws cost stats dag for ga-aws-nemo-production
 """
 
 # The DAG object; we'll need this to instantiate a DAG
@@ -11,13 +11,13 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from datetime import datetime as dt, timedelta
-from infra.variables import REPORTING_IAM_DEA_S3_SECRET
+from infra.variables import REPORTING_IAM_REP_S3_SECRET 
 from infra.variables import REPORTING_DB_SECRET
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
     "depends_on_past": False,
-    "start_date": dt(2022, 4, 3),
+    "start_date": dt(2022, 4, 4),
     "email": ["ramkumar.ramagopalan@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
@@ -35,8 +35,8 @@ default_args = {
 }
 
 dag = DAG(
-    "rep_aws_cost_stats_prod",
-    description="DAG for aws cost stats prod",
+    "rep_aws_cost_stats_prod_ga-aws-dea",
+    description="DAG for aws cost stats prod ga-aws-dea",
     tags=["reporting"],
     default_args=default_args,
     schedule_interval="0 14 * * *",  # daily at 1am AEDT
