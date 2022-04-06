@@ -3,6 +3,7 @@ test manual trigger
 """
 
 # The DAG object; we'll need this to instantiate a DAG
+import os 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
@@ -32,8 +33,12 @@ def some_task_py(**context):
     is_manual = run_id.startswith('manual__')
     is_scheduled = run_id.startswith('scheduled__')
     print(f" is manual {is_manual} is scheduled {is_scheduled}")
+    execution_date = os.environ.get("EXECUTION_DATE")
     if is_manual:
+        print(f" manual run date {execution_date}")
         raise Exception('Cannot trigger manually')
+    else:
+        print(f" scheduled run date {execution_date}")
 
 
 with dag:
@@ -42,6 +47,9 @@ with dag:
         dag=dag,
         templates_dict={'run_id': '{{ run_id }}'},
         python_callable=some_task_py,
-        provide_context=True
+        provide_context=True,
+        env_vars={
+            "EXECUTION_DATE": "{{ (dag_run.data_interval_start | ds) }}",
+        },
     )
     some_task
