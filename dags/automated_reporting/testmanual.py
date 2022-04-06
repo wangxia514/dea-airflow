@@ -53,7 +53,7 @@ with dag:
         env_vars={
             "EXECUTION_DATE": "{{ data_interval_start }}",
         },
-    )        
+    )
     display_date = PythonOperator(
         task_id='display_date',
         dag=dag,
@@ -61,5 +61,5 @@ with dag:
         env_vars={
             "EXECUTION_DATE": "{{ data_interval_start }}",
         },
-    )        
+    )
     some_task >> display_date
