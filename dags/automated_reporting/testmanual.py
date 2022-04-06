@@ -4,9 +4,7 @@ test manual trigger
 
 # The DAG object; we'll need this to instantiate a DAG
 from airflow import DAG
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
-    PythonOperator,
-)
+from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 
 default_args = {
