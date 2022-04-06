@@ -33,7 +33,8 @@ def some_task_py(**context):
     is_scheduled = run_id.startswith('scheduled__')
     print(f" is manual {is_manual} is scheduled {is_scheduled}")
     if is_manual:
-        raise Exception('Cannot trigger manually') # Don't! If you catch, likely to hide bugs.
+        raise Exception('Cannot trigger manually')
+
 
 with dag:
     some_task = PythonOperator(
