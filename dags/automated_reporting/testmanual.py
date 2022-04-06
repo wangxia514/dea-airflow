@@ -3,7 +3,7 @@ test manual trigger
 """
 
 # The DAG object; we'll need this to instantiate a DAG
-import os 
+import os
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
