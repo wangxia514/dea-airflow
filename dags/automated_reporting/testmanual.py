@@ -43,5 +43,5 @@ with dag:
         templates_dict={'run_id': '{{ run_id }}'},
         python_callable=some_task_py,
         provide_context=True
-        )
+    )
     some_task
