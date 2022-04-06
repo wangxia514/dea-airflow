@@ -50,9 +50,6 @@ with dag:
         templates_dict={'run_id': '{{ run_id }}'},
         python_callable=some_task_py,
         provide_context=True,
-        env_vars={
-            "EXECUTION_DATE": "{{ data_interval_start }}",
-        },
     )
     display_date = PythonOperator(
         task_id='display_date',
