@@ -33,12 +33,14 @@ def some_task_py(**context):
     is_manual = run_id.startswith('manual__')
     is_scheduled = run_id.startswith('scheduled__')
     print(f" is manual {is_manual} is scheduled {is_scheduled}")
-    execution_date = os.environ.get("EXECUTION_DATE")
     if is_manual:
-        print(f" manual run date {execution_date}")
         raise Exception('Cannot trigger manually')
-    else:
-        print(f" scheduled run date {execution_date}")
+
+
+def display_date():
+    """ some task """
+    execution_date = os.environ.get("EXECUTION_DATE")
+    print(f" scheduled run date {execution_date}")
 
 
 with dag:
@@ -51,5 +53,13 @@ with dag:
         env_vars={
             "EXECUTION_DATE": "{{ data_interval_start }}",
         },
-    )
-    some_task
+    )        
+    display_date = PythonOperator(
+        task_id='display_date',
+        dag=dag,
+        python_callable=display_date,
+        env_vars={
+            "EXECUTION_DATE": "{{ data_interval_start }}",
+        },
+    )        
+    some_task >> display_date
