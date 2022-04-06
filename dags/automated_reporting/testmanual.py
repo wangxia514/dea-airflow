@@ -49,7 +49,7 @@ with dag:
         python_callable=some_task_py,
         provide_context=True,
         env_vars={
-            "EXECUTION_DATE": "{{ dag_run.data_interval_start }}",
+            "EXECUTION_DATE": "{{ data_interval_start }}",
         },
     )
     some_task
