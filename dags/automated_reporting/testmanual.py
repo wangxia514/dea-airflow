@@ -18,6 +18,7 @@ default_args = {
     "email_on_retry": False,
 }
 
+
 dag = DAG(
     "test_manual",
     description="test manual trigger",
@@ -25,6 +26,7 @@ dag = DAG(
     default_args=default_args,
     schedule_interval=timedelta(minutes=3),
 )
+
 
 def some_task_py(**context):
     """ some task """
@@ -37,7 +39,7 @@ def some_task_py(**context):
 with dag:
     some_task = PythonOperator(
                     task_id = 'some_task',
-                    dag=dag,
+                    dag = dag,
                     templates_dict = {'run_id': '{{ run_id }}'},
                     python_callable = some_task_py,
                     provide_context = True
