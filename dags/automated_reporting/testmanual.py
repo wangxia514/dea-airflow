@@ -38,10 +38,10 @@ def some_task_py(**context):
 
 with dag:
     some_task = PythonOperator(
-                    task_id = 'some_task',
-                    dag = dag,
-                    templates_dict = {'run_id': '{{ run_id }}'},
-                    python_callable = some_task_py,
-                    provide_context = True
-                )
-    some_task 
+        task_id = 'some_task',
+        dag = dag,
+        templates_dict = {'run_id': '{{ run_id }}'},
+        python_callable = some_task_py,
+        provide_context = True
+        )
+    some_task
