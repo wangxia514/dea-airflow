@@ -26,19 +26,20 @@ dag = DAG(
     schedule_interval=timedelta(minutes=3),
 )
 
+def some_task_py(**context):
+    """ some task """
+    run_id = context['templates_dict']['run_id']
+    is_manual = run_id.startswith('manual__')
+    is_scheduled = run_id.startswith('scheduled__')
+    print(f" is manual {is_manual} is scheduled {is_scheduled}")
+
 
 with dag:
-    def some_task_py(**context):
-        """ some task """
-        run_id = context['templates_dict']['run_id']
-        is_manual = run_id.startswith('manual__')
-        is_scheduled = run_id.startswith('scheduled__')
-        print(f" is manual {is_manual} is scheduled {is_scheduled}")
-
     some_task = PythonOperator(
-                task_id = 'some_task',
-                dag=dag,
-                templates_dict = {'run_id': '{{ run_id }}'},
-                python_callable = some_task_py,
-                provide_context = True)
+                    task_id = 'some_task',
+                    dag=dag,
+                    templates_dict = {'run_id': '{{ run_id }}'},
+                    python_callable = some_task_py,
+                    provide_context = True
+                )
     some_task 
