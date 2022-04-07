@@ -48,24 +48,24 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo fk4 user stats ingestion: $(date)",
-        "pip install ga-reporting-etls==1.7.10",
+        "pip install ga-reporting-etls==1.16.0",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fk4_user_stats_ingestion; fk4_user_stats_ingestion.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS2 = [
         "echo fk4 user stats processing: $(date)",
-        "pip install ga-reporting-etls==1.7.10",
+        "pip install ga-reporting-etls==1.16.0",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fk4_user_stats_processing; fk4_user_stats_processing.task()'`",
     ]
     JOBS3 = [
         "echo rs0 user stats ingestion: $(date)",
-        "pip install ga-reporting-etls==1.7.10",
+        "pip install ga-reporting-etls==1.16.0",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import rs0_user_stats_ingestion; rs0_user_stats_ingestion.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS4 = [
         "echo rs0 user stats processing: $(date)",
-        "pip install ga-reporting-etls==1.7.10",
+        "pip install ga-reporting-etls==1.16.0",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import rs0_user_stats_processing; rs0_user_stats_processing.task()'`",
     ]
     START = DummyOperator(task_id="dea-ungrouped-user-stats")
@@ -80,7 +80,7 @@ with dag:
         task_id="fk4_ingestion",
         get_logs=True,
         env_vars={
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
             "FILE_TO_PROCESS": "fk4",
         },
     )
@@ -96,7 +96,7 @@ with dag:
         get_logs=True,
         env_vars={
             "AGGREGATION_MONTHS" : "{{ task_instance.xcom_pull(task_ids='fk4_ingestion') }}",
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
     )
     rs0_ingestion = KubernetesPodOperator(
@@ -110,7 +110,7 @@ with dag:
         task_id="rs0_ingestion",
         get_logs=True,
         env_vars={
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
             "FILE_TO_PROCESS": "rs0",
         },
     )
@@ -126,7 +126,7 @@ with dag:
         get_logs=True,
         env_vars={
             "AGGREGATION_MONTHS" : "{{ task_instance.xcom_pull(task_ids='rs0_ingestion') }}",
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
     )
     START >> fk4_ingestion >> fk4_processing

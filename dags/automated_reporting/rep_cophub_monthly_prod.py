@@ -46,63 +46,63 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo Sara history ingestion started: $(date)",
-        "pip install ga-reporting-etls==1.8.7",
+        "pip install ga-reporting-etls==1.16.0",
         "jsonresult=`python3 -c 'from nemo_reporting.sara_history import sara_history_ingestion; sara_history_ingestion.task()'`",
     ]
     JOBS2 = [
         "echo Sara history processing: $(date)",
-        "pip install ga-reporting-etls==1.8.7",
+        "pip install ga-reporting-etls==1.16.0",
         "jsonresult=`python3 -c 'from nemo_reporting.sara_history import sara_history_processing; sara_history_processing.task()'`",
     ]
     JOBS3 = [
         "echo Archie ingestion started: $(date)",
-        "pip install ga-reporting-etls==1.8.7",
+        "pip install ga-reporting-etls==1.16.0",
         "jsonresult=`python3 -c 'from nemo_reporting.archie import archie_ingestion; archie_ingestion.task()'`",
     ]
     JOBS4 = [
         "echo Archie processing - SatToEsa started: $(date)",
-        "pip install ga-reporting-etls==1.8.7",
+        "pip install ga-reporting-etls==1.16.0",
         "jsonresult=`python3 -c 'from nemo_reporting.archie import archie_processing; archie_processing.SatToEsaTask()'`",
     ]
     JOBS5 = [
         "echo Archie processing - EsaToNciTask started: $(date)",
-        "pip install ga-reporting-etls==1.8.7",
+        "pip install ga-reporting-etls==1.16.0",
         "jsonresult=`python3 -c 'from nemo_reporting.archie import archie_processing; archie_processing.EsaToNciTask()'`",
     ]
     JOBS6 = [
         "echo Archie processing - EsaToNciS1Task started: $(date)",
-        "pip install ga-reporting-etls==1.8.7",
+        "pip install ga-reporting-etls==1.16.0",
         "jsonresult=`python3 -c 'from nemo_reporting.archie import archie_processing; archie_processing.EsaToNciS1Task()'`",
     ]
     JOBS7 = [
         "echo Archie processing - EsaToNciS2Task started: $(date)",
-        "pip install ga-reporting-etls==1.8.7",
+        "pip install ga-reporting-etls==1.16.0",
         "jsonresult=`python3 -c 'from nemo_reporting.archie import archie_processing; archie_processing.EsaToNciS2Task()'`",
     ]
     JOBS8 = [
         "echo Archie processing - EsaToNciS3Task started: $(date)",
-        "pip install ga-reporting-etls==1.8.7",
+        "pip install ga-reporting-etls==1.16.0",
         "jsonresult=`python3 -c 'from nemo_reporting.archie import archie_processing; archie_processing.EsaToNciS3Task()'`",
     ]
     JOBS9 = [
         "echo Archie processing - Downloads started: $(date)",
-        "pip install ga-reporting-etls==1.8.7",
+        "pip install ga-reporting-etls==1.16.0",
         "jsonresult=`python3 -c 'from nemo_reporting.archie import archie_processing; archie_processing.DownloadsTask()'`",
     ]
     JOBS10 = [
         "echo FJ7 disk usage download and processing: $(date)",
-        "pip install ga-reporting-etls==1.8.7",
+        "pip install ga-reporting-etls==1.16.0",
         "jsonresult=`python3 -c 'from nemo_reporting.fj7_storage import fj7_disk_usage; fj7_disk_usage.task()'`",
     ]
     JOBS11 = [
         "echo FJ7 user stats ingestion: $(date)",
-        "pip install ga-reporting-etls==1.8.7",
+        "pip install ga-reporting-etls==1.16.0",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fj7_user_stats_ingestion; fj7_user_stats_ingestion.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS12 = [
         "echo FJ7 user stats processing: $(date)",
-        "pip install ga-reporting-etls==1.8.7",
+        "pip install ga-reporting-etls==1.16.0",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fj7_user_stats_processing; fj7_user_stats_processing.task()'`",
     ]
     START = DummyOperator(task_id="nci-monthly-stats")
@@ -116,7 +116,7 @@ with dag:
         task_id="sara_history_ingestion",
         get_logs=True,
         env_vars={
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_MONTH": "{{  dag_run.data_interval_start | ds }}",
         },
     )
     sara_history_processing = KubernetesPodOperator(
@@ -129,7 +129,7 @@ with dag:
         task_id="sara_history_processing",
         get_logs=True,
         env_vars={
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
     )
     archie_ingestion = KubernetesPodOperator(
@@ -142,7 +142,7 @@ with dag:
         task_id="archie_ingestion",
         get_logs=True,
         env_vars={
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
     )
     archie_processing_sattoesa = KubernetesPodOperator(
@@ -155,7 +155,7 @@ with dag:
         task_id="archie_processing_sattoesa",
         get_logs=True,
         env_vars={
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
     )
     archie_processing_esatoncitask = KubernetesPodOperator(
@@ -168,7 +168,7 @@ with dag:
         task_id="archie_processing_esatoncitask",
         get_logs=True,
         env_vars={
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
     )
     archie_processing_esatoncis1task = KubernetesPodOperator(
@@ -181,7 +181,7 @@ with dag:
         task_id="archie_processing_esatoncis1task",
         get_logs=True,
         env_vars={
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
     )
     archie_processing_esatoncis2task = KubernetesPodOperator(
@@ -194,7 +194,7 @@ with dag:
         task_id="archie_processing_esatoncis2task",
         get_logs=True,
         env_vars={
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
     )
     archie_processing_esatoncis3task = KubernetesPodOperator(
@@ -207,7 +207,7 @@ with dag:
         task_id="archie_processing_esatoncis3task",
         get_logs=True,
         env_vars={
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
     )
     archie_processing_downloads = KubernetesPodOperator(
@@ -220,7 +220,7 @@ with dag:
         task_id="archie_processing_downloads",
         get_logs=True,
         env_vars={
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
     )
     fj7_disk_usage = KubernetesPodOperator(
@@ -233,7 +233,7 @@ with dag:
         task_id="fj7_disk_usage",
         get_logs=True,
         env_vars={
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
     )
     fj7_ungrouped_user_stats_ingestion = KubernetesPodOperator(
@@ -247,7 +247,7 @@ with dag:
         task_id="fj7_ungrouped_user_stats_ingestion",
         get_logs=True,
         env_vars={
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
             "FILE_TO_PROCESS": "fj7",
         },
     )
@@ -263,7 +263,7 @@ with dag:
         get_logs=True,
         env_vars={
             "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fj7_ungrouped_user_stats_ingestion') }}",
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
     )
     START >> sara_history_ingestion >> sara_history_processing

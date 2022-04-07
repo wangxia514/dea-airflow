@@ -51,40 +51,40 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo fk1 user stats ingestion: $(date)",
-        "pip install ga-reporting-etls==1.7.10",
+        "pip install ga-reporting-etls==1.16.0",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fk1_user_stats_ingestion; fk1_user_stats_ingestion.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS2 = [
         "echo fk1 user stats processing: $(date)",
-        "pip install ga-reporting-etls==1.7.10",
+        "pip install ga-reporting-etls==1.16.0",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fk1_user_stats_processing; fk1_user_stats_processing.task()'`",
     ]
     JOBS3 = [
         "echo iy57 user stats ingestion: $(date)",
-        "pip install ga-reporting-etls==1.7.10",
+        "pip install ga-reporting-etls==1.16.0",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import iy57_user_stats_ingestion; iy57_user_stats_ingestion.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS4 = [
         "echo iy57 user stats processing: $(date)",
-        "pip install ga-reporting-etls==1.7.10",
+        "pip install ga-reporting-etls==1.16.0",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import iy57_user_stats_processing; iy57_user_stats_processing.task()'`",
     ]
     JOBS5 = [
         "echo pw31 user stats ingestion: $(date)",
-        "pip install ga-reporting-etls==1.7.10",
+        "pip install ga-reporting-etls==1.16.0",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import pw31_user_stats_ingestion; pw31_user_stats_ingestion.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS6 = [
         "echo pw31 user stats processing: $(date)",
-        "pip install ga-reporting-etls==1.7.10",
+        "pip install ga-reporting-etls==1.16.0",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import pw31_user_stats_processing; pw31_user_stats_processing.task()'`",
     ]
     JOBS7 = [
         "echo Elvis ingestion processing: $(date)",
-        "pip install ga-reporting-etls==1.10.3",
+        "pip install ga-reporting-etls==1.16.0",
         "marine-elvis-ingestion",
     ]
     START = DummyOperator(task_id="marine-monthly-stats")
@@ -99,7 +99,7 @@ with dag:
         task_id="fk1_ingestion",
         get_logs=True,
         env_vars={
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
             "FILE_TO_PROCESS": "fk1",
         },
     )
@@ -115,7 +115,7 @@ with dag:
         get_logs=True,
         env_vars={
             "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fk1_ingestion') }}",
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
     )
     iy57_ingestion = KubernetesPodOperator(
@@ -129,7 +129,7 @@ with dag:
         task_id="iy57_ingestion",
         get_logs=True,
         env_vars={
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
             "FILE_TO_PROCESS": "iy57",
         },
     )
@@ -145,7 +145,7 @@ with dag:
         get_logs=True,
         env_vars={
             "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='iy57_ingestion') }}",
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
     )
     pw31_ingestion = KubernetesPodOperator(
@@ -159,7 +159,7 @@ with dag:
         task_id="pw31_ingestion",
         get_logs=True,
         env_vars={
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
             "FILE_TO_PROCESS": "pw31",
         },
     )
@@ -175,7 +175,7 @@ with dag:
         get_logs=True,
         env_vars={
             "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='pw31_ingestion') }}",
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
     )
     elvis_ingestion = KubernetesPodOperator(
@@ -189,7 +189,7 @@ with dag:
         task_id="elvis_ingestion",
         get_logs=True,
         env_vars={
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
             "REPORTING_BUCKET": Variable.get("reporting_s3_bucket"),
         },
     )
