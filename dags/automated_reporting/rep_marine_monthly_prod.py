@@ -51,40 +51,40 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo fk1 user stats ingestion: $(date)",
-        "pip install ga-reporting-etls==1.16.0",
+        "pip install ga-reporting-etls==1.17.0",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fk1_user_stats_ingestion; fk1_user_stats_ingestion.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS2 = [
         "echo fk1 user stats processing: $(date)",
-        "pip install ga-reporting-etls==1.16.0",
+        "pip install ga-reporting-etls==1.17.0",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fk1_user_stats_processing; fk1_user_stats_processing.task()'`",
     ]
     JOBS3 = [
         "echo iy57 user stats ingestion: $(date)",
-        "pip install ga-reporting-etls==1.16.0",
+        "pip install ga-reporting-etls==1.17.0",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import iy57_user_stats_ingestion; iy57_user_stats_ingestion.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS4 = [
         "echo iy57 user stats processing: $(date)",
-        "pip install ga-reporting-etls==1.16.0",
+        "pip install ga-reporting-etls==1.17.0",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import iy57_user_stats_processing; iy57_user_stats_processing.task()'`",
     ]
     JOBS5 = [
         "echo pw31 user stats ingestion: $(date)",
-        "pip install ga-reporting-etls==1.16.0",
+        "pip install ga-reporting-etls==1.17.0",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import pw31_user_stats_ingestion; pw31_user_stats_ingestion.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS6 = [
         "echo pw31 user stats processing: $(date)",
-        "pip install ga-reporting-etls==1.16.0",
+        "pip install ga-reporting-etls==1.17.0",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import pw31_user_stats_processing; pw31_user_stats_processing.task()'`",
     ]
     JOBS7 = [
         "echo Elvis ingestion processing: $(date)",
-        "pip install ga-reporting-etls==1.16.0",
+        "pip install ga-reporting-etls==1.17.0",
         "marine-elvis-ingestion",
     ]
     START = DummyOperator(task_id="marine-monthly-stats")
