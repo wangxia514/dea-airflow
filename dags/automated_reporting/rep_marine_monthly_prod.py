@@ -84,7 +84,7 @@ with dag:
     ]
     JOBS7 = [
         "echo Elvis ingestion processing: $(date)",
-        "pip install ga-reporting-etls==1.18.0",
+        "pip install ga-reporting-etls==1.20.0",
         "marine-elvis-ingestion",
     ]
     START = DummyOperator(task_id="marine-monthly-stats")
