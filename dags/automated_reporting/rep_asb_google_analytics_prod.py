@@ -15,7 +15,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 from airflow.models import Variable
 
 REP_CONN_STR = Variable.get("db_rep_secret")
-REPORTING_PACKAGE_VERSION = "1.1.8"
+REPORTING_PACKAGE_VERSION = "1.21.0"
 GOOGLE_ANALYTICS_CREDENTIALS_STR = Variable.get("google_analytics_apikey")
 
 default_args = {
@@ -41,8 +41,7 @@ dag = DAG(
 JOBS = [
     "echo Reporting task started: $(date)",
     f"pip install ga-reporting-etls=={REPORTING_PACKAGE_VERSION}",
-    "python3 -m nemo_reporting.google_analytics.etl",
-    "mkdir -p /airflow/xcom/; echo '{\"exit_status\": '\"$?}\" > /airflow/xcom/return.json",
+    "marine-google-analytics"
 ]
 
 with dag:
