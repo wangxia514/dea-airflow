@@ -50,10 +50,9 @@ with dag:
 
     SCIHUB_ACQS_TASK = [
         "echo Get SCIHUB acquisitions: $(date)",
-        "pip install ga-reporting-etls",
+        "pip install ga-reporting-etls==1.20.2",
         "mkdir -p /airflow/xcom/",
-        "python3 -c 'from nemo_reporting.esa_monitoring import s2_acquisitions; \
-            s2_acquisitions.task_env(json_output=\"/airflow/xcom/return.json\")'",
+        "esa-acquisitions /airflow/xcom/return.json",
     ]
     scihub_s2_acquisitions = KubernetesPodOperator(
         namespace="processing",
@@ -77,8 +76,8 @@ with dag:
 
     INSERT_ACQS_TASK = [
         "echo Insert S2 acquisitions: $(date)",
-        "pip install ga-reporting-etls",
-        "python3 -c 'from nemo_reporting.esa_monitoring import s2_inserts; s2_inserts.task_env()'",
+        "pip install ga-reporting-etls==1.20.2",
+        "esa-inserts",
     ]
     insert_s2_acquisitions = KubernetesPodOperator(
         namespace="processing",
@@ -145,8 +144,8 @@ with dag:
 
     COMPUTE_COMPLETENESS_TASK = [
         "echo Compute S2 L1 Completeness: $(date)",
-        "pip install ga-reporting-etls",
-        "python3 -c 'from nemo_reporting.esa_monitoring import s2_completeness; s2_completeness.task_env()'",
+        "pip install ga-reporting-etls==1.20.2",
+        "esa-completeness",
     ]
     compute_s2_l1_completeness = KubernetesPodOperator(
         namespace="processing",
