@@ -135,7 +135,7 @@ with dag:
             image="python:3.8-slim-buster",
             arguments=["bash", "-c", " &&\n".join(JOBS)],
             name="write-xcom",
-            do_xcom_push=True,
+            do_xcom_push=False,
             is_delete_operator_pod=True,
             in_cluster=True,
             task_id=task_def["id"],
