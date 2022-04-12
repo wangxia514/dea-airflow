@@ -14,7 +14,7 @@
 
 
 # TODO: The archive condition is for sentinel_2_nrt, set different condition for different products
-ARCHIVE_PRODUCTS = "s2a_nrt_granule s2b_nrt_granule"
+ARCHIVE_PRODUCTS = "s2a_nrt_granule s2b_nrt_granule ga_s2am_ard_provisional_3 ga_s2bm_ard_provisional_3 ga_ls8c_ard_provisional_3 ga_ls7e_ard_provisional_3"
 ARCHIVE_CONDITION = "[$(date -d '-365 day' +%F), $(date -d '-93 day' +%F)]"
 
 
