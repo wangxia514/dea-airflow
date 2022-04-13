@@ -187,7 +187,7 @@ def k8s_job_task(dag, queue_name, plugin, product):
                                             --partial \
                                             --no-db \
                                             --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} \
-                                            --output {{{{ dag_run.conf.get("intermediatedir", "{intermediatedir}") }}}} {{{{ dag_run.conf.get("flags", "") }}}}
+                                            --output {{{{ dag_run.conf.get("intermediatedir", "{intermediatedir}") }}}} {{{{ dag_run.conf.get("flags", "") }}}} \
                                             --not-dump-empty-dataframe
                                     """.format(queue=queue_name,
                                                shapefile=DEFAULT_PARAMS['shapefile'],
