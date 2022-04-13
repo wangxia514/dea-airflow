@@ -188,6 +188,7 @@ def k8s_job_task(dag, queue_name, plugin, product):
                                             --no-db \
                                             --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} \
                                             --output {{{{ dag_run.conf.get("intermediatedir", "{intermediatedir}") }}}} {{{{ dag_run.conf.get("flags", "") }}}}
+                                            --not-dump-empty-dataframe
                                     """.format(queue=queue_name,
                                                shapefile=DEFAULT_PARAMS['shapefile'],
                                                intermediatedir=DEFAULT_PARAMS['intermediatedir'],
@@ -419,6 +420,7 @@ def k8s_makecsvs(dag):
             )
         ),
     ]
+    # we are using r5.4xlarge to run WIT. It has 16vCPU, and 128GB RAM.
     makecsvs = KubernetesPodOperator(
         image=CONFLUX_WIT_IMAGE,
         name="wit-conflux-makecsvs",
@@ -429,8 +431,8 @@ def k8s_makecsvs(dag):
         affinity=affinity,
         is_delete_operator_pod=True,
         resources={
-            "request_cpu": "1000m",
-            "request_memory": "512Mi",
+            "request_cpu": "16000m",
+            "request_memory": "4096Mi",
         },
         namespace="processing",
         tolerations=tolerations,
