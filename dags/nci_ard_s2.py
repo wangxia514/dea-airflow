@@ -163,7 +163,7 @@ with dag:
                   {{ params.interim_days_wait }} \
                   {{ params.days_to_exclude_arg }} \
                   {{ params.yamldir }} \
-                  {{ params.run_ard_arg }}
+                  {{ params.run_ard_arg }} "
         """,
         timeout=60 * 20,
         do_xcom_push=True,
