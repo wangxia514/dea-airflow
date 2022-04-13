@@ -34,7 +34,8 @@ def modify_json_content(old_metadata_content: dict) -> dict:
 def get_metadata_path(product_name, collection_name):
     collection_key = f"{product_name}/{collection_name}/collection.json"
     logging.warning(f"Try to access s3://{ORIGINAL_BUKCET_NAME}/{collection_key}")
-    s3_conn = boto3.client('s3', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'])
+    # the read access will come from K8s service account
+    s3_conn = boto3.client('s3')
     try:
         collection_content = s3_conn.get_object(Bucket=ORIGINAL_BUKCET_NAME, Key=collection_key)
         return [e['href'] for e in json.loads(collection_content["Body"].read())['links'] if e['rel'] == 'item']
@@ -57,7 +58,8 @@ def main():
                 original_file_key = urlparse(original_file).path[1:]
 
                 # connect to s3 by elvis-stac creds
-                s3_conn = boto3.client('s3', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID_READ'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY_READ'])
+                # the read access will come from K8s service account
+                s3_conn = boto3.client('s3')
 
                 content_object = s3_conn.get_object(Bucket=ORIGINAL_BUKCET_NAME, Key=original_file_key)
                 old_metadata_content = json.loads(content_object["Body"].read())
