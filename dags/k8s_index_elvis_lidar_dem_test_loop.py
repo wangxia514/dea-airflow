@@ -21,6 +21,10 @@ Note: this DAG does not include auto-refresh existing product defintions (becaus
 modify the ELVIS Lidar product defintions (e.g. add one more querable field), please use relative deletion_utility_datasets DAG
 to remove products. Then this DAG can add products back by updated configurations, then index datasets.
 
+It needs AWS S3 read access (s3://elvis-stac) and S3 write access (s3://dea-public-data-dev).
+The read access refs to service-account: hnrs-data-processing-access
+The write access refs to k8s secret: WATERBODIES_DEV_USER_SECRET
+
 """
 
 from datetime import datetime, timedelta
@@ -67,18 +71,6 @@ SECRETS = {
             "env",
             "AWS_SECRET_ACCESS_KEY_WRITE",
             WATERBODIES_DEV_USER_SECRET,
-            "AWS_SECRET_ACCESS_KEY",
-        ),
-        Secret(
-            "env",
-            "AWS_ACCESS_KEY_ID_READ",
-            ELVIS_DEV_USER_SECRET,
-            "AWS_ACCESS_KEY_ID",
-        ),
-        Secret(
-            "env",
-            "AWS_SECRET_ACCESS_KEY_READ",
-            ELVIS_DEV_USER_SECRET,
             "AWS_SECRET_ACCESS_KEY",
         ),
         Secret("env", "DB_USERNAME", SECRET_HNRS_DC_WRITER_NAME, "postgres-username"),
@@ -138,6 +130,7 @@ def update_metadata(dag):
         name="elvis-lidar-update-metadata",
         arguments=cmd,
         image_pull_policy="IfNotPresent",
+        service_account_name="hnrs-data-processing-access",
         labels={"app": "elvis-lidar-indexing"},
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,

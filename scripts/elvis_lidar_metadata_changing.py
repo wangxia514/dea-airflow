@@ -34,7 +34,7 @@ def modify_json_content(old_metadata_content: dict) -> dict:
 def get_metadata_path(product_name, collection_name):
     collection_key = f"{product_name}/{collection_name}/collection.json"
     logging.warning(f"Try to access s3://{ORIGINAL_BUKCET_NAME}/{collection_key}")
-    s3_conn = boto3.client('s3', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID_READ'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY_READ'])
+    s3_conn = boto3.client('s3', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'])
     try:
         collection_content = s3_conn.get_object(Bucket=ORIGINAL_BUKCET_NAME, Key=collection_key)
         return [e['href'] for e in json.loads(collection_content["Body"].read())['links'] if e['rel'] == 'item']
