@@ -43,7 +43,6 @@ from infra.podconfig import (
 
 from infra.variables import (
     WATERBODIES_DEV_USER_SECRET,
-    ELVIS_DEV_USER_SECRET,
     SECRET_HNRS_DC_WRITER_NAME,
     SECRET_HNRS_DC_ADMIN_NAME,
     HNRS_DB_DATABASE,
