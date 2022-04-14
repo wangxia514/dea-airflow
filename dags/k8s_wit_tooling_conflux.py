@@ -145,7 +145,7 @@ def k8s_job_task(dag, queue_name, plugin, product):
     mem = CONFLUX_POD_MEMORY_MB
     req_mem = "{}Mi".format(int(mem))
     lim_mem = "{}Mi".format(int(mem) * 2)
-    parallelism = 12
+    parallelism = 16
 
     yaml = {
         "apiVersion": "batch/v1",
@@ -252,7 +252,7 @@ def k8s_job_task(dag, queue_name, plugin, product):
         image=CONFLUX_WIT_IMAGE,
         dag=dag,
         task_id="wit-conflux-run" + "-" + product,
-        get_logs=True,
+        get_logs=False,
         body=yaml,
     )
     return job_task
@@ -427,7 +427,7 @@ def k8s_makecsvs(dag):
         arguments=makecsvs_cmd,
         image_pull_policy="IfNotPresent",
         labels={"app": "wit-conflux-makecsvs"},
-        get_logs=True,
+        get_logs=False,
         affinity=affinity,
         is_delete_operator_pod=True,
         resources={
