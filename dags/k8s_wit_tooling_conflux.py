@@ -54,7 +54,7 @@ DEFAULT_PARAMS = dict(
 )
 
 # Requested memory. Memory limit is twice this.
-CONFLUX_POD_MEMORY_MB = 6000
+CONFLUX_POD_MEMORY_MB = 12000
 
 # DAG CONFIGURATION
 SECRETS = {
