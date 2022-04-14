@@ -89,7 +89,7 @@ DEFAULT_ARGS = {
     "email": ["sai.ma@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 1,
+    "retries": 5,
     "retry_delay": timedelta(minutes=5),
     "startup_timeout_seconds": 5 * 60,
     **SECRETS,
@@ -154,7 +154,7 @@ def k8s_job_task(dag, queue_name, plugin, product):
                      "namespace": "processing"},
         "spec": {
             "parallelism": parallelism,
-            "backoffLimit": 3,
+            "backoffLimit": 5,
             "template": {
                 "spec": {
                     "restartPolicy": "OnFailure",
