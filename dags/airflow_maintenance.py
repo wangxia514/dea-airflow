@@ -42,7 +42,6 @@ from airflow.configuration import conf
 from airflow.jobs.base_job import BaseJob
 from airflow.models import (
     DAG,
-    DagModel,
     DagRun,
     Log,
     SlaMiss,
@@ -74,12 +73,6 @@ SCHEDULE_INTERVAL = "@daily"
 DAG_OWNER_NAME = "Damien Ayers"
 # List of email address to send email alerts to if this job fails
 ALERT_EMAIL_ADDRESSES = ["damien.ayers@ga.gov.au"]
-# Length to retain the log files if not already provided in the conf. If this
-# is set to 30, the job will remove those files that arE 30 days old or older.
-
-DEFAULT_MAX_DB_ENTRY_AGE_IN_DAYS = int(
-    Variable.get("airflow_db_cleanup__max_db_entry_age_in_days", 1000)
-)
 # Prints the database entries which will be getting deleted; set to False
 # to avoid printing large lists and slowdown process
 PRINT_DELETES = False
@@ -131,14 +124,14 @@ DATABASE_OBJECTS = [
         "keep_last_filters": None,
         "keep_last_group_by": None,
     },
-    {
-        "airflow_db_model": DagModel,
-        "age_check_column": DagModel.last_parsed_time,
-        # prior to Airflow 2.0.2 this column was named last_scheduler_run
-        "keep_last": False,
-        "keep_last_filters": None,
-        "keep_last_group_by": None,
-    },
+    #    {
+    #        "airflow_db_model": DagModel,
+    #        "age_check_column": DagModel.last_parsed_time,
+    #        # prior to Airflow 2.0.2 this column was named last_scheduler_run
+    #        "keep_last": False,
+    #        "keep_last_filters": None,
+    #        "keep_last_group_by": None,
+    #    },
 ]
 
 # Check for TaskReschedule model
@@ -268,6 +261,14 @@ def print_configuration_function(**context):
     """Print the configuration of this DAG"""
     logging.info("Loading Configurations...")
     dag_run_conf = context.get("dag_run").conf
+
+    # Length to retain the log files if not already provided in the conf. If this
+    # is set to 30, the job will remove those files that arE 30 days old or older.
+
+    DEFAULT_MAX_DB_ENTRY_AGE_IN_DAYS = int(
+        Variable.get("airflow_db_cleanup__max_db_entry_age_in_days", 1000)
+    )
+
     logging.info("dag_run.conf: " + str(dag_run_conf))
     max_db_entry_age_in_days = dag_run_conf.get("maxDBEntryAgeInDays", None)
     logging.info("maxDBEntryAgeInDays from dag_run.conf: " + str(dag_run_conf))

@@ -2,8 +2,7 @@
 # NCI to RDS Datacube DB migration
 
 DAG to periodically sync NCI datacube to RDS mainly for the purpose of
-running [Explorer](https://github.com/opendatacube/datacube-explorer)
-and [Resto](https://github.com/jjrom/resto).
+running [Explorer](https://github.com/opendatacube/datacube-explorer).
 
 [Waits for S3Key](https://gist.github.com/nehiljain/6dace5faccb680653f7ea4d5d5273946)
 for a day's backup to be available via

@@ -1,8 +1,7 @@
 """## DEA NCI prod database - Daily DAG to summarize datacube using incremental update-summary
 
 This updates the Datacube Explorer summary extents of the NCI Datacube DB.
-This is used by [NCI Explorer](https://explorer.dea.ga.gov.au/)
-and [Resto](https://github.com/jjrom/resto).
+This is used by [NCI Explorer](https://explorer.dea.ga.gov.au/).
 
 **Upstream dependency**
 [K8s NCI DB Incremental Sync](/tree?dag_id=k8ds_nci_db_incremental_sync)
