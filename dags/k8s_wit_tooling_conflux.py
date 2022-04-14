@@ -341,7 +341,7 @@ def k8s_makequeue(dag, queue_name, product):
         dedent(
             """
             echo "Using dea-conflux image {image}"
-            dea-conflux make {name}
+            dea-conflux make {name} --timeout 1800 --retries 1
             """.format(
                 image=CONFLUX_WIT_IMAGE,
                 name=queue_name
