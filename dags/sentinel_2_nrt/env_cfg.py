@@ -23,9 +23,6 @@ ARCHIVE_CONDITION = "[$(date -d '-365 day' +%F), $(date -d '-93 day' +%F)]"
 INDEXING_PRODUCTS = (
     "s2a_nrt_granule",
     "s2b_nrt_granule",
-    "wofs_albers",
-    "ls7_fc_albers",
-    "ls8_fc_albers",
     "ga_s2am_ard_provisional_3",
     "ga_s2bm_ard_provisional_3",
     "ga_ls8c_ard_provisional_3",
@@ -35,8 +32,6 @@ INDEXING_PRODUCTS = (
 # TODO: This list need to be split when multiple SQS queues are setup for different products
 PRODUCT_RECORD_PATHS = (
     "L2/sentinel-2-nrt/S2MSIARD/*/*/ARD-METADATA.yaml",
-    "WOfS/WOFLs/v2.1.5/combined/*/*/*/*/*/*.yaml",
-    "fractional-cover/fc/v2.2.1/*/*/*/*/*/*/*.yaml",
     "baseline/ga_s2am_ard_provisional_3/*/*/*/*/*/*/*.odc-metadata.yaml",
     "baseline/ga_s2bm_ard_provisional_3/*/*/*/*/*/*/*.odc-metadata.yaml",
     "baseline/ga_ls8c_ard_provisional_3/*/*/*/*/*/*.odc-metadata.yaml",
