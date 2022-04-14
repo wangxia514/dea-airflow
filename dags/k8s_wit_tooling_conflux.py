@@ -143,7 +143,7 @@ WIT_INPUTS = [{"product": "ga_ls5t_ard_3", "plugin": "wit_ls5", "queue": "wit_co
 
 def k8s_job_task(dag, queue_name, plugin, product):
     mem = CONFLUX_POD_MEMORY_MB
-    req_mem = "{}Mi".format(int(mem))
+    req_mem = "{}Mi".format(int(mem) * 2)
     lim_mem = "{}Mi".format(int(mem) * 2)
     parallelism = 16
 
