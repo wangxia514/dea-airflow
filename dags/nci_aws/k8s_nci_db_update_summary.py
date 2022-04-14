@@ -1,8 +1,7 @@
 """## DEA NCI dev database - summarize datacube using `--force-refresh --all`
 
 This updates the Datacube Explorer summary extents of the NCI Datacube DB.
-This is used by [NCI Explorer](https://explorer.dea.ga.gov.au/)
-and [Resto](https://github.com/jjrom/resto).
+This is used by [NCI Explorer](https://explorer.dea.ga.gov.au/).
 
 **Note:** Only runs if require since it places a disruptive load on the
 database. Check `k8s_nci_db_incremental_update_summary` DAG instead.

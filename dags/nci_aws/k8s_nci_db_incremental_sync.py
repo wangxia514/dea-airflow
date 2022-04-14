@@ -4,8 +4,7 @@
 ### NCI to DEA RDS Datacube DB incremental sync
 
 Daily DAG to sync NCI Datacube DB CSVs from S3 to RDS for the purpose of
-running [NCI Explorer](https://explorer.dea.ga.gov.au/)
-and [Resto](https://github.com/jjrom/resto).
+running [NCI Explorer](https://explorer.dea.ga.gov.au/).
 
 **Upstream dependency**
 [NCI DB Incremental CSVs](/tree?dag_id=nci_db_incremental_csvs)
