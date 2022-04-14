@@ -24,8 +24,6 @@ from datetime import datetime, timedelta
 
 import pendulum
 
-from nci_collection_2.nci_common import HOURS
-
 local_tz = pendulum.timezone("Australia/Canberra")
 
 default_args = {
@@ -34,7 +32,7 @@ default_args = {
     "retries": 3,
     "retry_delay": timedelta(minutes=5),
     "start_date": datetime(2020, 11, 15, tzinfo=local_tz),
-    "timeout": 2 * HOURS,  # For running SSH Commands
+    "timeout": 2 * 3600,  # For running SSH Commands
     "ssh_conn_id": "lpgs_gadi",
     "remote_host": "gadi-dm.nci.org.au",
     "email_on_failure": True,
