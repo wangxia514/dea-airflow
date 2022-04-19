@@ -89,7 +89,7 @@ DEFAULT_ARGS = {
     "email": ["sai.ma@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 5,
+    "retries": 8,
     "retry_delay": timedelta(minutes=5),
     "startup_timeout_seconds": 5 * 60,
     **SECRETS,
@@ -189,7 +189,7 @@ def k8s_job_task(dag, queue_name, plugin, product):
                                             --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} \
                                             --output {{{{ dag_run.conf.get("intermediatedir", "{intermediatedir}") }}}} {{{{ dag_run.conf.get("flags", "") }}}} \
                                             --not-dump-empty-dataframe \
-                                            --timeout 1800
+                                            --timeout 43200
                                     """.format(queue=queue_name,
                                                shapefile=DEFAULT_PARAMS['shapefile'],
                                                intermediatedir=DEFAULT_PARAMS['intermediatedir'],
@@ -342,7 +342,7 @@ def k8s_makequeue(dag, queue_name, product):
         dedent(
             """
             echo "Using dea-conflux image {image}"
-            dea-conflux make {name} --timeout 1800 --retries 1
+            dea-conflux make {name} --timeout 43200 --retries 1
             """.format(
                 image=CONFLUX_WIT_IMAGE,
                 name=queue_name
@@ -433,7 +433,7 @@ def k8s_makecsvs(dag):
         is_delete_operator_pod=True,
         resources={
             "request_cpu": "8000m",
-            "request_memory": "4096Mi",
+            "request_memory": "48000Mi",
         },
         namespace="processing",
         tolerations=tolerations,
