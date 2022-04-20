@@ -145,7 +145,7 @@ def k8s_job_task(dag, queue_name, plugin, product):
     mem = CONFLUX_POD_MEMORY_MB
     req_mem = "{}Mi".format(int(mem) * 2)
     lim_mem = "{}Mi".format(int(mem) * 2)
-    parallelism = 32
+    parallelism = 64
 
     yaml = {
         "apiVersion": "batch/v1",
@@ -154,7 +154,7 @@ def k8s_job_task(dag, queue_name, plugin, product):
                      "namespace": "processing"},
         "spec": {
             "parallelism": parallelism,
-            "backoffLimit": 5,
+            "backoffLimit": 32,
             "template": {
                 "spec": {
                     "restartPolicy": "OnFailure",
