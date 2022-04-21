@@ -54,7 +54,8 @@ DEFAULT_PARAMS = dict(
 )
 
 # Requested memory. Memory limit is twice this.
-CONFLUX_POD_MEMORY_MB = 20000
+#CONFLUX_POD_MEMORY_MB = 20000
+CONFLUX_POD_MEMORY_MB = 10000
 
 # DAG CONFIGURATION
 SECRETS = {
@@ -136,16 +137,16 @@ dag = DAG(
     tags=["k8s", "landsat", "wit", "conflux"],
 )
 
-WIT_INPUTS = [{"product": "ga_ls5t_ard_3", "plugin": "wit_ls5", "queue": "wit_conflux_sai_test_ls5_sqs"},
-              {"product": "ga_ls7e_ard_3", "plugin": "wit_ls7", "queue": "wit_conflux_sai_test_ls7_sqs"},
-              {"product": "ga_ls8c_ard_3", "plugin": "wit_ls8", "queue": "wit_conflux_sai_test_ls8_sqs"}]
+WIT_INPUTS = [{"product": "ga_ls5t_ard_3", "plugin": "wit_ls5", "queue": "wit_conflux_ls5_sqs"},
+              {"product": "ga_ls7e_ard_3", "plugin": "wit_ls7", "queue": "wit_conflux_ls7_sqs"},
+              {"product": "ga_ls8c_ard_3", "plugin": "wit_ls8", "queue": "wit_conflux_ls8_sqs"}]
 
 
 def k8s_job_task(dag, queue_name, plugin, product):
     mem = CONFLUX_POD_MEMORY_MB
     req_mem = "{}Mi".format(int(mem) * 2)
     lim_mem = "{}Mi".format(int(mem) * 2)
-    parallelism = 64
+    parallelism = 10
 
     yaml = {
         "apiVersion": "batch/v1",
@@ -189,7 +190,7 @@ def k8s_job_task(dag, queue_name, plugin, product):
                                             --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} \
                                             --output {{{{ dag_run.conf.get("intermediatedir", "{intermediatedir}") }}}} {{{{ dag_run.conf.get("flags", "") }}}} \
                                             --not-dump-empty-dataframe \
-                                            --timeout 43200
+                                            --timeout 7200
                                     """.format(queue=queue_name,
                                                shapefile=DEFAULT_PARAMS['shapefile'],
                                                intermediatedir=DEFAULT_PARAMS['intermediatedir'],
