@@ -54,8 +54,7 @@ DEFAULT_PARAMS = dict(
 )
 
 # Requested memory. Memory limit is twice this.
-#CONFLUX_POD_MEMORY_MB = 20000
-CONFLUX_POD_MEMORY_MB = 10000
+CONFLUX_POD_MEMORY_MB = 20000
 
 # DAG CONFIGURATION
 SECRETS = {
@@ -146,7 +145,7 @@ def k8s_job_task(dag, queue_name, plugin, product):
     mem = CONFLUX_POD_MEMORY_MB
     req_mem = "{}Mi".format(int(mem) * 2)
     lim_mem = "{}Mi".format(int(mem) * 2)
-    parallelism = 10
+    parallelism = 32
 
     yaml = {
         "apiVersion": "batch/v1",
@@ -343,7 +342,7 @@ def k8s_makequeue(dag, queue_name, product):
         dedent(
             """
             echo "Using dea-conflux image {image}"
-            dea-conflux make {name} --timeout 43200 --retries 1
+            dea-conflux make {name} --timeout 7200 --retries 1
             """.format(
                 image=CONFLUX_WIT_IMAGE,
                 name=queue_name
