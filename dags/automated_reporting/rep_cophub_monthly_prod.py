@@ -56,38 +56,38 @@ with dag:
     ]
     JOBS3 = [
         "echo Archie ingestion started: $(date)",
-        "pip install ga-reporting-etls==1.18.0",
-        "jsonresult=`python3 -c 'from nemo_reporting.archie import archie_ingestion; archie_ingestion.task()'`",
+        "pip install ga-reporting-etls==1.21.3",
+        "archie-ingestion",
     ]
     JOBS4 = [
         "echo Archie processing - SatToEsa started: $(date)",
-        "pip install ga-reporting-etls==1.18.0",
-        "jsonresult=`python3 -c 'from nemo_reporting.archie import archie_processing; archie_processing.SatToEsaTask()'`",
+        "pip install ga-reporting-etls==1.21.3",
+        "archie-latency sat_to_esa",
     ]
     JOBS5 = [
         "echo Archie processing - EsaToNciTask started: $(date)",
-        "pip install ga-reporting-etls==1.18.0",
-        "jsonresult=`python3 -c 'from nemo_reporting.archie import archie_processing; archie_processing.EsaToNciTask()'`",
+        "pip install ga-reporting-etls==1.21.3",
+        "archie-latency esa_to_nci",
     ]
     JOBS6 = [
         "echo Archie processing - EsaToNciS1Task started: $(date)",
-        "pip install ga-reporting-etls==1.18.0",
-        "jsonresult=`python3 -c 'from nemo_reporting.archie import archie_processing; archie_processing.EsaToNciS1Task()'`",
+        "pip install ga-reporting-etls==1.21.3",
+        "archie-latency esa_to_nci_s1",
     ]
     JOBS7 = [
         "echo Archie processing - EsaToNciS2Task started: $(date)",
-        "pip install ga-reporting-etls==1.18.0",
-        "jsonresult=`python3 -c 'from nemo_reporting.archie import archie_processing; archie_processing.EsaToNciS2Task()'`",
+        "pip install ga-reporting-etls==1.21.3",
+        "archie-latency esa_to_nci_s2",
     ]
     JOBS8 = [
         "echo Archie processing - EsaToNciS3Task started: $(date)",
-        "pip install ga-reporting-etls==1.18.0",
-        "jsonresult=`python3 -c 'from nemo_reporting.archie import archie_processing; archie_processing.EsaToNciS3Task()'`",
+        "pip install ga-reporting-etls==1.21.3",
+        "archie-latency esa_to_nci_s3",
     ]
     JOBS9 = [
         "echo Archie processing - Downloads started: $(date)",
-        "pip install ga-reporting-etls==1.18.0",
-        "jsonresult=`python3 -c 'from nemo_reporting.archie import archie_processing; archie_processing.DownloadsTask()'`",
+        "pip install ga-reporting-etls==1.21.3",
+        "archie-download-volume",
     ]
     JOBS10 = [
         "echo FJ7 disk usage download and processing: $(date)",
