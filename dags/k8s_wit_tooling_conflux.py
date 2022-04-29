@@ -89,7 +89,7 @@ DEFAULT_ARGS = {
     "email": ["sai.ma@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 8,
+    "retries": 32,
     "retry_delay": timedelta(minutes=5),
     "startup_timeout_seconds": 5 * 60,
     **SECRETS,
