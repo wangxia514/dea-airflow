@@ -60,7 +60,7 @@ with dag:
         "ip-requester-ingestion",
     ]
     START = DummyOperator(task_id="aws-scene-usage-stats")
-    aws_s3_year_wise_scene_usage_ingestion= KubernetesPodOperator(
+    aws_s3_year_wise_scene_usage_ingestion = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(JOBS1)],
@@ -73,7 +73,7 @@ with dag:
             "REPORTING_BUCKET": "s3-server-access-logs-schedule",
         },
     )
-    aws_s3_region_wise_scene_usage_ingestion= KubernetesPodOperator(
+    aws_s3_region_wise_scene_usage_ingestion = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(JOBS2)],
@@ -86,7 +86,7 @@ with dag:
             "REPORTING_BUCKET": "s3-server-access-logs-schedule",
         },
     )
-    aws_s3_ip_requester_wise_scene_usage_ingestion= KubernetesPodOperator(
+    aws_s3_ip_requester_wise_scene_usage_ingestion = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(JOBS3)],
