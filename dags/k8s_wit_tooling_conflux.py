@@ -54,7 +54,7 @@ DEFAULT_PARAMS = dict(
 )
 
 # Requested memory. Memory limit is twice this.
-CONFLUX_POD_MEMORY_MB = 30000
+CONFLUX_POD_MEMORY_MB = 20000
 
 # DAG CONFIGURATION
 SECRETS = {
@@ -89,7 +89,7 @@ DEFAULT_ARGS = {
     "email": ["sai.ma@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 32,
+    "retries": 64,
     "retry_delay": timedelta(minutes=5),
     "startup_timeout_seconds": 5 * 60,
     **SECRETS,
@@ -145,7 +145,7 @@ def k8s_job_task(dag, queue_name, plugin, product):
     mem = CONFLUX_POD_MEMORY_MB
     req_mem = "{}Mi".format(int(mem) * 2)
     lim_mem = "{}Mi".format(int(mem) * 2)
-    parallelism = 96
+    parallelism = 64
 
     yaml = {
         "apiVersion": "batch/v1",
