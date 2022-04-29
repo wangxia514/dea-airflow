@@ -46,18 +46,18 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo year-wise scene usage ingestion processing: $(date)",
-        "pip install ga-reporting-etls==1.21.6",
-        "year-ingestion",
+        "pip install ga-reporting-etls==1.21.7",
+        "s3-usage-year-ingestion",
     ]
     JOBS2 = [
         "echo region-wise scene usage ingestion processing: $(date)",
-        "pip install ga-reporting-etls==1.21.6",
-        "region-ingestion",
+        "pip install ga-reporting-etls==1.21.7",
+        "s3-usage-region-ingestion",
     ]
     JOBS3 = [
         "echo ip-requester-wise scene usage ingestion processing: $(date)",
-        "pip install ga-reporting-etls==1.21.6",
-        "ip-requester-ingestion",
+        "pip install ga-reporting-etls==1.21.7",
+        "s3-usage-ip-requester-ingestion",
     ]
     START = DummyOperator(task_id="aws-scene-usage-stats")
     aws_s3_year_wise_scene_usage_ingestion = KubernetesPodOperator(
