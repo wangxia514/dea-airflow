@@ -13,7 +13,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 from airflow.operators.dummy import DummyOperator
 from datetime import datetime as dt, timedelta
 from infra.variables import REPORTING_IAM_DEA_S3_SECRET
-from infra.variables import REPORTING_DBSECRET
+from infra.variables import REPORTING_DB_SECRET
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
