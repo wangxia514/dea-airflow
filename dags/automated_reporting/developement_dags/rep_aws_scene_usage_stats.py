@@ -100,5 +100,5 @@ with dag:
         },
     )
     START >> aws_s3_year_wise_scene_usage_ingestion
-    START >> aws_s3_region_wise_scene_usage_ingestion 
-    START >> aws_s3_ip_requester_wise_scene_usage_ingestion 
+    START >> aws_s3_region_wise_scene_usage_ingestion
+    START >> aws_s3_ip_requester_wise_scene_usage_ingestion
