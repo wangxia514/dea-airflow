@@ -60,36 +60,45 @@ with dag:
         "ip-requester-ingestion",
     ]
     START = DummyOperator(task_id="aws-scene-usage-stats")
-    aws_s3_usage_stats_year_ingestion = KubernetesPodOperator(
+    aws_s3_year_wise_scene_usage_ingestion= KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(JOBS1)],
-        name="aws_s3_usage_stats_year_ingestion",
+        name="aws_s3_year_wise_scene_usage_ingestion",
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="aws_s3_usage_stats_year_ingestion",
+        task_id="aws_s3_year_wise_scene_usage_ingestion",
         get_logs=True,
+        env_vars={
+            "REPORTING_BUCKET": "s3-server-access-logs-schedule",
+        },
     )
-    aws_s3_usage_stats_region_ingestion = KubernetesPodOperator(
+    aws_s3_region_wise_scene_usage_ingestion= KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(JOBS2)],
-        name="aws_s3_usage_stats_region_ingestion",
+        name="aws_s3_region_wise_scene_usage_ingestion",
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="aws_s3_usage_stats_region_ingestion",
+        task_id="aws_s3_region_wise_scene_usage_ingestion",
         get_logs=True,
+        env_vars={
+            "REPORTING_BUCKET": "s3-server-access-logs-schedule",
+        },
     )
-    aws_s3_usage_stats_ip_requester_ingestion = KubernetesPodOperator(
+    aws_s3_ip_requester_wise_scene_usage_ingestion= KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(JOBS3)],
-        name="aws_s3_usage_stats_ip_requester_ingestion",
+        name="aws_s3_ip_requester_wise_scene_usage_ingestion",
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="aws_s3_usage_stats_ip_requester_ingestion",
+        task_id="aws_s3_ip_requester_wise_scene_usage_ingestion",
         get_logs=True,
+        env_vars={
+            "REPORTING_BUCKET": "s3-server-access-logs-schedule",
+        },
     )
-    START >> aws_s3_usage_stats_year_ingestion
-    START >> aws_s3_usage_stats_region_ingestion
-    START >> aws_s3_usage_stats_ip_requester_ingestion
+    START >> aws_s3_year_wise_scene_usage_ingestion
+    START >> aws_s3_region_wise_scene_usage_ingestion 
+    START >> aws_s3_ip_requester_wise_scene_usage_ingestion 
