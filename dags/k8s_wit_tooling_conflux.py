@@ -167,11 +167,11 @@ def k8s_job_task(dag, queue_name, plugin, product):
                             "imagePullPolicy": "IfNotPresent",
                             "resources": {
                                 "requests": {
-                                    "cpu": "1000m",
+                                    "cpu": "2000m",
                                     "memory": req_mem,
                                 },
                                 "limits": {
-                                    "cpu": "1000m",
+                                    "cpu": "2000m",
                                     "memory": lim_mem,
                                 },
                             },
