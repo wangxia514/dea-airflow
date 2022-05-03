@@ -54,7 +54,7 @@ DEFAULT_PARAMS = dict(
 )
 
 # Requested memory. Memory limit is twice this.
-CONFLUX_POD_MEMORY_MB = 30000
+CONFLUX_POD_MEMORY_MB = 20000
 
 # DAG CONFIGURATION
 SECRETS = {
@@ -145,7 +145,7 @@ def k8s_job_task(dag, queue_name, plugin, product):
     mem = CONFLUX_POD_MEMORY_MB
     req_mem = "{}Mi".format(int(mem) * 2)
     lim_mem = "{}Mi".format(int(mem) * 2)
-    parallelism = 24
+    parallelism = 50
 
     yaml = {
         "apiVersion": "batch/v1",
@@ -460,4 +460,4 @@ with dag:
         task = k8s_job_task(dag, queue, plugin, product)
         delqueue = k8s_delqueue(dag, queue, product)
 
-        task >> delqueue >> makecsvs
+        getids >> makequeue >> push >> task >> delqueue >> makecsvs
