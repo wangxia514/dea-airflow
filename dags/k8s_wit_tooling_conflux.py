@@ -182,6 +182,7 @@ def k8s_job_task(dag, queue_name, plugin, product):
                                     """
                                     dea-conflux run-from-queue -v \
                                             --plugin examples/{plugin}.conflux.py \
+                                            --use-id XXX_UID \
                                             --queue {queue} \
                                             --overedge \
                                             --partial \
