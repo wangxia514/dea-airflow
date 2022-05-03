@@ -13,7 +13,7 @@ product
     Default "ga_ls_wo_3".
 
 cmd
-    Datacube query to run. Default "'time > 2021-01-01'"
+    Datacube query to run. Default "'time in [2021-01-01, 2099-01-01]'"
     https://datacube-core.readthedocs.io/en/stable/ops/tools.html#datacube-dataset-search
     e.g. "'lat in [-36.006, -34.671]' 'lon in [142.392, 144.496]' 'gqa_mean_x in [-1, 1]'"
 
