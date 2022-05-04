@@ -54,7 +54,7 @@ DEFAULT_PARAMS = dict(
 )
 
 # Requested memory. Memory limit is twice this.
-CONFLUX_POD_MEMORY_MB = 20000
+CONFLUX_POD_MEMORY_MB = 40000
 
 # DAG CONFIGURATION
 SECRETS = {
@@ -145,7 +145,7 @@ def k8s_job_task(dag, queue_name, plugin, product):
     mem = CONFLUX_POD_MEMORY_MB
     req_mem = "{}Mi".format(int(mem) * 2)
     lim_mem = "{}Mi".format(int(mem) * 2)
-    parallelism = 32
+    parallelism = 2
 
     yaml = {
         "apiVersion": "batch/v1",
@@ -167,11 +167,11 @@ def k8s_job_task(dag, queue_name, plugin, product):
                             "imagePullPolicy": "IfNotPresent",
                             "resources": {
                                 "requests": {
-                                    "cpu": "2000m",
+                                    "cpu": "4000m",
                                     "memory": req_mem,
                                 },
                                 "limits": {
-                                    "cpu": "2000m",
+                                    "cpu": "4000m",
                                     "memory": lim_mem,
                                 },
                             },
@@ -182,7 +182,6 @@ def k8s_job_task(dag, queue_name, plugin, product):
                                     """
                                     dea-conflux run-from-queue -v \
                                             --plugin examples/{plugin}.conflux.py \
-                                            --use-id XXX_UID \
                                             --queue {queue} \
                                             --overedge \
                                             --partial \
