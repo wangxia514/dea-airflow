@@ -54,7 +54,7 @@ DEFAULT_PARAMS = dict(
 )
 
 # Requested memory. Memory limit is twice this.
-CONFLUX_POD_MEMORY_MB = 20000
+CONFLUX_POD_MEMORY_MB = 40000
 
 # DAG CONFIGURATION
 SECRETS = {
@@ -143,9 +143,9 @@ WIT_INPUTS = [{"product": "ga_ls5t_ard_3", "plugin": "wit_ls5", "queue": "wit_co
 
 def k8s_job_task(dag, queue_name, plugin, product):
     mem = CONFLUX_POD_MEMORY_MB
-    req_mem = "{}Mi".format(int(mem) * 2)
-    lim_mem = "{}Mi".format(int(mem) * 2)
-    parallelism = 32
+    req_mem = "{}Mi".format(int(mem))
+    lim_mem = "{}Mi".format(int(mem))
+    parallelism = 64
 
     yaml = {
         "apiVersion": "batch/v1",
@@ -184,6 +184,7 @@ def k8s_job_task(dag, queue_name, plugin, product):
                                             --plugin examples/{plugin}.conflux.py \
                                             --queue {queue} \
                                             --overedge \
+                                            --use-id XXX_UID \
                                             --partial \
                                             --no-db \
                                             --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} \
