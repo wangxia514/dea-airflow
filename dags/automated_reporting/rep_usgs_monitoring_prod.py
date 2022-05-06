@@ -101,16 +101,6 @@ def insert_ls8_l1_latency_xcom(task_instance, **kwargs):
     return latency_from_completeness_task(**kwargs)
 
 
-def insert_ls7_l1_latency_xcom(task_instance, **kwargs):
-    """
-    A wrapper to use Xcom in a task without adding an Airflow dependcy in the task itself
-    """
-    kwargs["completeness_summary"] = task_instance.xcom_pull(
-        task_ids="usgs_l1_completeness_ls7"
-    )
-    return latency_from_completeness_task(**kwargs)
-
-
 with dag:
 
     # Acquisitions from M2M Api
@@ -180,21 +170,6 @@ with dag:
         op_kwargs=usgs_l1_completness_ls8_kwargs,
     )
 
-    # LS7
-    usgs_l1_completness_ls7_kwargs = {
-        "product": {
-            "s3_code": "L7C2",
-            "acq_code": "LE7%",
-            "rep_code": "usgs_ls7e_level1_nrt_c2",
-        }
-    }
-    usgs_l1_completness_ls7_kwargs.update(completeness_kwargs)
-    usgs_l1_completeness_ls7 = PythonOperator(
-        task_id="usgs_l1_completeness_ls7",
-        python_callable=usgs_l1_completeness_task,
-        op_kwargs=usgs_l1_completness_ls7_kwargs,
-    )
-
     # ARD Completeness
 
     # LS8
@@ -206,17 +181,6 @@ with dag:
         task_id="usgs_ard_completeness_ls8",
         python_callable=usgs_ard_completeness_task,
         op_kwargs=usgs_ard_completness_ls8_kwargs,
-    )
-
-    # LS7
-    usgs_ard_completness_ls7_kwargs = {
-        "product": {"odc_code": "ga_ls7e_ard_provisional_3", "acq_code": "LE7%"}
-    }
-    usgs_ard_completness_ls7_kwargs.update(completeness_kwargs)
-    usgs_ard_completeness_ls7 = PythonOperator(
-        task_id="usgs_ard_completeness_ls7",
-        python_callable=usgs_ard_completeness_task,
-        op_kwargs=usgs_ard_completness_ls7_kwargs,
     )
 
     # Latency from Completeness
@@ -235,13 +199,6 @@ with dag:
     usgs_ls8_l1_latency = PythonOperator(
         task_id="usgs_ls8_l1_latency",
         python_callable=insert_ls8_l1_latency_xcom,
-        op_kwargs=latency_kwargs,
-    )
-
-    latency_kwargs = {"rep_conn": rep_conn}
-    usgs_ls7_l1_latency = PythonOperator(
-        task_id="usgs_ls7_l1_latency",
-        python_callable=insert_ls7_l1_latency_xcom,
         op_kwargs=latency_kwargs,
     )
 
