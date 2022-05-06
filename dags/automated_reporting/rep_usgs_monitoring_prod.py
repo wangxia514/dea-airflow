@@ -271,7 +271,5 @@ with dag:
     )
     check_db_completeness >> check_db_latency
     check_db_latency >> usgs_l1_completeness_ls8 >> usgs_ls8_l1_latency
-    check_db_latency >> usgs_l1_completeness_ls7 >> usgs_ls7_l1_latency
     check_db_completeness >> usgs_ard_completeness_ls8
-    check_db_completeness >> usgs_ard_completeness_ls7
     usgs_acquisitions >> check_db_hg >> usgs_insert_hg_l0
