@@ -11,6 +11,7 @@ from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
+from airflow.models import Variable
 from airflow.operators.dummy import DummyOperator
 from infra.variables import REPORTING_IAM_REP_S3_SECRET
 from infra.variables import REPORTING_DB_SECRET
@@ -143,6 +144,7 @@ with dag:
         get_logs=True,
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
+            "REPORTING_BUCKET": Variable.get("reporting_s3_bucket"),
         },
     )
     archie_processing_sattoesa = KubernetesPodOperator(
