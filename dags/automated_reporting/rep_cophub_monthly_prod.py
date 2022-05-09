@@ -92,18 +92,18 @@ with dag:
     ]
     JOBS10 = [
         "echo FJ7 disk usage download and processing: $(date)",
-        "pip install ga-reporting-etls==1.18.0",
+        "pip install ga-reporting-etls==1.21.8",
         "jsonresult=`python3 -c 'from nemo_reporting.fj7_storage import fj7_disk_usage; fj7_disk_usage.task()'`",
     ]
     JOBS11 = [
         "echo FJ7 user stats ingestion: $(date)",
-        "pip install ga-reporting-etls==1.18.0",
+        "pip install ga-reporting-etls==1.21.8",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fj7_user_stats_ingestion; fj7_user_stats_ingestion.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS12 = [
         "echo FJ7 user stats processing: $(date)",
-        "pip install ga-reporting-etls==1.18.0",
+        "pip install ga-reporting-etls==1.21.8",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fj7_user_stats_processing; fj7_user_stats_processing.task()'`",
     ]
     START = DummyOperator(task_id="nci-monthly-stats")
