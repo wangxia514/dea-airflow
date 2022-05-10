@@ -85,6 +85,8 @@ REPORTING_IAM_DEA_DEV_SECRET = Variable.get("reporting_iam_dea_dev_secret", defa
 
 REPORTING_IAM_REP_S3_SECRET = Variable.get("reporting_iam_rep_s3_secret", default_var="reporting-iam-rep-s3")
 
+REPORTING_IAM_NEMO_PROD_SECRET = Variable.get("reporting_iam_nemo_prod_secret", default_var="reporting-iam-nemo-production")
+
 REPORTING_ODC_DB_SECRET = Variable.get("reporting_odc_db_secret", default_var="reporting-odc-db")
 
 REPORTING_SCIHUB_API_SECRET = Variable.get("reporting_scihub_api_secret", default_var="reporting-scihub-api")
