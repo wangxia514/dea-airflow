@@ -57,17 +57,6 @@ with dag:
         "pip install ga-reporting-etls==1.21.8",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fk4_user_stats_processing; fk4_user_stats_processing.task()'`",
     ]
-    JOBS3 = [
-        "echo rs0 user stats ingestion: $(date)",
-        "pip install ga-reporting-etls==1.21.8",
-        "jsonresult=`python3 -c 'from nemo_reporting.user_stats import rs0_user_stats_ingestion; rs0_user_stats_ingestion.task()'`",
-        "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
-    ]
-    JOBS4 = [
-        "echo rs0 user stats processing: $(date)",
-        "pip install ga-reporting-etls==1.21.8",
-        "jsonresult=`python3 -c 'from nemo_reporting.user_stats import rs0_user_stats_processing; rs0_user_stats_processing.task()'`",
-    ]
     START = DummyOperator(task_id="dea-ungrouped-user-stats")
     fk4_ingestion = KubernetesPodOperator(
         namespace="processing",
@@ -95,39 +84,8 @@ with dag:
         task_id="fk4_processing",
         get_logs=True,
         env_vars={
-            "AGGREGATION_MONTHS" : "{{ task_instance.xcom_pull(task_ids='fk4_ingestion') }}",
-            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-        },
-    )
-    rs0_ingestion = KubernetesPodOperator(
-        namespace="processing",
-        image="python:3.8-slim-buster",
-        arguments=["bash", "-c", " &&\n".join(JOBS3)],
-        name="write-xcom",
-        do_xcom_push=True,
-        is_delete_operator_pod=True,
-        in_cluster=True,
-        task_id="rs0_ingestion",
-        get_logs=True,
-        env_vars={
-            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-            "FILE_TO_PROCESS": "rs0",
-        },
-    )
-    rs0_processing = KubernetesPodOperator(
-        namespace="processing",
-        image="python:3.8-slim-buster",
-        arguments=["bash", "-c", " &&\n".join(JOBS4)],
-        name="rs0_processing",
-        do_xcom_push=False,
-        is_delete_operator_pod=True,
-        in_cluster=True,
-        task_id="rs0_processing",
-        get_logs=True,
-        env_vars={
-            "AGGREGATION_MONTHS" : "{{ task_instance.xcom_pull(task_ids='rs0_ingestion') }}",
+            "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fk4_ingestion') }}",
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
     )
     START >> fk4_ingestion >> fk4_processing
-    START >> rs0_ingestion >> rs0_processing
