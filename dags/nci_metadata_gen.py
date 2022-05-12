@@ -16,7 +16,7 @@ from sensors.pbs_job_complete_sensor import PBSJobSensor
 
 params = {
     "project": "v10",
-    "queue": "standard",
+    "queue": "normal",
     "module": "eodatasets3/0.27.4",
     "index_arg": "--index-datacube-env "
     "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
