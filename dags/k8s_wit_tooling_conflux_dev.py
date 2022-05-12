@@ -140,7 +140,7 @@ dag = DAG(
 WIT_INPUTS = [{"product": "ga_ls5t_ard_3", "plugin": "wit_ls5", "queue": "wit_conflux_ls5_sqs"}]
 
 
-def k8s_job_filter_task(dag, input_queue_name, output_queue_name):
+def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product):
 
     # we are using r5.4xl EC2: 16 CPUs + 128 GB RAM
     mem = CONFLUX_POD_MEMORY_MB // 2  # the biggest filter usage is 20GB
@@ -478,7 +478,7 @@ def k8s_makequeue(dag, queue_name, product):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="wit-conflux-makequeue" + "-" + product,
+        task_id="wit-conflux-makequeue" + "-" + product + "-" + queue_name,
     )
     return makequeue
 
@@ -515,7 +515,7 @@ def k8s_delqueue(dag, queue_name, product):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="wit-conflux-delqueue" + "-" + product,
+        task_id="wit-conflux-delqueue" + "-" + product + "-" + queue_name,
     )
     return delqueue
 
@@ -575,7 +575,7 @@ with dag:
         makeprequeue = k8s_makequeue(dag, pre_queue_name, product)
         makefinalqueue = k8s_makequeue(dag, final_queue_name, product)
         push = k8s_queue_push(dag, pre_queue_name, product + '-id.txt', product, 'wit-conflux-getids-' + product)
-        filter = k8s_job_filter_task(dag, input_queue_name=pre_queue_name, output_queue_name=final_queue_name)
+        filter = k8s_job_filter_task(dag, input_queue_name=pre_queue_name, output_queue_name=final_queue_name, product=product)
         task = k8s_job_run_wit_task(dag, final_queue_name, plugin, product)
         delprequeue = k8s_delqueue(dag, pre_queue_name, product)
         delfinalqueue = k8s_delqueue(dag, final_queue_name, product)
