@@ -152,7 +152,7 @@ def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product):
     yaml = {
         "apiVersion": "batch/v1",
         "kind": "Job",
-        "metadata": {"name": "wit-conflux-filter-datasets-job",
+        "metadata": {"name": "wit-conflux-filter",
                      "namespace": "processing"},
         "spec": {
             "parallelism": parallelism,
@@ -183,9 +183,9 @@ def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product):
                                 dedent(
                                     """
                                     dea-conflux filter-from-queue -v \
-                                            --input-queue {input_queue_name} \
+                                        --input-queue {input_queue_name} \
                                             --output-queue {output_queue_name} \
-                                            --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} \
+                                                --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} \
                                     """.format(input_queue_name=input_queue_name,
                                                output_queue_name=output_queue_name,
                                                shapefile=DEFAULT_PARAMS['shapefile'],
@@ -247,7 +247,7 @@ def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product):
     job_task = KubernetesJobOperator(
         image=CONFLUX_WIT_IMAGE,
         dag=dag,
-        task_id="wit-conflux-filter-datasets" + "-" + product,
+        task_id="wit-conflux-filter" + "-" + product,
         get_logs=False,
         body=yaml,
     )
