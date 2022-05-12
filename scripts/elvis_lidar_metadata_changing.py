@@ -14,14 +14,10 @@ import os
 
 # these collection items will map to S3 URI
 # s3://elvis-stac/{product_name}/{collection_name}/collection.json
-PRODUCT_LIST = ["dem_1m", "dem_2m", "dem_5m"]
+PRODUCT_LIST = ["dem_1m"]
 
 COLLECTION_LIST = [
-    "DarlingBourke2009",
-    "Gwydir2008",
-    "GwydirValley2013",
-    "MacquarieMarshes2008",
-    "Murrumbidgee2009",
+    "WeeWaa201207",
 ]
 
 ORIGINAL_BUKCET_NAME = "elvis-stac"
@@ -33,6 +29,11 @@ def modify_json_content(old_metadata_content: dict) -> dict:
     # assume all JSON files follow the same schema to save development time
     collection = old_metadata_content['collection']
     old_metadata_content['properties']['odc:collection'] = collection
+
+    # remove the useless pincloud ref
+    old_metadata_content["stac_extensions"].remove("https://stac-extensions.github.io/pointcloud/v1.0.0/schema.json")
+    old_metadata_content["links"].remove({'rel': 'derived_from', 'href': 'placeholder.json', 'type': 'application/geojson', 'title': 'Point Cloud'})
+
     return old_metadata_content
 
 
