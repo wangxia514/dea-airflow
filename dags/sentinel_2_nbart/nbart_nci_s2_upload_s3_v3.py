@@ -49,7 +49,8 @@ default_args = {
     ),  # earliest date in nci DB is 2016-06-29
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
-    "email_on_failure": False,
+    "email_on_failure": True,
+    "email_on_retry": False,
     "email": ["damien.ayers@ga.gov.au"],
     "ssh_conn_id": "lpgs_gadi",
     "aws_conn_id": "sentinel_2_ard_sync_user",
