@@ -140,6 +140,7 @@ with dag:
         task_id=submit_task_id,
         command=COMMON
         + """
+        mkdir -p {{ params.base_dir }}{{ log_ext }}
         qsub -N ard_scene_select \
               -q  {{ params.queue }}  \
               -W umask=33 \
