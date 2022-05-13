@@ -591,7 +591,7 @@ with dag:
         getids = k8s_getids(dag, cmd, product)
         makeprequeue = k8s_makequeue(dag, pre_queue_name, product)
         makefinalqueue = k8s_makequeue(dag, final_queue_name, product)
-        push = k8s_queue_push(dag, pre_queue_name, product + '-id.txt', product, 'wit-conflux-getids-' + product)
+        push = k8s_queue_push(dag, pre_queue_name, product + '-id.txt', product, 'getids-' + product)
         filter = k8s_job_filter_task(dag, input_queue_name=pre_queue_name, output_queue_name=final_queue_name, product=product)
         task = k8s_job_run_wit_task(dag, final_queue_name, plugin, product)
         delprequeue = k8s_delqueue(dag, pre_queue_name, product)
