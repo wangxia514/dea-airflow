@@ -163,7 +163,7 @@ def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product):
     yaml = {
         "apiVersion": "batch/v1",
         "kind": "Job",
-        "metadata": {"name": "wit-filter",
+        "metadata": {"name": "filter-job",
                      "namespace": "processing"},
         "spec": {
             "parallelism": parallelism,
@@ -281,7 +281,7 @@ def k8s_job_run_wit_task(dag, queue_name, plugin, product):
     yaml = {
         "apiVersion": "batch/v1",
         "kind": "Job",
-        "metadata": {"name": "wit-conflux-job",
+        "metadata": {"name": "processing-job",
                      "namespace": "processing"},
         "spec": {
             "parallelism": parallelism,
