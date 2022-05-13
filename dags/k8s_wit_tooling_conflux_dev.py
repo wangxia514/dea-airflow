@@ -383,7 +383,7 @@ def k8s_job_run_wit_task(dag, queue_name, plugin, product):
     job_task = KubernetesJobOperator(
         image=CONFLUX_WIT_IMAGE,
         dag=dag,
-        task_id="run" + "-" + product,
+        task_id="wit-run" + "-" + product,
         get_logs=False,
         body=yaml,
     )
