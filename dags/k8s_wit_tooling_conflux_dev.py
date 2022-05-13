@@ -163,7 +163,7 @@ def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product):
     yaml = {
         "apiVersion": "batch/v1",
         "kind": "Job",
-        "metadata": {"name": "filter",
+        "metadata": {"name": "wit-filter",
                      "namespace": "processing"},
         "spec": {
             "parallelism": parallelism,
@@ -260,7 +260,7 @@ def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product):
     job_task = KubernetesJobOperator(
         image=CONFLUX_WIT_IMAGE,
         dag=dag,
-        task_id="filter" + "-" + product,
+        task_id="wit-filter" + "-" + product,
         get_logs=False,
         body=yaml,
     )
@@ -412,7 +412,7 @@ def k8s_queue_push(dag, queue_name, filename, product, task_id):
     return KubernetesPodOperator(
         image=CONFLUX_WIT_IMAGE,
         dag=dag,
-        name="push",
+        name="wit-push",
         arguments=cmd,
         image_pull_policy="IfNotPresent",
         labels={"app": "wit-conflux-push"},
@@ -425,7 +425,7 @@ def k8s_queue_push(dag, queue_name, filename, product, task_id):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="push" + "-" + product,
+        task_id="wit-push" + "-" + product,
     )
 
 
@@ -444,7 +444,7 @@ def k8s_getids(dag, cmd, product):
 
     getids = KubernetesPodOperator(
         image=CONFLUX_WIT_IMAGE,
-        name="getids",
+        name="wit-getids",
         arguments=getids_cmd,
         image_pull_policy="IfNotPresent",
         labels={"app": "wit-conflux-getids"},
@@ -458,7 +458,7 @@ def k8s_getids(dag, cmd, product):
         do_xcom_push=True,
         namespace="processing",
         tolerations=tolerations,
-        task_id="getids" + "-" + product,
+        task_id="wit-getids" + "-" + product,
     )
     return getids
 
@@ -482,7 +482,7 @@ def k8s_makequeue(dag, queue_name, product):
     ]
     makequeue = KubernetesPodOperator(
         image=CONFLUX_WIT_IMAGE,
-        name="makequeue",
+        name="wit-makequeue",
         arguments=makequeue_cmd,
         image_pull_policy="IfNotPresent",
         labels={"app": "wit-conflux-makequeue"},
@@ -495,7 +495,7 @@ def k8s_makequeue(dag, queue_name, product):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="makequeue" + "-" + product + "-" + queue_name,
+        task_id="wit-makequeue" + "-" + product + "-" + queue_name,
     )
     return makequeue
 
@@ -519,7 +519,7 @@ def k8s_delqueue(dag, queue_name, product):
     ]
     delqueue = KubernetesPodOperator(
         image=CONFLUX_WIT_IMAGE,
-        name="delqueue",
+        name="wit-delqueue",
         arguments=delqueue_cmd,
         image_pull_policy="IfNotPresent",
         labels={"app": "wit-conflux-delqueue"},
@@ -532,7 +532,7 @@ def k8s_delqueue(dag, queue_name, product):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="delqueue" + "-" + product + "-" + queue_name,
+        task_id="wit-delqueue" + "-" + product + "-" + queue_name,
     )
     return delqueue
 
@@ -555,7 +555,7 @@ def k8s_makecsvs(dag):
     # we are using r5.4xlarge to run WIT. It has 16vCPU, and 128GB RAM.
     makecsvs = KubernetesPodOperator(
         image=CONFLUX_WIT_IMAGE,
-        name="makecsvs",
+        name="wit-makecsvs",
         arguments=makecsvs_cmd,
         image_pull_policy="IfNotPresent",
         labels={"app": "wit-conflux-makecsvs"},
@@ -568,7 +568,7 @@ def k8s_makecsvs(dag):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="makecsvs",
+        task_id="wit-makecsvs",
     )
     return makecsvs
 
@@ -591,7 +591,7 @@ with dag:
         getids = k8s_getids(dag, cmd, product)
         makeprequeue = k8s_makequeue(dag, pre_queue_name, product)
         makefinalqueue = k8s_makequeue(dag, final_queue_name, product)
-        push = k8s_queue_push(dag, pre_queue_name, product + '-id.txt', product, 'getids-' + product)
+        push = k8s_queue_push(dag, pre_queue_name, product + '-id.txt', product, 'wit-getids-' + product)
         filter = k8s_job_filter_task(dag, input_queue_name=pre_queue_name, output_queue_name=final_queue_name, product=product)
         task = k8s_job_run_wit_task(dag, final_queue_name, plugin, product)
         delprequeue = k8s_delqueue(dag, pre_queue_name, product)
