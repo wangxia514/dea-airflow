@@ -9,13 +9,11 @@ from select import select
 
 from airflow import AirflowException
 from airflow.providers.ssh.hooks.ssh import SSHHook
-from airflow.utils.decorators import apply_defaults
 
 
 class SSHRunMixin:
     """Mixin class to use when defining a new Airflow Operator that operates over SSH"""
 
-    @apply_defaults
     def __init__(self, ssh_conn_id=None, ssh_hook=None, timeout=10, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.log.info("Inside SSHRunMixin Init Function")
@@ -23,11 +21,9 @@ class SSHRunMixin:
         self.ssh_hook = ssh_hook
         self.ssh_conn_id = ssh_conn_id
 
-    def run_ssh_command_and_return_output(self, command, stdin_data=None) -> (int, str):
+    def run_ssh_command_and_return_output(self, command) -> (int, str):
         """
         Open and SSH Connection and execute a command
-
-        Also allows feeding a string to stdin.
 
         Returns the exit status and output from stdout
         """
@@ -58,11 +54,10 @@ class SSHRunMixin:
 
                 # set timeout taken as params
                 stdin, stdout, stderr = ssh_client.exec_command(
-                    command=command, get_pty=False, timeout=self.timeout
+                    command=command,
+                    get_pty=False,
+                    timeout=self.timeout,
                 )
-
-                if stdin_data:
-                    stdin.write(stdin_data)
                 # get channels
                 channel = stdout.channel
 
@@ -115,4 +110,6 @@ class SSHRunMixin:
         except EOFError:
             raise
         except Exception as e:
-            raise AirflowException("SSH error: {0}".format(str(e)))
+            raise AirflowException(
+                "PBS Job Completion sensor error: {0}".format(str(e))
+            )
