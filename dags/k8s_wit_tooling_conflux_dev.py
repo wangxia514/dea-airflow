@@ -147,7 +147,8 @@ def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product):
     req_mem = "{}Mi".format(int(mem))
     lim_mem = "{}Mi".format(int(mem))
     parallelism = 5
-    cpu = "3000m"  # 128/20 ~= 5, 16/5 ~= 3
+    cpu = 3
+    cpu_request = f"{cpu}000m"  # 128/20 ~= 5, 16/5 ~= 3
 
     yaml = {
         "apiVersion": "batch/v1",
@@ -169,11 +170,11 @@ def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product):
                             "imagePullPolicy": "IfNotPresent",
                             "resources": {
                                 "requests": {
-                                    "cpu": cpu,
+                                    "cpu": cpu_request,
                                     "memory": req_mem,
                                 },
                                 "limits": {
-                                    "cpu": cpu,
+                                    "cpu": cpu_request,
                                     "memory": lim_mem,
                                 },
                             },
@@ -184,11 +185,13 @@ def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product):
                                     """
                                     dea-conflux filter-from-queue -v \
                                         --input-queue {input_queue_name} \
-                                            --output-queue {output_queue_name} \
-                                                --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} \
+                                        --output-queue {output_queue_name} \
+                                        --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} \
+                                        --num-worker {cpu} \
                                     """.format(input_queue_name=input_queue_name,
                                                output_queue_name=output_queue_name,
                                                shapefile=DEFAULT_PARAMS['shapefile'],
+                                               cpu=cpu,
                                                )),
                             ],
                             "env": [
@@ -567,7 +570,7 @@ with dag:
         plugin = wit_input['plugin']
         queue = wit_input['queue']
 
-        pre_queue_name = queue + "_pre"
+        pre_queue_name = queue + "_raw"
         final_queue_name = queue
 
         getids = k8s_getids(dag, cmd, product)
