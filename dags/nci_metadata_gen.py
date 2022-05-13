@@ -151,21 +151,18 @@ with dag:
                   "module use /g/data/v10/public/modules/modulefiles/; \
                   module use /g/data/v10/private/modules/modulefiles/; \
                   module use /g/data/u46/users/dsg547/devmodules/modulefiles/; \
-                  module load {{ params.module }};"
-        """,
-        timeout=60 * 20,
-        do_xcom_push=True,
-    )
-    # --limit-regions-file test_dont_generate.txt \
-    """
-     \
+                  module load {{ params.module }}; \
                   eo3-prepare sentinel-l1  --help; \
                   eo3-prepare sentinel-l1  \
                   -j 4 --after-month 2022-05 \
                   --dry-run \
                   --output-base  /g/data/u46/users/dsg547/test_data/s2_pipelineII/c3/L1C \
-                  /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/2022
-    """
+                  /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/2022"
+        """,
+        timeout=60 * 20,
+        do_xcom_push=True,
+    )
+    # --limit-regions-file test_dont_generate.txt \
 
     wait_for_completion = PBSJobSensor(
         task_id="wait_for_completion",
