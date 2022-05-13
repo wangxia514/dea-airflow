@@ -54,6 +54,8 @@ DEFAULT_PARAMS = dict(
 # Requested memory. Memory limit is twice this.
 CONFLUX_POD_MEMORY_MB = 40000
 
+EC2_NUM = 10
+
 CONFLUX_WIT_IMAGE = "geoscienceaustralia/dea-conflux:latest"
 
 # DAG CONFIGURATION
@@ -137,7 +139,9 @@ dag = DAG(
 )
 
 # just keep the ls5 to save the development cost
-WIT_INPUTS = [{"product": "ga_ls5t_ard_3", "plugin": "wit_ls5", "queue": "wit_conflux_ls5_sqs"}]
+WIT_INPUTS = [{"product": "ga_ls5t_ard_3", "plugin": "wit_ls5", "queue": "wit_conflux_ls5_sqs"},
+              {"product": "ga_ls7e_ard_3", "plugin": "wit_ls7", "queue": "wit_conflux_ls7_sqs"},
+              {"product": "ga_ls8c_ard_3", "plugin": "wit_ls8", "queue": "wit_conflux_ls8_sqs"}]
 
 
 def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product):
@@ -146,14 +150,20 @@ def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product):
     mem = CONFLUX_POD_MEMORY_MB // 2  # the biggest filter usage is 20GB
     req_mem = "{}Mi".format(int(mem))
     lim_mem = "{}Mi".format(int(mem))
-    parallelism = 5
-    cpu = 3
-    cpu_request = f"{cpu}000m"  # 128/20 ~= 5, 16/5 ~= 3
+
+    # 1. Each WIT EC2 can run 6 filter pod;
+    # 2. and EC2_NUM == how many EC2
+    # 3. there are 3 products
+    # so each product filter parallelism = EC2_NUM * 6 / 3
+    # => EC2_NUM * 2
+    parallelism = EC2_NUM * 2
+    cpu = 2
+    cpu_request = f"{cpu}000m"  # 128/20 ~= 6, 16/6 ~= 2
 
     yaml = {
         "apiVersion": "batch/v1",
         "kind": "Job",
-        "metadata": {"name": "wit-conflux-filter",
+        "metadata": {"name": "filter",
                      "namespace": "processing"},
         "spec": {
             "parallelism": parallelism,
@@ -250,7 +260,7 @@ def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product):
     job_task = KubernetesJobOperator(
         image=CONFLUX_WIT_IMAGE,
         dag=dag,
-        task_id="wit-conflux-filter" + "-" + product,
+        task_id="filter" + "-" + product,
         get_logs=False,
         body=yaml,
     )
@@ -261,7 +271,12 @@ def k8s_job_run_wit_task(dag, queue_name, plugin, product):
     mem = CONFLUX_POD_MEMORY_MB
     req_mem = "{}Mi".format(int(mem))
     lim_mem = "{}Mi".format(int(mem))
-    parallelism = 15
+
+    # 1. Each WIT EC2 can run 3 processing pod;
+    # 2. and EC2_NUM == how many EC2;
+    # 3. there are 3 products;
+    # so each product parallelism = EC2_NUM * 3 / 3
+    parallelism = EC2_NUM
 
     yaml = {
         "apiVersion": "batch/v1",
@@ -368,7 +383,7 @@ def k8s_job_run_wit_task(dag, queue_name, plugin, product):
     job_task = KubernetesJobOperator(
         image=CONFLUX_WIT_IMAGE,
         dag=dag,
-        task_id="wit-conflux-run" + "-" + product,
+        task_id="run" + "-" + product,
         get_logs=False,
         body=yaml,
     )
@@ -397,7 +412,7 @@ def k8s_queue_push(dag, queue_name, filename, product, task_id):
     return KubernetesPodOperator(
         image=CONFLUX_WIT_IMAGE,
         dag=dag,
-        name="wit-conflux-push",
+        name="push",
         arguments=cmd,
         image_pull_policy="IfNotPresent",
         labels={"app": "wit-conflux-push"},
@@ -410,7 +425,7 @@ def k8s_queue_push(dag, queue_name, filename, product, task_id):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="wit-conflux-push" + "-" + product,
+        task_id="push" + "-" + product,
     )
 
 
@@ -429,7 +444,7 @@ def k8s_getids(dag, cmd, product):
 
     getids = KubernetesPodOperator(
         image=CONFLUX_WIT_IMAGE,
-        name="wit-conflux-getids",
+        name="getids",
         arguments=getids_cmd,
         image_pull_policy="IfNotPresent",
         labels={"app": "wit-conflux-getids"},
@@ -443,7 +458,7 @@ def k8s_getids(dag, cmd, product):
         do_xcom_push=True,
         namespace="processing",
         tolerations=tolerations,
-        task_id="wit-conflux-getids" + "-" + product,
+        task_id="getids" + "-" + product,
     )
     return getids
 
@@ -467,7 +482,7 @@ def k8s_makequeue(dag, queue_name, product):
     ]
     makequeue = KubernetesPodOperator(
         image=CONFLUX_WIT_IMAGE,
-        name="wit-conflux-makequeue",
+        name="makequeue",
         arguments=makequeue_cmd,
         image_pull_policy="IfNotPresent",
         labels={"app": "wit-conflux-makequeue"},
@@ -480,7 +495,7 @@ def k8s_makequeue(dag, queue_name, product):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="wit-conflux-makequeue" + "-" + product + "-" + queue_name,
+        task_id="makequeue" + "-" + product + "-" + queue_name,
     )
     return makequeue
 
@@ -504,7 +519,7 @@ def k8s_delqueue(dag, queue_name, product):
     ]
     delqueue = KubernetesPodOperator(
         image=CONFLUX_WIT_IMAGE,
-        name="wit-conflux-delqueue",
+        name="delqueue",
         arguments=delqueue_cmd,
         image_pull_policy="IfNotPresent",
         labels={"app": "wit-conflux-delqueue"},
@@ -517,7 +532,7 @@ def k8s_delqueue(dag, queue_name, product):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="wit-conflux-delqueue" + "-" + product + "-" + queue_name,
+        task_id="delqueue" + "-" + product + "-" + queue_name,
     )
     return delqueue
 
@@ -540,7 +555,7 @@ def k8s_makecsvs(dag):
     # we are using r5.4xlarge to run WIT. It has 16vCPU, and 128GB RAM.
     makecsvs = KubernetesPodOperator(
         image=CONFLUX_WIT_IMAGE,
-        name="wit-conflux-makecsvs",
+        name="makecsvs",
         arguments=makecsvs_cmd,
         image_pull_policy="IfNotPresent",
         labels={"app": "wit-conflux-makecsvs"},
@@ -553,7 +568,7 @@ def k8s_makecsvs(dag):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="wit-conflux-makecsvs",
+        task_id="makecsvs",
     )
     return makecsvs
 
