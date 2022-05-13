@@ -25,7 +25,7 @@ params = {
     "scene_limit": "--scene-limit 400",
     "interim_days_wait": "",
     "products_arg": """--products '["esa_s2am_level1_1", "esa_s2bm_level1_1"]'""",
-    "pkgdir_arg": "/g/do/not/know/",
+    "yaml_dir": "/g/do/not/know/",
     "base_dir": "/g/data/v10/work/s2_c3_ard/",
     "days_to_exclude_arg": "",
     "run_ard_arg": "--run-ard",
@@ -81,28 +81,17 @@ if aws_develop:
     small_prod_run = False  # small_prod_run or small_non_prod
     if small_prod_run:
         params["index_arg"] = "--index-datacube-env "
-        params["pkgdir_arg"] = params["base_dir"]
+        params["output-base"] = params["base_dir"]
         params["scene_limit"] = "--scene-limit 1"
     else:
         params[
-            "pkgdir_arg"
+            "base_dir"
         ] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test_s2/"
+        params["yaml_dir"] = params["base_dir"] + "yaml"
         # "" means no ard is produced.
-        params["run_ard_arg"] = ""
 
-    # A fail safe
-    # params["scene_limit"] = "--scene-limit 1"
-    #
 else:
-    # run this from local dev
-    # Add the storage for u46 back
-    # -l storage=gdata/v10+scratch/v10+gdata/if87+gdata/fj7+scratch/fj7+scratch/u46+gdata/u46 \
-
-    ssh_conn_id = "dsg547"
-    params["project"] = "u46"
-    params["pkgdir_arg"] = "/g/data/u46/users/dsg547/results_airflow/"
-    schedule_interval = None
-params["base_dir"] = params["pkgdir_arg"]
+    pass
 # #*/ The end of the sed removed block of code
 
 default_args = {
@@ -131,8 +120,7 @@ with dag:
 
     COMMON = """
         #  ts_nodash timestamp no dashes.
-        {% set log_ext = ts_nodash + '/logdir' %}
-        {% set work_ext = ts_nodash + '/workdir' %}
+        {% set log_ext = ts_nodash %}
         """
 
     submit_task_id = "submit_metadata_gen"
@@ -140,6 +128,7 @@ with dag:
         task_id=submit_task_id,
         command=COMMON
         + """
+        mkdir -p {{ params.base_dir }}{{ log_ext }}
         qsub -N ard_scene_select \
               -q  {{ params.queue }}  \
               -W umask=33 \
@@ -150,21 +139,17 @@ with dag:
                   "module use /g/data/v10/public/modules/modulefiles/; \
                   module use /g/data/v10/private/modules/modulefiles/; \
                   module use /g/data/u46/users/dsg547/devmodules/modulefiles/; \
-                  module load {{ params.module }};"
+                  module load {{ params.module }}; \
+                  eo3-prepare sentinel-l1  \
+                  -j 4 --after-month 2022-05 \
+                  --dry-run \
+                  --output-base  {{ params.yaml_dir }}  \
+                  /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/2022"
         """,
         timeout=60 * 20,
         do_xcom_push=True,
     )
     # --limit-regions-file test_dont_generate.txt \
-    """
-     \
-                  eo3-prepare sentinel-l1  --help; \
-                  eo3-prepare sentinel-l1  \
-                  -j 4 --after-month 2022-05 \
-                  --dry-run \
-                  --output-base  /g/data/u46/users/dsg547/test_data/s2_pipelineII/c3/L1C \
-                  /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/2022
-    """
 
     wait_for_completion = PBSJobSensor(
         task_id="wait_for_completion",
