@@ -47,7 +47,7 @@ with dag:
     backup_dea = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
-        arguments=["bash", "-c", " &&\n".join(backup_cmd_dea)],
+        arguments=["bash", "-c", backup_cmd_dea],
         name="backup_dea",
         is_delete_operator_pod=True,
         in_cluster=True,
@@ -58,7 +58,7 @@ with dag:
     backup_cophub = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
-        arguments=["bash", "-c", " &&\n".join(backup_cmd_cophub)],
+        arguments=["bash", "-c", backup_cmd_cophub],
         name="backup_cophub",
         is_delete_operator_pod=True,
         in_cluster=True,
@@ -69,7 +69,7 @@ with dag:
     backup_landsat = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
-        arguments=["bash", "-c", " &&\n".join(backup_cmd_landsat)],
+        arguments=["bash", "-c", backup_cmd_landsat],
         name="backup_landsat",
         is_delete_operator_pod=True,
         in_cluster=True,
@@ -80,7 +80,7 @@ with dag:
     backup_marine = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
-        arguments=["bash", "-c", " &&\n".join(backup_cmd_marine)],
+        arguments=["bash", "-c", backup_cmd_marine],
         name="backup_marine",
         is_delete_operator_pod=True,
         in_cluster=True,
@@ -91,7 +91,7 @@ with dag:
     backup_nci = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
-        arguments=["bash", "-c", " &&\n".join(backup_cmd_nci)],
+        arguments=["bash", "-c", backup_cmd_nci],
         name="backup_marine",
         is_delete_operator_pod=True,
         in_cluster=True,
@@ -102,7 +102,7 @@ with dag:
     backup_public = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
-        arguments=["bash", "-c", " &&\n".join(backup_cmd_public)],
+        arguments=["bash", "-c", backup_cmd_public],
         name="backup_marine",
         is_delete_operator_pod=True,
         in_cluster=True,
