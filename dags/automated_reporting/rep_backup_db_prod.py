@@ -1,6 +1,9 @@
 from datetime import datetime as dt, timedelta
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from airflow.operators.dummy import DummyOperator
 from infra.variables import REPORTING_IAM_NEMO_PROD_SECRET
 from infra.variables import REPORTING_DB_SECRET
@@ -41,8 +44,7 @@ with dag:
     backup_cmd_marine = "pg_dump -Z 9 -h $DB_HOST -U $DB_USER -d $DB_NAME -n marine | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://automated-reporting-db-dump/${EXECUTION_DATE}/marine-dump.sql.gz"
     backup_cmd_nci = "pg_dump -Z 9 -h $DB_HOST -U $DB_USER -d $DB_NAME -n nci | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://automated-reporting-db-dump/${EXECUTION_DATE}/nci-dump.sql.gz"
     backup_cmd_public = "pg_dump -Z 9 -h $DB_HOST -U $DB_USER -d $DB_NAME -n public | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://automated-reporting-db-dump/${EXECUTION_DATE}/public-dump.sql.gz"
-
-    backup_dea= KubernetesPodOperator(
+    backup_dea= KubernetesPodOperator( 
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(backup_cmd_dea)],
@@ -51,9 +53,9 @@ with dag:
         in_cluster=True,
         task_id="backup_dea",
         get_logs=True,
-        env_vars={"EXECUTION_DATE": "{{ ds }}",},
+        env_vars={"EXECUTION_DATE": "{{ ds }}", },
     )
-    backup_cophub= KubernetesPodOperator(
+    backup_cophub= KubernetesPodOperator( 
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(backup_cmd_cophub)],
@@ -62,10 +64,9 @@ with dag:
         in_cluster=True,
         task_id="backup_cophub",
         get_logs=True,
-        env_vars={"EXECUTION_DATE": "{{ ds }}",},
+        env_vars={"EXECUTION_DATE": "{{ ds }}", },
     )
-    
-    backup_landsat= KubernetesPodOperator(
+    backup_landsat= KubernetesPodOperator( 
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(backup_cmd_landsat)],
@@ -74,10 +75,9 @@ with dag:
         in_cluster=True,
         task_id="backup_landsat",
         get_logs=True,
-        env_vars={"EXECUTION_DATE": "{{ ds }}",},
+        env_vars={"EXECUTION_DATE": "{{ ds }}", },
     )
-    
-    backup_marine= KubernetesPodOperator(
+    backup_marine= KubernetesPodOperator( 
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(backup_cmd_marine)],
@@ -86,10 +86,9 @@ with dag:
         in_cluster=True,
         task_id="backup_marine",
         get_logs=True,
-        env_vars={"EXECUTION_DATE": "{{ ds }}",},
+        env_vars={"EXECUTION_DATE": "{{ ds }}", },
     )
-    
-    backup_nci= KubernetesPodOperator(
+    backup_nci= KubernetesPodOperator( 
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(backup_cmd_nci)],
@@ -98,9 +97,9 @@ with dag:
         in_cluster=True,
         task_id="backup_nci",
         get_logs=True,
-        env_vars={"EXECUTION_DATE": "{{ ds }}",},
+        env_vars={"EXECUTION_DATE": "{{ ds }}", },
     )
-    backup_public= KubernetesPodOperator(
+    backup_public= KubernetesPodOperator( 
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(backup_cmd_public)],
@@ -109,7 +108,7 @@ with dag:
         in_cluster=True,
         task_id="backup_public",
         get_logs=True,
-        env_vars={"EXECUTION_DATE": "{{ ds }}",},
+        env_vars={"EXECUTION_DATE": "{{ ds }}", },
     )
     START = DummyOperator(task_id="backup-db")
     START >> backup_dea
