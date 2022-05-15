@@ -44,7 +44,7 @@ with dag:
     backup_cmd_marine = "pg_dump -Z 9 -h $DB_HOST -U $DB_USER -d $DB_NAME -n marine | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://automated-reporting-db-dump/${EXECUTION_DATE}/marine-dump.sql.gz"
     backup_cmd_nci = "pg_dump -Z 9 -h $DB_HOST -U $DB_USER -d $DB_NAME -n nci | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://automated-reporting-db-dump/${EXECUTION_DATE}/nci-dump.sql.gz"
     backup_cmd_public = "pg_dump -Z 9 -h $DB_HOST -U $DB_USER -d $DB_NAME -n public | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://automated-reporting-db-dump/${EXECUTION_DATE}/public-dump.sql.gz"
-    backup_dea= KubernetesPodOperator( 
+    backup_dea = KubernetesPodOperator( 
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(backup_cmd_dea)],
@@ -55,7 +55,7 @@ with dag:
         get_logs=True,
         env_vars={"EXECUTION_DATE": "{{ ds }}", },
     )
-    backup_cophub= KubernetesPodOperator( 
+    backup_cophub = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(backup_cmd_cophub)],
@@ -66,7 +66,7 @@ with dag:
         get_logs=True,
         env_vars={"EXECUTION_DATE": "{{ ds }}", },
     )
-    backup_landsat= KubernetesPodOperator( 
+    backup_landsat = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(backup_cmd_landsat)],
@@ -77,7 +77,7 @@ with dag:
         get_logs=True,
         env_vars={"EXECUTION_DATE": "{{ ds }}", },
     )
-    backup_marine= KubernetesPodOperator( 
+    backup_marine = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(backup_cmd_marine)],
@@ -88,7 +88,7 @@ with dag:
         get_logs=True,
         env_vars={"EXECUTION_DATE": "{{ ds }}", },
     )
-    backup_nci= KubernetesPodOperator( 
+    backup_nci = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(backup_cmd_nci)],
@@ -99,7 +99,7 @@ with dag:
         get_logs=True,
         env_vars={"EXECUTION_DATE": "{{ ds }}", },
     )
-    backup_public= KubernetesPodOperator( 
+    backup_public = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(backup_cmd_public)],
