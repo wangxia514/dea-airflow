@@ -1,7 +1,6 @@
 from datetime import datetime as dt, timedelta
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.operators.bash import BashOperator
 from airflow.operators.dummy import DummyOperator
 from infra.variables import REPORTING_IAM_NEMO_PROD_SECRET
 from infra.variables import REPORTING_DB_SECRET
