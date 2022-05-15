@@ -38,7 +38,7 @@ dag = DAG(
 
 
 with dag:
-    backup_cmd_dea = "sudo apt-get install postgresql-client | sudo pip install awscli |  pg_dump -Z 9 -h $DB_HOST -U $DB_USER -d $DB_NAME -n dea | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://automated-reporting-db-dump/${EXECUTION_DATE}/dea-dump.sql.gz"
+    backup_cmd_dea = "apt-get update | apt-get install -y postgresql-client-common | apt-get install -y postgresql-client | sudo pip install awscli |  pg_dump -Z 9 -h $DB_HOST -U $DB_USER -d $DB_NAME -n dea | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://automated-reporting-db-dump/${EXECUTION_DATE}/dea-dump.sql.gz"
     backup_dea = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
