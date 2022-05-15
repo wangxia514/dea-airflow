@@ -29,7 +29,7 @@ default_args = {
 }
 
 dag = DAG(
-    "backup_reporting_db_prod",
+    "rep_backup_reporting_db_prod",
     description="Create daily backups for reporting db prod",
     tags=["reporting"],
     default_args=default_args,
