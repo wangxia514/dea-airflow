@@ -39,7 +39,7 @@ with dag:
     JOBS1 = [
         "echo db backup started: $(date)",
         "pip install ga-reporting-etls==1.22.0",
-        "jsonresult=`apt-get update -y; apt-get install -y  postgresql; python3 -c 'from nemo_reporting.backup_restore_db import backup; backup.backup_task()'`",
+        "jsonresult=`python3 -c 'from nemo_reporting.backup_restore_db import backup; backup.backup_task()'`",
     ]
     backup_reporting_db = KubernetesPodOperator(
         namespace="processing",
