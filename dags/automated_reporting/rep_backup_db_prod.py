@@ -4,7 +4,6 @@ from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-from airflow.operators.dummy import DummyOperator
 from infra.variables import REPORTING_IAM_NEMO_PROD_SECRET
 from infra.variables import REPORTING_DB_SECRET
 
@@ -36,19 +35,25 @@ dag = DAG(
     schedule_interval="0 14 * * *",  # daily at 1am AEDT
 )
 
-
 with dag:
-    backup_cmd_dea = "apt-get update | apt-get install -y postgresql-client-common | apt-get install -y postgresql-client | sudo pip install awscli |  pg_dump -Z 9 -h $DB_HOST -U $DB_USER -d $DB_NAME -n dea | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://automated-reporting-db-dump/${EXECUTION_DATE}/dea-dump.sql.gz"
-    backup_dea = KubernetesPodOperator(
+    JOBS1 = [
+        "echo db backup started: $(date)",
+        "pip install ga-reporting-etls==1.22.0",
+        "jsonresult=`apt-get update; apt-get install -y  postgresql; python3 -c 'from nemo_reporting.backup_restore_db import backup; backup.backup_task()'`",
+    ]
+    backup_reporting_db= KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
-        arguments=["bash", "-c", backup_cmd_dea],
-        name="backup_dea",
+        arguments=["bash", "-c", " &&\n".join(JOBS1)],
+        name="backup_reporting_db",
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="backup_dea",
+        task_id="backup_reporting_db",
         get_logs=True,
-        env_vars={"EXECUTION_DATE": "{{ ds }}", },
+        env_vars={
+            "EXECUTION_DATE": "{{ ds }}",
+        },
     )
-    START = DummyOperator(task_id="backup-db")
-    START >> backup_dea
+    backup_reporting_db 
+
+
