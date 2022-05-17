@@ -54,6 +54,4 @@ with dag:
             "EXECUTION_DATE": "{{ ds }}",
         },
     )
-    backup_reporting_db 
-
-
+    backup_reporting_db
