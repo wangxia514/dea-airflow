@@ -17,19 +17,14 @@ from sensors.pbs_job_complete_sensor import PBSJobSensor
 params = {
     "project": "v10",
     "queue": "normal",
-    "module": "eodatasets3/0.27.4",
-    "index_arg": "--index-datacube-env "
-    "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
-    "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl-s2.env",
-    "config_arg": "",
-    "scene_limit": "--scene-limit 400",
-    "interim_days_wait": "",
-    "products_arg": """--products '["esa_s2am_level1_1", "esa_s2bm_level1_1"]'""",
-    "yaml_dir": "/g/do/not/know/",
+    "module": "eodatasets3/0.27.5",
+    "index": "--index ",
+    "jobs": "--jobs 1",
+    "config": "",
+    "output_base_para": "/g/data/ka08/ga/l1c_metadata",
     "base_dir": "/g/data/v10/work/s2_c3_ard/",
-    "days_to_exclude_arg": "",
-    "run_ard_arg": "--run-ard",
-    "yamldir": " --yamls-dir /g/data/u46/users/dsg547/test_data/s2_pipeline/yaml/",
+    "dry_run": " ",
+    "only-regions-in-file_para": "",
 }
 
 ssh_conn_id = "lpgs_gadi"
@@ -45,27 +40,10 @@ schedule_interval = "0 10 * * *"
 # mv ../nci_ard.py dags/nci_ard.py
 # params[""] =
 
-params["index_arg"] = ""  # No indexing
+params["index"] = ""  # No indexing
 
 # "" means no ard is produced.
-params["run_ard_arg"] = ""
-
-use_test_db = True
-if use_test_db:
-    params[
-        "index_arg"
-    ] = "--index-datacube-env /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/index-test-odc.env"
-
-    # This will be updated when the production code is updated.
-    params[
-        "config_arg"
-    ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/pipeline_test.conf"
-    # until then run from the dev code
-
-# params["days_to_exclude_arg"] = ""
-#  if you use it it looks like """--days-to-exclude '["2020-06-26:2020-06-26"]'"""
-
-params["run_ard_arg"] = ""
+params["dry_run"] = "--dry_run "
 
 aws_develop = True
 if aws_develop:
@@ -80,15 +58,15 @@ if aws_develop:
     ] = " --yamls-dir /g/data/u46/users/dsg547/test_data/s2_pipeline/yaml/"
     small_prod_run = False  # small_prod_run or small_non_prod
     if small_prod_run:
-        params["index_arg"] = "--index-datacube-env "
-        params["output-base"] = params["base_dir"]
-        params["scene_limit"] = "--scene-limit 1"
+        pass
     else:
         params[
             "base_dir"
         ] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test_s2/"
-        params["yaml_dir"] = params["base_dir"] + "yaml"
+        params["output_base_para"] = params["base_dir"] + "yaml"
         # "" means no ard is produced.
+        # /g/data/v10/projects/c3_ard/dea-ard-scene-select/
+        # scene_select/data/region_used_by_s2_l1_yaml_gen_testing.txt
 
 else:
     pass
@@ -138,12 +116,11 @@ with dag:
               -- /bin/bash -l -c \
                   "module use /g/data/v10/public/modules/modulefiles/; \
                   module use /g/data/v10/private/modules/modulefiles/; \
-                  module use /g/data/u46/users/dsg547/devmodules/modulefiles/; \
                   module load {{ params.module }}; \
                   eo3-prepare sentinel-l1  \
                   -j 4 --after-month 2022-05 \
                   --dry-run \
-                  --output-base  {{ params.yaml_dir }}  \
+                  --output-base  {{ params.output_base_para }}  \
                   /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/2022"
         """,
         timeout=60 * 20,
