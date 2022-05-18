@@ -122,7 +122,7 @@ with dag:
                   module use /g/data/v10/private/modules/modulefiles/; \
                   module load {{ params.module }}; \
                   eo3-prepare sentinel-l1  \
-                  -jobs  {{ params.jobs_para }}  \
+                  --jobs  {{ params.jobs_para }}  \
                   --after-month 2022-05 \
                   {{ params.dry_run }}  \
                   --only-regions-in-file {{ params.only_regions_in_para }} \
