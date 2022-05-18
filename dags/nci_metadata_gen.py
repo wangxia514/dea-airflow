@@ -44,7 +44,6 @@ schedule_interval = "0 10 * * *"
 params["index"] = ""  # No indexing
 
 # "" means no ard is produced.
-params["dry_run"] = "--dry_run "
 
 aws_develop = True
 if aws_develop:
