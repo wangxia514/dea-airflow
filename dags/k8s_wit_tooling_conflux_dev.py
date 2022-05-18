@@ -150,6 +150,11 @@ WIT_INPUTS = [{"product": "ga_ls5t_ard_3", "plugin": "wit_ls5", "queue": "wit_co
 
 def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product, use_id):
 
+    if len(use_id) != 0:
+        use_id_cmd = f"--use-id {use_id}"
+    else:
+        use_id_cmd = ""
+
     # we are using r5.4xl EC2: 16 CPUs + 128 GB RAM
     mem = CONFLUX_POD_MEMORY_MB // 2  # the biggest filter usage is 20GB
     req_mem = "{}Mi".format(int(mem))
@@ -202,12 +207,12 @@ def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product, use_i
                                         --output-queue {output_queue_name} \
                                         --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} \
                                         --num-worker {cpu} \
-                                        --use-id {use_id} \
+                                        {use_id_cmd}
                                     """.format(input_queue_name=input_queue_name,
                                                output_queue_name=output_queue_name,
                                                shapefile=DEFAULT_PARAMS['shapefile'],
                                                cpu=cpu,
-                                               use_id=use_id,
+                                               use_id_cmd=use_id_cmd,
                                                )),
                             ],
                             "env": [
@@ -274,6 +279,12 @@ def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product, use_i
 
 
 def k8s_job_run_wit_task(dag, queue_name, plugin, product, use_id):
+
+    if len(use_id) != 0:
+        use_id_cmd = f"--use-id {use_id}"
+    else:
+        use_id_cmd = ""
+
     mem = CONFLUX_POD_MEMORY_MB
     req_mem = "{}Mi".format(int(mem))
     lim_mem = "{}Mi".format(int(mem))
@@ -327,12 +338,12 @@ def k8s_job_run_wit_task(dag, queue_name, plugin, product, use_id):
                                             --output {{{{ dag_run.conf.get("intermediatedir", "{intermediatedir}") }}}} {{{{ dag_run.conf.get("flags", "") }}}} \
                                             --not-dump-empty-dataframe \
                                             --timeout 7200 \
-                                            --use-id {use_id} \
+                                            {use_id_cmd}
                                     """.format(queue=queue_name,
                                                shapefile=DEFAULT_PARAMS['shapefile'],
                                                intermediatedir=DEFAULT_PARAMS['intermediatedir'],
                                                plugin=plugin,
-                                               use_id=use_id,
+                                               use_id_cmd=use_id_cmd,
                                                )),
                             ],
                             "env": [
