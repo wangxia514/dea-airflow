@@ -22,6 +22,7 @@ params = {
     "jobs": "--jobs 1",
     "config": "",
     "output_base_para": "/g/data/ka08/ga/l1c_metadata",
+    "only_regions_in_para": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scene_select/data/Australian_tile_list_optimised.txt",
     "base_dir": "/g/data/v10/work/s2_c3_ard/",
     "dry_run": " ",
     "only-regions-in-file_para": "",
@@ -64,6 +65,9 @@ if aws_develop:
             "base_dir"
         ] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test_s2/"
         params["output_base_para"] = params["base_dir"] + "yaml"
+        params[
+            "only_regions_in_para"
+        ] = "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scene_select/data/region_used_by_s2_l1_yaml_gen_testing.txt"
         # "" means no ard is produced.
         # /g/data/v10/projects/c3_ard/dea-ard-scene-select/
         # scene_select/data/region_used_by_s2_l1_yaml_gen_testing.txt
@@ -120,6 +124,7 @@ with dag:
                   eo3-prepare sentinel-l1  \
                   -j 4 --after-month 2022-05 \
                   --dry-run \
+                  --only-regions-in-file {{ params.only_regions_in_para }} \
                   --output-base  {{ params.output_base_para }}  \
                   /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/2022"
         """,
