@@ -52,7 +52,7 @@ DEFAULT_PARAMS = dict(
     intermediatedir="s3://dea-public-data-dev/projects/WIT/C2_v4_NSW_only_pq",
     cmd="'time in [2021-01-01, 2099-01-01]'",
     csvdir="s3://dea-public-data-dev/projects/WIT/C2_v4_NSW_only_csv",
-    use_id="",
+    use_id="FeatureID",
 )
 
 # Requested memory. Memory limit is twice this.
