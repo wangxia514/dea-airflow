@@ -110,12 +110,6 @@ with dag:
         task_id=submit_task_id,
         command=COMMON
         + """
-
-        months_back=6
-        month=$(date +%m -d " $months_back month ago")
-        year=$(date +%Y -d " $months_back month ago")
-        echo /$year/$year-$month
-
         mkdir -p {{ params.base_dir }}{{ log_ext }}
         qsub -N ard_scene_select \
               -q  {{ params.queue }}  \
@@ -127,6 +121,10 @@ with dag:
                   "module use /g/data/v10/public/modules/modulefiles/; \
                   module use /g/data/v10/private/modules/modulefiles/; \
                   module load {{ params.module }}; \
+                  months_back=6; \
+                  month=$(date +%m -d " $months_back month ago"); \
+                  year=$(date +%Y -d " $months_back month ago");  \
+                  echo /$year/$year-$month; \
                   eo3-prepare sentinel-l1  \
                   --jobs  {{ params.jobs_para }}  \
                   --after-month 2022-05 \
