@@ -19,7 +19,7 @@ params = {
     "queue": "normal",
     "module": "eodatasets3/0.27.5",
     "index": "--index ",
-    "jobs": "--jobs 1",
+    "jobs_para": "1",
     "config": "",
     "output_base_para": "/g/data/ka08/ga/l1c_metadata",
     "only_regions_in_para": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scene_select/data/Australian_tile_list_optimised.txt",
@@ -44,7 +44,7 @@ schedule_interval = "0 10 * * *"
 params["index"] = ""  # No indexing
 
 # "" means no ard is produced.
-params["dry_run"] = "--dry_run "
+params["dry_run"] = "--dry-run "
 
 aws_develop = True
 if aws_develop:
@@ -122,7 +122,8 @@ with dag:
                   module use /g/data/v10/private/modules/modulefiles/; \
                   module load {{ params.module }}; \
                   eo3-prepare sentinel-l1  \
-                  -j 4 --after-month 2022-05 \
+                  --jobs  {{ params.jobs_para }}  \
+                  --after-month 2022-05 \
                   {{ params.dry_run }}  \
                   --only-regions-in-file {{ params.only_regions_in_para }} \
                   --output-base  {{ params.output_base_para }}  \
