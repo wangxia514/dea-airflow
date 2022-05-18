@@ -260,7 +260,7 @@ def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product):
     job_task = KubernetesJobOperator(
         image=CONFLUX_WIT_IMAGE,
         dag=dag,
-        task_id="wit-filter" + "-" + product,
+        task_id="wit-conflux-filter" + "-" + product,
         get_logs=False,
         body=yaml,
     )
@@ -383,7 +383,7 @@ def k8s_job_run_wit_task(dag, queue_name, plugin, product):
     job_task = KubernetesJobOperator(
         image=CONFLUX_WIT_IMAGE,
         dag=dag,
-        task_id="wit-run" + "-" + product,
+        task_id="wit-conflux-run" + "-" + product,
         get_logs=False,
         body=yaml,
     )
@@ -425,7 +425,7 @@ def k8s_queue_push(dag, queue_name, filename, product, task_id):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="wit-push" + "-" + product,
+        task_id="wit-conflux-push" + "-" + product,
     )
 
 
@@ -458,12 +458,12 @@ def k8s_getids(dag, cmd, product):
         do_xcom_push=True,
         namespace="processing",
         tolerations=tolerations,
-        task_id="wit-getids" + "-" + product,
+        task_id="wit-conflux-getids" + "-" + product,
     )
     return getids
 
 
-def k8s_makequeue(dag, queue_name, product):
+def k8s_makequeues(dag, raw_queue_name, final_queue_name, product):
     # TODO(MatthewJA): Use the name/ID of this DAG
     # to make sure that we don't double-up if we're
     # running two DAGs simultaneously.
@@ -473,10 +473,12 @@ def k8s_makequeue(dag, queue_name, product):
         dedent(
             """
             echo "Using dea-conflux image {image}"
-            dea-conflux make {name} --timeout 7200 --retries 1
+            dea-conflux make {raw_queue_name} --timeout 7200 --retries 1
+            dea-conflux make {final_queue_name} --timeout 7200 --retries 1
             """.format(
                 image=CONFLUX_WIT_IMAGE,
-                name=queue_name
+                raw_queue_name=raw_queue_name,
+                final_queue_name=final_queue_name,
             )
         ),
     ]
@@ -495,12 +497,12 @@ def k8s_makequeue(dag, queue_name, product):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="wit-makequeue" + "-" + product + "-" + queue_name,
+        task_id="wit-conflux-makequeue" + "-" + product,
     )
     return makequeue
 
 
-def k8s_delqueue(dag, queue_name, product):
+def k8s_delqueues(dag, raw_queue_name, final_queue_name, product):
     # TODO(MatthewJA): Use the name/ID of this DAG
     # to make sure that we don't double-up if we're
     # running two DAGs simultaneously.
@@ -510,10 +512,12 @@ def k8s_delqueue(dag, queue_name, product):
         dedent(
             """
             echo "Using dea-conflux image {image}"
-            dea-conflux delete {name}
+            dea-conflux delete {raw_queue_name}
+            dea-conflux delete {final_queue_name}
             """.format(
                 image=CONFLUX_WIT_IMAGE,
-                name=queue_name,
+                raw_queue_name=raw_queue_name,
+                final_queue_name=final_queue_name,
             )
         ),
     ]
@@ -532,7 +536,7 @@ def k8s_delqueue(dag, queue_name, product):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="wit-delqueue" + "-" + product + "-" + queue_name,
+        task_id="wit-conflux-delqueue" + "-" + product,
     )
     return delqueue
 
@@ -568,7 +572,7 @@ def k8s_makecsvs(dag):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="wit-makecsvs",
+        task_id="wit-conflux-makecsvs",
     )
     return makecsvs
 
@@ -589,12 +593,10 @@ with dag:
         final_queue_name = queue
 
         getids = k8s_getids(dag, cmd, product)
-        makeprequeue = k8s_makequeue(dag, pre_queue_name, product)
-        makefinalqueue = k8s_makequeue(dag, final_queue_name, product)
+        makeprequeues = k8s_makequeues(dag, pre_queue_name, final_queue_name, product)
         push = k8s_queue_push(dag, pre_queue_name, product + '-id.txt', product, 'wit-getids-' + product)
         filter = k8s_job_filter_task(dag, input_queue_name=pre_queue_name, output_queue_name=final_queue_name, product=product)
-        task = k8s_job_run_wit_task(dag, final_queue_name, plugin, product)
-        delprequeue = k8s_delqueue(dag, pre_queue_name, product)
-        delfinalqueue = k8s_delqueue(dag, final_queue_name, product)
+        processing = k8s_job_run_wit_task(dag, final_queue_name, plugin, product)
+        delprequeues = k8s_delqueues(dag, pre_queue_name, final_queue_name, product)
 
-        getids >> makeprequeue >> makefinalqueue >> push >> filter >> task >> delprequeue >> delfinalqueue >> makecsvs
+        getids >> makeprequeues >> push >> filter >> processing >> delprequeues >> makecsvs
