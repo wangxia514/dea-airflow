@@ -18,6 +18,9 @@ csvdir
 flags
     Other flags to pass to Conflux.
 
+use_id
+    The unique use_id in shapefile.
+
 """
 from datetime import datetime, timedelta
 
@@ -49,6 +52,7 @@ DEFAULT_PARAMS = dict(
     intermediatedir="s3://dea-public-data-dev/projects/WIT/C2_v4_NSW_only_pq",
     cmd="'time in [2021-01-01, 2099-01-01]'",
     csvdir="s3://dea-public-data-dev/projects/WIT/C2_v4_NSW_only_csv",
+    use_id="",
 )
 
 # Requested memory. Memory limit is twice this.
@@ -144,7 +148,7 @@ WIT_INPUTS = [{"product": "ga_ls5t_ard_3", "plugin": "wit_ls5", "queue": "wit_co
               {"product": "ga_ls8c_ard_3", "plugin": "wit_ls8", "queue": "wit_conflux_ls8_sqs"}]
 
 
-def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product):
+def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product, use_id):
 
     # we are using r5.4xl EC2: 16 CPUs + 128 GB RAM
     mem = CONFLUX_POD_MEMORY_MB // 2  # the biggest filter usage is 20GB
@@ -198,10 +202,12 @@ def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product):
                                         --output-queue {output_queue_name} \
                                         --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} \
                                         --num-worker {cpu} \
+                                        --use-id {use_id} \
                                     """.format(input_queue_name=input_queue_name,
                                                output_queue_name=output_queue_name,
                                                shapefile=DEFAULT_PARAMS['shapefile'],
                                                cpu=cpu,
+                                               use_id=use_id,
                                                )),
                             ],
                             "env": [
@@ -267,7 +273,7 @@ def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product):
     return job_task
 
 
-def k8s_job_run_wit_task(dag, queue_name, plugin, product):
+def k8s_job_run_wit_task(dag, queue_name, plugin, product, use_id):
     mem = CONFLUX_POD_MEMORY_MB
     req_mem = "{}Mi".format(int(mem))
     lim_mem = "{}Mi".format(int(mem))
@@ -320,11 +326,13 @@ def k8s_job_run_wit_task(dag, queue_name, plugin, product):
                                             --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} \
                                             --output {{{{ dag_run.conf.get("intermediatedir", "{intermediatedir}") }}}} {{{{ dag_run.conf.get("flags", "") }}}} \
                                             --not-dump-empty-dataframe \
-                                            --timeout 7200
+                                            --timeout 7200 \
+                                            --use-id {use_id} \
                                     """.format(queue=queue_name,
                                                shapefile=DEFAULT_PARAMS['shapefile'],
                                                intermediatedir=DEFAULT_PARAMS['intermediatedir'],
                                                plugin=plugin,
+                                               use_id=use_id,
                                                )),
                             ],
                             "env": [
@@ -582,6 +590,11 @@ with dag:
         cmd=DEFAULT_PARAMS['cmd'],
     )
 
+    # if not given use_id, will grab the empty string
+    use_id = '{{{{ dag_run.conf.get("use_id", "{use_id}") }}}}'.format(
+        use_id=DEFAULT_PARAMS['use_id'],
+    )
+
     makecsvs = k8s_makecsvs(dag)
 
     for wit_input in WIT_INPUTS:
@@ -595,8 +608,8 @@ with dag:
         getids = k8s_getids(dag, cmd, product)
         makeprequeues = k8s_makequeues(dag, pre_queue_name, final_queue_name, product)
         push = k8s_queue_push(dag, pre_queue_name, product + '-id.txt', product, 'wit-conflux-getids-' + product)
-        filter = k8s_job_filter_task(dag, input_queue_name=pre_queue_name, output_queue_name=final_queue_name, product=product)
-        processing = k8s_job_run_wit_task(dag, final_queue_name, plugin, product)
+        filter = k8s_job_filter_task(dag, input_queue_name=pre_queue_name, output_queue_name=final_queue_name, product=product, use_id=use_id)
+        processing = k8s_job_run_wit_task(dag, final_queue_name, plugin, product, use_id)
         delprequeues = k8s_delqueues(dag, pre_queue_name, final_queue_name, product)
 
         getids >> makeprequeues >> push >> filter >> processing >> delprequeues >> makecsvs
