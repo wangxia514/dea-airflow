@@ -110,6 +110,12 @@ with dag:
         task_id=submit_task_id,
         command=COMMON
         + """
+
+        months_back=6
+        month=$(date +%m -d " $months_back month ago")
+        year=$(date +%Y -d " $months_back month ago")
+        echo /$year/$year-$month
+
         mkdir -p {{ params.base_dir }}{{ log_ext }}
         qsub -N ard_scene_select \
               -q  {{ params.queue }}  \
