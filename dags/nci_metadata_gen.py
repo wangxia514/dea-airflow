@@ -65,9 +65,9 @@ if aws_develop:
             "base_dir"
         ] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test_s2/"
         params["output_base_para"] = params["base_dir"] + "yaml"
-        params[
-            "only_regions_in_para"
-        ] = "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scene_select/data/region_used_by_s2_l1_yaml_gen_testing.txt"
+        # params[
+        #     "only_regions_in_para"
+        # ] = "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scene_select/data/region_used_by_s2_l1_yaml_gen_testing.txt"
         # "" means no ard is produced.
         # /g/data/v10/projects/c3_ard/dea-ard-scene-select/
         # scene_select/data/region_used_by_s2_l1_yaml_gen_testing.txt
