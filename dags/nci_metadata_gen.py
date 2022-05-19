@@ -130,7 +130,8 @@ qsub -N ard_scene_select \
 "module use /g/data/v10/public/modules/modulefiles/; \
 module use /g/data/v10/private/modules/modulefiles/; \
 module load {{ params.module }}; \
-echo /$year/$year-$month; \
+echo ${year}; \
+echo ${a_year}; \
 eo3-prepare sentinel-l1  \
 --jobs  {{ params.jobs_para }}  \
 --after-month $a_year-$a_month \
