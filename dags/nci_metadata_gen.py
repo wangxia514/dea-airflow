@@ -112,6 +112,8 @@ with dag:
         command=COMMON
         + """
 mkdir -p {{ params.base_dir }}{{ log_ext }}
+month=$(date +%m -d ' 6  month ago')
+year=$(date +%Y -d ' 6  month ago')
 qsub -N ard_scene_select \
 -q  {{ params.queue }}  \
 -W umask=33 \
@@ -122,12 +124,10 @@ qsub -N ard_scene_select \
 "module use /g/data/v10/public/modules/modulefiles/; \
 module use /g/data/v10/private/modules/modulefiles/; \
 module load {{ params.module }}; \
-month=$(date +%m -d ' {{ params.months_back }} month ago'); \
-year=$(date +%Y -d ' {{ params.months_back }} month ago');  \
 echo /$year/$year-$month; \
 eo3-prepare sentinel-l1  \
 --jobs  {{ params.jobs_para }}  \
---after-month 2022-05 \
+--after-month $year-$month \
 {{ params.dry_run }}  \
 --only-regions-in-file {{ params.only_regions_in_para }} \
 --output-base  {{ params.output_base_para }}  \
