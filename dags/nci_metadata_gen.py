@@ -111,27 +111,27 @@ with dag:
         task_id=submit_task_id,
         command=COMMON
         + """
-        mkdir -p {{ params.base_dir }}{{ log_ext }}
-        qsub -N ard_scene_select \
-              -q  {{ params.queue }}  \
-              -W umask=33 \
-              -l wd,walltime=3:00:00,mem=15GB,ncpus=1 -m abe \
-              -l storage=gdata/v10+scratch/v10+gdata/if87+gdata/fj7+scratch/fj7+gdata/u46+scratch/u46 \
-              -P  {{ params.project }} -o {{ params.base_dir }}{{ log_ext }} -e {{ params.base_dir }}{{ log_ext }}  \
-              -- /bin/bash -l -c \
-                  "module use /g/data/v10/public/modules/modulefiles/; \
-                  module use /g/data/v10/private/modules/modulefiles/; \
-                  module load {{ params.module }}; \
-                  month=$(date +%m -d ' {{ params.months_back }} month ago'); \
-                  year=$(date +%Y -d ' {{ params.months_back }} month ago');  \
-                  echo /$year/$year-$month; \
-                  eo3-prepare sentinel-l1  \
-                  --jobs  {{ params.jobs_para }}  \
-                  --after-month 2022-05 \
-                  {{ params.dry_run }}  \
-                  --only-regions-in-file {{ params.only_regions_in_para }} \
-                  --output-base  {{ params.output_base_para }}  \
-                  /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/2022"
+mkdir -p {{ params.base_dir }}{{ log_ext }}
+qsub -N ard_scene_select \
+-q  {{ params.queue }}  \
+-W umask=33 \
+-l wd,walltime=3:00:00,mem=15GB,ncpus=1 -m abe \
+-l storage=gdata/v10+scratch/v10+gdata/if87+gdata/fj7+scratch/fj7+gdata/u46+scratch/u46 \
+-P  {{ params.project }} -o {{ params.base_dir }}{{ log_ext }} -e {{ params.base_dir }}{{ log_ext }}  \
+-- /bin/bash -l -c \
+"module use /g/data/v10/public/modules/modulefiles/; \
+module use /g/data/v10/private/modules/modulefiles/; \
+module load {{ params.module }}; \
+month=$(date +%m -d ' {{ params.months_back }} month ago'); \
+year=$(date +%Y -d ' {{ params.months_back }} month ago');  \
+echo /$year/$year-$month; \
+eo3-prepare sentinel-l1  \
+--jobs  {{ params.jobs_para }}  \
+--after-month 2022-05 \
+{{ params.dry_run }}  \
+--only-regions-in-file {{ params.only_regions_in_para }} \
+--output-base  {{ params.output_base_para }}  \
+/g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/2022"
         """,
         timeout=60 * 20,
         do_xcom_push=True,
