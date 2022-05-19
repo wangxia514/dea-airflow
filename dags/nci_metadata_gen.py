@@ -14,12 +14,15 @@ from airflow.operators.dummy import DummyOperator
 
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
+# I really dont want to index yet
+# "index": "--index ",
+
 params = {
     "project": "v10",
     "queue": "normal",
     "module": "eodatasets3/0.27.5",
-    "index": "--index ",
-    "months_back": "6 ",
+    "index": " ",
+    "months_back": "3 ",
     "jobs_para": "1",
     "config": "",
     "output_base_para": "/g/data/ka08/ga/l1c_metadata",
@@ -41,6 +44,7 @@ schedule_interval = "0 10 * * *"
 # sed '/#\/\*/,/#\*\// d' dags/nci_ard.py > ../nci_ard.py
 # mv ../nci_ard.py dags/nci_ard.py
 # params[""] =
+
 
 params["index"] = ""  # No indexing
 
@@ -112,8 +116,10 @@ with dag:
         command=COMMON
         + """
 mkdir -p {{ params.base_dir }}{{ log_ext }}
-month=$(date +%m -d ' 6  month ago')
-year=$(date +%Y -d ' 6  month ago')
+a_month=$(date +%m -d ' 6  month ago')
+a_year=$(date +%Y -d ' 6  month ago')
+echo ${year}
+echo ${a_year}
 qsub -N ard_scene_select \
 -q  {{ params.queue }}  \
 -W umask=33 \
@@ -127,7 +133,7 @@ module load {{ params.module }}; \
 echo /$year/$year-$month; \
 eo3-prepare sentinel-l1  \
 --jobs  {{ params.jobs_para }}  \
---after-month $year-$month \
+--after-month $a_year-$a_month \
 {{ params.dry_run }}  \
 --only-regions-in-file {{ params.only_regions_in_para }} \
 --output-base  {{ params.output_base_para }}  \
