@@ -116,8 +116,8 @@ with dag:
         command=COMMON
         + """
 mkdir -p {{ params.base_dir }}{{ log_ext }}
-a_month=$(date +%m -d ' 6  month ago')
-a_year=$(date +%Y -d ' 6  month ago')
+a_month=$(date +%m -d ' 1  month ago')
+a_year=$(date +%Y -d ' 1  month ago')
 echo ${year}
 echo ${a_year}
 qsub -N ard_scene_select \
