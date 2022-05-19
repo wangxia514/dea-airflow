@@ -19,6 +19,7 @@ params = {
     "queue": "normal",
     "module": "eodatasets3/0.27.5",
     "index": "--index ",
+    "months_back": "6 ",
     "jobs_para": "1",
     "config": "",
     "output_base_para": "/g/data/ka08/ga/l1c_metadata",
@@ -121,9 +122,8 @@ with dag:
                   "module use /g/data/v10/public/modules/modulefiles/; \
                   module use /g/data/v10/private/modules/modulefiles/; \
                   module load {{ params.module }}; \
-                  months_back=6; \
-                  month=$(date +%m -d " $months_back month ago"); \
-                  year=$(date +%Y -d " $months_back month ago");  \
+                  month=$(date +%m -d ' {{ params.months_back }} month ago'); \
+                  year=$(date +%Y -d ' {{ params.months_back }} month ago');  \
                   echo /$year/$year-$month; \
                   eo3-prepare sentinel-l1  \
                   --jobs  {{ params.jobs_para }}  \
