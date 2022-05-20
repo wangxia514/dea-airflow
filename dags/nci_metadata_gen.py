@@ -127,12 +127,10 @@ qsub -N ard_scene_select \
 -l storage=gdata/v10+scratch/v10+gdata/if87+gdata/fj7+scratch/fj7+gdata/u46+scratch/u46 \
 -P  {{ params.project }} -o {{ params.base_dir }}{{ log_ext }} -e {{ params.base_dir }}{{ log_ext }}  \
 -- /bin/bash -l -c \
-"set -x; \
-module use /g/data/v10/public/modules/modulefiles/; \
+"module use /g/data/v10/public/modules/modulefiles/; \
 module use /g/data/v10/private/modules/modulefiles/; \
 module load {{ params.module }}; \
-echo ${year}; \
-echo ${a_year}; \
+set -x; \
 eo3-prepare sentinel-l1  \
 --jobs  {{ params.jobs_para }}  \
 --after-month $a_year-$a_month \
