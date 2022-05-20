@@ -115,6 +115,7 @@ with dag:
         task_id=submit_task_id,
         command=COMMON
         + """
+set -x
 mkdir -p {{ params.base_dir }}{{ log_ext }}
 a_month=$(date +%m -d ' 1  month ago')
 a_year=$(date +%Y -d ' 1  month ago')
