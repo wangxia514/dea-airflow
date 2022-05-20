@@ -115,7 +115,6 @@ with dag:
         task_id=submit_task_id,
         command=COMMON
         + """
-set -x
 mkdir -p {{ params.base_dir }}{{ log_ext }}
 a_month=$(date +%m -d ' 1  month ago')
 a_year=$(date +%Y -d ' 1  month ago')
@@ -128,7 +127,8 @@ qsub -N ard_scene_select \
 -l storage=gdata/v10+scratch/v10+gdata/if87+gdata/fj7+scratch/fj7+gdata/u46+scratch/u46 \
 -P  {{ params.project }} -o {{ params.base_dir }}{{ log_ext }} -e {{ params.base_dir }}{{ log_ext }}  \
 -- /bin/bash -l -c \
-"module use /g/data/v10/public/modules/modulefiles/; \
+"set -x; \
+module use /g/data/v10/public/modules/modulefiles/; \
 module use /g/data/v10/private/modules/modulefiles/; \
 module load {{ params.module }}; \
 echo ${year}; \
