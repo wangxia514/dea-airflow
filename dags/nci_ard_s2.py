@@ -92,7 +92,7 @@ if aws_develop:
 
         # "" means no ard is produced.
         params["run_ard_arg"] = ""
-    elif run_type == "test":
+    else:  # elif run_type == "test":
         params[
             "base_dir"
         ] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test_s2/"

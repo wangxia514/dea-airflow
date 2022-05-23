@@ -94,7 +94,7 @@ if aws_develop:
         params["index"] = "--index "
         params["dry_run"] = " "
 
-    elif run_type == "no_indexing_test":
+    else:  # no indexing and typos go here # elif run_type == "no_indexing_test":
         params[
             "base_dir"
         ] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test_s2/"
