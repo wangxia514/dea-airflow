@@ -64,10 +64,14 @@ if aws_develop:
     # run type
     # Options ['small_prod', 'pre_prod', 'indexing_test', 'no_indexing_test']
     run_type = "no_indexing_test"
+    # Remember to blow away the db and rm old yamls
     if run_type == "small_prod":
+        params["months_back"] = "0 "
         pass
     elif run_type == "pre_prod":
         params["pkgdir_arg"] = "/g/data/ka08/test_ga"
+
+        params["months_back"] = "0 "
 
         # The ODC db used
         params[
@@ -80,8 +84,8 @@ if aws_develop:
         params[
             "base_dir"
         ] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test_s2/"
-        params["output_base_para"] = params["base_dir"] + "yaml"
-        params["base_dir"] = params["base_dir"] + "logdir"
+        params["output_base_para"] = params["base_dir"] + "yaml_airflow"
+        params["base_dir"] = params["base_dir"] + "/logdir"
         params[
             "only_regions_in_para"
         ] = "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scene_select/data/region_used_by_s2_l1_yaml_gen_testing.txt"
@@ -93,13 +97,14 @@ if aws_develop:
 
         params["index"] = "--index "
         params["dry_run"] = " "
+        params["months_back"] = "0 "
 
     else:  # no indexing and typos go here # elif run_type == "no_indexing_test":
         params[
             "base_dir"
         ] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test_s2/"
-        params["output_base_para"] = params["base_dir"] + "yaml"
-        params["base_dir"] = params["base_dir"] + "logdir"
+        params["output_base_para"] = params["base_dir"] + "yaml_airflow"
+        params["base_dir"] = params["base_dir"] + "/logdir"
         params[
             "only_regions_in_para"
         ] = "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scene_select/data/region_used_by_s2_l1_yaml_gen_testing.txt"
@@ -107,6 +112,7 @@ if aws_develop:
         params["index"] = ""  # No indexing
 
         params["dry_run"] = "--dry-run "
+        params["months_back"] = "0 "
 
         # The ODC db used
         params[
