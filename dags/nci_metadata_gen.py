@@ -93,7 +93,7 @@ if aws_develop:
         # The ODC db used
         params[
             "config_arg"
-        ] = "--config /g/data/v10/Landsat-Collection-3-ops/dea-ard-scene-select/tests/scripts/airflow/pipeline_test.conf"
+        ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/pipeline_test.conf"
 
         params["index"] = "--index "
         params["dry_run"] = " "
@@ -117,7 +117,7 @@ if aws_develop:
         # The ODC db used
         params[
             "config_arg"
-        ] = "--config /g/data/v10/Landsat-Collection-3-ops/dea-ard-scene-select/tests/scripts/airflow/pipeline_test.conf"
+        ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/pipeline_test.conf"
 
 else:
     pass
