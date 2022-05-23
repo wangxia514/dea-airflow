@@ -63,7 +63,7 @@ if aws_develop:
 
     # run type
     # Options ['small_prod', 'pre_prod', 'indexing_test', 'no_indexing_test']
-    run_type = "no_indexing_test"
+    run_type = "indexing_test"
     # Remember to blow away the db and rm old yamls
     if run_type == "small_prod":
         params["months_back"] = "0 "
