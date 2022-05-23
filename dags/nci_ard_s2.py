@@ -88,7 +88,7 @@ if aws_develop:
         # The ODC db used
         params[
             "config_arg"
-        ] = "--config /g/data/u46/users/dsg547/sandbox/dea-ard-scene-select/tests/scripts/airflow/pipeline_test.conf"
+        ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/pipeline_test.conf"
 
         # "" means no ard is produced.
         params["run_ard_arg"] = ""
@@ -101,7 +101,7 @@ if aws_develop:
         # The ODC db used
         params[
             "config_arg"
-        ] = "--config /g/data/u46/users/dsg547/sandbox/dea-ard-scene-select/tests/scripts/airflow/pipeline_test.conf"
+        ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/pipeline_test.conf"
         # "" means no ard is produced.
         params["run_ard_arg"] = ""
 
