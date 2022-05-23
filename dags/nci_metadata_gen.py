@@ -66,17 +66,17 @@ if aws_develop:
     run_type = "indexing_test"
     # Remember to blow away the db and rm old yamls
     if run_type == "small_prod":
-        params["months_back"] = "0 "
+        params["months_back"] = "1 "
         pass
     elif run_type == "pre_prod":
         params["pkgdir_arg"] = "/g/data/ka08/test_ga"
 
-        params["months_back"] = "0 "
+        params["months_back"] = "1 "
 
         # The ODC db used
         params[
             "config_arg"
-        ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/pipeline_test.conf"
+        ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf"
         params["index"] = "--index "
         params["dry_run"] = " "
 
@@ -93,11 +93,11 @@ if aws_develop:
         # The ODC db used
         params[
             "config_arg"
-        ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/pipeline_test.conf"
+        ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf"
 
         params["index"] = "--index "
         params["dry_run"] = " "
-        params["months_back"] = "0 "
+        params["months_back"] = "1 "
 
     else:  # no indexing and typos go here # elif run_type == "no_indexing_test":
         params[
@@ -110,15 +110,8 @@ if aws_develop:
         ] = "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scene_select/data/region_used_by_s2_l1_yaml_gen_testing.txt"
 
         params["index"] = ""  # No indexing
-
         params["dry_run"] = "--dry-run "
-        params["months_back"] = "0 "
-
-        # The ODC db used
-        params[
-            "config_arg"
-        ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/pipeline_test.conf"
-
+        params["months_back"] = "1 "
 else:
     pass
 # #*/ The end of the sed removed block of code
