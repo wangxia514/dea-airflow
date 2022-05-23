@@ -1,8 +1,6 @@
 """
-# Produce Landsat C3 ARD on the NCI
-
-The DAG starts ard_scene_select which filters the landsat l1 scenes to send to ARD to process.
-It also starts the ARD processing.  ARD processing indexes the ARD output scenes.
+Produce ODC metadata yaml's for S2 l1 scenes and index the scenes.
+Search on NCI /g/data/fj7 for the S2 l1 scenes to index.
 
 The logs are written to NCI.
 """
@@ -14,8 +12,10 @@ from airflow.operators.dummy import DummyOperator
 
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
-# I really dont want to index yet
+# Actual production values have been removed
+# Since production hasn't started yet
 # "index": "--index ",
+# "output_base_para": "/g/data/ka08/ga/l1c_metadata",
 
 params = {
     "project": "v10",
@@ -25,7 +25,7 @@ params = {
     "months_back": "3 ",
     "jobs_para": "1",
     "config": "",
-    "output_base_para": "/g/data/ka08/ga/l1c_metadata",
+    "output_base_para": "/g/data/ka08/ga/test_l1c_metadata",
     "only_regions_in_para": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scene_select/data/Australian_tile_list_optimised.txt",
     "base_dir": "/g/data/v10/work/s2_c3_ard/",
     "dry_run": " ",
@@ -70,6 +70,7 @@ if aws_develop:
             "base_dir"
         ] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test_s2/"
         params["output_base_para"] = params["base_dir"] + "yaml"
+        params["base_dir"] = params["base_dir"] + "logdir"
         params[
             "only_regions_in_para"
         ] = "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scene_select/data/region_used_by_s2_l1_yaml_gen_testing.txt"

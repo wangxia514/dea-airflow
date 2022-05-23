@@ -1,7 +1,7 @@
 """
-# Produce Landsat C3 ARD on the NCI
+# Produce S2 C3 ARD on the NCI
 
-The DAG starts ard_scene_select which filters the landsat l1 scenes to send to ARD to process.
+The DAG starts ard_scene_select which filters the S2 l1 scenes to send to ARD to process.
 It also starts the ARD processing.  ARD processing indexes the ARD output scenes.
 
 The logs are written to NCI.
@@ -17,19 +17,19 @@ from sensors.pbs_job_complete_sensor import PBSJobSensor
 params = {
     "project": "v10",
     "queue": "copyq",
-    "module_ass": "ard-scene-select-py3-dea/20220404",
+    "module_ass": "ard-scene-select-py3-dea/20220516",
     "index_arg": "--index-datacube-env "
     "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
     "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl-s2.env",
     "config_arg": "",
     "scene_limit": "--scene-limit 400",
     "interim_days_wait": "",
-    "products_arg": """--products '["esa_s2am_level1_1", "esa_s2bm_level1_1"]'""",
-    "pkgdir_arg": "/g/do/not/know/",
-    "base_dir": "/g/data/v10/work/c3_ard/",
+    "products_arg": """--products '["esa_s2am_level1_0", "esa_s2bm_level1_0"]'""",
+    "pkgdir_arg": "/g/data/ka08/ga",
+    "base_dir": "/g/data/v10/work/s2_c3_ard/",
     "days_to_exclude_arg": "",
     "run_ard_arg": "--run-ard",
-    "yamldir": " --yamls-dir /g/data/u46/users/dsg547/test_data/s2_pipeline/yaml/"
+    "yamldir": " --yamls-dir /g/data/ka08/ga/l1c_metadata",
 }
 
 ssh_conn_id = "lpgs_gadi"
@@ -65,8 +65,6 @@ if use_test_db:
 # params["days_to_exclude_arg"] = ""
 #  if you use it it looks like """--days-to-exclude '["2020-06-26:2020-06-26"]'"""
 
-params["run_ard_arg"] = ""
-
 aws_develop = True
 if aws_develop:
     # run this from airflow dev
@@ -75,14 +73,35 @@ if aws_develop:
     schedule_interval = None
 
     # Use yamls from the test dir
-    params["yamldir"] = " --yamls-dir /g/data/u46/users/dsg547/test_data/s2_pipeline/yaml/"
-    small_prod_run = False  # small_prod_run or small_non_prod
-    if small_prod_run:
-        params["index_arg"] = "--index-datacube-env "
-        params["pkgdir_arg"] = params["base_dir"]
+    params[
+        "yamldir"
+    ] = " --yamls-dir /g/data/u46/users/dsg547/test_data/s2_pipeline/yaml/"
+
+    # run type
+    # Options ['small_prod', 'pre_prod', 'test']
+    run_type = "test"
+    if run_type == "small_prod":
         params["scene_limit"] = "--scene-limit 1"
-    else:
-        params["pkgdir_arg"] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test_s2/"
+    elif run_type == "pre_prod":
+        params["pkgdir_arg"] = "/g/data/ka08/test_ga"
+
+        # The ODC db used
+        params[
+            "config_arg"
+        ] = "--config /g/data/u46/users/dsg547/sandbox/dea-ard-scene-select/tests/scripts/airflow/pipeline_test.conf"
+
+        # "" means no ard is produced.
+        params["run_ard_arg"] = ""
+    elif run_type == "test":
+        params[
+            "base_dir"
+        ] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test_s2/"
+        params["pkgdir_arg"] = params["base_dir"]
+
+        # The ODC db used
+        params[
+            "config_arg"
+        ] = "--config /g/data/u46/users/dsg547/sandbox/dea-ard-scene-select/tests/scripts/airflow/pipeline_test.conf"
         # "" means no ard is produced.
         params["run_ard_arg"] = ""
 
@@ -90,14 +109,8 @@ if aws_develop:
     # params["scene_limit"] = "--scene-limit 1"
     #
 else:
-    # run this from local dev
-    # Add the storage for u46 back
-    # -l storage=gdata/v10+scratch/v10+gdata/if87+gdata/fj7+scratch/fj7+scratch/u46+gdata/u46 \
+    pass
 
-    ssh_conn_id = "dsg547"
-    params["project"] = "u46"
-    params["pkgdir_arg"] = "/g/data/u46/users/dsg547/results_airflow/"
-    schedule_interval = None
 params["base_dir"] = params["pkgdir_arg"]
 # #*/ The end of the sed removed block of code
 
@@ -147,7 +160,6 @@ with dag:
               -- /bin/bash -l -c \
                   "module use /g/data/v10/public/modules/modulefiles/; \
                   module use /g/data/v10/private/modules/modulefiles/; \
-                  module use /g/data/u46/users/dsg547/devmodules/modulefiles/; \
                   module load {{ params.module_ass }}; \
                   ard-scene-select \
                 {{ params.products_arg }} \
