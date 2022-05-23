@@ -46,11 +46,6 @@ schedule_interval = "0 10 * * *"
 # params[""] =
 
 
-params["index"] = ""  # No indexing
-
-# "" means no ard is produced.
-params["dry_run"] = "--dry-run "
-
 aws_develop = True
 if aws_develop:
     # run this from airflow dev
@@ -62,10 +57,26 @@ if aws_develop:
     params[
         "yamldir"
     ] = " --yamls-dir /g/data/u46/users/dsg547/test_data/s2_pipeline/yaml/"
-    small_prod_run = False  # small_prod_run or small_non_prod
-    if small_prod_run:
+
+    # /g/data/v10/projects/c3_ard/dea-ard-scene-select/
+    # scene_select/data/region_used_by_s2_l1_yaml_gen_testing.txt
+
+    # run type
+    # Options ['small_prod', 'pre_prod', 'indexing_test', 'no_indexing_test']
+    run_type = "no_indexing_test"
+    if run_type == "small_prod":
         pass
-    else:
+    elif run_type == "pre_prod":
+        params["pkgdir_arg"] = "/g/data/ka08/test_ga"
+
+        # The ODC db used
+        params[
+            "config_arg"
+        ] = "--config /g/data/u46/users/dsg547/sandbox/dea-ard-scene-select/tests/scripts/airflow/pipeline_test.conf"
+        params["index"] = "--index "
+        params["dry_run"] = " "
+
+    elif run_type == "indexing_test":
         params[
             "base_dir"
         ] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test_s2/"
@@ -74,9 +85,33 @@ if aws_develop:
         params[
             "only_regions_in_para"
         ] = "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scene_select/data/region_used_by_s2_l1_yaml_gen_testing.txt"
-        # "" means no ard is produced.
-        # /g/data/v10/projects/c3_ard/dea-ard-scene-select/
-        # scene_select/data/region_used_by_s2_l1_yaml_gen_testing.txt
+
+        # The ODC db used
+        params[
+            "config_arg"
+        ] = "--config /g/data/u46/users/dsg547/sandbox/dea-ard-scene-select/tests/scripts/airflow/pipeline_test.conf"
+
+        params["index"] = "--index "
+        params["dry_run"] = " "
+
+    elif run_type == "no_indexing_test":
+        params[
+            "base_dir"
+        ] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test_s2/"
+        params["output_base_para"] = params["base_dir"] + "yaml"
+        params["base_dir"] = params["base_dir"] + "logdir"
+        params[
+            "only_regions_in_para"
+        ] = "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scene_select/data/region_used_by_s2_l1_yaml_gen_testing.txt"
+
+        params["index"] = ""  # No indexing
+
+        params["dry_run"] = "--dry-run "
+
+        # The ODC db used
+        params[
+            "config_arg"
+        ] = "--config /g/data/u46/users/dsg547/sandbox/dea-ard-scene-select/tests/scripts/airflow/pipeline_test.conf"
 
 else:
     pass
@@ -131,9 +166,11 @@ module use /g/data/v10/private/modules/modulefiles/; \
 module load {{ params.module }}; \
 set -x; \
 eo3-prepare sentinel-l1  \
---jobs  {{ params.jobs_para }}  \
+--jobs {{ params.jobs_para }}  \
 --after-month $a_year-$a_month \
 {{ params.dry_run }}  \
+{{ params.index }}  \
+{{ params.config_arg }} \
 --only-regions-in-file {{ params.only_regions_in_para }} \
 --output-base  {{ params.output_base_para }}  \
 /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/2022"
