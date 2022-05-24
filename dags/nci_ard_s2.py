@@ -155,7 +155,7 @@ with dag:
               -q  {{ params.queue }}  \
               -W umask=33 \
               -l wd,walltime=3:00:00,mem=15GB,ncpus=1 -m abe \
-              -l storage=gdata/v10+scratch/v10+gdata/if87+gdata/fj7+scratch/fj7+gdata/u46+scratch/u46 \
+              -l storage=gdata/ka08+scratch/ka08+gdata/v10+scratch/v10+gdata/fj7+scratch/fj7+gdata/u46+scratch/u46 \
               -P  {{ params.project }} -o {{ params.base_dir }}{{ log_ext }} -e {{ params.base_dir }}{{ log_ext }}  \
               -- /bin/bash -l -c \
                   "module use /g/data/v10/public/modules/modulefiles/; \
