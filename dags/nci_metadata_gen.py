@@ -164,6 +164,8 @@ qsub -N ard_scene_select \
 module use /g/data/v10/private/modules/modulefiles/; \
 module load {{ params.module }}; \
 set -x; \
+datacube {{ params.config_arg }} system check; \
+exit; \
 eo3-prepare sentinel-l1  \
 --jobs {{ params.jobs_para }}  \
 --after-month $a_year-$a_month \
