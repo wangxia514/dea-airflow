@@ -145,7 +145,7 @@ with dag:
 mkdir -p {{ params.base_dir }}{{ log_ext }}
 a_month=$(date +%m -d ' 1  month ago')
 a_year=$(date +%Y -d ' 1  month ago')
-qsub -N ard_scene_select \
+qsub -N nci_metadata_gen \
 -q  {{ params.queue }}  \
 -W umask=33 \
 -l wd,walltime=3:00:00,mem=15GB,ncpus=1 -m abe \
