@@ -476,8 +476,8 @@ def k8s_makecsvs(dag):
         affinity=affinity,
         is_delete_operator_pod=True,
         resources={
-            "request_cpu": "1000m",
-            "request_memory": "512Mi",
+            "request_cpu": "4000m",
+            "request_memory": "4096Mi",
         },
         namespace="processing",
         tolerations=tolerations,
