@@ -80,12 +80,12 @@ if aws_develop:
         params["base_dir"] = params["base_dir"] + "/logdir/"
         params[
             "only_regions_in_para"
-        ] = "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scene_select/data/region_used_by_s2_l1_yaml_gen_testing.txt"
+        ] = "/g/data/u46/users/dsg547/sandbox/processingDEA/s2_pipeline/53JQK.txt"
 
         # The ODC db used
         params[
             "config_arg"
-        ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf"
+        ] = "--config /g/data/u46/users/dsg547/sandbox/processingDEA/s2_pipeline/pipeline_test.conf"
 
         params["index"] = "--index "
         params["dry_run"] = " "
@@ -158,13 +158,13 @@ module load {{ params.module }}; \
 set -x; \
 eo3-prepare sentinel-l1  \
 --jobs {{ params.jobs_para }}  \
---after-month $a_year-$a_month \
+--after-month  2021-04 \
 {{ params.dry_run }}  \
 {{ params.index }}  \
 {{ params.config_arg }} \
 --only-regions-in-file {{ params.only_regions_in_para }} \
 --output-base  {{ params.output_base_para }}  \
-/g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/2022"
+/g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/2021/2021-04/25S135E-30S140E"
         """,
         timeout=60 * 20,
         do_xcom_push=True,
