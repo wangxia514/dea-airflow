@@ -157,15 +157,13 @@ qsub -N ard_scene_select \
 -q  {{ params.queue }}  \
 -W umask=33 \
 -l wd,walltime=3:00:00,mem=15GB,ncpus=1 -m abe \
--l storage=gdata/v10+scratch/v10+gdata/if87+gdata/fj7+scratch/fj7+gdata/u46+scratch/u46 \
+-l storage=gdata/v10+scratch/v10+gdata/ka08+scratch/ka08+gdata/fj7+scratch/fj7+gdata/u46+scratch/u46 \
 -P  {{ params.project }} -o {{ params.base_dir }}{{ log_ext }} -e {{ params.base_dir }}{{ log_ext }}  \
 -- /bin/bash -l -c \
 "module use /g/data/v10/public/modules/modulefiles/; \
 module use /g/data/v10/private/modules/modulefiles/; \
 module load {{ params.module }}; \
 set -x; \
-datacube {{ params.config_arg }} system check; \
-exit; \
 eo3-prepare sentinel-l1  \
 --jobs {{ params.jobs_para }}  \
 --after-month $a_year-$a_month \
