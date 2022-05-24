@@ -184,6 +184,7 @@ def k8s_job_task(dag, queue_name, plugin, product):
                                             --plugin examples/{plugin}.conflux.py \
                                             --queue {queue} \
                                             --overedge \
+                                            --use-id XXX_UID \
                                             --partial \
                                             --no-db \
                                             --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} \
