@@ -101,5 +101,5 @@ with dag:
         task_id="s5cmd-copy",
         get_logs=False,
         affinity=ONDEMAND_NODE_AFFINITY,
-        is_delete_operator_pod=True,
+        is_delete_operator_pod=False,
     )
