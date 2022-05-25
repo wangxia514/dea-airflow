@@ -99,7 +99,7 @@ with dag:
         labels={"step": "utility-s5cmd-copy"},
         name="s5cmd-copy",
         task_id="s5cmd-copy",
-        get_logs=True,
+        get_logs=False,
         affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
     )
