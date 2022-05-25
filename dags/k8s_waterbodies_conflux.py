@@ -472,7 +472,7 @@ def k8s_makecsvs(dag):
         arguments=makecsvs_cmd,
         image_pull_policy="IfNotPresent",
         labels={"app": "waterbodies-conflux-makecsvs"},
-        get_logs=True,
+        get_logs=False,
         affinity=affinity,
         is_delete_operator_pod=True,
         resources={
