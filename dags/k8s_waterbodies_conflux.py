@@ -459,7 +459,7 @@ def k8s_makecsvs(dag):
         dedent(
             """
             echo "Using dea-conflux image {image}"
-            dea-conflux db-to-csv --output {{{{ dag_run.conf.get("csvdir", "{csvdir}") }}}} --jobs 64 --verbose
+            dea-conflux db-to-csv --output {{{{ dag_run.conf.get("csvdir", "{csvdir}") }}}} --jobs 128 --verbose
             """.format(
                 image=CONFLUX_UNSTABLE_IMAGE,
                 csvdir=DEFAULT_PARAMS['csvdir'],
@@ -477,7 +477,7 @@ def k8s_makecsvs(dag):
         is_delete_operator_pod=True,
         resources={
             "request_cpu": "4000m",
-            "request_memory": "4096Mi",
+            "request_memory": "8192Mi",
         },
         namespace="processing",
         tolerations=tolerations,
