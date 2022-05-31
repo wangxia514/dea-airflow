@@ -73,22 +73,23 @@ if aws_develop:
     schedule_interval = None
 
     # Use yamls from the test dir
-    params[
-        "yamldir"
-    ] = " --yamls-dir /g/data/u46/users/dsg547/test_data/s2_pipeline/yaml/"
+    params["yamldir"] = " --yamls-dir /g/data/ka08/ga/ga_test/l1c_metadata"
 
     # run type
     # Options ['small_prod', 'pre_prod', 'test']
-    run_type = "test"
+    run_type = "pre_prod"
     if run_type == "small_prod":
         params["scene_limit"] = "--scene-limit 1"
     elif run_type == "pre_prod":
-        params["pkgdir_arg"] = "/g/data/ka08/test_ga"
+        params[
+            "base_dir"
+        ] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test_s2/"
+        params["pkgdir_arg"] = "/g/data/ka08/ga/ga_test/"
 
         # The ODC db used
         params[
             "config_arg"
-        ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/pipeline_test.conf"
+        ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf"
 
         # "" means no ard is produced.
         params["run_ard_arg"] = ""
@@ -96,12 +97,12 @@ if aws_develop:
         params[
             "base_dir"
         ] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test_s2/"
-        params["pkgdir_arg"] = params["base_dir"]
+        params["pkgdir_arg"] = "/g/data/ka08/ga/ga_test/"
 
-        # The ODC db used
+        # The ODC db used pipeline_test.conf or dsg547_dev.conf
         params[
             "config_arg"
-        ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/pipeline_test.conf"
+        ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf"
         # "" means no ard is produced.
         params["run_ard_arg"] = ""
 
