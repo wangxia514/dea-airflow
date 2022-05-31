@@ -28,6 +28,7 @@ params = {
     "output_base_para": "/g/data/ka08/ga/test_l1c_metadata",
     "only_regions_in_para": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scene_select/data/Australian_tile_list_optimised.txt",
     "base_dir": "/g/data/v10/work/s2_c3_ard/",
+    "l1_base": "/g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/",
     "dry_run": " ",
     "only-regions-in-file_para": "",
 }
@@ -55,7 +56,8 @@ if aws_develop:
 
     # run type
     # Options ['small_prod', 'pre_prod', 'indexing_test', 'no_indexing_test']
-    run_type = "indexing_test"
+    # run_type = "indexing_test"
+    run_type = "indexing_ka08"
     # Remember to blow away the db and rm old yamls
     if run_type == "small_prod":
         params["months_back"] = "1 "
@@ -91,6 +93,29 @@ if aws_develop:
         params["dry_run"] = " "
         params["months_back"] = "1 "
 
+    elif run_type == "indexing_ka08":
+        params[
+            "base_dir"
+        ] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test_s2/"
+        params["output_base_para"] = "/g/data/ka08/ga/ga_test/l1c_metadata"
+        params["base_dir"] = params["base_dir"] + "/logdir/"
+        params[
+            "only_regions_in_para"
+        ] = "/g/data/u46/users/dsg547/sandbox/processingDEA/s2_pipeline/53JQK.txt"
+        params["months_back"] = "1 "
+        # params["l1_base"] = "/g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/2022/2022-05/25S135E-30S140E"
+        params[
+            "l1_base"
+        ] = "/g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/2022/2022-05/25S135E-30S140E"
+        # The ODC db used
+        params[
+            "config_arg"
+        ] = "--config /g/data/u46/users/dsg547/sandbox/processingDEA/s2_pipeline/dsg547_dev.conf"
+
+        # params["index"] = "--index "
+        # params["dry_run"] = " "
+        params["dry_run"] = "--dry-run "
+
     else:  # no indexing and typos go here # elif run_type == "no_indexing_test":
         params[
             "base_dir"
@@ -104,6 +129,7 @@ if aws_develop:
         params["index"] = ""  # No indexing
         params["dry_run"] = "--dry-run "
         params["months_back"] = "1 "
+
 else:
     pass
 # #*/ The end of the sed removed block of code
@@ -159,12 +185,14 @@ set -x; \
 eo3-prepare sentinel-l1  \
 --jobs {{ params.jobs_para }}  \
 --after-month  2021-04 \
+--verbose \
 {{ params.dry_run }}  \
 {{ params.index }}  \
 {{ params.config_arg }} \
 --only-regions-in-file {{ params.only_regions_in_para }} \
 --output-base  {{ params.output_base_para }}  \
-/g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/2021/2021-04/25S135E-30S140E"
+{{ params.l1_base }} \
+"
         """,
         timeout=60 * 20,
         do_xcom_push=True,
