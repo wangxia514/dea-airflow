@@ -184,7 +184,7 @@ module load {{ params.module }}; \
 set -x; \
 eo3-prepare sentinel-l1  \
 --jobs {{ params.jobs_para }}  \
---after-month  2021-04 \
+--after-month  $a_year-$a_month  \
 --verbose \
 {{ params.dry_run }}  \
 {{ params.index }}  \
