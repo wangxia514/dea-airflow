@@ -104,9 +104,7 @@ if aws_develop:
         ] = "/g/data/u46/users/dsg547/sandbox/processingDEA/s2_pipeline/53JQK.txt"
         params["months_back"] = "1 "
         # params["l1_base"] = "/g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/2022/2022-05/25S135E-30S140E"
-        params[
-            "l1_base"
-        ] = "/g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/2022/2022-05/25S135E-30S140E"
+        params["l1_base"] = "/g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/"
         # The ODC db used
         params[
             "config_arg"
