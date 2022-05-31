@@ -110,9 +110,9 @@ if aws_develop:
             "config_arg"
         ] = "--config /g/data/u46/users/dsg547/sandbox/processingDEA/s2_pipeline/dsg547_dev.conf"
 
-        # params["index"] = "--index "
-        # params["dry_run"] = " "
-        params["dry_run"] = "--dry-run "
+        params["index"] = "--index "
+        params["dry_run"] = " "
+        # params["dry_run"] = "--dry-run "
 
     else:  # no indexing and typos go here # elif run_type == "no_indexing_test":
         params[
