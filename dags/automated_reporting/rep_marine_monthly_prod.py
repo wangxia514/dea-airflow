@@ -49,46 +49,46 @@ dag = DAG(
 
 
 with dag:
-    #JOBS1 = [
+    # JOBS1 = [
     #    "echo fk1 user stats ingestion: $(date)",
     #    "pip install ga-reporting-etls==1.18.0",
     #    "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fk1_user_stats_ingestion; fk1_user_stats_ingestion.task()'`",
     #    "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
-    #]
-    #JOBS2 = [
+    # ]
+    # JOBS2 = [
     #    "echo fk1 user stats processing: $(date)",
     #    "pip install ga-reporting-etls==1.18.0",
     #    "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fk1_user_stats_processing; fk1_user_stats_processing.task()'`",
-    #]
-    #JOBS3 = [
+    # ]
+    # JOBS3 = [
     #    "echo iy57 user stats ingestion: $(date)",
     #    "pip install ga-reporting-etls==1.18.0",
     #    "jsonresult=`python3 -c 'from nemo_reporting.user_stats import iy57_user_stats_ingestion; iy57_user_stats_ingestion.task()'`",
     #    "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
-    #]
-    #JOBS4 = [
+    # ]
+    # JOBS4 = [
     #    "echo iy57 user stats processing: $(date)",
     #    "pip install ga-reporting-etls==1.18.0",
     #    "jsonresult=`python3 -c 'from nemo_reporting.user_stats import iy57_user_stats_processing; iy57_user_stats_processing.task()'`",
-    #]
-    #JOBS5 = [
+    # ]
+    # JOBS5 = [
     #    "echo pw31 user stats ingestion: $(date)",
     #    "pip install ga-reporting-etls==1.18.0",
     #    "jsonresult=`python3 -c 'from nemo_reporting.user_stats import pw31_user_stats_ingestion; pw31_user_stats_ingestion.task()'`",
     #    "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
-    #]
-    #JOBS6 = [
+    # ]
+    # JOBS6 = [
     #    "echo pw31 user stats processing: $(date)",
     #    "pip install ga-reporting-etls==1.18.0",
     #    "jsonresult=`python3 -c 'from nemo_reporting.user_stats import pw31_user_stats_processing; pw31_user_stats_processing.task()'`",
-    #]
+    # ]
     JOBS7 = [
         "echo Elvis ingestion processing: $(date)",
         "pip install ga-reporting-etls==1.20.0",
         "marine-elvis-ingestion",
     ]
     START = DummyOperator(task_id="marine-monthly-stats")
-    #fk1_ingestion = KubernetesPodOperator(
+    # fk1_ingestion = KubernetesPodOperator(
     #    namespace="processing",
     #    image="python:3.8-slim-buster",
     #    arguments=["bash", "-c", " &&\n".join(JOBS1)],
@@ -102,8 +102,8 @@ with dag:
     #        "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
     #        "FILE_TO_PROCESS": "fk1",
     #    },
-    #)
-    #fk1_processing = KubernetesPodOperator(
+    # )
+    # fk1_processing = KubernetesPodOperator(
     #    namespace="processing",
     #    image="python:3.8-slim-buster",
     #    arguments=["bash", "-c", " &&\n".join(JOBS2)],
@@ -117,8 +117,8 @@ with dag:
     #        "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fk1_ingestion') }}",
     #        "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
     #    },
-    #)
-    #iy57_ingestion = KubernetesPodOperator(
+    # )
+    # iy57_ingestion = KubernetesPodOperator(
     #    namespace="processing",
     #    image="python:3.8-slim-buster",
     #    arguments=["bash", "-c", " &&\n".join(JOBS3)],
@@ -132,8 +132,8 @@ with dag:
     #        "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
     #        "FILE_TO_PROCESS": "iy57",
     #    },
-    #)
-    #iy57_processing = KubernetesPodOperator(
+    # )
+    # iy57_processing = KubernetesPodOperator(
     #    namespace="processing",
     #    image="python:3.8-slim-buster",
     #    arguments=["bash", "-c", " &&\n".join(JOBS4)],
@@ -147,8 +147,8 @@ with dag:
     #        "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='iy57_ingestion') }}",
     #        "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
     #    },
-    #)
-    #pw31_ingestion = KubernetesPodOperator(
+    # )
+    # pw31_ingestion = KubernetesPodOperator(
     #    namespace="processing",
     #    image="python:3.8-slim-buster",
     #    arguments=["bash", "-c", " &&\n".join(JOBS5)],
@@ -162,8 +162,8 @@ with dag:
     #        "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
     #        "FILE_TO_PROCESS": "pw31",
     #    },
-    #)
-    #pw31_processing = KubernetesPodOperator(
+    # )
+    # pw31_processing = KubernetesPodOperator(
     #    namespace="processing",
     #    image="python:3.8-slim-buster",
     #    arguments=["bash", "-c", " &&\n".join(JOBS6)],
@@ -177,7 +177,7 @@ with dag:
     #        "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='pw31_ingestion') }}",
     #        "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
     #    },
-    #)
+    # )
     elvis_ingestion = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
@@ -193,7 +193,7 @@ with dag:
             "REPORTING_BUCKET": Variable.get("reporting_s3_bucket"),
         },
     )
-    #START >> fk1_ingestion >> fk1_processing
-    #START >> iy57_ingestion >> iy57_processing
-    #START >> pw31_ingestion >> pw31_processing
+    # START >> fk1_ingestion >> fk1_processing
+    # START >> iy57_ingestion >> iy57_processing
+    # START >> pw31_ingestion >> pw31_processing
     START >> elvis_ingestion

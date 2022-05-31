@@ -95,17 +95,17 @@ with dag:
         "pip install ga-reporting-etls==1.21.8",
         "jsonresult=`python3 -c 'from nemo_reporting.fj7_storage import fj7_disk_usage; fj7_disk_usage.task()'`",
     ]
-    #JOBS11 = [
+    # JOBS11 = [
     #    "echo FJ7 user stats ingestion: $(date)",
     #    "pip install ga-reporting-etls==1.21.8",
     #    "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fj7_user_stats_ingestion; fj7_user_stats_ingestion.task()'`",
     #    "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
-    #]
-    #JOBS12 = [
+    # ]
+    # JOBS12 = [
     #    "echo FJ7 user stats processing: $(date)",
     #    "pip install ga-reporting-etls==1.21.8",
     #    "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fj7_user_stats_processing; fj7_user_stats_processing.task()'`",
-    #]
+    # ]
     START = DummyOperator(task_id="nci-monthly-stats")
     sara_history_ingestion = KubernetesPodOperator(
         namespace="processing",
@@ -238,7 +238,7 @@ with dag:
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
     )
-    #fj7_ungrouped_user_stats_ingestion = KubernetesPodOperator(
+    # fj7_ungrouped_user_stats_ingestion = KubernetesPodOperator(
     #    namespace="processing",
     #    image="python:3.8-slim-buster",
     #    arguments=["bash", "-c", " &&\n".join(JOBS11)],
@@ -252,8 +252,8 @@ with dag:
     #        "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
     #        "FILE_TO_PROCESS": "fj7",
     #    },
-    #)
-    #fj7_ungrouped_user_stats_processing = KubernetesPodOperator(
+    # )
+    # fj7_ungrouped_user_stats_processing = KubernetesPodOperator(
     #    namespace="processing",
     #    image="python:3.8-slim-buster",
     #    arguments=["bash", "-c", " &&\n".join(JOBS12)],
@@ -267,9 +267,9 @@ with dag:
     #        "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fj7_ungrouped_user_stats_ingestion') }}",
     #        "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
     #    },
-    #)
+    # )
     START >> sara_history_ingestion >> sara_history_processing
-    #START >> fj7_ungrouped_user_stats_ingestion >> fj7_ungrouped_user_stats_processing
+    # START >> fj7_ungrouped_user_stats_ingestion >> fj7_ungrouped_user_stats_processing
     START >> archie_ingestion
     START >> fj7_disk_usage
     archie_ingestion >> archie_processing_sattoesa
