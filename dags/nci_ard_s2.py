@@ -92,7 +92,8 @@ if aws_develop:
         ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf"
 
         # "" means no ard is produced.
-        params["run_ard_arg"] = ""
+        params["run_ard_arg"] = "--run-ard"
+        params["index_arg"] = ""  # No indexing
     else:  # elif run_type == "test":
         params[
             "base_dir"
@@ -112,7 +113,6 @@ if aws_develop:
 else:
     pass
 
-params["base_dir"] = params["pkgdir_arg"]
 # #*/ The end of the sed removed block of code
 
 default_args = {
