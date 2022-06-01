@@ -23,7 +23,7 @@ default_args = {
         Secret("env", "DB_NAME", REPORTING_DB_SECRET, "DB_NAME"),
         Secret("env", "DB_PORT", REPORTING_DB_SECRET, "DB_PORT"),
         Secret("env", "DB_USER", REPORTING_DB_SECRET, "DB_USER"),
-        Secret("env", "DB_PASSWORD", REPORTING_DB_SECRET, "DB_PASSWORD"),
+        Secret("env", "PGPASSWORD", REPORTING_DB_SECRET, "DB_PASSWORD"),
     ],
 }
 
@@ -38,12 +38,11 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo db backup started: $(date)",
-        "pip install ga-reporting-etls==1.22.0",
-        "jsonresult=`python3 -c 'from nemo_reporting.backup_restore_db import backup; backup.backup_task()'`",
+        "pg_dump -h DB_HOST -U $DB_USER -d $DB_NAME -n marine | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/marine-dump.sql.gz",
     ]
     backup_reporting_db = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image="ramagopr123/psql_client",
         arguments=["bash", "-c", " &&\n".join(JOBS1)],
         name="backup_reporting_db",
         is_delete_operator_pod=True,
