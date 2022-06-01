@@ -17,8 +17,8 @@ default_args = {
     "retries": 3,
     "retry_delay": timedelta(days=1),
     "secrets": [
-        Secret("env", "AWS_ACCESS_KEY_ID", REPORTING_IAM_NEMO_PROD_SECRET, "ACCESS_KEY"),
-        Secret("env", "AWS_SECRET_ACCESS_KEY", REPORTING_IAM_NEMO_PROD_SECRET, "SECRET_KEY"),
+        Secret("env", "ACCESS_KEY", REPORTING_IAM_NEMO_PROD_SECRET, "AWS_ACCESS_KEY_ID"),
+        Secret("env", "SECRET_KEY", REPORTING_IAM_NEMO_PROD_SECRET, "AWS_SECRET_ACCESS_KEY"),
         Secret("env", "DB_HOST", REPORTING_DB_SECRET, "DB_HOST"),
         Secret("env", "DB_NAME", REPORTING_DB_SECRET, "DB_NAME"),
         Secret("env", "DB_USER", REPORTING_DB_SECRET, "DB_USER"),
