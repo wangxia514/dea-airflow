@@ -17,8 +17,8 @@ default_args = {
     "retries": 3,
     "retry_delay": timedelta(days=1),
     "secrets": [
-        Secret("env", "ACCESS_KEY", REPORTING_IAM_NEMO_PROD_SECRET, "AWS_ACCESS_KEY_ID"),
-        Secret("env", "SECRET_KEY", REPORTING_IAM_NEMO_PROD_SECRET, "AWS_SECRET_ACCESS_KEY"),
+        Secret("env", "AWS_ACCESS_KEY_ID", REPORTING_IAM_NEMO_PROD_SECRET, "ACCESS_KEY"),
+        Secret("env", "AWS_SECRET_ACCESS_KEY", REPORTING_IAM_NEMO_PROD_SECRET, "SECRET_KEY"),
         Secret("env", "DB_HOST", REPORTING_DB_SECRET, "DB_HOST"),
         Secret("env", "DB_NAME", REPORTING_DB_SECRET, "DB_NAME"),
         Secret("env", "DB_USER", REPORTING_DB_SECRET, "DB_USER"),
@@ -37,12 +37,9 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo db backup started: $(date)",
-        "mkdir -p ~/.aws",
-        "echo [default] > ~/.aws/credentials",
-        "echo aws_access_key_id=$AWS_ACCESS_KEY_ID >> ~/.aws/credentials",
-        "echo aws_secret_access_key=$AWS_SECRET_ACCESS_KEY >> ~/.aws/credentials",
-        "echo aws_default_region=ap-southeast-2 >> ~/.aws/credentials",
-        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n marine | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/marine-dump.sql.gz",
+        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n marine",
+        "aws sts get-caller-identity",
+        #| aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/marine-dump.sql.gz",
     ]
     backup_reporting_db = KubernetesPodOperator(
         namespace="processing",
