@@ -39,7 +39,7 @@ with dag:
         "echo db backup started: $(date)",
         "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n marine",
         "aws sts get-caller-identity",
-        #| aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/marine-dump.sql.gz",
+        # | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/marine-dump.sql.gz",
     ]
     backup_reporting_db = KubernetesPodOperator(
         namespace="processing",
