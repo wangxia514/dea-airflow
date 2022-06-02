@@ -5,10 +5,12 @@ Upload Sentinel 2 (V2) data from the NCI to AWS
 """
 
 from textwrap import dedent
+from datetime import datetime
 
 import pendulum
 from airflow import DAG
 from airflow.providers.ssh.operators.ssh import SSHOperator
+from airflow.providers.amazon.aws.hooks.base_aws import AwsBaseHook as AwsHook
 
 local_tz = pendulum.timezone("Australia/Canberra")
 
@@ -44,11 +46,15 @@ with dag:
             # There have been random READ failures when performing this download. So retry a few times.
             # Append to the log file so that we don't lose track of any downloaded files.
             command=dedent(
-                f"""
+                """
                 set -eux
 
-                cd {nci_dir}
-                time ~/bin/s5cmd --stat cp --if-source-newer --storage-class INTELLIGENT_TIERING {product} s3://dea-public-data-dev/baseline/
+                # Export AWS Access key/secret from Airflow connection module
+                export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
+                export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
+
+                cd {{nci_dir}}
+                time ~/bin/s5cmd --stat cp --if-source-newer --storage-class INTELLIGENT_TIERING {{product}} s3://dea-public-data-dev/baseline/
                 """
             ),
             params={
