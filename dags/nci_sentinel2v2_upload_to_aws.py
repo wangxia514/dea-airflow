@@ -47,6 +47,7 @@ with dag:
             # Append to the log file so that we don't lose track of any downloaded files.
             command=dedent(
                 """
+                {% set aws_creds = params.aws_hook.get_credentials() -%}
                 set -eux
 
                 # Export AWS Access key/secret from Airflow connection module
@@ -54,11 +55,11 @@ with dag:
                 export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
 
                 cd {{nci_dir}}
-                time ~/bin/s5cmd --stat cp --if-source-newer --storage-class INTELLIGENT_TIERING {{product}} s3://dea-public-data-dev/baseline/
+                time ~/bin/s5cmd --stat cp --if-source-newer --storage-class INTELLIGENT_TIERING {{params.product}} s3://dea-public-data-dev/baseline/
                 """
             ),
             params={
-                "aws_creds": aws_hook,
+                "aws_hook": aws_hook,
                 "product": product,
                 "nci_dir": "/g/data/up71/projects/S2-C3-upgrade-STAC",
             },
