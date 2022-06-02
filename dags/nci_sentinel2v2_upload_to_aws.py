@@ -58,7 +58,7 @@ with dag:
                 """
             ),
             params={
-                "aws_hook": aws_hook,
+                "aws_creds": aws_hook,
                 "product": product,
                 "nci_dir": "/g/data/up71/projects/S2-C3-upgrade-STAC",
             },
