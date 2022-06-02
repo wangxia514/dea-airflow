@@ -54,7 +54,7 @@ with dag:
                 export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
                 export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
 
-                cd {{nci_dir}}
+                cd {{params.nci_dir}}
                 time ~/bin/s5cmd --stat cp --if-source-newer --storage-class INTELLIGENT_TIERING {{params.product}} s3://dea-public-data-dev/baseline/
                 """
             ),
