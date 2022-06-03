@@ -31,17 +31,17 @@ dag = DAG(
     ),
 )
 
-products = ["ga_ls_fc_3",
-
-            "ga_ls_wo_3",
-            "ga_ls_wo_fq_apr_oct_3",
-            "ga_ls_wo_fq_nov_mar_3",
-            "ga_ls_wo_fq_cyear_3",
-            "ga_ls_wo_fq_myear_3",
-
-            "ga_ls5t_nbart_gm_cyear_3",
-            "ga_ls7e_nbart_gm_cyear_3",
-            "ga_ls8c_nbart_gm_cyear_3"]
+products = [
+    "ga_ls_fc_3",
+    "ga_ls_wo_3",
+    "ga_ls_wo_fq_apr_oct_3",
+    "ga_ls_wo_fq_nov_mar_3",
+    "ga_ls_wo_fq_cyear_3",
+    "ga_ls_wo_fq_myear_3",
+    "ga_ls5t_nbart_gm_cyear_3",
+    "ga_ls7e_nbart_gm_cyear_3",
+    "ga_ls8c_nbart_gm_cyear_3",
+]
 
 with dag:
 
@@ -76,13 +76,8 @@ with dag:
                 module load dea
                 cd /g/data/v10/work/c3_download_derivs/{{{{ts_nodash}}}}
 
-                if [ {product} = "ga_ls_fc_3" ]; then
-                awk '/odc-metadata.yaml/ {{print "/g/data/jw04/ga/{product}/2-5-0/" $3}}' {product}.download.log  | \
-                xargs -P 4 datacube -v dataset add --no-verify-lineage --product {product}
-                else
                 awk '/odc-metadata.yaml/ {{print "/g/data/jw04/ga/{product}/" $3}}' {product}.download.log  | \
                 xargs -P 4 datacube -v dataset add --no-verify-lineage --product {product}
-                fi
                 """
             ),
             # Attempt to index downloaded datasets, even if there were some failures in the download task
