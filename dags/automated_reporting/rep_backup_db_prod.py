@@ -83,7 +83,7 @@ with dag:
         name="backup_reporting_db_dea",
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="backup_reporting_db",
+        task_id="backup_reporting_db_dea",
         get_logs=True,
         env_vars={
             "EXECUTION_DATE": "{{ ds }}",
