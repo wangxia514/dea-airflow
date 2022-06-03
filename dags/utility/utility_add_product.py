@@ -56,7 +56,7 @@ Indexing with s3-to-dc cli flags, `--no-sign-request` flag is provided by defaul
 
     {
         "s3_glob": "s3://dea-public-data/cemp_insar/insar/displacement/alos/**/*.yaml",
-        "flags": "--skip-lineages",
+        "flags": "--skip-lineage",
         "product_name": "lc_ls_landcover_class_cyear_2_0"
     }
 
