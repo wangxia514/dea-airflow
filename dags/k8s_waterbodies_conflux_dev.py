@@ -7,7 +7,7 @@ shapefile
     Default "s3://dea-public-data-dev/projects/WaterBodies/c3_shp/ga_ls_wb_3_v2_dev.shp"
 
 outdir
-    Default "s3://dea-public-data-dev/projects/WaterBodies/timeseries_pq_v2"
+    Default "s3://dea-public-data-dev/projects/WaterBodies/integration_testing/timeseries_pq_v2"
 
 product
     Default "ga_ls_wo_3".
@@ -24,7 +24,7 @@ queue_name
     Amazon SQS queue name to save processing tasks. Default "waterbodies_conflux_dev_sqs"
 
 csvdir
-    Default "s3://dea-public-data-dev/derivative/dea_waterbodies/2-0-0/timeseries"
+    Default "s3://dea-public-data-dev/projects/WaterBodies/integration_testing/timeseries"
 
 flags
     Other flags to pass to Conflux.
