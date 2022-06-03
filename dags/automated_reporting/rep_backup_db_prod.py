@@ -4,6 +4,7 @@ from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
+from airflow.operators.dummy import DummyOperator
 from infra.variables import REPORTING_IAM_NEMO_PROD_SECRET
 from infra.variables import REPORTING_DB_SECRET
 
@@ -35,15 +36,51 @@ dag = DAG(
 )
 
 with dag:
-    JOBS1 = [
+    JOBSLANDSAT = [
         "echo db backup started: $(date)",
         "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n landsat | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/landsat-dump.sql.gz",
     ]
-    backup_reporting_db = KubernetesPodOperator(
+    JOBSDEA = [
+        "echo db backup started: $(date)",
+        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n dea | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/dea-dump.sql.gz",
+    ]
+    JOBSCOPHUB = [
+        "echo db backup started: $(date)",
+        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n cophub | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/cophub-dump.sql.gz",
+    ]
+    JOBSMARINE = [
+        "echo db backup started: $(date)",
+        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n marine | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/marine-dump.sql.gz",
+    ]
+    JOBSNCI = [
+        "echo db backup started: $(date)",
+        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n nci | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/nci-dump.sql.gz",
+    ]
+    JOBSPUBLIC = [
+        "echo db backup started: $(date)",
+        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n public | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/public-dump.sql.gz",
+    ]
+    backup_reporting_db_landsat = KubernetesPodOperator(
         namespace="processing",
         image="ramagopr123/psql_client",
-        arguments=["bash", "-c", " &&\n".join(JOBS1)],
-        name="backup_reporting_db",
+        arguments=["bash", "-c", " &&\n".join(JOBSLANDSAT)],
+        name="backup_reporting_db_landsat",
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="backup_reporting_db_landsat",
+        get_logs=True,
+        env_vars={
+            "EXECUTION_DATE": "{{ ds }}",
+            "AWS_DEFAULT_REGION": "ap-southeast-2",
+            "AWS_PAGER": "",
+            "REPORTING_BUCKET": "automated-reporting-db-dump",
+        },
+    )
+    backup_reporting_db_dea = KubernetesPodOperator(
+        namespace="processing",
+        image="ramagopr123/psql_client",
+        arguments=["bash", "-c", " &&\n".join(JOBSDEA)],
+        name="backup_reporting_db_dea",
         is_delete_operator_pod=True,
         in_cluster=True,
         task_id="backup_reporting_db",
@@ -55,4 +92,74 @@ with dag:
             "REPORTING_BUCKET": "automated-reporting-db-dump",
         },
     )
-    backup_reporting_db
+    backup_reporting_db_cophub = KubernetesPodOperator(
+        namespace="processing",
+        image="ramagopr123/psql_client",
+        arguments=["bash", "-c", " &&\n".join(JOBSCOPHUB)],
+        name="backup_reporting_db_cophub",
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="backup_reporting_db_cophub",
+        get_logs=True,
+        env_vars={
+            "EXECUTION_DATE": "{{ ds }}",
+            "AWS_DEFAULT_REGION": "ap-southeast-2",
+            "AWS_PAGER": "",
+            "REPORTING_BUCKET": "automated-reporting-db-dump",
+        },
+    )
+    backup_reporting_db_marine = KubernetesPodOperator(
+        namespace="processing",
+        image="ramagopr123/psql_client",
+        arguments=["bash", "-c", " &&\n".join(JOBSMARINE)],
+        name="backup_reporting_db_marine",
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="backup_reporting_db_marine",
+        get_logs=True,
+        env_vars={
+            "EXECUTION_DATE": "{{ ds }}",
+            "AWS_DEFAULT_REGION": "ap-southeast-2",
+            "AWS_PAGER": "",
+            "REPORTING_BUCKET": "automated-reporting-db-dump",
+        },
+    )
+    backup_reporting_db_nci = KubernetesPodOperator(
+        namespace="processing",
+        image="ramagopr123/psql_client",
+        arguments=["bash", "-c", " &&\n".join(JOBSNCI)],
+        name="backup_reporting_db_nci",
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="backup_reporting_db_nci",
+        get_logs=True,
+        env_vars={
+            "EXECUTION_DATE": "{{ ds }}",
+            "AWS_DEFAULT_REGION": "ap-southeast-2",
+            "AWS_PAGER": "",
+            "REPORTING_BUCKET": "automated-reporting-db-dump",
+        },
+    )
+    backup_reporting_db_public = KubernetesPodOperator(
+        namespace="processing",
+        image="ramagopr123/psql_client",
+        arguments=["bash", "-c", " &&\n".join(JOBSPUBLIC)],
+        name="backup_reporting_db_public",
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="backup_reporting_db_public",
+        get_logs=True,
+        env_vars={
+            "EXECUTION_DATE": "{{ ds }}",
+            "AWS_DEFAULT_REGION": "ap-southeast-2",
+            "AWS_PAGER": "",
+            "REPORTING_BUCKET": "automated-reporting-db-dump",
+        },
+    )
+    START = DummyOperator(task_id="nci-monthly-stats")
+    START >> backup_reporting_db_landsat
+    START >> backup_reporting_db_dea
+    START >> backup_reporting_db_cophub
+    START >> backup_reporting_db_marine
+    START >> backup_reporting_db_nci
+    START >> backup_reporting_db_public
