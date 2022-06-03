@@ -156,7 +156,7 @@ with dag:
             "REPORTING_BUCKET": "automated-reporting-db-dump",
         },
     )
-    START = DummyOperator(task_id="nci-monthly-stats")
+    START = DummyOperator(task_id="backup-reporting-db")
     START >> backup_reporting_db_landsat
     START >> backup_reporting_db_dea
     START >> backup_reporting_db_cophub
