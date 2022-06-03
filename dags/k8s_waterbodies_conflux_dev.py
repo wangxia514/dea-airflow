@@ -147,7 +147,7 @@ tolerations = [
 
 # THE DAG
 dag = DAG(
-    "k8s_waterbodies_conflux",
+    "k8s_waterbodies_conflux_dev",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval=None,  # triggered only
