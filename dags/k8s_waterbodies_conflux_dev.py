@@ -71,8 +71,8 @@ DEFAULT_PARAMS = dict(
 # Requested memory. Memory limit is twice this.
 CONFLUX_POD_MEMORY_MB = 6000
 
-# the range list should come from the shapefile
-RANGE_LIST = [(0, 162000), (162000, -1)]
+# the makecsvs concurrency number
+DB_TO_CSV_CONCURRENCY_NUMBER = 4
 
 # DAG CONFIGURATION
 SECRETS = {
@@ -160,25 +160,25 @@ dag = DAG(
 )
 
 
-def k8s_makecsvs(dag, b_index, e_index):
+def k8s_makecsvs(dag, index_num, split_num):
     makecsvs_cmd = [
         "bash",
         "-c",
         dedent(
             """
             echo "Using dea-conflux image {image}"
-            dea-conflux db-to-csv --output {{{{ dag_run.conf.get("csvdir", "{csvdir}") }}}} --jobs 64 --verbose -b {b_index} -e {e_index}
+            dea-conflux db-to-csv --output {{{{ dag_run.conf.get("csvdir", "{csvdir}") }}}} --jobs 64 --verbose --index-num {index_num} --split-num {split_num}
             """.format(
                 image=CONFLUX_DEV_IMAGE,
                 csvdir=DEFAULT_PARAMS['csvdir'],
-                b_index=b_index,
-                e_index=e_index,
+                index_num=index_num,
+                split_num=split_num,
             )
         ),
     ]
     makecsvs = KubernetesPodOperator(
         image=CONFLUX_DEV_IMAGE,
-        name="waterbodies-conflux-makecsvs-" + str(b_index),
+        name="waterbodies-conflux-makecsvs-" + str(index_num),
         arguments=makecsvs_cmd,
         image_pull_policy="IfNotPresent",
         labels={"app": "waterbodies-conflux-makecsvs"},
@@ -191,7 +191,7 @@ def k8s_makecsvs(dag, b_index, e_index):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="waterbodies-conflux-makecsvs-" + str(b_index),
+        task_id="waterbodies-conflux-makecsvs-" + str(index_num),
     )
     return makecsvs
 
@@ -201,5 +201,5 @@ with dag:
         cmd=DEFAULT_PARAMS['cmd'],
     )
 
-    for range in RANGE_LIST:
-        makecsvs = k8s_makecsvs(dag, b_index=range[0], e_index=range[1])
+    for index in range(DB_TO_CSV_CONCURRENCY_NUMBER):
+        makecsvs = k8s_makecsvs(dag, index_num=index, split_num=DB_TO_CSV_CONCURRENCY_NUMBER)
