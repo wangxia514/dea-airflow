@@ -167,7 +167,7 @@ def k8s_makecsvs(dag, b_index, e_index):
         dedent(
             """
             echo "Using dea-conflux image {image}"
-            dea-conflux db-to-csv --output {{{{ dag_run.conf.get("csvdir", "{csvdir}") }}}} --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} --jobs 64 --verbose -b {b_index} -e {e_index}
+            dea-conflux db-to-csv --output {{{{ dag_run.conf.get("csvdir", "{csvdir}") }}}} --jobs 64 --verbose -b {b_index} -e {e_index}
             """.format(
                 image=CONFLUX_DEV_IMAGE,
                 csvdir=DEFAULT_PARAMS['csvdir'],
