@@ -71,6 +71,9 @@ DEFAULT_PARAMS = dict(
 # Requested memory. Memory limit is twice this.
 CONFLUX_POD_MEMORY_MB = 6000
 
+# the range list should come from the shapefile
+RANGE_LIST = [(0, 162000), (162000, -1)]
+
 # DAG CONFIGURATION
 SECRETS = {
     "env_vars": {
@@ -157,18 +160,20 @@ dag = DAG(
 )
 
 
-def k8s_makecsvs(dag):
+def k8s_makecsvs(dag, b_index, e_index):
     makecsvs_cmd = [
         "bash",
         "-c",
         dedent(
             """
             echo "Using dea-conflux image {image}"
-            dea-conflux db-to-csv --output {{{{ dag_run.conf.get("csvdir", "{csvdir}") }}}} --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} --jobs 128 --verbose -b 80000 -e 160000
+            dea-conflux db-to-csv --output {{{{ dag_run.conf.get("csvdir", "{csvdir}") }}}} --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} --jobs 64 --verbose -b {b_index} -e {e_index}
             """.format(
                 image=CONFLUX_DEV_IMAGE,
                 csvdir=DEFAULT_PARAMS['csvdir'],
                 shapefile=DEFAULT_PARAMS['shapefile'],
+                b_index=b_index,
+                e_index=e_index,
             )
         ),
     ]
@@ -197,4 +202,5 @@ with dag:
         cmd=DEFAULT_PARAMS['cmd'],
     )
 
-    makecsvs = k8s_makecsvs(dag)
+    for range in RANGE_LIST:
+        makecsvs = k8s_makecsvs(dag, b_index=range[0], e_index=range[1])
