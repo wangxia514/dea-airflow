@@ -201,5 +201,5 @@ with dag:
         cmd=DEFAULT_PARAMS['cmd'],
     )
 
-    for index in range(DB_TO_CSV_CONCURRENCY_NUMBER + 1):
+    for index in range(DB_TO_CSV_CONCURRENCY_NUMBER):
         makecsvs = k8s_makecsvs(dag, index_num=index, split_num=DB_TO_CSV_CONCURRENCY_NUMBER)
