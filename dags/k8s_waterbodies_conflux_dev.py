@@ -179,7 +179,7 @@ def k8s_makecsvs(dag, b_index, e_index):
     ]
     makecsvs = KubernetesPodOperator(
         image=CONFLUX_DEV_IMAGE,
-        name="waterbodies-conflux-makecsvs",
+        name="waterbodies-conflux-makecsvs-" + str(b_index),
         arguments=makecsvs_cmd,
         image_pull_policy="IfNotPresent",
         labels={"app": "waterbodies-conflux-makecsvs"},
@@ -192,7 +192,7 @@ def k8s_makecsvs(dag, b_index, e_index):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="waterbodies-conflux-makecsvs",
+        task_id="waterbodies-conflux-makecsvs-" + str(b_index),
     )
     return makecsvs
 
