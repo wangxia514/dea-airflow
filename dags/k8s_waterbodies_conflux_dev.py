@@ -171,7 +171,6 @@ def k8s_makecsvs(dag, b_index, e_index):
             """.format(
                 image=CONFLUX_DEV_IMAGE,
                 csvdir=DEFAULT_PARAMS['csvdir'],
-                shapefile=DEFAULT_PARAMS['shapefile'],
                 b_index=b_index,
                 e_index=e_index,
             )
