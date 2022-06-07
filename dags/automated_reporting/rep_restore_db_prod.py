@@ -28,6 +28,6 @@ dag = DAG(
 
 bash = BashOperator(
     task_id='bash',
-    bash_command='echo {{ params.EXECUTION_DATE }}', # Output: value1
+    bash_command='echo {{ params.EXECUTION_DATE }}',
     dag=dag
 )
