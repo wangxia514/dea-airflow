@@ -40,6 +40,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from airflow.operators.dummy import DummyOperator
+from airflow.utils.task_group import TaskGroup
 
 from textwrap import dedent
 
@@ -73,7 +74,7 @@ DEFAULT_PARAMS = dict(
 CONFLUX_POD_MEMORY_MB = 6000
 
 # the makecsvs concurrency number
-DB_TO_CSV_CONCURRENCY_NUMBER = 6
+DB_TO_CSV_CONCURRENCY_NUMBER = 1000
 
 # DAG CONFIGURATION
 SECRETS = {
@@ -204,6 +205,12 @@ with dag:
 
     start = DummyOperator(task_id="start")
 
+    with TaskGroup(group_id="makecsvs") as tg:
+        for index in range(DB_TO_CSV_CONCURRENCY_NUMBER):
+            # only run 0.1% workload as the integration test
+            if index == 0:
+                makecsvs = k8s_makecsvs(dag, index_num=index, split_num=DB_TO_CSV_CONCURRENCY_NUMBER)
+
     end = DummyOperator(task_id="end")
 
-    start >> end
+    start >> tg >> end
