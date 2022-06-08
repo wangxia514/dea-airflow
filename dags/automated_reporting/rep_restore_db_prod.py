@@ -73,14 +73,14 @@ with dag:
         "result=`aws s3 cp s3://$REPORTING_BUCKET/$EXECUTION_DATE/public-dump.sql public-dump.sql"`, 
         "pg_restore -h $DB_HOST -U $DB_USER -d $DB_NAME -1 public-dump.sql", 
     ]
-    restore_reporting_db_lanparams.EXECUTION_DATEat = KubernetesPodOperator(
+    restore_reporting_db_landsat = KubernetesPodOperator(
         namespace="processing",
         image="ramagopr123/psql_client",
         arguments=["bash", "-c", " &&\n".join(JOBSLANDSAT)],
-        name="restore_reporting_db_lanparams.EXECUTION_DATEat",
+        name="restore_reporting_db_landsat",
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="restore_reporting_db_lanparams.EXECUTION_DATEat",
+        task_id="restore_reporting_db_landsat",
         get_logs=True,
         env_vars={
             "EXECUTION_DATE": "{{ params.EXECUTION_DATE }}",
@@ -170,7 +170,7 @@ with dag:
         },
     )
     START = DummyOperator(task_id="restore-reporting-db")
-    START >> restore_reporting_db_lanparams.EXECUTION_DATEat
+    START >> restore_reporting_db_landsat
     START >> restore_reporting_db_dea
     START >> restore_reporting_db_cophub
     START >> restore_reporting_db_marine
