@@ -45,8 +45,8 @@ dag = DAG(
 with dag:
     JOBSLANDSAT = [
         "echo db restore started: $(date)",
-        "result=`aws s3 cp s3://$REPORTING_BUCKET/$EXECUTION_DATE/lanparams.EXECUTION_DATEat-dump.sql lanparams.EXECUTION_DATEat-dump.sql"`, 
-        "pg_restore -h $DB_HOST -U $DB_USER -d $DB_NAME -1 lanparams.EXECUTION_DATEat-dump.sql", 
+        "result=`aws s3 cp s3://$REPORTING_BUCKET/$EXECUTION_DATE/landsat-dump.sql landsat-dump.sql"`, 
+        "pg_restore -h $DB_HOST -U $DB_USER -d $DB_NAME -1 landsat-dump.sql", 
     ]
     JOBSDEA = [
         "echo db restore started: $(date)",
