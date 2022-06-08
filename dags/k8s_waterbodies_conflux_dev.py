@@ -40,7 +40,6 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from airflow.operators.dummy import DummyOperator
-from airflow.utils.task_group import TaskGroup
 
 from textwrap import dedent
 
@@ -205,10 +204,6 @@ with dag:
 
     start = DummyOperator(task_id="start")
 
-    with TaskGroup(group_id="makecsvs") as tg:
-        for index in range(DB_TO_CSV_CONCURRENCY_NUMBER):
-            makecsvs = k8s_makecsvs(dag, index_num=index, split_num=DB_TO_CSV_CONCURRENCY_NUMBER)
-
     end = DummyOperator(task_id="end")
 
-    start >> tg >> end
+    start >> end
