@@ -15,7 +15,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 )
 from airflow.operators.dummy import DummyOperator
 from infra.variables import REPORTING_IAM_NEMO_PROD_SECRET
-from infra.variables import REPORTING_DB_SECRET
+from infra.variables import REPORTING_DB_DEV_SECRET
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
