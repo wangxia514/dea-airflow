@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-restore db DAG
+restore automated reporting db DAG
 """
 # pylint: disable=C0301
 # pylint: disable=W0104
