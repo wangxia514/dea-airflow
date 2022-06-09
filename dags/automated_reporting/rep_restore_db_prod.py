@@ -52,7 +52,7 @@ with dag:
         "    EXECUTION_DATE=`aws s3 ls s3://$REPORTING_BUCKET/ | tr -s ' ' ' ' | cut -f3 -d ' ' | cut -f1 -d '/' | tail -1`",
         "    result=`aws s3 cp s3://$REPORTING_BUCKET/$EXECUTION_DATE/landsat-dump.sql landsat-dump.sql`",
         "fi ",
-        "pg_restore -h $DB_HOST -U $DB_USER -d $DB_NAME -1 landsat-dump.sql", 
+        "pg_restore -h $DB_HOST -U $DB_USER -d $DB_NAME -1 landsat-dump.sql",
     ]
     JOBSDEA = [
         "echo db restore started: $(date)",
@@ -63,7 +63,7 @@ with dag:
         "    EXECUTION_DATE=`aws s3 ls s3://$REPORTING_BUCKET/ | tr -s ' ' ' ' | cut -f3 -d ' ' | cut -f1 -d '/' | tail -1`",
         "    result=`aws s3 cp s3://$REPORTING_BUCKET/$EXECUTION_DATE/dea-dump.sql dea-dump.sql`",
         "fi ",
-        "pg_restore -h $DB_HOST -U $DB_USER -d $DB_NAME -1 dea-dump.sql", 
+        "pg_restore -h $DB_HOST -U $DB_USER -d $DB_NAME -1 dea-dump.sql",
     ]
     JOBSCOPHUB = [
         "echo db restore started: $(date)",
@@ -74,7 +74,7 @@ with dag:
         "    EXECUTION_DATE=`aws s3 ls s3://$REPORTING_BUCKET/ | tr -s ' ' ' ' | cut -f3 -d ' ' | cut -f1 -d '/' | tail -1`",
         "    result=`aws s3 cp s3://$REPORTING_BUCKET/$EXECUTION_DATE/cophub-dump.sql cophub-dump.sql`",
         "fi ",
-        "pg_restore -h $DB_HOST -U $DB_USER -d $DB_NAME -1 cophub-dump.sql", 
+        "pg_restore -h $DB_HOST -U $DB_USER -d $DB_NAME -1 cophub-dump.sql",
     ]
     JOBSMARINE = [
         "echo db restore started: $(date)",
@@ -85,7 +85,7 @@ with dag:
         "    EXECUTION_DATE=`aws s3 ls s3://$REPORTING_BUCKET/ | tr -s ' ' ' ' | cut -f3 -d ' ' | cut -f1 -d '/' | tail -1`",
         "    result=`aws s3 cp s3://$REPORTING_BUCKET/$EXECUTION_DATE/marine-dump.sql marine-dump.sql`",
         "fi ",
-        "pg_restore -h $DB_HOST -U $DB_USER -d $DB_NAME -1 marine-dump.sql", 
+        "pg_restore -h $DB_HOST -U $DB_USER -d $DB_NAME -1 marine-dump.sql",
     ]
     JOBSNCI = [
         "echo db restore started: $(date)",
@@ -96,7 +96,7 @@ with dag:
         "    EXECUTION_DATE=`aws s3 ls s3://$REPORTING_BUCKET/ | tr -s ' ' ' ' | cut -f3 -d ' ' | cut -f1 -d '/' | tail -1`",
         "    result=`aws s3 cp s3://$REPORTING_BUCKET/$EXECUTION_DATE/nci-dump.sql nci-dump.sql`",
         "fi ",
-        "pg_restore -h $DB_HOST -U $DB_USER -d $DB_NAME -1 nci-dump.sql", 
+        "pg_restore -h $DB_HOST -U $DB_USER -d $DB_NAME -1 nci-dump.sql",
     ]
     JOBSPUBLIC = [
         "echo db restore started: $(date)",
@@ -107,7 +107,7 @@ with dag:
         "    EXECUTION_DATE=`aws s3 ls s3://$REPORTING_BUCKET/ | tr -s ' ' ' ' | cut -f3 -d ' ' | cut -f1 -d '/' | tail -1`",
         "    result=`aws s3 cp s3://$REPORTING_BUCKET/$EXECUTION_DATE/public-dump.sql public-dump.sql`",
         "fi ",
-        "pg_restore -h $DB_HOST -U $DB_USER -d $DB_NAME -1 public-dump.sql", 
+        "pg_restore -h $DB_HOST -U $DB_USER -d $DB_NAME -1 public-dump.sql",
     ]
     restore_reporting_db_landsat = KubernetesPodOperator(
         namespace="processing",
