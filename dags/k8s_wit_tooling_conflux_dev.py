@@ -23,8 +23,7 @@ use_id
 
 """
 from datetime import datetime, timedelta
-
-# import json
+import logging
 
 from airflow import DAG
 from airflow_kubernetes_job_operator.kubernetes_job_operator import (
@@ -34,6 +33,7 @@ from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
+from airflow.operators.python import PythonOperator
 from airflow.utils.task_group import TaskGroup
 
 from textwrap import dedent
@@ -131,6 +131,20 @@ tolerations = [
         "effect": "NoSchedule",
     }
 ]
+
+
+def print_configuration_function(**context):
+    """Print the configuration of this DAG"""
+    logging.info("Loading Configurations...")
+    dag_run_conf = context.get("dag_run").conf
+
+    logging.info("dag_run.conf: " + str(dag_run_conf))
+
+    logging.info("Running Configurations:")
+    logging.info("EC2_NUM:               " + str(EC2_NUM))
+    logging.info("CONFLUX_POD_MEMORY_MB: " + str(CONFLUX_POD_MEMORY_MB))
+    logging.info("")
+
 
 # THE DAG
 dag = DAG(
@@ -602,6 +616,13 @@ with dag:
         cmd=DEFAULT_PARAMS['cmd'],
     )
 
+    print_configuration = PythonOperator(
+        task_id="print_configuration",
+        python_callable=print_configuration_function,
+        provide_context=True,
+        dag=dag,
+    )
+
     # if not given use_id, will grab the empty string
     use_id = '{{{{ dag_run.conf.get("use_id", "{use_id}") }}}}'.format(
         use_id=DEFAULT_PARAMS['use_id'],
@@ -627,4 +648,4 @@ with dag:
 
             getids >> makeprequeues >> push >> filter >> processing >> delprequeues
 
-        tg >> makecsvs
+        print_configuration >> tg >> makecsvs
