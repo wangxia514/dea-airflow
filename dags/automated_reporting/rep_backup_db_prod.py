@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+
+"""
+backup reporting DB
+"""
+# pylint: disable=C0301
+# pylint: disable=W0104
+# pylint: disable=E0401
 from datetime import datetime as dt, timedelta
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
@@ -38,27 +46,27 @@ dag = DAG(
 with dag:
     JOBSLANDSAT = [
         "echo db backup started: $(date)",
-        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n landsat | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/landsat-dump.sql.gz",
+        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n landsat | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/landsat-dump.sql",
     ]
     JOBSDEA = [
         "echo db backup started: $(date)",
-        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n dea | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/dea-dump.sql.gz",
+        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n dea | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/dea-dump.sql",
     ]
     JOBSCOPHUB = [
         "echo db backup started: $(date)",
-        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n cophub | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/cophub-dump.sql.gz",
+        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n cophub | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/cophub-dump.sql",
     ]
     JOBSMARINE = [
         "echo db backup started: $(date)",
-        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n marine | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/marine-dump.sql.gz",
+        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n marine | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/marine-dump.sql",
     ]
     JOBSNCI = [
         "echo db backup started: $(date)",
-        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n nci | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/nci-dump.sql.gz",
+        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n nci | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/nci-dump.sql",
     ]
     JOBSPUBLIC = [
         "echo db backup started: $(date)",
-        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n public | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/public-dump.sql.gz",
+        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n public | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/public-dump.sql",
     ]
     backup_reporting_db_landsat = KubernetesPodOperator(
         namespace="processing",
