@@ -39,7 +39,7 @@ dag = DAG(
 
 with dag:
     JOBS1 = [
-        "sh ~/manage_backup.sh",
+        "sh /manage_backup.sh",
     ]
     manage_reporting_db = KubernetesPodOperator(
         namespace="processing",
