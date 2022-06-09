@@ -281,7 +281,7 @@ def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product, use_i
     job_task = KubernetesJobOperator(
         image=CONFLUX_WIT_IMAGE,
         dag=dag,
-        task_id="wit-conflux-filter" + "-" + product,
+        task_id="filter" + "-" + product,
         get_logs=False,
         body=yaml,
     )
@@ -407,7 +407,7 @@ def k8s_job_run_wit_task(dag, queue_name, plugin, product, use_id):
     job_task = KubernetesJobOperator(
         image=CONFLUX_WIT_IMAGE,
         dag=dag,
-        task_id="wit-conflux-run" + "-" + product,
+        task_id="run" + "-" + product,
         get_logs=False,
         body=yaml,
     )
@@ -449,7 +449,7 @@ def k8s_queue_push(dag, queue_name, filename, product, task_id):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="wit-conflux-push" + "-" + product,
+        task_id="push" + "-" + product,
     )
 
 
@@ -482,7 +482,7 @@ def k8s_getids(dag, cmd, product):
         do_xcom_push=True,
         namespace="processing",
         tolerations=tolerations,
-        task_id="wit-conflux-getids" + "-" + product,
+        task_id="getids" + "-" + product,
     )
     return getids
 
@@ -521,7 +521,7 @@ def k8s_makequeues(dag, raw_queue_name, final_queue_name, product):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="wit-conflux-makequeue" + "-" + product,
+        task_id="makequeue" + "-" + product,
     )
     return makequeue
 
@@ -560,7 +560,7 @@ def k8s_delqueues(dag, raw_queue_name, final_queue_name, product):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="wit-conflux-delqueue" + "-" + product,
+        task_id="delqueue" + "-" + product,
     )
     return delqueue
 
@@ -596,7 +596,7 @@ def k8s_makecsvs(dag):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="wit-conflux-makecsvs",
+        task_id="makecsvs",
     )
     return makecsvs
 
@@ -627,10 +627,10 @@ with dag:
         pre_queue_name = f"{queue}_raw"
         final_queue_name = queue
 
-        with TaskGroup(group_id=f"{product}-processing") as tg:
+        with TaskGroup(group_id=f"wit-conflux-{plugin}") as tg:
             getids = k8s_getids(dag, cmd, product)
             makeprequeues = k8s_makequeues(dag, pre_queue_name, final_queue_name, product)
-            push = k8s_queue_push(dag, pre_queue_name, product + '-id.txt', product, 'wit-conflux-getids-' + product)
+            push = k8s_queue_push(dag, pre_queue_name, product + '-id.txt', product, f"wit-conflux-{plugin}.getids-{product}")
             filter = k8s_job_filter_task(dag, input_queue_name=pre_queue_name, output_queue_name=final_queue_name, product=product, use_id=use_id)
             processing = k8s_job_run_wit_task(dag, final_queue_name, plugin, product, use_id)
             delprequeues = k8s_delqueues(dag, pre_queue_name, final_queue_name, product)
