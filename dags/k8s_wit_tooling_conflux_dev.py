@@ -51,7 +51,7 @@ from infra.variables import (
 DEFAULT_PARAMS = dict(
     shapefile="s3://dea-public-data-dev/projects/WIT/test_shp/conflux_wb_Npolygons/wb_3_v2_conflux_10_test.shp",
     intermediatedir="s3://dea-public-data-dev/projects/WIT/test_result/test_10_polygons_09062022/timestamp_base_result",
-    cmd="'lat in [-30, -29] lon in [141, 143] gqa_mean_x in [-1, 1]'",
+    cmd="'time in [2000-01-01, 2022-01-01] lat in [-30, -29] lon in [141, 143] gqa_mean_x in [-1, 1]'",
     csvdir="s3://dea-public-data-dev/projects/WIT/test_result/test_10_polygons_09062022/polygon_base_result",
     use_id="uid",
 )
@@ -135,12 +135,13 @@ tolerations = [
 
 def print_configuration_function(**context):
     """Print the configuration of this DAG"""
-    logging.info("Loading Configurations...")
-    dag_run_conf = context.get("dag_run").conf
-
-    logging.info("dag_run.conf: " + str(dag_run_conf))
-
     logging.info("Running Configurations:")
+    logging.info("shapefile:             " + context['dag_run'].conf['messshapefileage'])
+    logging.info("intermediatedir:       " + context['dag_run'].conf['intermediatedir'])
+    logging.info("cmd:                   " + context['dag_run'].conf['cmd'])
+    logging.info("csvdir:                " + context['dag_run'].conf['csvdir'])
+    logging.info("use_id:                " + context['dag_run'].conf['use_id'])
+    logging.info("flags:                 " + context['dag_run'].conf['flags'])
     logging.info("EC2_NUM:               " + str(EC2_NUM))
     logging.info("CONFLUX_POD_MEMORY_MB: " + str(CONFLUX_POD_MEMORY_MB))
     logging.info("")
@@ -163,7 +164,7 @@ WIT_INPUTS = [{"product": "ga_ls5t_ard_3", "plugin": "wit_ls5", "queue": "wit_co
               {"product": "ga_ls8c_ard_3", "plugin": "wit_ls8", "queue": "wit_conflux_ls8_integration_test_sqs"}]
 
 
-def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product, use_id):
+def k8s_job_filter_task(dag, input_queue_name, output_queue_name, use_id):
 
     # we are using r5.4xl EC2: 16 CPUs + 128 GB RAM
     mem = CONFLUX_POD_MEMORY_MB // 2  # the biggest filter usage is 20GB
@@ -281,14 +282,14 @@ def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product, use_i
     job_task = KubernetesJobOperator(
         image=CONFLUX_WIT_IMAGE,
         dag=dag,
-        task_id="filter" + "-" + product,
+        task_id="filter",
         get_logs=False,
         body=yaml,
     )
     return job_task
 
 
-def k8s_job_run_wit_task(dag, queue_name, plugin, product, use_id):
+def k8s_job_run_wit_task(dag, queue_name, plugin, use_id):
 
     mem = CONFLUX_POD_MEMORY_MB
     req_mem = "{}Mi".format(int(mem))
@@ -407,14 +408,14 @@ def k8s_job_run_wit_task(dag, queue_name, plugin, product, use_id):
     job_task = KubernetesJobOperator(
         image=CONFLUX_WIT_IMAGE,
         dag=dag,
-        task_id="run" + "-" + product,
+        task_id="run",
         get_logs=False,
         body=yaml,
     )
     return job_task
 
 
-def k8s_queue_push(dag, queue_name, filename, product, task_id):
+def k8s_queue_push(dag, queue_name, filename, task_id):
     cmd = [
         "bash",
         "-c",
@@ -449,7 +450,7 @@ def k8s_queue_push(dag, queue_name, filename, product, task_id):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="push" + "-" + product,
+        task_id="push",
     )
 
 
@@ -482,12 +483,12 @@ def k8s_getids(dag, cmd, product):
         do_xcom_push=True,
         namespace="processing",
         tolerations=tolerations,
-        task_id="getids" + "-" + product,
+        task_id="getids",
     )
     return getids
 
 
-def k8s_makequeues(dag, raw_queue_name, final_queue_name, product):
+def k8s_makequeues(dag, raw_queue_name, final_queue_name):
     # TODO(MatthewJA): Use the name/ID of this DAG
     # to make sure that we don't double-up if we're
     # running two DAGs simultaneously.
@@ -521,12 +522,12 @@ def k8s_makequeues(dag, raw_queue_name, final_queue_name, product):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="makequeue" + "-" + product,
+        task_id="makequeue",
     )
     return makequeue
 
 
-def k8s_delqueues(dag, raw_queue_name, final_queue_name, product):
+def k8s_delqueues(dag, raw_queue_name, final_queue_name):
     # TODO(MatthewJA): Use the name/ID of this DAG
     # to make sure that we don't double-up if we're
     # running two DAGs simultaneously.
@@ -560,7 +561,7 @@ def k8s_delqueues(dag, raw_queue_name, final_queue_name, product):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="delqueue" + "-" + product,
+        task_id="delqueue",
     )
     return delqueue
 
@@ -624,16 +625,16 @@ with dag:
         plugin = wit_input['plugin']
         queue = wit_input['queue']
 
-        pre_queue_name = f"{queue}_raw"
+        raw_queue_name = f"{queue}_raw"
         final_queue_name = queue
 
         with TaskGroup(group_id=f"wit-conflux-{plugin}") as tg:
             getids = k8s_getids(dag, cmd, product)
-            makeprequeues = k8s_makequeues(dag, pre_queue_name, final_queue_name, product)
-            push = k8s_queue_push(dag, pre_queue_name, product + '-id.txt', product, f"wit-conflux-{plugin}.getids-{product}")
-            filter = k8s_job_filter_task(dag, input_queue_name=pre_queue_name, output_queue_name=final_queue_name, product=product, use_id=use_id)
-            processing = k8s_job_run_wit_task(dag, final_queue_name, plugin, product, use_id)
-            delprequeues = k8s_delqueues(dag, pre_queue_name, final_queue_name, product)
+            makeprequeues = k8s_makequeues(dag, raw_queue_name, final_queue_name)
+            push = k8s_queue_push(dag, raw_queue_name, f"{product}-id.txt", f"wit-conflux-{plugin}.getids")
+            filter = k8s_job_filter_task(dag, input_queue_name=raw_queue_name, output_queue_name=final_queue_name, use_id=use_id)
+            processing = k8s_job_run_wit_task(dag, final_queue_name, plugin, use_id)
+            delprequeues = k8s_delqueues(dag, raw_queue_name, final_queue_name)
 
             getids >> makeprequeues >> push >> filter >> processing >> delprequeues
 
