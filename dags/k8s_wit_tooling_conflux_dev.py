@@ -49,17 +49,17 @@ from infra.variables import (
 
 # Default config parameters.
 DEFAULT_PARAMS = dict(
-    shapefile="s3://dea-public-data-dev/projects/WIT/test_shp/C2_v4_NSW_only.shp",
-    intermediatedir="s3://dea-public-data-dev/projects/WIT/C2_v4_NSW_only_pq",
-    cmd="'time in [2021-01-01, 2099-01-01]'",
-    csvdir="s3://dea-public-data-dev/projects/WIT/C2_v4_NSW_only_csv",
-    use_id="FeatureID",
+    shapefile="s3://dea-public-data-dev/projects/WIT/test_shp/conflux_wb_Npolygons/wb_3_v2_conflux_10_test.shp",
+    intermediatedir="s3://dea-public-data-dev/projects/WIT/test_result/test_10_polygons_09062022/timestamp_base_result",
+    cmd="'lat in [-30, -29] lon in [141, 143] gqa_mean_x in [-1, 1]'",
+    csvdir="s3://dea-public-data-dev/projects/WIT/test_result/test_10_polygons_09062022/polygon_base_result",
+    use_id="uid",
 )
 
 # Requested memory. Memory limit is twice this.
 CONFLUX_POD_MEMORY_MB = 40000
 
-EC2_NUM = 64
+EC2_NUM = 1
 
 CONFLUX_WIT_IMAGE = "geoscienceaustralia/dea-conflux:latest"
 
@@ -158,17 +158,12 @@ dag = DAG(
 )
 
 # just keep the ls5 to save the development cost
-WIT_INPUTS = [{"product": "ga_ls5t_ard_3", "plugin": "wit_ls5", "queue": "wit_conflux_ls5_sqs"},
-              {"product": "ga_ls7e_ard_3", "plugin": "wit_ls7", "queue": "wit_conflux_ls7_sqs"},
-              {"product": "ga_ls8c_ard_3", "plugin": "wit_ls8", "queue": "wit_conflux_ls8_sqs"}]
+WIT_INPUTS = [{"product": "ga_ls5t_ard_3", "plugin": "wit_ls5", "queue": "wit_conflux_ls5_integration_test_sqs"},
+              {"product": "ga_ls7e_ard_3", "plugin": "wit_ls7", "queue": "wit_conflux_ls7_integration_test_sqs"},
+              {"product": "ga_ls8c_ard_3", "plugin": "wit_ls8", "queue": "wit_conflux_ls8_integration_test_sqs"}]
 
 
 def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product, use_id):
-
-    if len(use_id) != 0:
-        use_id_cmd = f"--use-id {use_id}"
-    else:
-        use_id_cmd = ""
 
     # we are using r5.4xl EC2: 16 CPUs + 128 GB RAM
     mem = CONFLUX_POD_MEMORY_MB // 2  # the biggest filter usage is 20GB
@@ -222,12 +217,12 @@ def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product, use_i
                                         --output-queue {output_queue_name} \
                                         --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} \
                                         --num-worker {cpu} \
-                                        {use_id_cmd}
+                                        --use-id {use_id}
                                     """.format(input_queue_name=input_queue_name,
                                                output_queue_name=output_queue_name,
                                                shapefile=DEFAULT_PARAMS['shapefile'],
                                                cpu=cpu,
-                                               use_id_cmd=use_id_cmd,
+                                               use_id=use_id,
                                                )),
                             ],
                             "env": [
@@ -295,11 +290,6 @@ def k8s_job_filter_task(dag, input_queue_name, output_queue_name, product, use_i
 
 def k8s_job_run_wit_task(dag, queue_name, plugin, product, use_id):
 
-    if len(use_id) != 0:
-        use_id_cmd = f"--use-id {use_id}"
-    else:
-        use_id_cmd = ""
-
     mem = CONFLUX_POD_MEMORY_MB
     req_mem = "{}Mi".format(int(mem))
     lim_mem = "{}Mi".format(int(mem))
@@ -353,12 +343,12 @@ def k8s_job_run_wit_task(dag, queue_name, plugin, product, use_id):
                                             --output {{{{ dag_run.conf.get("intermediatedir", "{intermediatedir}") }}}} {{{{ dag_run.conf.get("flags", "") }}}} \
                                             --not-dump-empty-dataframe \
                                             --timeout 7200 \
-                                            {use_id_cmd}
+                                            --use-id {use_id}
                                     """.format(queue=queue_name,
                                                shapefile=DEFAULT_PARAMS['shapefile'],
                                                intermediatedir=DEFAULT_PARAMS['intermediatedir'],
                                                plugin=plugin,
-                                               use_id_cmd=use_id_cmd,
+                                               use_id=use_id,
                                                )),
                             ],
                             "env": [
@@ -623,7 +613,6 @@ with dag:
         dag=dag,
     )
 
-    # if not given use_id, will grab the empty string
     use_id = '{{{{ dag_run.conf.get("use_id", "{use_id}") }}}}'.format(
         use_id=DEFAULT_PARAMS['use_id'],
     )
