@@ -605,12 +605,12 @@ with dag:
     )
 
     bash_commands = """
-        echo "shapefile: {{ dag_run.conf["shapefile"] if dag_run else "" }}";
-        echo "cmd: {{ dag_run.conf["cmd"] if dag_run else "" }}";
-        echo "intermediatedir: {{ dag_run.conf["intermediatedir"] if dag_run else "" }}";
-        echo "csvdir: {{ dag_run.conf["csvdir"] if dag_run else "" }}";
-        echo "flags: {{ dag_run.conf["flags"] if dag_run else "" }}";
-        echo "use_id: {{ dag_run.conf["use_id"] if dag_run else "" }}"
+        echo "shapefile: {{{{ dag_run.conf["shapefile"] if dag_run else "" }}}}";
+        echo "cmd: {{{{ dag_run.conf["cmd"] if dag_run else "" }}}}";
+        echo "intermediatedir: {{{{ dag_run.conf["intermediatedir"] if dag_run else "" }}}}";
+        echo "csvdir: {{{{ dag_run.conf["csvdir"] if dag_run else "" }}}}";
+        echo "flags: {{{{ dag_run.conf["flags"] if dag_run else "" }}}}";
+        echo "use_id: {{{{ dag_run.conf["use_id"] if dag_run else "" }}}}"
         """
 
     print_dag_run_cfg = BashOperator(
