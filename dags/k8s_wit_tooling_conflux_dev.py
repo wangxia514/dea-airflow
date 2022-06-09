@@ -51,7 +51,7 @@ from infra.variables import (
 DEFAULT_PARAMS = dict(
     shapefile="s3://dea-public-data-dev/projects/WIT/test_shp/conflux_wb_Npolygons/wb_3_v2_conflux_10_test.shp",
     intermediatedir="s3://dea-public-data-dev/projects/WIT/test_result/test_10_polygons_09062022/timestamp_base_result",
-    cmd="'time in [2010-01-01, 2014-01-01] lat in [-30, -29] lon in [141, 143] gqa_mean_x in [-1, 1]'",
+    cmd="'time in [2009-01-01, 2015-01-01] lat in [-30, -29] lon in [141, 143] gqa_mean_x in [-1, 1]'",
     csvdir="s3://dea-public-data-dev/projects/WIT/test_result/test_10_polygons_09062022/polygon_base_result",
     use_id="uid",
 )
@@ -59,7 +59,7 @@ DEFAULT_PARAMS = dict(
 # Requested memory. Memory limit is twice this.
 CONFLUX_POD_MEMORY_MB = 40000
 
-EC2_NUM = 1
+EC2_NUM = 4
 
 CONFLUX_WIT_IMAGE = "geoscienceaustralia/dea-conflux:latest"
 
@@ -133,10 +133,10 @@ tolerations = [
 ]
 
 
-def print_configuration_function(ds, **context):
+def print_configuration_function(ds, **kwargs):
     """Print the configuration of this DAG"""
     logging.info("Running Configurations:")
-    logging.info("dag_run:               " + str(context['params']))
+    logging.info("dag_run:               " + str(kwargs['params']))
     logging.info("ds:                    " + str(ds))
     logging.info("EC2_NUM:               " + str(EC2_NUM))
     logging.info("CONFLUX_POD_MEMORY_MB: " + str(CONFLUX_POD_MEMORY_MB))
