@@ -606,7 +606,7 @@ with dag:
 
     print_dag_run_cfg = BashOperator(
         task_id="print_dag_run_conf",
-        bash_command='echo "run_id={{ run_id }} | dag_run={{ dag_run }}"',
+        bash_command='echo "run_id={{ run_id }} | dag_run.conf={{ dag_run.conf }}"',
         dag=dag,
     )
 
