@@ -34,6 +34,7 @@ from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
+from airflow.utils.task_group import TaskGroup
 
 from textwrap import dedent
 
@@ -613,14 +614,17 @@ with dag:
         plugin = wit_input['plugin']
         queue = wit_input['queue']
 
-        pre_queue_name = queue + "_raw"
+        pre_queue_name = f"{queue}_raw"
         final_queue_name = queue
 
-        getids = k8s_getids(dag, cmd, product)
-        makeprequeues = k8s_makequeues(dag, pre_queue_name, final_queue_name, product)
-        push = k8s_queue_push(dag, pre_queue_name, product + '-id.txt', product, 'wit-conflux-getids-' + product)
-        filter = k8s_job_filter_task(dag, input_queue_name=pre_queue_name, output_queue_name=final_queue_name, product=product, use_id=use_id)
-        processing = k8s_job_run_wit_task(dag, final_queue_name, plugin, product, use_id)
-        delprequeues = k8s_delqueues(dag, pre_queue_name, final_queue_name, product)
+        with TaskGroup(group_id=f"{product}-processing") as tg:
+            getids = k8s_getids(dag, cmd, product)
+            makeprequeues = k8s_makequeues(dag, pre_queue_name, final_queue_name, product)
+            push = k8s_queue_push(dag, pre_queue_name, product + '-id.txt', product, 'wit-conflux-getids-' + product)
+            filter = k8s_job_filter_task(dag, input_queue_name=pre_queue_name, output_queue_name=final_queue_name, product=product, use_id=use_id)
+            processing = k8s_job_run_wit_task(dag, final_queue_name, plugin, product, use_id)
+            delprequeues = k8s_delqueues(dag, pre_queue_name, final_queue_name, product)
 
-        getids >> makeprequeues >> push >> filter >> processing >> delprequeues >> makecsvs
+            getids >> makeprequeues >> push >> filter >> processing >> delprequeues
+
+        tg >> makecsvs
