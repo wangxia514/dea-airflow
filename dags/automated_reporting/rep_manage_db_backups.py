@@ -39,10 +39,7 @@ dag = DAG(
 
 with dag:
     JOBS1 = [
-        "date_diff=30",
-        "BACKUP_DELETE_DATE=$(date --date=""${EXECUTION_DATE} -${date_diff} day"" +%Y-%m-%d)",
-        "day=`echo $BACKUP_DELETE_DATE | cut -f3 -d'-'`",
-        "aws s3 rm s3://$REPORTING_BUCKET/$BACKUP_DELETE_DATE/ --recursive",
+        "sh ~/manage_backup.sh",
     ]
     manage_reporting_db = KubernetesPodOperator(
         namespace="processing",
