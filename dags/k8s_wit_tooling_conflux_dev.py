@@ -51,7 +51,7 @@ from infra.variables import (
 DEFAULT_PARAMS = dict(
     shapefile="s3://dea-public-data-dev/projects/WIT/test_shp/conflux_wb_Npolygons/wb_3_v2_conflux_10_test.shp",
     intermediatedir="s3://dea-public-data-dev/projects/WIT/test_result/test_10_polygons_09062022/timestamp_base_result",
-    cmd="'time in [2000-01-01, 2022-01-01] lat in [-30, -29] lon in [141, 143] gqa_mean_x in [-1, 1]'",
+    cmd="'time in [2000-01-01, 2010-01-01] lat in [-30, -29] lon in [141, 143] gqa_mean_x in [-1, 1]'",
     csvdir="s3://dea-public-data-dev/projects/WIT/test_result/test_10_polygons_09062022/polygon_base_result",
     use_id="uid",
 )
