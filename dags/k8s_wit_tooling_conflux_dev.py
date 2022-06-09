@@ -136,7 +136,7 @@ tolerations = [
 def print_configuration_function(**context):
     """Print the configuration of this DAG"""
     logging.info("Running Configurations:")
-    logging.info("shapefile:             " + context['dag_run'].conf['messshapefileage'])
+    logging.info("shapefile:             " + context['dag_run'].conf['shapefile'])
     logging.info("intermediatedir:       " + context['dag_run'].conf['intermediatedir'])
     logging.info("cmd:                   " + context['dag_run'].conf['cmd'])
     logging.info("csvdir:                " + context['dag_run'].conf['csvdir'])
