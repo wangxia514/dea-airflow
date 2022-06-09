@@ -34,6 +34,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from airflow.operators.python import PythonOperator
+from airflow.operators.bash import BashOperator
 from airflow.utils.task_group import TaskGroup
 
 from textwrap import dedent
@@ -603,6 +604,21 @@ with dag:
         cmd=DEFAULT_PARAMS['cmd'],
     )
 
+    bash_commands = """
+        echo "shapefile: {{ dag_run.conf["shapefile"] if dag_run else "" }}";
+        echo "cmd: {{ dag_run.conf["cmd"] if dag_run else "" }}";
+        echo "intermediatedir: {{ dag_run.conf["intermediatedir"] if dag_run else "" }}";
+        echo "csvdir: {{ dag_run.conf["csvdir"] if dag_run else "" }}";
+        echo "flags: {{ dag_run.conf["flags"] if dag_run else "" }}";
+        echo "use_id: {{ dag_run.conf["use_id"] if dag_run else "" }}"
+        """
+
+    print_dag_run_cfg = BashOperator(
+        task_id="bash_task",
+        bash_command=bash_commands,
+        dag=dag,
+    )
+
     print_configuration = PythonOperator(
         task_id="print_configuration",
         python_callable=print_configuration_function,
@@ -634,4 +650,4 @@ with dag:
 
             getids >> makeprequeues >> push >> filter >> processing >> delprequeues
 
-        print_configuration >> tg >> makecsvs
+        print_dag_run_cfg >> print_configuration >> tg >> makecsvs
