@@ -136,7 +136,7 @@ tolerations = [
 def print_configuration_function(ds, **context):
     """Print the configuration of this DAG"""
     logging.info("Running Configurations:")
-    logging.info("dag_run:               " + context['params'])
+    logging.info("dag_run:               " + str(context['params']))
     logging.info("ds:                    " + str(ds))
     logging.info("EC2_NUM:               " + str(EC2_NUM))
     logging.info("CONFLUX_POD_MEMORY_MB: " + str(CONFLUX_POD_MEMORY_MB))
