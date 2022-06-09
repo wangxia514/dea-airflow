@@ -42,10 +42,7 @@ with dag:
         "date_diff=30",
         "BACKUP_DELETE_DATE=$(date --date=""${EXECUTION_DATE} -${date_diff} day"" +%Y-%m-%d)",
         "day=`echo $BACKUP_DELETE_DATE | cut -f3 -d'-'`",
-        "if [ ""$day"" != ""01"" ]",
-        "then ",
-        "    aws s3 rm s3://automated-reporting-db-dump/$BACKUP_DELETE_DATE/ --recursive",
-        "fi",
+        "aws s3 rm s3://$REPORTING_BUCKET/$BACKUP_DELETE_DATE/ --recursive",
     ]
     manage_reporting_db = KubernetesPodOperator(
         namespace="processing",
