@@ -133,15 +133,11 @@ tolerations = [
 ]
 
 
-def print_configuration_function(**context):
+def print_configuration_function(ds, **context):
     """Print the configuration of this DAG"""
     logging.info("Running Configurations:")
-    logging.info("shapefile:             " + context['dag_run'].conf['shapefile'])
-    logging.info("intermediatedir:       " + context['dag_run'].conf['intermediatedir'])
-    logging.info("cmd:                   " + context['dag_run'].conf['cmd'])
-    logging.info("csvdir:                " + context['dag_run'].conf['csvdir'])
-    logging.info("use_id:                " + context['dag_run'].conf['use_id'])
-    logging.info("flags:                 " + context['dag_run'].conf['flags'])
+    logging.info("dag_run:               " + context['params'])
+    logging.info("ds:                    " + str(ds))
     logging.info("EC2_NUM:               " + str(EC2_NUM))
     logging.info("CONFLUX_POD_MEMORY_MB: " + str(CONFLUX_POD_MEMORY_MB))
     logging.info("")
