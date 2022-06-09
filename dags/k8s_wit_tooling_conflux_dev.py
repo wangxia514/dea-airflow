@@ -604,12 +604,6 @@ with dag:
         cmd=DEFAULT_PARAMS['cmd'],
     )
 
-    print_dag_run_cfg = BashOperator(
-        task_id="print_dag_run_conf",
-        bash_command='echo "run_id={{ run_id }} | dag_run.conf={{ dag_run.conf }}"',
-        dag=dag,
-    )
-
     print_configuration = PythonOperator(
         task_id="print_sys_conf",
         python_callable=print_configuration_function,
@@ -641,4 +635,4 @@ with dag:
 
             getids >> makeprequeues >> push >> filter >> processing >> delprequeues
 
-        print_dag_run_cfg >> print_configuration >> tg >> makecsvs
+        print_configuration >> tg >> makecsvs
