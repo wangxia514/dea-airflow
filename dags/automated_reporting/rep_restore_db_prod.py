@@ -43,76 +43,14 @@ dag = DAG(
 )
 
 with dag:
-    JOBSLANDSAT = [
+    JOBS1 = [
         "echo db restore started: $(date)",
-        "result=`aws s3 cp s3://$REPORTING_BUCKET/$EXECUTION_DATE/landsat-dump.sql landsat-dump.sql`",
-        "exec_result=$?",
-        "if [ exec_result != 0 ]",
-        "then ",
-        "    EXECUTION_DATE=`aws s3 ls s3://$REPORTING_BUCKET/ | tr -s ' ' ' ' | cut -f3 -d ' ' | cut -f1 -d '/' | tail -1`",
-        "    result=`aws s3 cp s3://$REPORTING_BUCKET/$EXECUTION_DATE/landsat-dump.sql landsat-dump.sql`",
-        "fi ",
-        "pg_restore -h $DB_HOST -U $DB_USER -d $DB_NAME -1 landsat-dump.sql",
-    ]
-    JOBSDEA = [
-        "echo db restore started: $(date)",
-        "result=`aws s3 cp s3://$REPORTING_BUCKET/$EXECUTION_DATE/dea-dump.sql dea-dump.sql`",
-        "exec_result=$?",
-        "if [ exec_result != 0 ]",
-        "then ",
-        "    EXECUTION_DATE=`aws s3 ls s3://$REPORTING_BUCKET/ | tr -s ' ' ' ' | cut -f3 -d ' ' | cut -f1 -d '/' | tail -1`",
-        "    result=`aws s3 cp s3://$REPORTING_BUCKET/$EXECUTION_DATE/dea-dump.sql dea-dump.sql`",
-        "fi ",
-        "pg_restore -h $DB_HOST -U $DB_USER -d $DB_NAME -1 dea-dump.sql",
-    ]
-    JOBSCOPHUB = [
-        "echo db restore started: $(date)",
-        "result=`aws s3 cp s3://$REPORTING_BUCKET/$EXECUTION_DATE/cophub-dump.sql cophub-dump.sql`",
-        "exec_result=$?",
-        "if [ exec_result != 0 ]",
-        "then ",
-        "    EXECUTION_DATE=`aws s3 ls s3://$REPORTING_BUCKET/ | tr -s ' ' ' ' | cut -f3 -d ' ' | cut -f1 -d '/' | tail -1`",
-        "    result=`aws s3 cp s3://$REPORTING_BUCKET/$EXECUTION_DATE/cophub-dump.sql cophub-dump.sql`",
-        "fi ",
-        "pg_restore -h $DB_HOST -U $DB_USER -d $DB_NAME -1 cophub-dump.sql",
-    ]
-    JOBSMARINE = [
-        "echo db restore started: $(date)",
-        "result=`aws s3 cp s3://$REPORTING_BUCKET/$EXECUTION_DATE/marine-dump.sql marine-dump.sql`",
-        "exec_result=$?",
-        "if [ exec_result != 0 ]",
-        "then ",
-        "    EXECUTION_DATE=`aws s3 ls s3://$REPORTING_BUCKET/ | tr -s ' ' ' ' | cut -f3 -d ' ' | cut -f1 -d '/' | tail -1`",
-        "    result=`aws s3 cp s3://$REPORTING_BUCKET/$EXECUTION_DATE/marine-dump.sql marine-dump.sql`",
-        "fi ",
-        "pg_restore -h $DB_HOST -U $DB_USER -d $DB_NAME -1 marine-dump.sql",
-    ]
-    JOBSNCI = [
-        "echo db restore started: $(date)",
-        "result=`aws s3 cp s3://$REPORTING_BUCKET/$EXECUTION_DATE/nci-dump.sql nci-dump.sql`",
-        "exec_result=$?",
-        "if [ exec_result != 0 ]",
-        "then ",
-        "    EXECUTION_DATE=`aws s3 ls s3://$REPORTING_BUCKET/ | tr -s ' ' ' ' | cut -f3 -d ' ' | cut -f1 -d '/' | tail -1`",
-        "    result=`aws s3 cp s3://$REPORTING_BUCKET/$EXECUTION_DATE/nci-dump.sql nci-dump.sql`",
-        "fi ",
-        "pg_restore -h $DB_HOST -U $DB_USER -d $DB_NAME -1 nci-dump.sql",
-    ]
-    JOBSPUBLIC = [
-        "echo db restore started: $(date)",
-        "result=`aws s3 cp s3://$REPORTING_BUCKET/$EXECUTION_DATE/public-dump.sql public-dump.sql`",
-        "exec_result=$?",
-        "if [ exec_result != 0 ]",
-        "then ",
-        "    EXECUTION_DATE=`aws s3 ls s3://$REPORTING_BUCKET/ | tr -s ' ' ' ' | cut -f3 -d ' ' | cut -f1 -d '/' | tail -1`",
-        "    result=`aws s3 cp s3://$REPORTING_BUCKET/$EXECUTION_DATE/public-dump.sql public-dump.sql`",
-        "fi ",
-        "pg_restore -h $DB_HOST -U $DB_USER -d $DB_NAME -1 public-dump.sql",
+        "sh /restore.sh",
     ]
     restore_reporting_db_landsat = KubernetesPodOperator(
         namespace="processing",
         image="ramagopr123/psql_client",
-        arguments=["bash", "-c", " &&\n".join(JOBSLANDSAT)],
+        arguments=["bash", "-c", " &&\n".join(JOBS1)],
         name="restore_reporting_db_landsat",
         is_delete_operator_pod=True,
         in_cluster=True,
@@ -123,12 +61,13 @@ with dag:
             "AWS_DEFAULT_REGION": "ap-southeast-2",
             "AWS_PAGER": "",
             "REPORTING_BUCKET": "automated-reporting-db-dump",
+            "SCHEMA": "landsat",
         },
     )
     restore_reporting_db_dea = KubernetesPodOperator(
         namespace="processing",
         image="ramagopr123/psql_client",
-        arguments=["bash", "-c", " &&\n".join(JOBSDEA)],
+        arguments=["bash", "-c", " &&\n".join(JOBS1)],
         name="restore_reporting_db_dea",
         is_delete_operator_pod=True,
         in_cluster=True,
@@ -139,12 +78,13 @@ with dag:
             "AWS_DEFAULT_REGION": "ap-southeast-2",
             "AWS_PAGER": "",
             "REPORTING_BUCKET": "automated-reporting-db-dump",
+            "SCHEMA": "dea",
         },
     )
     restore_reporting_db_cophub = KubernetesPodOperator(
         namespace="processing",
         image="ramagopr123/psql_client",
-        arguments=["bash", "-c", " &&\n".join(JOBSCOPHUB)],
+        arguments=["bash", "-c", " &&\n".join(JOBS1)],
         name="restore_reporting_db_cophub",
         is_delete_operator_pod=True,
         in_cluster=True,
@@ -155,12 +95,13 @@ with dag:
             "AWS_DEFAULT_REGION": "ap-southeast-2",
             "AWS_PAGER": "",
             "REPORTING_BUCKET": "automated-reporting-db-dump",
+            "SCHEMA": "cophub",
         },
     )
     restore_reporting_db_marine = KubernetesPodOperator(
         namespace="processing",
         image="ramagopr123/psql_client",
-        arguments=["bash", "-c", " &&\n".join(JOBSMARINE)],
+        arguments=["bash", "-c", " &&\n".join(JOBS1)],
         name="restore_reporting_db_marine",
         is_delete_operator_pod=True,
         in_cluster=True,
@@ -171,12 +112,13 @@ with dag:
             "AWS_DEFAULT_REGION": "ap-southeast-2",
             "AWS_PAGER": "",
             "REPORTING_BUCKET": "automated-reporting-db-dump",
+            "SCHEMA": "marine",
         },
     )
     restore_reporting_db_nci = KubernetesPodOperator(
         namespace="processing",
         image="ramagopr123/psql_client",
-        arguments=["bash", "-c", " &&\n".join(JOBSNCI)],
+        arguments=["bash", "-c", " &&\n".join(JOBS1)],
         name="restore_reporting_db_nci",
         is_delete_operator_pod=True,
         in_cluster=True,
@@ -187,12 +129,13 @@ with dag:
             "AWS_DEFAULT_REGION": "ap-southeast-2",
             "AWS_PAGER": "",
             "REPORTING_BUCKET": "automated-reporting-db-dump",
+            "SCHEMA": "nci",
         },
     )
     restore_reporting_db_public = KubernetesPodOperator(
         namespace="processing",
         image="ramagopr123/psql_client",
-        arguments=["bash", "-c", " &&\n".join(JOBSPUBLIC)],
+        arguments=["bash", "-c", " &&\n".join(JOBS1)],
         name="restore_reporting_db_public",
         is_delete_operator_pod=True,
         in_cluster=True,
@@ -203,6 +146,7 @@ with dag:
             "AWS_DEFAULT_REGION": "ap-southeast-2",
             "AWS_PAGER": "",
             "REPORTING_BUCKET": "automated-reporting-db-dump",
+            "SCHEMA": "public",
         },
     )
     START = DummyOperator(task_id="restore-reporting-db")
