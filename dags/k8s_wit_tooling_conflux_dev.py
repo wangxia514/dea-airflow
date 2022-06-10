@@ -136,9 +136,8 @@ tolerations = [
 def print_configuration_function(ds, **kwargs):
     """Print the configuration of this DAG"""
     logging.info("Running Configurations:")
-    logging.info("dag_run:               " + str(kwargs['params']))
     logging.info("ds:                    " + str(ds))
-    logging.info("EC2_NUM:               " + str(EC2_NUM))
+    logging.info("EC2_NUM:               " + str(kwargs["ec2_num"]))
     logging.info("CONFLUX_POD_MEMORY_MB: " + str(CONFLUX_POD_MEMORY_MB))
     logging.info("")
 
@@ -160,7 +159,7 @@ WIT_INPUTS = [{"product": "ga_ls5t_ard_3", "plugin": "wit_ls5", "queue": "wit_co
               {"product": "ga_ls8c_ard_3", "plugin": "wit_ls8", "queue": "wit_conflux_ls8_integration_test_sqs"}]
 
 
-def k8s_job_filter_task(dag, input_queue_name, output_queue_name, use_id):
+def k8s_job_filter_task(dag, input_queue_name, output_queue_name, use_id, ec2_num):
 
     # we are using r5.4xl EC2: 16 CPUs + 128 GB RAM
     mem = CONFLUX_POD_MEMORY_MB // 2  # the biggest filter usage is 20GB
@@ -168,11 +167,11 @@ def k8s_job_filter_task(dag, input_queue_name, output_queue_name, use_id):
     lim_mem = "{}Mi".format(int(mem))
 
     # 1. Each WIT EC2 can run 6 filter pod;
-    # 2. and EC2_NUM == how many EC2
+    # 2. and ec2_num == how many EC2
     # 3. there are 3 products
-    # so each product filter parallelism = EC2_NUM * 6 / 3
-    # => EC2_NUM * 2
-    parallelism = EC2_NUM * 2
+    # so each product filter parallelism = ec2_num * 6 / 3
+    # => ec2_num * 2
+    parallelism = ec2_num * 2
     cpu = 2
     cpu_request = f"{cpu}000m"  # 128/20 ~= 6, 16/6 ~= 2
 
@@ -285,17 +284,17 @@ def k8s_job_filter_task(dag, input_queue_name, output_queue_name, use_id):
     return job_task
 
 
-def k8s_job_run_wit_task(dag, queue_name, plugin, use_id):
+def k8s_job_run_wit_task(dag, queue_name, plugin, use_id, ec2_num):
 
     mem = CONFLUX_POD_MEMORY_MB
     req_mem = "{}Mi".format(int(mem))
     lim_mem = "{}Mi".format(int(mem))
 
     # 1. Each WIT EC2 can run 3 processing pod;
-    # 2. and EC2_NUM == how many EC2;
+    # 2. and ec2_num == how many EC2;
     # 3. there are 3 products;
-    # so each product parallelism = EC2_NUM * 3 / 3
-    parallelism = EC2_NUM
+    # so each product parallelism = ec2_num * 3 / 3
+    parallelism = ec2_num
 
     yaml = {
         "apiVersion": "batch/v1",
@@ -603,10 +602,15 @@ with dag:
         cmd=DEFAULT_PARAMS['cmd'],
     )
 
+    ec2_num = '{{{{ dag_run.conf.get("ec2_num", "{cmd}") }}}}'.format(
+        cmd=EC2_NUM,
+    )
+
     print_configuration = PythonOperator(
         task_id="print_sys_conf",
         python_callable=print_configuration_function,
         provide_context=True,
+        op_kwargs={'ec2_num': ec2_num},
         dag=dag,
     )
 
@@ -628,8 +632,8 @@ with dag:
             getids = k8s_getids(dag, cmd, product)
             makeprequeues = k8s_makequeues(dag, raw_queue_name, final_queue_name)
             push = k8s_queue_push(dag, raw_queue_name, f"{product}-id.txt", f"wit-conflux-{plugin}.getids")
-            filter = k8s_job_filter_task(dag, input_queue_name=raw_queue_name, output_queue_name=final_queue_name, use_id=use_id)
-            processing = k8s_job_run_wit_task(dag, final_queue_name, plugin, use_id)
+            filter = k8s_job_filter_task(dag, input_queue_name=raw_queue_name, output_queue_name=final_queue_name, use_id=use_id, ec2_num=ec2_num)
+            processing = k8s_job_run_wit_task(dag, final_queue_name, plugin, use_id, ec2_num)
             delprequeues = k8s_delqueues(dag, raw_queue_name, final_queue_name)
 
             getids >> makeprequeues >> push >> filter >> processing >> delprequeues
