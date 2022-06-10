@@ -139,6 +139,10 @@ def print_configuration_function(ds, **kwargs):
     logging.info("ds:                    " + str(ds))
     logging.info("EC2_NUM:               " + str(kwargs["ec2_num"]))
     logging.info("CONFLUX_POD_MEMORY_MB: " + str(CONFLUX_POD_MEMORY_MB))
+    logging.info("shapefile:             " + str(kwargs["shapefile"]))
+    logging.info("cmd:                   " + str(kwargs["cmd"]))
+    logging.info("csvdir:                " + str(kwargs["csvdir"]))
+    logging.info("intermediatedir:       " + str(kwargs["intermediatedir"]))
     logging.info("")
 
 
@@ -602,15 +606,27 @@ with dag:
         cmd=DEFAULT_PARAMS['cmd'],
     )
 
-    ec2_num = '{{{{ dag_run.conf.get("ec2_num", "{cmd}") }}}}'.format(
-        cmd=EC2_NUM,
+    ec2_num = '{{{{ dag_run.conf.get("ec2_num", "{ec2_num}") }}}}'.format(
+        ec2_num=EC2_NUM,
+    )
+
+    shapefile = '{{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}}'.format(
+        shapefile=DEFAULT_PARAMS['shapefile'],
+    )
+
+    csvdir = '{{{{ dag_run.conf.get("csvdir", "{csvdir}") }}}}'.format(
+        csvdir=DEFAULT_PARAMS['csvdir'],
+    )
+
+    intermediatedir = '{{{{ dag_run.conf.get("intermediatedir", "{intermediatedir}") }}}}'.format(
+        intermediatedir=DEFAULT_PARAMS['intermediatedir'],
     )
 
     print_configuration = PythonOperator(
         task_id="print_sys_conf",
         python_callable=print_configuration_function,
         provide_context=True,
-        op_kwargs={'ec2_num': ec2_num},
+        op_kwargs={'ec2_num': ec2_num, 'cmd': cmd, 'shapefile': shapefile, 'csvdir': csvdir, 'intermediatedir': intermediatedir},
         dag=dag,
     )
 
@@ -632,8 +648,8 @@ with dag:
             getids = k8s_getids(dag, cmd, product)
             makeprequeues = k8s_makequeues(dag, raw_queue_name, final_queue_name)
             push = k8s_queue_push(dag, raw_queue_name, f"{product}-id.txt", f"wit-conflux-{plugin}.getids")
-            filter = k8s_job_filter_task(dag, input_queue_name=raw_queue_name, output_queue_name=final_queue_name, use_id=use_id, ec2_num=ec2_num)
-            processing = k8s_job_run_wit_task(dag, final_queue_name, plugin, use_id, ec2_num)
+            filter = k8s_job_filter_task(dag, input_queue_name=raw_queue_name, output_queue_name=final_queue_name, use_id=use_id, ec2_num=int(ec2_num))
+            processing = k8s_job_run_wit_task(dag, final_queue_name, plugin, use_id, int(ec2_num))
             delprequeues = k8s_delqueues(dag, raw_queue_name, final_queue_name)
 
             getids >> makeprequeues >> push >> filter >> processing >> delprequeues
