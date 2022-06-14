@@ -138,6 +138,7 @@ def print_configuration_function(ds, **kwargs):
     logging.info("Running Configurations:")
     logging.info("ds:                    " + str(ds))
     logging.info("EC2_NUM:               " + str(kwargs["ec2_num"]))
+    logging.info("EC2_NUM_TYPE)          " + str(type(kwargs["ec2_num"])))
     logging.info("CONFLUX_POD_MEMORY_MB: " + str(CONFLUX_POD_MEMORY_MB))
     logging.info("shapefile:             " + str(kwargs["shapefile"]))
     logging.info("cmd:                   " + str(kwargs["cmd"]))
@@ -176,7 +177,7 @@ def k8s_job_filter_task(dag, input_queue_name, output_queue_name, use_id, ec2_nu
     # 3. there are 3 products
     # so each product filter parallelism = EC2_NUM * 6 / 3
     # => EC2_NUM * 2
-    parallelism = int(ec2_num) * 2
+    parallelism = ec2_num * 2
     cpu = 2
     cpu_request = f"{cpu}000m"  # 128/20 ~= 6, 16/6 ~= 2
 
