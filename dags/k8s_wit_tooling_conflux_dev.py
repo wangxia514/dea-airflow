@@ -137,8 +137,8 @@ def print_configuration_function(ds, **kwargs):
     """Print the configuration of this DAG"""
     logging.info("Running Configurations:")
     logging.info("ds:                    " + str(ds))
+    logging.info("EC2_NUM:               " + str(EC2_NUM))
     logging.info("CONFLUX_POD_MEMORY_MB: " + str(CONFLUX_POD_MEMORY_MB))
-    logging.info("EC2_num:               " + str(EC2_NUM))
     logging.info("shapefile:             " + str(kwargs["shapefile"]))
     logging.info("cmd:                   " + str(kwargs["cmd"]))
     logging.info("csvdir:                " + str(kwargs["csvdir"]))
@@ -163,7 +163,7 @@ WIT_INPUTS = [{"product": "ga_ls5t_ard_3", "plugin": "wit_ls5", "queue": "wit_co
               {"product": "ga_ls8c_ard_3", "plugin": "wit_ls8", "queue": "wit_conflux_ls8_integration_test_sqs"}]
 
 
-def k8s_job_filter_task(dag, raw_queue_name, final_queue_name, use_id, parallelism):
+def k8s_job_filter_task(dag, raw_queue_name, final_queue_name, use_id):
 
     # we are using r5.4xl EC2: 16 CPUs + 128 GB RAM
     mem = CONFLUX_POD_MEMORY_MB // 2  # the biggest filter usage is 20GB
