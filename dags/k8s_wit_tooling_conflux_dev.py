@@ -164,7 +164,7 @@ WIT_INPUTS = [{"product": "ga_ls5t_ard_3", "plugin": "wit_ls5", "queue": "wit_co
               {"product": "ga_ls8c_ard_3", "plugin": "wit_ls8", "queue": "wit_conflux_ls8_integration_test_sqs"}]
 
 
-def k8s_job_filter_task(dag, input_queue_name, output_queue_name, use_id, ec2_num, shapefile):
+def k8s_job_filter_task(dag, raw_queue_name, final_queue_name, use_id, ec2_num, shapefile):
 
     # we are using r5.4xl EC2: 16 CPUs + 128 GB RAM
     mem = CONFLUX_POD_MEMORY_MB // 2  # the biggest filter usage is 20GB
@@ -214,13 +214,13 @@ def k8s_job_filter_task(dag, input_queue_name, output_queue_name, use_id, ec2_nu
                                 dedent(
                                     """
                                     dea-conflux filter-from-queue -v \
-                                        --input-queue {input_queue_name} \
-                                        --output-queue {output_queue_name} \
+                                        --input-queue {raw_queue_name} \
+                                        --output-queue {final_queue_name} \
                                         --shapefile {shapefile} \
                                         --num-worker {cpu} \
                                         --use-id {use_id}
-                                    """.format(input_queue_name=input_queue_name,
-                                               output_queue_name=output_queue_name,
+                                    """.format(raw_queue_name=raw_queue_name,
+                                               final_queue_name=final_queue_name,
                                                shapefile=shapefile,
                                                cpu=cpu,
                                                use_id=use_id,
@@ -643,7 +643,7 @@ with dag:
             getids = k8s_getids(dag, cmd, product)
             makeprequeues = k8s_makequeues(dag, raw_queue_name, final_queue_name)
             push = k8s_queue_push(dag, raw_queue_name, f"{product}-id.txt", f"wit-conflux-{plugin}.getids")
-            filter = k8s_job_filter_task(dag, input_queue_name=raw_queue_name, output_queue_name=final_queue_name, use_id=use_id, ec2_num=ec2_num)
+            filter = k8s_job_filter_task(dag, raw_queue_name, final_queue_name, use_id, ec2_num, shapefile)
             processing = k8s_job_run_wit_task(dag, final_queue_name, plugin, use_id, ec2_num, shapefile, intermediatedir, flags)
             delprequeues = k8s_delqueues(dag, raw_queue_name, final_queue_name)
 
