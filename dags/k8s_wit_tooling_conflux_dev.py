@@ -138,7 +138,7 @@ def print_configuration_function(ds, **kwargs):
     logging.info("Running Configurations:")
     logging.info("ds:                    " + str(ds))
     logging.info("CONFLUX_POD_MEMORY_MB: " + str(CONFLUX_POD_MEMORY_MB))
-    logging.info("EC2_num:               " + str(EC2_NUM)
+    logging.info("EC2_num:               " + str(EC2_NUM))
     logging.info("shapefile:             " + str(kwargs["shapefile"]))
     logging.info("cmd:                   " + str(kwargs["cmd"]))
     logging.info("csvdir:                " + str(kwargs["csvdir"]))
