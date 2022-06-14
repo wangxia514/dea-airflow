@@ -179,7 +179,7 @@ def k8s_job_filter_task(dag, raw_queue_name, final_queue_name, use_id, paralleli
         "metadata": {"name": "filter-job",
                      "namespace": "processing"},
         "spec": {
-            "parallelism": {{parallelism}},
+            "parallelism": {parallelism},
             "backoffLimit": 32,
             "template": {
                 "spec": {
@@ -294,7 +294,7 @@ def k8s_job_run_wit_task(dag, queue_name, plugin, use_id, parallelism):
         "metadata": {"name": "processing-job",
                      "namespace": "processing"},
         "spec": {
-            "parallelism": {{parallelism}},
+            "parallelism": {parallelism},
             "backoffLimit": 32,
             "template": {
                 "spec": {
