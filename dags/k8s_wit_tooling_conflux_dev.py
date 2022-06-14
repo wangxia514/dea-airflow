@@ -42,6 +42,7 @@ from infra.variables import (
     DB_DATABASE,
     DB_READER_HOSTNAME,
     AWS_DEFAULT_REGION,
+    DB_PORT,
     WIT_DEV_USER_SECRET,
     SECRET_ODC_READER_NAME,
 )
@@ -58,7 +59,7 @@ DEFAULT_PARAMS = dict(
 # Requested memory. Memory limit is twice this.
 CONFLUX_POD_MEMORY_MB = 40000
 
-EC2_NUM = 4
+PARALLELISM = 4
 
 CONFLUX_WIT_IMAGE = "geoscienceaustralia/dea-conflux:latest"
 
@@ -67,7 +68,7 @@ SECRETS = {
     "env_vars": {
         "DB_HOSTNAME": DB_READER_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
-        "DB_PORT": "5432",
+        "DB_PORT": DB_PORT,
         "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
     },
     # Lift secrets into environment variables
@@ -136,13 +137,12 @@ def print_configuration_function(ds, **kwargs):
     """Print the configuration of this DAG"""
     logging.info("Running Configurations:")
     logging.info("ds:                    " + str(ds))
-    logging.info("EC2_NUM:               " + str(kwargs["ec2_num"]))
     logging.info("CONFLUX_POD_MEMORY_MB: " + str(CONFLUX_POD_MEMORY_MB))
+    logging.info("parallelism:           " + str(kwargs["parallelism"]))
     logging.info("shapefile:             " + str(kwargs["shapefile"]))
     logging.info("cmd:                   " + str(kwargs["cmd"]))
     logging.info("csvdir:                " + str(kwargs["csvdir"]))
     logging.info("intermediatedir:       " + str(kwargs["intermediatedir"]))
-    logging.info("flags:                 " + str(kwargs["flags"]))
     logging.info("")
 
 
@@ -154,7 +154,6 @@ dag = DAG(
     schedule_interval=None,  # triggered only
     catchup=False,
     concurrency=128,
-    render_template_as_native_obj=True,
     tags=["k8s", "landsat", "wit", "conflux", "Work In Progress"],
 )
 
@@ -164,19 +163,13 @@ WIT_INPUTS = [{"product": "ga_ls5t_ard_3", "plugin": "wit_ls5", "queue": "wit_co
               {"product": "ga_ls8c_ard_3", "plugin": "wit_ls8", "queue": "wit_conflux_ls8_integration_test_sqs"}]
 
 
-def k8s_job_filter_task(dag, raw_queue_name, final_queue_name, use_id, ec2_num, shapefile):
+def k8s_job_filter_task(dag, raw_queue_name, final_queue_name, use_id, parallelism):
 
     # we are using r5.4xl EC2: 16 CPUs + 128 GB RAM
     mem = CONFLUX_POD_MEMORY_MB // 2  # the biggest filter usage is 20GB
     req_mem = "{}Mi".format(int(mem))
     lim_mem = "{}Mi".format(int(mem))
 
-    # 1. Each WIT EC2 can run 6 filter pod;
-    # 2. and EC2_NUM == how many EC2
-    # 3. there are 3 products
-    # so each product filter parallelism = EC2_NUM * 6 / 3
-    # => EC2_NUM * 2
-    parallelism = ec2_num * 2
     cpu = 2
     cpu_request = f"{cpu}000m"  # 128/20 ~= 6, 16/6 ~= 2
 
@@ -214,14 +207,14 @@ def k8s_job_filter_task(dag, raw_queue_name, final_queue_name, use_id, ec2_num, 
                                 dedent(
                                     """
                                     dea-conflux filter-from-queue -v \
-                                        --input-queue {raw_queue_name} \
-                                        --output-queue {final_queue_name} \
-                                        --shapefile {shapefile} \
+                                        --input-queue {input_queue_name} \
+                                        --output-queue {output_queue_name} \
+                                        --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} \
                                         --num-worker {cpu} \
                                         --use-id {use_id}
-                                    """.format(raw_queue_name=raw_queue_name,
-                                               final_queue_name=final_queue_name,
-                                               shapefile=shapefile,
+                                    """.format(input_queue_name=raw_queue_name,
+                                               output_queue_name=final_queue_name,
+                                               shapefile=DEFAULT_PARAMS['shapefile'],
                                                cpu=cpu,
                                                use_id=use_id,
                                                )),
@@ -230,7 +223,7 @@ def k8s_job_filter_task(dag, raw_queue_name, final_queue_name, use_id, ec2_num, 
                                 {"name": "DB_HOSTNAME", "value": DB_READER_HOSTNAME},
                                 {"name": "DB_DATABASE", "value": DB_DATABASE},
                                 {"name": "AWS_NO_SIGN_REQUEST", "value": "YES"},
-                                {"name": "DB_PORT", "value": "5432"},
+                                {"name": "DB_PORT", "value": DB_PORT},
                                 {
                                     "name": "AWS_DEFAULT_REGION",
                                     "value": AWS_DEFAULT_REGION,
@@ -289,17 +282,11 @@ def k8s_job_filter_task(dag, raw_queue_name, final_queue_name, use_id, ec2_num, 
     return job_task
 
 
-def k8s_job_run_wit_task(dag, queue_name, plugin, use_id, ec2_num, shapefile, intermediatedir, flags):
+def k8s_job_run_wit_task(dag, queue_name, plugin, use_id, parallelism):
 
     mem = CONFLUX_POD_MEMORY_MB
     req_mem = "{}Mi".format(int(mem))
     lim_mem = "{}Mi".format(int(mem))
-
-    # 1. Each WIT EC2 can run 3 processing pod;
-    # 2. and EC2_NUM == how many EC2;
-    # 3. there are 3 products;
-    # so each product parallelism = EC2_NUM * 3 / 3
-    parallelism = ec2_num
 
     yaml = {
         "apiVersion": "batch/v1",
@@ -340,16 +327,15 @@ def k8s_job_run_wit_task(dag, queue_name, plugin, use_id, ec2_num, shapefile, in
                                             --overedge \
                                             --partial \
                                             --no-db \
-                                            --shapefile {shapefile} \
-                                            --output {intermediatedir} {flags} \
+                                            --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} \
+                                            --output {{{{ dag_run.conf.get("intermediatedir", "{intermediatedir}") }}}} {{{{ dag_run.conf.get("flags", "") }}}} \
                                             --not-dump-empty-dataframe \
                                             --timeout 7200 \
                                             --use-id {use_id}
                                     """.format(queue=queue_name,
-                                               shapefile=shapefile,
-                                               intermediatedir=intermediatedir,
+                                               shapefile=DEFAULT_PARAMS['shapefile'],
+                                               intermediatedir=DEFAULT_PARAMS['intermediatedir'],
                                                plugin=plugin,
-                                               flags=flags,
                                                use_id=use_id,
                                                )),
                             ],
@@ -357,7 +343,7 @@ def k8s_job_run_wit_task(dag, queue_name, plugin, use_id, ec2_num, shapefile, in
                                 {"name": "DB_HOSTNAME", "value": DB_READER_HOSTNAME},
                                 {"name": "DB_DATABASE", "value": DB_DATABASE},
                                 {"name": "AWS_NO_SIGN_REQUEST", "value": "YES"},
-                                {"name": "DB_PORT", "value": "5432"},
+                                {"name": "DB_PORT", "value": DB_PORT},
                                 {
                                     "name": "AWS_DEFAULT_REGION",
                                     "value": AWS_DEFAULT_REGION,
@@ -462,6 +448,7 @@ def k8s_getids(dag, cmd, product):
         "-c",
         dedent(
             """
+            echo "Writing to /airflow/xcom/return.json"
             dea-conflux get-ids {product} {cmd} --s3 > /airflow/xcom/return.json
             """.format(cmd=cmd, product=product)
         ),
@@ -497,8 +484,11 @@ def k8s_makequeues(dag, raw_queue_name, final_queue_name):
         "-c",
         dedent(
             """
-            dea-conflux make {raw_queue_name} --timeout 7200 --retries 1 && dea-conflux make {final_queue_name} --timeout 7200 --retries 1
+            echo "Using dea-conflux image {image}"
+            dea-conflux make {raw_queue_name} --timeout 7200 --retries 1
+            dea-conflux make {final_queue_name} --timeout 7200 --retries 1
             """.format(
+                image=CONFLUX_WIT_IMAGE,
                 raw_queue_name=raw_queue_name,
                 final_queue_name=final_queue_name,
             )
@@ -533,8 +523,11 @@ def k8s_delqueues(dag, raw_queue_name, final_queue_name):
         "-c",
         dedent(
             """
-            dea-conflux delete {raw_queue_name} && dea-conflux delete {final_queue_name}
+            echo "Using dea-conflux image {image}"
+            dea-conflux delete {raw_queue_name}
+            dea-conflux delete {final_queue_name}
             """.format(
+                image=CONFLUX_WIT_IMAGE,
                 raw_queue_name=raw_queue_name,
                 final_queue_name=final_queue_name,
             )
@@ -560,16 +553,18 @@ def k8s_delqueues(dag, raw_queue_name, final_queue_name):
     return delqueue
 
 
-def k8s_makecsvs(dag, intermediatedir, csvdir):
+def k8s_makecsvs(dag):
     makecsvs_cmd = [
         "bash",
         "-c",
         dedent(
             """
-            dea-conflux stack --parquet-path {intermediatedir} --output {csvdir} --mode wit_tooling
+            echo "Using dea-conflux image {image}"
+            dea-conflux stack --parquet-path {{{{ dag_run.conf.get("intermediatedir", "{intermediatedir}") }}}} --output {{{{ dag_run.conf.get("csvdir", "{csvdir}") }}}} --mode wit_tooling
             """.format(
-                csvdir=csvdir,
-                intermediatedir=intermediatedir,
+                image=CONFLUX_WIT_IMAGE,
+                csvdir=DEFAULT_PARAMS['csvdir'],
+                intermediatedir=DEFAULT_PARAMS['intermediatedir'],
             )
         ),
     ]
@@ -611,17 +606,15 @@ with dag:
         intermediatedir=DEFAULT_PARAMS['intermediatedir'],
     )
 
-    flags = '{{{{ dag_run.conf.get("flags", "") }}}}'
-
-    ec2_num = '{{{{ dag_run.conf.get("ec2_num", "{ec2_num}") }}}}'.format(
-        ec2_num=EC2_NUM,
+    parallelism = '{{{{ dag_run.conf.get("parallelism", "{parallelism}") }}}}'.format(
+        parallelism=PARALLELISM,
     )
 
     print_configuration = PythonOperator(
         task_id="print_sys_conf",
         python_callable=print_configuration_function,
         provide_context=True,
-        op_kwargs={'cmd': cmd, 'shapefile': shapefile, 'csvdir': csvdir, 'intermediatedir': intermediatedir, 'ec2_num': ec2_num, 'flags': flags},
+        op_kwargs={'cmd': cmd, 'shapefile': shapefile, 'csvdir': csvdir, 'intermediatedir': intermediatedir, 'parallelism': parallelism},
         dag=dag,
     )
 
@@ -629,7 +622,7 @@ with dag:
         use_id=DEFAULT_PARAMS['use_id'],
     )
 
-    makecsvs = k8s_makecsvs(dag, intermediatedir, csvdir)
+    makecsvs = k8s_makecsvs(dag)
 
     for wit_input in WIT_INPUTS:
         product = wit_input['product']
@@ -643,8 +636,8 @@ with dag:
             getids = k8s_getids(dag, cmd, product)
             makeprequeues = k8s_makequeues(dag, raw_queue_name, final_queue_name)
             push = k8s_queue_push(dag, raw_queue_name, f"{product}-id.txt", f"wit-conflux-{plugin}.getids")
-            filter = k8s_job_filter_task(dag, raw_queue_name, final_queue_name, use_id, ec2_num, shapefile)
-            processing = k8s_job_run_wit_task(dag, final_queue_name, plugin, use_id, ec2_num, shapefile, intermediatedir, flags)
+            filter = k8s_job_filter_task(dag, raw_queue_name, final_queue_name, use_id, parallelism)
+            processing = k8s_job_run_wit_task(dag, final_queue_name, plugin, use_id, parallelism)
             delprequeues = k8s_delqueues(dag, raw_queue_name, final_queue_name)
 
             getids >> makeprequeues >> push >> filter >> processing >> delprequeues
