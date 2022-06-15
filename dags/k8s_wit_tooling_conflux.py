@@ -47,6 +47,8 @@ from infra.variables import (
     SECRET_ODC_READER_NAME,
 )
 
+from infra.images import CONFLUX_WIT_IMAGE
+
 # Default config parameters.
 DEFAULT_PARAMS = dict(
     shapefile="s3://dea-public-data-dev/projects/WIT/test_shp/conflux_wb_Npolygons/wb_3_v2_conflux_10_test.shp",
@@ -61,7 +63,6 @@ CONFLUX_POD_MEMORY_MB = 40000
 
 EC2_NUM = 64
 
-from infra.images import CONFLUX_WIT_IMAGE
 
 # DAG CONFIGURATION
 SECRETS = {
