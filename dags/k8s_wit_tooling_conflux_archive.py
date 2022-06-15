@@ -1,5 +1,5 @@
 """
-DEA WIT tooling Dev processing using Conflux.
+DEA WIT tooling processing using Conflux.
 
 Supported configuration arguments:
 
@@ -18,12 +18,10 @@ csvdir
 flags
     Other flags to pass to Conflux.
 
-use_id
-    The unique use_id in shapefile.
-
 """
 from datetime import datetime, timedelta
-import logging
+
+# import json
 
 from airflow import DAG
 from airflow_kubernetes_job_operator.kubernetes_job_operator import (
@@ -33,10 +31,10 @@ from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-from airflow.operators.python import PythonOperator
-from airflow.utils.task_group import TaskGroup
 
 from textwrap import dedent
+
+from infra.images import CONFLUX_WIT_IMAGE
 
 from infra.variables import (
     DB_DATABASE,
@@ -49,19 +47,14 @@ from infra.variables import (
 
 # Default config parameters.
 DEFAULT_PARAMS = dict(
-    shapefile="s3://dea-public-data-dev/projects/WIT/test_shp/conflux_wb_Npolygons/wb_3_v2_conflux_10_test.shp",
-    intermediatedir="s3://dea-public-data-dev/projects/WIT/test_result/test_10_polygons_09062022/timestamp_base_result",
-    cmd="'time in [2009-01-01, 2015-01-01] lat in [-30, -29] lon in [141, 143] gqa_mean_x in [-1, 1]'",
-    csvdir="s3://dea-public-data-dev/projects/WIT/test_result/test_10_polygons_09062022/polygon_base_result",
-    use_id="uid",
+    shapefile="s3://dea-public-data-dev/projects/WIT/test_shp/C2_v4_NSW_only.shp",
+    intermediatedir="s3://dea-public-data-dev/projects/WIT/C2_v4_NSW_only_pq",
+    cmd="'time in [2021-01-01, 2099-01-01]'",
+    csvdir="s3://dea-public-data-dev/projects/WIT/C2_v4_NSW_only_csv",
 )
 
 # Requested memory. Memory limit is twice this.
 CONFLUX_POD_MEMORY_MB = 40000
-
-EC2_NUM = 64
-
-from infra.images import CONFLUX_WIT_IMAGE
 
 # DAG CONFIGURATION
 SECRETS = {
@@ -132,178 +125,32 @@ tolerations = [
     }
 ]
 
-
-def print_configuration_function(ds, **kwargs):
-    """Print the configuration of this DAG"""
-    logging.info("Running Configurations:")
-    logging.info("ds:                    " + str(ds))
-    logging.info("EC2_NUM:               " + str(EC2_NUM))
-    logging.info("CONFLUX_POD_MEMORY_MB: " + str(CONFLUX_POD_MEMORY_MB))
-    logging.info("shapefile:             " + str(kwargs["shapefile"]))
-    logging.info("cmd:                   " + str(kwargs["cmd"]))
-    logging.info("csvdir:                " + str(kwargs["csvdir"]))
-    logging.info("intermediatedir:       " + str(kwargs["intermediatedir"]))
-    logging.info("")
-
-
 # THE DAG
 dag = DAG(
-    "k8s_wit_conflux",
+    "k8s_wit_conflux_archive",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval=None,  # triggered only
     catchup=False,
     concurrency=128,
-    tags=["k8s", "landsat", "wit", "conflux"],
+    tags=["k8s", "landsat", "wit", "conflux", "archive"],
 )
 
-# just keep the ls5 to save the development cost
-WIT_INPUTS = [{"product": "ga_ls5t_ard_3", "plugin": "wit_ls5", "queue": "wit_conflux_ls5_integration_test_sqs"},
-              {"product": "ga_ls7e_ard_3", "plugin": "wit_ls7", "queue": "wit_conflux_ls7_integration_test_sqs"},
-              {"product": "ga_ls8c_ard_3", "plugin": "wit_ls8", "queue": "wit_conflux_ls8_integration_test_sqs"}]
+WIT_INPUTS = [{"product": "ga_ls5t_ard_3", "plugin": "wit_ls5", "queue": "wit_conflux_ls5_sqs"},
+              {"product": "ga_ls7e_ard_3", "plugin": "wit_ls7", "queue": "wit_conflux_ls7_sqs"},
+              {"product": "ga_ls8c_ard_3", "plugin": "wit_ls8", "queue": "wit_conflux_ls8_sqs"}]
 
 
-def k8s_job_filter_task(dag, raw_queue_name, final_queue_name, use_id):
-
-    # we are using r5.4xl EC2: 16 CPUs + 128 GB RAM
-    mem = CONFLUX_POD_MEMORY_MB // 2  # the biggest filter usage is 20GB
-    req_mem = "{}Mi".format(int(mem))
-    lim_mem = "{}Mi".format(int(mem))
-
-    # 1. Each WIT EC2 can run 6 filter pod;
-    # 2. and EC2_NUM == how many EC2
-    # 3. there are 3 products
-    # so each product filter parallelism = EC2_NUM * 6 / 3
-    # => EC2_NUM * 2
-    parallelism = EC2_NUM * 2
-    cpu = 2
-    cpu_request = f"{cpu}000m"  # 128/20 ~= 6, 16/6 ~= 2
-
-    yaml = {
-        "apiVersion": "batch/v1",
-        "kind": "Job",
-        "metadata": {"name": "filter-job",
-                     "namespace": "processing"},
-        "spec": {
-            "parallelism": parallelism,
-            "backoffLimit": 32,
-            "template": {
-                "spec": {
-                    "restartPolicy": "OnFailure",
-                    "tolerations": tolerations,
-                    "affinity": affinity,
-                    "containers": [
-                        {
-                            "name": "conflux",
-                            "image": CONFLUX_WIT_IMAGE,
-                            "imagePullPolicy": "IfNotPresent",
-                            "resources": {
-                                "requests": {
-                                    "cpu": cpu_request,
-                                    "memory": req_mem,
-                                },
-                                "limits": {
-                                    "cpu": cpu_request,
-                                    "memory": lim_mem,
-                                },
-                            },
-                            "command": ["/bin/bash"],
-                            "args": [
-                                "-c",
-                                dedent(
-                                    """
-                                    dea-conflux filter-from-queue -v \
-                                        --input-queue {input_queue_name} \
-                                        --output-queue {output_queue_name} \
-                                        --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} \
-                                        --num-worker {cpu} \
-                                        --use-id {use_id}
-                                    """.format(input_queue_name=raw_queue_name,
-                                               output_queue_name=final_queue_name,
-                                               shapefile=DEFAULT_PARAMS['shapefile'],
-                                               cpu=cpu,
-                                               use_id=use_id,
-                                               )),
-                            ],
-                            "env": [
-                                {"name": "DB_HOSTNAME", "value": DB_READER_HOSTNAME},
-                                {"name": "DB_DATABASE", "value": DB_DATABASE},
-                                {"name": "AWS_NO_SIGN_REQUEST", "value": "YES"},
-                                {"name": "DB_PORT", "value": DB_PORT},
-                                {
-                                    "name": "AWS_DEFAULT_REGION",
-                                    "value": AWS_DEFAULT_REGION,
-                                },
-                                {
-                                    "name": "DB_USERNAME",
-                                    "valueFrom": {
-                                        "secretKeyRef": {
-                                            "name": SECRET_ODC_READER_NAME,
-                                            "key": "postgres-username",
-                                        },
-                                    },
-                                },
-                                {
-                                    "name": "DB_PASSWORD",
-                                    "valueFrom": {
-                                        "secretKeyRef": {
-                                            "name": SECRET_ODC_READER_NAME,
-                                            "key": "postgres-password",
-                                        },
-                                    },
-                                },
-                                {
-                                    "name": "AWS_ACCESS_KEY_ID",
-                                    "valueFrom": {
-                                        "secretKeyRef": {
-                                            "name": WIT_DEV_USER_SECRET,
-                                            "key": "AWS_ACCESS_KEY_ID",
-                                        },
-                                    },
-                                },
-                                {
-                                    "name": "AWS_SECRET_ACCESS_KEY",
-                                    "valueFrom": {
-                                        "secretKeyRef": {
-                                            "name": WIT_DEV_USER_SECRET,
-                                            "key": "AWS_SECRET_ACCESS_KEY",
-                                        },
-                                    },
-                                },
-                            ],
-                        },
-                    ],
-                },
-            },
-        },
-    }
-
-    job_task = KubernetesJobOperator(
-        image=CONFLUX_WIT_IMAGE,
-        dag=dag,
-        task_id="filter",
-        get_logs=False,
-        body=yaml,
-    )
-    return job_task
-
-
-def k8s_job_run_wit_task(dag, queue_name, plugin, use_id):
-
+def k8s_job_task(dag, queue_name, plugin, product):
     mem = CONFLUX_POD_MEMORY_MB
     req_mem = "{}Mi".format(int(mem))
     lim_mem = "{}Mi".format(int(mem))
-
-    # 1. Each WIT EC2 can run 3 processing pod;
-    # 2. and EC2_NUM == how many EC2;
-    # 3. there are 3 products;
-    # so each product parallelism = EC2_NUM * 3 / 3
-    parallelism = EC2_NUM
+    parallelism = 64
 
     yaml = {
         "apiVersion": "batch/v1",
         "kind": "Job",
-        "metadata": {"name": "processing-job",
+        "metadata": {"name": "wit-conflux-job",
                      "namespace": "processing"},
         "spec": {
             "parallelism": parallelism,
@@ -337,18 +184,17 @@ def k8s_job_run_wit_task(dag, queue_name, plugin, use_id):
                                             --plugin examples/{plugin}.conflux.py \
                                             --queue {queue} \
                                             --overedge \
+                                            --use-id XXX_UID \
                                             --partial \
                                             --no-db \
                                             --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} \
                                             --output {{{{ dag_run.conf.get("intermediatedir", "{intermediatedir}") }}}} {{{{ dag_run.conf.get("flags", "") }}}} \
                                             --not-dump-empty-dataframe \
-                                            --timeout 7200 \
-                                            --use-id {use_id}
+                                            --timeout 7200
                                     """.format(queue=queue_name,
                                                shapefile=DEFAULT_PARAMS['shapefile'],
                                                intermediatedir=DEFAULT_PARAMS['intermediatedir'],
                                                plugin=plugin,
-                                               use_id=use_id,
                                                )),
                             ],
                             "env": [
@@ -407,14 +253,14 @@ def k8s_job_run_wit_task(dag, queue_name, plugin, use_id):
     job_task = KubernetesJobOperator(
         image=CONFLUX_WIT_IMAGE,
         dag=dag,
-        task_id="run",
+        task_id="wit-conflux-run" + "-" + product,
         get_logs=False,
         body=yaml,
     )
     return job_task
 
 
-def k8s_queue_push(dag, queue_name, filename, task_id):
+def k8s_queue_push(dag, queue_name, filename, product, task_id):
     cmd = [
         "bash",
         "-c",
@@ -449,7 +295,7 @@ def k8s_queue_push(dag, queue_name, filename, task_id):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="push",
+        task_id="wit-conflux-push" + "-" + product,
     )
 
 
@@ -482,12 +328,12 @@ def k8s_getids(dag, cmd, product):
         do_xcom_push=True,
         namespace="processing",
         tolerations=tolerations,
-        task_id="getids",
+        task_id="wit-conflux-getids" + "-" + product,
     )
     return getids
 
 
-def k8s_makequeues(dag, raw_queue_name, final_queue_name):
+def k8s_makequeue(dag, queue_name, product):
     # TODO(MatthewJA): Use the name/ID of this DAG
     # to make sure that we don't double-up if we're
     # running two DAGs simultaneously.
@@ -497,18 +343,16 @@ def k8s_makequeues(dag, raw_queue_name, final_queue_name):
         dedent(
             """
             echo "Using dea-conflux image {image}"
-            dea-conflux make {raw_queue_name} --timeout 7200 --retries 1
-            dea-conflux make {final_queue_name} --timeout 7200 --retries 1
+            dea-conflux make {name} --timeout 7200 --retries 1
             """.format(
                 image=CONFLUX_WIT_IMAGE,
-                raw_queue_name=raw_queue_name,
-                final_queue_name=final_queue_name,
+                name=queue_name
             )
         ),
     ]
     makequeue = KubernetesPodOperator(
         image=CONFLUX_WIT_IMAGE,
-        name="wit-cconflux-makequeue",
+        name="wit-conflux-makequeue",
         arguments=makequeue_cmd,
         image_pull_policy="IfNotPresent",
         labels={"app": "wit-conflux-makequeue"},
@@ -521,12 +365,12 @@ def k8s_makequeues(dag, raw_queue_name, final_queue_name):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="makequeue",
+        task_id="wit-conflux-makequeue" + "-" + product,
     )
     return makequeue
 
 
-def k8s_delqueues(dag, raw_queue_name, final_queue_name):
+def k8s_delqueue(dag, queue_name, product):
     # TODO(MatthewJA): Use the name/ID of this DAG
     # to make sure that we don't double-up if we're
     # running two DAGs simultaneously.
@@ -536,12 +380,10 @@ def k8s_delqueues(dag, raw_queue_name, final_queue_name):
         dedent(
             """
             echo "Using dea-conflux image {image}"
-            dea-conflux delete {raw_queue_name}
-            dea-conflux delete {final_queue_name}
+            dea-conflux delete {name}
             """.format(
                 image=CONFLUX_WIT_IMAGE,
-                raw_queue_name=raw_queue_name,
-                final_queue_name=final_queue_name,
+                name=queue_name,
             )
         ),
     ]
@@ -560,7 +402,7 @@ def k8s_delqueues(dag, raw_queue_name, final_queue_name):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="delqueue",
+        task_id="wit-conflux-delqueue" + "-" + product,
     )
     return delqueue
 
@@ -596,7 +438,7 @@ def k8s_makecsvs(dag):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="makecsvs",
+        task_id="wit-conflux-makecsvs",
     )
     return makecsvs
 
@@ -606,30 +448,6 @@ with dag:
         cmd=DEFAULT_PARAMS['cmd'],
     )
 
-    shapefile = '{{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}}'.format(
-        shapefile=DEFAULT_PARAMS['shapefile'],
-    )
-
-    csvdir = '{{{{ dag_run.conf.get("csvdir", "{csvdir}") }}}}'.format(
-        csvdir=DEFAULT_PARAMS['csvdir'],
-    )
-
-    intermediatedir = '{{{{ dag_run.conf.get("intermediatedir", "{intermediatedir}") }}}}'.format(
-        intermediatedir=DEFAULT_PARAMS['intermediatedir'],
-    )
-
-    print_configuration = PythonOperator(
-        task_id="print_sys_conf",
-        python_callable=print_configuration_function,
-        provide_context=True,
-        op_kwargs={'cmd': cmd, 'shapefile': shapefile, 'csvdir': csvdir, 'intermediatedir': intermediatedir},
-        dag=dag,
-    )
-
-    use_id = '{{{{ dag_run.conf.get("use_id", "{use_id}") }}}}'.format(
-        use_id=DEFAULT_PARAMS['use_id'],
-    )
-
     makecsvs = k8s_makecsvs(dag)
 
     for wit_input in WIT_INPUTS:
@@ -637,17 +455,10 @@ with dag:
         plugin = wit_input['plugin']
         queue = wit_input['queue']
 
-        raw_queue_name = f"{queue}_raw"
-        final_queue_name = queue
+        getids = k8s_getids(dag, cmd, product)
+        makequeue = k8s_makequeue(dag, queue, product)
+        push = k8s_queue_push(dag, queue, product + '-id.txt', product, 'wit-conflux-getids-' + product)
+        task = k8s_job_task(dag, queue, plugin, product)
+        delqueue = k8s_delqueue(dag, queue, product)
 
-        with TaskGroup(group_id=f"wit-conflux-{plugin}") as tg:
-            getids = k8s_getids(dag, cmd, product)
-            makeprequeues = k8s_makequeues(dag, raw_queue_name, final_queue_name)
-            push = k8s_queue_push(dag, raw_queue_name, f"{product}-id.txt", f"wit-conflux-{plugin}.getids")
-            filter = k8s_job_filter_task(dag, raw_queue_name, final_queue_name, use_id)
-            processing = k8s_job_run_wit_task(dag, final_queue_name, plugin, use_id)
-            delprequeues = k8s_delqueues(dag, raw_queue_name, final_queue_name)
-
-            getids >> makeprequeues >> push >> filter >> processing >> delprequeues
-
-        print_configuration >> tg >> makecsvs
+        getids >> makequeue >> push >> task >> delqueue >> makecsvs

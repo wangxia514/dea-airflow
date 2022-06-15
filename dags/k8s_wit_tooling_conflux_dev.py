@@ -154,7 +154,7 @@ dag = DAG(
     schedule_interval=None,  # triggered only
     catchup=False,
     concurrency=128,
-    tags=["k8s", "landsat", "wit", "conflux", "Work In Progress"],
+    tags=["k8s", "landsat", "wit", "conflux", "integration test"],
 )
 
 # just keep the ls5 to save the development cost
