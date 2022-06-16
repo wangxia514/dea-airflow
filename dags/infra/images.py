@@ -9,7 +9,7 @@ OWS_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/ows:
 OWS_CONFIG_IMAGE = "geoscienceaustralia/dea-datakube-config:latest"
 
 EXPLORER_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/explorer:2.5.1"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/explorer:2.8.1-78-ge4d2a48"
 )
 
 S3_TO_RDS_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/geoscienceaustralia/s3-to-rds:0.1.4"
