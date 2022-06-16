@@ -1,15 +1,15 @@
 """
-# Collection 3 NCI to AWS Automation
+# Landsat Collection 3 - NCI to AWS Upload Automation
 
-This DAG runs tasks on Gadi at the NCI. This DAG routinely sync Collection 3
+This DAG runs tasks on Gadi at the NCI. This DAG routinely syncs Collection 3
 data from NCI to AWS S3 bucket. It:
 
- * List scenes to be uploaded to S3 bucket from indexed DB.
- * Uploads `C3 to S3 rolling` script to NCI work folder.
- * Executes uploaded rolling script to upload `Collection 3` data to AWS `S3` bucket.
- * Cleans working folder at `NCI` after upload completion.
+ * Lists scenes to be uploaded to the S3 bucket, based on what is indexed in the NCI Database.
+ * Uploads the `C3 to S3 rolling` script to a temporary NCI work folder.
+ * Executes the previously uploaded script, which performs the upload to S3 process.
+ * Cleans up the working folder on the `NCI`.
 
-This DAG takes following input parameters from `nci_c3_upload_s3_config` variable:
+This DAG takes following input parameters from the `nci_c3_upload_s3_config` variable:
 
  * `s3bucket`: Name of the S3 bucket. `"dea-public-data"`
  * `s3path`: Path prefix of the S3. `"baseline"`

@@ -212,3 +212,5 @@ airflow.cfg
 
 # Vscode
 .vscode/
+
+.direnv
