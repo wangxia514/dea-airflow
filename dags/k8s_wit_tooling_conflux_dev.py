@@ -158,9 +158,9 @@ dag = DAG(
 )
 
 # just keep the ls5 to save the development cost
-WIT_INPUTS = [{"product": "ga_ls5t_ard_3", "plugin": "wit_ls5", "queue": "wit_conflux_ls5_integration_test_sqs"},
-              {"product": "ga_ls7e_ard_3", "plugin": "wit_ls7", "queue": "wit_conflux_ls7_integration_test_sqs"},
-              {"product": "ga_ls8c_ard_3", "plugin": "wit_ls8", "queue": "wit_conflux_ls8_integration_test_sqs"}]
+WIT_INPUTS = [{"product": "ga_ls5t_ard_3", "plugin": "wit_ls5", "queue": "wit_conflux_ls5_dev_sqs"},
+              {"product": "ga_ls7e_ard_3", "plugin": "wit_ls7", "queue": "wit_conflux_ls7_dev_sqs"},
+              {"product": "ga_ls8c_ard_3", "plugin": "wit_ls8", "queue": "wit_conflux_ls8_dev_sqs"}]
 
 
 def k8s_job_filter_task(dag, raw_queue_name, final_queue_name, use_id):
