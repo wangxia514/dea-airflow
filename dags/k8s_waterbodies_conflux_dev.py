@@ -13,7 +13,7 @@ product
     Default "ga_ls_wo_3".
 
 cmd
-    Datacube query to run. Default "'time in [2021-01-01, 2021-02-01]'"
+    Datacube query to run. Default "'time in [2021-01-01, 2021-01-03]'"
     https://datacube-core.readthedocs.io/en/stable/ops/tools.html#datacube-dataset-search
     e.g. "'lat in [-36.006, -34.671]' 'lon in [142.392, 144.496]' 'gqa_mean_x in [-1, 1]'"
 
@@ -62,12 +62,12 @@ from infra.variables import (
 CONFLUX_UNSTABLE_IMAGE = "geoscienceaustralia/dea-conflux:latest"
 DB_TO_CSV_CONCURRENCY_NUMBER = 1000
 
-# Default config parameters. Only grab 1 week data to test
+# Default config parameters. Only grab 3 days data to test
 DEFAULT_PARAMS = dict(
     shapefile="s3://dea-public-data-dev/projects/WaterBodies/c3_shp/ga_ls_wb_3_v2_dev.shp",
     outdir="s3://dea-public-data-dev/projects/WaterBodies/integration_testing/timeseries_pq_v2",
     product="ga_ls_wo_3",
-    cmd="'time in [2021-01-01, 2021-01-07]'",
+    cmd="'time in [2021-01-01, 2021-01-03]'",
     plugin="waterbodies_c3",
     queue_name="waterbodies_conflux_dev_sqs",
     csvdir="s3://dea-public-data-dev/projects/WaterBodies/integration_testing/timeseries",
