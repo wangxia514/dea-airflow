@@ -65,7 +65,7 @@ DB_TO_CSV_CONCURRENCY_NUMBER = 1000
 # Default config parameters. Only grab 1 week data to test
 DEFAULT_PARAMS = dict(
     shapefile="s3://dea-public-data-dev/projects/WaterBodies/c3_shp/ga_ls_wb_3_v2_dev.shp",
-    outdir="s3://dea-public-data-dev/projects/WaterBodies/timeseries_pq_v2",
+    outdir="s3://dea-public-data-dev/projects/WaterBodies/integration_testing/timeseries_pq_v2",
     product="ga_ls_wo_3",
     cmd="'time in [2021-01-01, 2021-01-07]'",
     plugin="waterbodies_c3",
