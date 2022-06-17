@@ -516,6 +516,6 @@ with dag:
         for index in range(DB_TO_CSV_CONCURRENCY_NUMBER):
             # only run 0.2% workload as the integration test
             if index == 0 or index == 1:
-                makecsvs = k8s_makecsvs(dag, index_num=index, split_num=DB_TO_CSV_CONCURRENCY_NUMBER)
+                makecsv = k8s_makecsvs(dag, index_num=index, split_num=DB_TO_CSV_CONCURRENCY_NUMBER)
 
     getids >> makequeue >> push >> task >> delqueue >> makecsvs
