@@ -61,7 +61,7 @@ CONFLUX_POD_MEMORY_MB = 40000
 
 EC2_NUM = 4
 
-CONFLUX_WIT_IMAGE = "geoscienceaustralia/dea-conflux:latest"
+CONFLUX_UNSTABLE_IMAGE = "geoscienceaustralia/dea-conflux:latest"
 
 # DAG CONFIGURATION
 SECRETS = {
@@ -195,7 +195,7 @@ def k8s_job_filter_task(dag, raw_queue_name, final_queue_name, use_id):
                     "containers": [
                         {
                             "name": "conflux",
-                            "image": CONFLUX_WIT_IMAGE,
+                            "image": CONFLUX_UNSTABLE_IMAGE,
                             "imagePullPolicy": "IfNotPresent",
                             "resources": {
                                 "requests": {
@@ -279,7 +279,7 @@ def k8s_job_filter_task(dag, raw_queue_name, final_queue_name, use_id):
     }
 
     job_task = KubernetesJobOperator(
-        image=CONFLUX_WIT_IMAGE,
+        image=CONFLUX_UNSTABLE_IMAGE,
         dag=dag,
         task_id="filter",
         get_logs=False,
@@ -316,7 +316,7 @@ def k8s_job_run_wit_task(dag, queue_name, plugin, use_id):
                     "containers": [
                         {
                             "name": "conflux",
-                            "image": CONFLUX_WIT_IMAGE,
+                            "image": CONFLUX_UNSTABLE_IMAGE,
                             "imagePullPolicy": "IfNotPresent",
                             "resources": {
                                 "requests": {
@@ -405,7 +405,7 @@ def k8s_job_run_wit_task(dag, queue_name, plugin, use_id):
     }
 
     job_task = KubernetesJobOperator(
-        image=CONFLUX_WIT_IMAGE,
+        image=CONFLUX_UNSTABLE_IMAGE,
         dag=dag,
         task_id="run",
         get_logs=False,
@@ -434,7 +434,7 @@ def k8s_queue_push(dag, queue_name, filename, task_id):
         ),
     ]
     return KubernetesPodOperator(
-        image=CONFLUX_WIT_IMAGE,
+        image=CONFLUX_UNSTABLE_IMAGE,
         dag=dag,
         name="wit-conflux-push",
         arguments=cmd,
@@ -467,7 +467,7 @@ def k8s_getids(dag, cmd, product):
     ]
 
     getids = KubernetesPodOperator(
-        image=CONFLUX_WIT_IMAGE,
+        image=CONFLUX_UNSTABLE_IMAGE,
         name="wit-conflux-getids",
         arguments=getids_cmd,
         image_pull_policy="IfNotPresent",
@@ -500,14 +500,14 @@ def k8s_makequeues(dag, raw_queue_name, final_queue_name):
             dea-conflux make {raw_queue_name} --timeout 7200 --retries 1
             dea-conflux make {final_queue_name} --timeout 7200 --retries 1
             """.format(
-                image=CONFLUX_WIT_IMAGE,
+                image=CONFLUX_UNSTABLE_IMAGE,
                 raw_queue_name=raw_queue_name,
                 final_queue_name=final_queue_name,
             )
         ),
     ]
     makequeue = KubernetesPodOperator(
-        image=CONFLUX_WIT_IMAGE,
+        image=CONFLUX_UNSTABLE_IMAGE,
         name="wit-cconflux-makequeue",
         arguments=makequeue_cmd,
         image_pull_policy="IfNotPresent",
@@ -539,14 +539,14 @@ def k8s_delqueues(dag, raw_queue_name, final_queue_name):
             dea-conflux delete {raw_queue_name}
             dea-conflux delete {final_queue_name}
             """.format(
-                image=CONFLUX_WIT_IMAGE,
+                image=CONFLUX_UNSTABLE_IMAGE,
                 raw_queue_name=raw_queue_name,
                 final_queue_name=final_queue_name,
             )
         ),
     ]
     delqueue = KubernetesPodOperator(
-        image=CONFLUX_WIT_IMAGE,
+        image=CONFLUX_UNSTABLE_IMAGE,
         name="wit-conflux-delqueue",
         arguments=delqueue_cmd,
         image_pull_policy="IfNotPresent",
@@ -574,7 +574,7 @@ def k8s_makecsvs(dag):
             echo "Using dea-conflux image {image}"
             dea-conflux stack --parquet-path {{{{ dag_run.conf.get("intermediatedir", "{intermediatedir}") }}}} --output {{{{ dag_run.conf.get("csvdir", "{csvdir}") }}}} --mode wit_tooling
             """.format(
-                image=CONFLUX_WIT_IMAGE,
+                image=CONFLUX_UNSTABLE_IMAGE,
                 csvdir=DEFAULT_PARAMS['csvdir'],
                 intermediatedir=DEFAULT_PARAMS['intermediatedir'],
             )
@@ -582,7 +582,7 @@ def k8s_makecsvs(dag):
     ]
     # we are using r5.4xlarge to run WIT. It has 16vCPU, and 128GB RAM.
     makecsvs = KubernetesPodOperator(
-        image=CONFLUX_WIT_IMAGE,
+        image=CONFLUX_UNSTABLE_IMAGE,
         name="wit-conflux-makecsvs",
         arguments=makecsvs_cmd,
         image_pull_policy="IfNotPresent",
