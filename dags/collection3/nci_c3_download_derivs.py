@@ -41,6 +41,9 @@ products = [
     "ga_ls5t_nbart_gm_cyear_3",
     "ga_ls7e_nbart_gm_cyear_3",
     "ga_ls8c_nbart_gm_cyear_3",
+    "ga_ls_landcover_class_cyear_2",
+    "ga_ls_mangrove_cover_cyear_3",
+    "ga_ls_tc_pc_cyear_3",
 ]
 
 with dag:
