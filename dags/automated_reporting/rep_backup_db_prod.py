@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-### Backup Reporting DB 
+### Backup Reporting DB
 This DAG is a scheduled run workflow to backup reporting DB into the nemo production account on a daily basis. The docker image used is ramagopr123/psql_client which can be found in the dockerhub. This is a simple docker image containing ubuntu + psql client + aws cli. The execution command is a pg_dump with RDS master instance details fetched from kubernetes secrets including username and password. The DAG is done as a single task per schema and done in parallel.
 * `landsat`
 * `dea`

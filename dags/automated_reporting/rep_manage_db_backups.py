@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 ### Manage Reporting DB
-This DAG is a scheduled run workflow to manage reporting DB backups in the S3 bucket `automated-reporting-db-dump`. The docker image used is ramagopr123/psql_client which can be found in the dockerhub. This is a simple docker image containing ubuntu + psql client + aws cli. The execution command is a shell script `manage_backup.sh` which can be found under folder `backup_restore_docker_scripts`. The DAG manages the s3 backup folder to contain only the last 30 days of backup at any point of time. It also ensures that the 1st day of the month backups are retained forever. 
+This DAG is a scheduled run workflow to manage reporting DB backups in the S3 bucket `automated-reporting-db-dump`. The docker image used is ramagopr123/psql_client which can be found in the dockerhub. This is a simple docker image containing ubuntu + psql client + aws cli. The execution command is a shell script `manage_backup.sh` which can be found under folder `backup_restore_docker_scripts`. The DAG manages the s3 backup folder to contain only the last 30 days of backup at any point of time. It also ensures that the 1st day of the month backups are retained forever.
 """
 # pylint: disable=C0301
 # pylint: disable=W0104
