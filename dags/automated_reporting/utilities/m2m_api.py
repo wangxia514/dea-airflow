@@ -97,10 +97,10 @@ def _get_metadata(result, fieldName):
 def _center_time(result):
     """Calculate the center time of the acquisition from metadata"""
     start = dt.strptime(
-        _get_metadata(result, "Start Time")[:-1], "%Y:%j:%H:%M:%S.%f"
+        _get_metadata(result, "Start Time"), "%Y-%m-%d %H:%M:%S"
     ).timestamp()
     end = dt.strptime(
-        _get_metadata(result, "Stop Time")[:-1], "%Y:%j:%H:%M:%S.%f"
+        _get_metadata(result, "Stop Time"), "%Y-%m-%d %H:%M:%S"
     ).timestamp()
     center = dt.fromtimestamp((start + end) / 2).replace(tzinfo=pytz.utc)
     return center
