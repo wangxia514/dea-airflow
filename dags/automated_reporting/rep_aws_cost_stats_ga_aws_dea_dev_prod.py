@@ -44,9 +44,9 @@ dag = DAG(
 
 with dag:
     JOBS1 = [
-        "echo AWS Usage job started: $(date)",
-        "pip install ga-reporting-etls==1.15.0",
-        "jsonresult=`python3 -c 'from nemo_reporting.aws_cost_stats import aws_cost_stats_ingestion; aws_cost_stats_ingestion.task()'`",
+        "echo AWS Cost Stats job started: $(date)",
+        "pip install ga-reporting-etls==2.0.1",
+        "aws-cost-ingestion",
     ]
     aws_s3_cost_stats_ingestion = KubernetesPodOperator(
         namespace="processing",
@@ -58,7 +58,8 @@ with dag:
         task_id="aws_s3_cost_stats_ingestion",
         get_logs=True,
         env_vars={
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_DATE": "{{ ds }}",
         },
+        execution_timeout=timedelta(minutes=30),
     )
     aws_s3_cost_stats_ingestion
