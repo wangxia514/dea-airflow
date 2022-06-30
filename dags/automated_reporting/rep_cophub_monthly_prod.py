@@ -47,13 +47,13 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo Sara history ingestion started: $(date)",
-        "pip install ga-reporting-etls==1.18.0",
-        "jsonresult=`python3 -c 'from nemo_reporting.sara_history import sara_history_ingestion; sara_history_ingestion.task()'`",
+        "pip install ga-reporting-etls==2.0.1",
+        "sara-history-ingestion",
     ]
     JOBS2 = [
         "echo Sara history processing: $(date)",
-        "pip install ga-reporting-etls==1.18.0",
-        "jsonresult=`python3 -c 'from nemo_reporting.sara_history import sara_history_processing; sara_history_processing.task()'`",
+        "pip install ga-reporting-etls==2.0.1",
+        "sara-history-processing",
     ]
     JOBS3 = [
         "echo Archie ingestion started: $(date)",

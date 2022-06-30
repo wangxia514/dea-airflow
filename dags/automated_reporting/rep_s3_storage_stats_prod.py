@@ -38,7 +38,7 @@ default_args = {
 }
 
 dag = DAG(
-    "rep_aws_storage_stats",
+    "rep_aws_storage_stats_prod",
     description="DAG for aws storage stats",
     tags=["reporting"],
     default_args=default_args,
@@ -103,22 +103,19 @@ def aggregate_metrics_from_collections(task_instance):
 
 with dag:
     JOBS1 = [
-        "echo AWS Storage job started: $(date)",
-        "pip install ga-reporting-etls==1.7.10",
-        "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import downloadinventory; downloadinventory.task()'`",
-        "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
+        "echo AWS Storage job started - download inventory: $(date)",
+        "pip install ga-reporting-etls==2.0.1",
+        "aws-storage-download",
     ]
     JOBS2 = [
-        "echo AWS Storage job started: $(date)",
-        "pip install ga-reporting-etls==1.7.10",
-        "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import process; process.calc_size_and_count()'`",
-        "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
+        "echo AWS Storage job started - process calculations: $(date)",
+        "pip install ga-reporting-etls==2.0.1",
+        "aws-storage-process",
     ]
     JOBS3 = [
-        "echo AWS Storage job started: $(date)",
-        "pip install ga-reporting-etls==1.7.10",
-        "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import etl; etl.task()'`",
-        "mkdir -p /airflow/xcom/; echo '{\"status\": \"success\"}' > /airflow/xcom/return.json",
+        "echo AWS Storage job started - ingestion: $(date)",
+        "pip install ga-reporting-etls==2.0.1",
+        "ingestion",
     ]
     k8s_task_download_inventory = KubernetesPodOperator(
         namespace="processing",
@@ -132,7 +129,7 @@ with dag:
         get_logs=True,
         env_vars={
             "POD_COUNT": AWS_STORAGE_STATS_POD_COUNT,
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_DATE": "{{ ds }}",
         },
     )
 
@@ -154,7 +151,7 @@ with dag:
         get_logs=True,
         env_vars={
             "METRICS" : "{{ task_instance.xcom_pull(task_ids='aggregate_metrics', key='metrics') }}",
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_DATE": "{{ ds }}",
         },
     )
 
