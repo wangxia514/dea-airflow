@@ -105,17 +105,20 @@ with dag:
     JOBS1 = [
         "echo AWS Storage job started - download inventory: $(date)",
         "pip install ga-reporting-etls==2.0.3",
-        "aws-storage-download",
+        "mkdir -p /airflow/xcom/",
+        "aws-storage-download /airflow/xcom/return.json",
     ]
     JOBS2 = [
         "echo AWS Storage job started - process calculations: $(date)",
         "pip install ga-reporting-etls==2.0.3",
-        "aws-storage-process",
+        "mkdir -p /airflow/xcom/",
+        "aws-storage-process /airflow/xcom/return.json",
     ]
     JOBS3 = [
         "echo AWS Storage job started - ingestion: $(date)",
         "pip install ga-reporting-etls==2.0.3",
-        "ingestion",
+        "mkdir -p /airflow/xcom/",
+        "ingestion /airflow/xcom/return.json",
     ]
     k8s_task_download_inventory = KubernetesPodOperator(
         namespace="processing",
