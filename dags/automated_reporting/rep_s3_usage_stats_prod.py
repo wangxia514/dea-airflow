@@ -57,6 +57,9 @@ with dag:
         in_cluster=True,
         task_id="aws_s3_usage_stats_ingestion",
         get_logs=True,
+        env_vars={
+            "REPORTING_BUCKET": "s3-server-access-logs-schedule",
+        },
         execution_timeout=timedelta(minutes=30),
     )
     aws_s3_usage_stats_ingestion
