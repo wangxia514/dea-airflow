@@ -46,17 +46,17 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo year-wise scene usage ingestion processing: $(date)",
-        "pip install ga-reporting-etls==1.21.7",
+        "pip install ga-reporting-etls==2.0.2",
         "s3-usage-year-ingestion",
     ]
     JOBS2 = [
         "echo region-wise scene usage ingestion processing: $(date)",
-        "pip install ga-reporting-etls==1.21.7",
+        "pip install ga-reporting-etls==2.0.2",
         "s3-usage-region-ingestion",
     ]
     JOBS3 = [
         "echo ip-requester-wise scene usage ingestion processing: $(date)",
-        "pip install ga-reporting-etls==1.21.7",
+        "pip install ga-reporting-etls==2.0.2",
         "s3-usage-ip-requester-ingestion",
     ]
     START = DummyOperator(task_id="aws-scene-usage-stats")

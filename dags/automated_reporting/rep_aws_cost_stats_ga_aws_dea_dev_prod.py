@@ -45,7 +45,7 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo AWS Cost Stats job started: $(date)",
-        "pip install ga-reporting-etls==2.0.1",
+        "pip install ga-reporting-etls==2.0.2",
         "aws-cost-ingestion",
     ]
     aws_s3_cost_stats_ingestion = KubernetesPodOperator(
