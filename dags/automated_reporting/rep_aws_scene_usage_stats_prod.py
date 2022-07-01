@@ -72,7 +72,6 @@ with dag:
         env_vars={
             "REPORTING_BUCKET": "s3-server-access-logs-schedule",
         },
-        execution_timeout=timedelta(minutes=30),
     )
     aws_s3_region_wise_scene_usage_ingestion = KubernetesPodOperator(
         namespace="processing",
@@ -86,7 +85,6 @@ with dag:
         env_vars={
             "REPORTING_BUCKET": "s3-server-access-logs-schedule",
         },
-        execution_timeout=timedelta(minutes=30),
     )
     aws_s3_ip_requester_wise_scene_usage_ingestion = KubernetesPodOperator(
         namespace="processing",
@@ -100,7 +98,6 @@ with dag:
         env_vars={
             "REPORTING_BUCKET": "s3-server-access-logs-schedule",
         },
-        execution_timeout=timedelta(minutes=30),
     )
     START >> aws_s3_year_wise_scene_usage_ingestion
     START >> aws_s3_region_wise_scene_usage_ingestion
