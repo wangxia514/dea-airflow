@@ -103,22 +103,22 @@ def aggregate_metrics_from_collections(task_instance):
 
 with dag:
     JOBS1 = [
-        "echo AWS Storage job started - download inventory: $(date)",
-        "pip install ga-reporting-etls==2.0.3",
-        "mkdir -p /airflow/xcom/",
-        "aws-storage-download /airflow/xcom/return.json",
+        "echo AWS Storage job started: $(date)",
+        "pip install ga-reporting-etls==1.7.10",
+        "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import downloadinventory; downloadinventory.task()'`",
+        "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS2 = [
-        "echo AWS Storage job started - process calculations: $(date)",
-        "pip install ga-reporting-etls==2.0.3",
-        "mkdir -p /airflow/xcom/",
-        "aws-storage-process /airflow/xcom/return.json",
+        "echo AWS Storage job started: $(date)",
+        "pip install ga-reporting-etls==1.7.10",
+        "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import process; process.calc_size_and_count()'`",
+        "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS3 = [
-        "echo AWS Storage job started - ingestion: $(date)",
-        "pip install ga-reporting-etls==2.0.3",
-        "mkdir -p /airflow/xcom/",
-        "ingestion /airflow/xcom/return.json",
+        "echo AWS Storage job started: $(date)",
+        "pip install ga-reporting-etls==1.7.10",
+        "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import etl; etl.task()'`",
+        "mkdir -p /airflow/xcom/; echo '{\"status\": \"success\"}' > /airflow/xcom/return.json",
     ]
     k8s_task_download_inventory = KubernetesPodOperator(
         namespace="processing",
