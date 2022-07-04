@@ -132,7 +132,7 @@ with dag:
         get_logs=True,
         env_vars={
             "POD_COUNT": AWS_STORAGE_STATS_POD_COUNT,
-            "REPORTING_DATE": "{{ ds }}",
+            "EXECUTION_DATE": "{{ ds }}",
         },
     )
 
@@ -154,7 +154,7 @@ with dag:
         get_logs=True,
         env_vars={
             "METRICS" : "{{ task_instance.xcom_pull(task_ids='aggregate_metrics', key='metrics') }}",
-            "REPORTING_DATE": "{{ ds }}",
+            "EXECUTION_DATE": "{{ ds }}",
         },
     )
 
