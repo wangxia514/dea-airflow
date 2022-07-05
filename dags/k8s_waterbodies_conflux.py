@@ -514,6 +514,7 @@ def k8s_s3_copy(dag):
         task_id="waterbodies-conflux-s3-copy",
         get_logs=False,
         affinity=affinity,
+        tolerations=tolerations,
         is_delete_operator_pod=True,
     )
     return s3_copy
