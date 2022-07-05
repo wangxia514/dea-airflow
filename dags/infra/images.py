@@ -31,3 +31,4 @@ WATERBODIES_UNSTABLE_IMAGE = "geoscienceaustralia/dea-waterbodies:1.1.5-47-gea91
 CONFLUX_UNSTABLE_IMAGE = "geoscienceaustralia/dea-conflux:0.1.12-1-g0eb520d"
 CONFLUX_WIT_IMAGE = "geoscienceaustralia/dea-conflux:0.1.12-76-gc6abddf"
 CONFLUX_DEV_IMAGE = "geoscienceaustralia/dea-conflux:latest"
+CONFLUX_WATERBODIES_IMAGE = "geoscienceaustralia/dea-waterbodies:0.1.12-88-ga64bb45"
