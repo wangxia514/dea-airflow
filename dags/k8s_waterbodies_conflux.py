@@ -516,6 +516,7 @@ def k8s_s3_copy(dag):
         affinity=affinity,
         tolerations=tolerations,
         is_delete_operator_pod=True,
+        secrets=[],
     )
     return s3_copy
 
