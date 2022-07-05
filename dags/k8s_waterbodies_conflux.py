@@ -516,6 +516,7 @@ def k8s_s3_copy(dag):
         affinity=affinity,
         tolerations=tolerations,
         is_delete_operator_pod=True,
+        # if not pass emtpy list, it will grab waterbodies AWS keys, and overwrite AWS role
         secrets=[],
     )
     return s3_copy
