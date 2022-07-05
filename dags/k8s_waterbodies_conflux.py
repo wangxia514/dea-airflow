@@ -490,7 +490,7 @@ def k8s_makecsvs(dag, index_num, split_num):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="waterbodies-conflux-makecsvs",
+        task_id="waterbodies-conflux-makecsvs" + str(index_num),
     )
     return makecsvs
 
