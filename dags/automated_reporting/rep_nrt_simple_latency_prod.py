@@ -13,25 +13,18 @@ import pathlib
 import logging
 from datetime import datetime as dt
 from datetime import timedelta
-
-from airflow import DAG
-from airflow.configuration import conf
-from airflow.operators.python import PythonOperator
-from airflow.hooks.base_hook import BaseHook
 import pendulum
 
-from automated_reporting import connections
-from automated_reporting.databases import schemas
-from automated_reporting.utilities import helpers
-from infra import connections as infra_connections
-
+# The DAG object; we'll need this to instantiate a DAG
+from airflow import DAG
+from airflow.kubernetes.secret import Secret
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
+from datetime import datetime as dt, timedelta
+from infra.variables import REPORTING_DB_SECRET
+from infra.variables import REPORTING_ODC_DB_SECRET
 # Tasks
-from automated_reporting.tasks.check_db import task as check_db_task
-from automated_reporting.tasks.simple_latency import task as odc_latency_task
-from automated_reporting.tasks.sns_latency import task as sns_latency_task
-
-log = logging.getLogger("airflow.task")
-
 utc_tz = pendulum.timezone("UTC")
 
 default_args = {
@@ -43,6 +36,18 @@ default_args = {
     "email_on_retry": False,
     "retries": 2,
     "retry_delay": timedelta(minutes=5),
+    "secrets": [
+        Secret("env", "REP_DB_HOST", REPORTING_DB_SECRET, "DB_HOST"),
+        Secret("env", "REP_DB_NAME", REPORTING_DB_SECRET, "DB_NAME"),
+        Secret("env", "REP_DB_PORT", REPORTING_DB_SECRET, "DB_PORT"),
+        Secret("env", "REP_DB_USER", REPORTING_DB_SECRET, "DB_USER"),
+        Secret("env", "REP_DB_PASSWORD", REPORTING_DB_SECRET, "DB_PASSWORD"),
+        Secret("env", "ODC_DB_HOST", REPORTING_DB_SECRET, "DB_HOST"),
+        Secret("env", "ODC_DB_NAME", REPORTING_DB_SECRET, "DB_DB_NAME"),
+        Secret("env", "ODC_DB_PORT", REPORTING_DB_SECRET, "DB_DB_PORT"),
+        Secret("env", "ODC_DB_USER", REPORTING_DB_SECRET, "DB_USER"),
+        Secret("env", "ODC_DB_PASSWORD", REPORTING_DB_SECRET, "DB_PASSWORD"),
+    ],
 }
 
 dag = DAG(
@@ -53,31 +58,8 @@ dag = DAG(
     schedule_interval=timedelta(minutes=15),
 )
 
-aux_data_path = os.path.join(
-    pathlib.Path(conf.get("core", "dags_folder")).parent,
-    "dags/automated_reporting/aux_data",
-)
-rep_conn = helpers.parse_connection(
-    BaseHook.get_connection(connections.DB_REP_WRITER_CONN_PROD)
-)
-odc_conn = helpers.parse_connection(
-    BaseHook.get_connection(infra_connections.DB_ODC_READER_CONN)
-)
-
 with dag:
 
-    # Tasks
-    check_db_kwargs = {
-        "expected_schema": schemas.LATENCY_SCHEMA,
-        "rep_conn": rep_conn,
-    }
-    check_db = PythonOperator(
-        task_id="check_db_schema",
-        python_callable=check_db_task,
-        op_kwargs=check_db_kwargs,
-    )
-
-    # Product list to extract the metric for, could potentially be part of dag configuration and managed in airflow UI?
     products_list = [
         "s2a_nrt_granule",
         "s2b_nrt_granule",
@@ -89,40 +71,41 @@ with dag:
         "ga_s2_ba_provisional_3",
     ]
 
-    def create_task(product_name):
-        """
-        Function to generate PythonOperator tasks with id based on `product_name`
-        """
-        latency_kwargs = {
-            "rep_conn": rep_conn,
-            "odc_conn": odc_conn,
-            "product_name": product_name,
-            "days": 30,
-        }
-        return PythonOperator(
-            task_id="odc-latency_" + product_name,
-            python_callable=odc_latency_task,
-            op_kwargs=latency_kwargs,
+    for i in range(1, len(products_list) + 1):
+        odc_tasks[i] = KubernetesPodOperator(
+            namespace="processing",
+            image="python:3.8-slim-buster",
+            arguments=["bash", "-c", " &&\n".join(JOBS1)],
+            name="write-xcom",
+            do_xcom_push=False,
+            is_delete_operator_pod=True,
+            in_cluster=True,
+            task_id=f"odc-latency_{products_list[i]}",
+            get_logs=True,
+            env_vars={
+                "PRODUCT_NAME" : products_list[i],
+                "DAYS" : 30,
+            },
         )
+        check_db >> odc_tasks[i]
+
 
     sns_list = [("S2A_MSIL1C", "esa_s2a_msi_l1c"), ("S2B_MSIL1C", "esa_s2b_msi_l1c")]
 
-    def create_sns_task(pipeline, product_id):
-        """
-        Function to generate PythonOperator tasks with id based on `product_name`
-        and pipeline from SNS table
-        """
-        latency_kwargs = {
-            "rep_conn": rep_conn,
-            "product_id": product_id,
-            "pipeline": pipeline,
-        }
-        return PythonOperator(
-            task_id="sns-latency_" + product_id,
-            python_callable=sns_latency_task,
-            op_kwargs=latency_kwargs,
+    for i in range(1, len(sns_list) + 1):
+        sns_tasks[i] = KubernetesPodOperator(
+            namespace="processing",
+            image="python:3.8-slim-buster",
+            arguments=["bash", "-c", " &&\n".join(JOBS1)],
+            name="write-xcom",
+            do_xcom_push=False
+            is_delete_operator_pod=True,
+            in_cluster=True,
+            task_id=f"sns-latency_{sns_list[i]}",
+            get_logs=True,
+            env_vars={
+                "PIPELINE" : sns_list[i][0],
+                "PRODUCT_ID": sns_list[i][1]
+            },
         )
-
-    odc_tasks = [create_task(product_name) for product_name in products_list]
-    sns_tasks = [create_sns_task(*args) for args in sns_list]
-    check_db >> (odc_tasks + sns_tasks)
+        check_db >> sns_tasks[i]
