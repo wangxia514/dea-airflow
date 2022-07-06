@@ -118,6 +118,7 @@ with dag:
         get_logs=True,
         env_vars={
             "REPORTING_MONTH": "{{  dag_run.data_interval_start | ds }}",
+            "REPORTING_BUCKET": Variable.get("reporting_s3_bucket"),
         },
     )
     sara_history_processing = KubernetesPodOperator(
