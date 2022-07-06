@@ -79,7 +79,7 @@ with dag:
         "ga_ls8c_ard_provisional_3",
         "ga_s2am_ard_provisional_3",
         "ga_s2bm_ard_provisional_3",
-        "ga_s2_ba_provisional_3",
+        "ga_s2_ba_provisional_3"
     ]
 
     check_db = KubernetesPodOperator(
