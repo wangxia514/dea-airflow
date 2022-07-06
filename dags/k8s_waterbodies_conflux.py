@@ -31,6 +31,7 @@ flags
 
 """
 from datetime import datetime, timedelta
+import logging
 
 # import json
 
@@ -43,6 +44,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 
+from airflow.operators.python import PythonOperator
 from airflow.utils.task_group import TaskGroup
 
 from textwrap import dedent
@@ -522,6 +524,18 @@ def k8s_s3_copy(dag):
     return s3_copy
 
 
+def print_configuration_function(ds, **kwargs):
+    """Print the configuration of this DAG"""
+    logging.info("Running Configurations:")
+    logging.info("ds:                    " + str(ds))
+    logging.info("CONFLUX_POD_MEMORY_MB: " + str(CONFLUX_POD_MEMORY_MB))
+    logging.info("shapefile:             " + str(kwargs["shapefile"]))
+    logging.info("cmd:                   " + str(kwargs["cmd"]))
+    logging.info("csvdir:                " + str(kwargs["csvdir"]))
+    logging.info("outdir:                " + str(kwargs["outdir"]))
+    logging.info("")
+
+
 with dag:
     cmd = '{{{{ dag_run.conf.get("cmd", "{cmd}") }}}}'.format(
         cmd=DEFAULT_PARAMS['cmd'],
@@ -531,6 +545,23 @@ with dag:
     )
     queue_name = '{{{{ dag_run.conf.get("queue_name", "{queue_name}") }}}}'.format(
         queue_name=DEFAULT_PARAMS['queue_name'],
+    )
+    outdir = '{{{{ dag_run.conf.get("outdir", "{outdir}") }}}}'.format(
+        outdir=DEFAULT_PARAMS['outdir'],
+    )
+    csvdir = '{{{{ dag_run.conf.get("csvdir", "{csvdir}") }}}}'.format(
+        csvdir=DEFAULT_PARAMS['csvdir'],
+    )
+    shapefile = '{{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}}'.format(
+        shapefile=DEFAULT_PARAMS['shapefile'],
+    )
+
+    print_configuration = PythonOperator(
+        task_id="print_sys_conf",
+        python_callable=print_configuration_function,
+        provide_context=True,
+        op_kwargs={'cmd': cmd, 'shapefile': shapefile, 'csvdir': csvdir, 'outdir': outdir},
+        dag=dag,
     )
 
     getids = k8s_getids(dag, cmd, product)
@@ -548,4 +579,4 @@ with dag:
 
     s3_copy = k8s_s3_copy(dag)
 
-    getids >> makequeue >> push >> task >> delqueue >> makecsvs >> s3_copy
+    print_configuration >> getids >> makequeue >> push >> task >> delqueue >> makecsvs >> s3_copy
