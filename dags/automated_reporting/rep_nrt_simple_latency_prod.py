@@ -59,7 +59,21 @@ dag = DAG(
 )
 
 with dag:
-
+    JOBS1 = [
+        "echo Check DB started: $(date)",
+        "pip install simple-latency==1.0.1",
+        "check-db",
+    ]
+    JOBS2 = [
+        "echo ODC Latency task started: $(date)",
+        "pip install simple-latency==1.0.1",
+        "odc-latency",
+    ]
+    JOBS3 = [
+        "echo SNS Latency task started: $(date)",
+        "pip install simple-latency==1.0.1",
+        "sns-latency",
+    ]
     products_list = [
         "s2a_nrt_granule",
         "s2b_nrt_granule",
@@ -70,12 +84,26 @@ with dag:
         "ga_s2bm_ard_provisional_3",
         "ga_s2_ba_provisional_3",
     ]
-
+    check_db = KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(JOBS1)],
+        name="write-xcom",
+        do_xcom_push=False,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="check-db",
+        get_logs=True,
+        env_vars={
+        "PRODUCT_NAME" : products_list[i],
+        "DAYS" : 30,
+        },
+    )
     for i in range(1, len(products_list) + 1):
         odc_tasks[i] = KubernetesPodOperator(
             namespace="processing",
             image="python:3.8-slim-buster",
-            arguments=["bash", "-c", " &&\n".join(JOBS1)],
+            arguments=["bash", "-c", " &&\n".join(JOBS2)],
             name="write-xcom",
             do_xcom_push=False,
             is_delete_operator_pod=True,
@@ -96,7 +124,7 @@ with dag:
         sns_tasks[i] = KubernetesPodOperator(
             namespace="processing",
             image="python:3.8-slim-buster",
-            arguments=["bash", "-c", " &&\n".join(JOBS1)],
+            arguments=["bash", "-c", " &&\n".join(JOBS3)],
             name="write-xcom",
             do_xcom_push=False
             is_delete_operator_pod=True,
