@@ -9,8 +9,6 @@ This DAG extracts latest timestamp values for a list of products in AWS ODC. It:
 """
 
 import os
-import pathlib
-import logging
 from datetime import datetime as dt
 from datetime import timedelta
 import pendulum
@@ -42,11 +40,11 @@ default_args = {
         Secret("env", "REP_DB_PORT", REPORTING_DB_SECRET, "DB_PORT"),
         Secret("env", "REP_DB_USER", REPORTING_DB_SECRET, "DB_USER"),
         Secret("env", "REP_DB_PASSWORD", REPORTING_DB_SECRET, "DB_PASSWORD"),
-        Secret("env", "ODC_DB_HOST", REPORTING_DB_SECRET, "DB_HOST"),
-        Secret("env", "ODC_DB_NAME", REPORTING_DB_SECRET, "DB_DB_NAME"),
-        Secret("env", "ODC_DB_PORT", REPORTING_DB_SECRET, "DB_DB_PORT"),
-        Secret("env", "ODC_DB_USER", REPORTING_DB_SECRET, "DB_USER"),
-        Secret("env", "ODC_DB_PASSWORD", REPORTING_DB_SECRET, "DB_PASSWORD"),
+        Secret("env", "ODC_DB_HOST", REPORTING_ODC_DB_SECRET, "DB_HOST"),
+        Secret("env", "ODC_DB_NAME", REPORTING_ODC_DB_SECRET, "DB_DB_NAME"),
+        Secret("env", "ODC_DB_PORT", REPORTING_ODC_DB_SECRET, "DB_DB_PORT"),
+        Secret("env", "ODC_DB_USER", REPORTING_ODC_DB_SECRET, "DB_USER"),
+        Secret("env", "ODC_DB_PASSWORD", REPORTING_ODC_DB_SECRET, "DB_PASSWORD"),
     ],
 }
 
