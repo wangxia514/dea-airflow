@@ -111,7 +111,7 @@ with dag:
             },
         )
         check_db >> odc_tasks[i]
-    sns_tasks= []
+    sns_tasks = []
     sns_list = [("S2A_MSIL1C", "esa_s2a_msi_l1c"), ("S2B_MSIL1C", "esa_s2b_msi_l1c")]
     for i in range(1, len(sns_list) + 1):
         sns_tasks[i] = KubernetesPodOperator(
