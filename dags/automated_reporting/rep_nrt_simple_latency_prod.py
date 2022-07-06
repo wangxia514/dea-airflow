@@ -84,6 +84,7 @@ with dag:
         "ga_s2bm_ard_provisional_3",
         "ga_s2_ba_provisional_3",
     ]
+
     check_db = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
@@ -95,8 +96,8 @@ with dag:
         task_id="check-db",
         get_logs=True,
         env_vars={
-        "PRODUCT_NAME" : products_list[i],
-        "DAYS" : 30,
+            "PRODUCT_NAME" : products_list[i],
+            "DAYS" : 30,
         },
     )
     for i in range(1, len(products_list) + 1):
@@ -126,14 +127,14 @@ with dag:
             image="python:3.8-slim-buster",
             arguments=["bash", "-c", " &&\n".join(JOBS3)],
             name="write-xcom",
-            do_xcom_push=False
+            do_xcom_push=False,
             is_delete_operator_pod=True,
             in_cluster=True,
             task_id=f"sns-latency_{sns_list[i]}",
             get_logs=True,
             env_vars={
                 "PIPELINE" : sns_list[i][0],
-                "PRODUCT_ID": sns_list[i][1]
+                "PRODUCT_ID": sns_list[i][1],
             },
         )
         check_db >> sns_tasks[i]
