@@ -47,12 +47,12 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo Sara history ingestion started: $(date)",
-        "pip install ga-reporting-etls==2.0.5",
+        "pip install ga-reporting-etls==2.1.0",
         "sara-history-ingestion",
     ]
     JOBS2 = [
         "echo Sara history processing: $(date)",
-        "pip install ga-reporting-etls==2.0.5",
+        "pip install ga-reporting-etls==2.1.0",
         "sara-history-processing",
     ]
     JOBS3 = [
