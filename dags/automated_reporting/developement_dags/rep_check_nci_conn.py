@@ -24,11 +24,20 @@ dag = DAG(
 )
 
 with dag:
-    build_env_task = SSHOperator(
+    print_ga_storage_task = SSHOperator(
         task_id="print_storage_file",
         ssh_conn_id="lpgs_gadi",
         command="""
             cat /scratch/v10/usage_reports/ga_storage_usage_latest.csv
         """,
+        do_xcom_push=True,
     )
-    build_env_task
+    run_lquota_task = SSHOperator(
+        task_id="run_lquota_task",
+        ssh_conn_id="lpgs_gadi",
+        command="""
+           lquota —no-pretty-print
+        """,
+        do_xcom_push=True,
+    )
+    print_ga_storage_task >> run_lquota_task
