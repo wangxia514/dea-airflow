@@ -24,17 +24,22 @@ dag = DAG(
 )
 
 with dag:
+    JOBS2 = [
+        "result=`cat /scratch/v10/usage_reports/ga_storage_usage_latest.csv`",
+        "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
+    ]
     print_ga_storage_task = SSHOperator(
         task_id="print_storage_file",
         ssh_conn_id="lpgs_gadi",
         #command="cat /scratch/v10/usage_reports/ga_storage_usage_latest.csv",
-        command="whoami",
+        command=JOBS2,
         do_xcom_push=True,
     )
-    run_lquota_task = SSHOperator(
-        task_id="run_lquota_task",
-        ssh_conn_id="lpgs_gadi",
-        command="which lquota",
-        do_xcom_push=True,
-    )
-    print_ga_storage_task >> run_lquota_task
+    #run_lquota_task = SSHOperator(
+    #    task_id="run_lquota_task",
+    #    ssh_conn_id="lpgs_gadi",
+    #    command="which lquota",
+    #    do_xcom_push=True,
+    #)
+    print_ga_storage_task
+    #>> run_lquota_task
