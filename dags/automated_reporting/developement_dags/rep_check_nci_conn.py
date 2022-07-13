@@ -37,7 +37,7 @@ with dag:
         task_id="run_lquota_task",
         ssh_conn_id="lpgs_gadi",
         command="""
-           lquota —no-pretty-print 
+           lquota —no-pretty-print
         """,
         name="write-xcom",
         do_xcom_push=True,
