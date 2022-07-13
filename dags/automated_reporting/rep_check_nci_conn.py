@@ -33,6 +33,7 @@ with dag:
     run_lquota_task = SSHOperator(
         task_id="run_lquota_task",
         ssh_conn_id="lpgs_gadi",
-        command="lquota -—no-pretty-print",
+        command="lquota",
+        do_xcom_push=True,
     )
     print_ga_storage_task >> run_lquota_task
