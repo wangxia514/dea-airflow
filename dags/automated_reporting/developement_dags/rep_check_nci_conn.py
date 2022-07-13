@@ -33,7 +33,7 @@ with dag:
         name="write-xcom",
         do_xcom_push=True,
     )
-    run_lquota_task= SSHOperator(
+    run_lquota_task = SSHOperator(
         task_id="run_lquota_task",
         ssh_conn_id="lpgs_gadi",
         command="""
