@@ -30,7 +30,6 @@ with dag:
         command="""
             cat /scratch/v10/usage_reports/ga_storage_usage_latest.csv
         """,
-        name="write-xcom",
         do_xcom_push=True,
     )
     run_lquota_task = SSHOperator(
@@ -39,7 +38,6 @@ with dag:
         command="""
            lquota —no-pretty-print
         """,
-        name="write-xcom",
         do_xcom_push=True,
     )
     print_ga_storage_task >> run_lquota_task
