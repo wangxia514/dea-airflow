@@ -26,7 +26,7 @@ dag = DAG(
 with dag:
     JOBS2 = [
         "result=`cat /scratch/v10/usage_reports/ga_storage_usage_latest.csv`",
-        "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
+        "mkdir -p /airflow/xcom/; echo $result > /airflow/xcom/return.json",
     ]
     print_ga_storage_task = SSHOperator(
         task_id="print_storage_file",
