@@ -7,7 +7,8 @@ from airflow import DAG
 from datetime import datetime
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python import PythonOperator
-from airflow.contrib.hooks import SSHHook, PostgresHook
+from airflow.providers.ssh.hooks.ssh import SSHHook
+from airflow.hooks.postgres_hook import PostgresHook
 
 default_args = {
     'start_date': datetime(2018, 1, 1, 0, 0),
