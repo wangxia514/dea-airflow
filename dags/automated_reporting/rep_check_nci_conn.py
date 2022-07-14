@@ -9,6 +9,7 @@ from airflow import AirflowException
 from datetime import datetime
 from typing import Union
 
+
 class MySSHOperator(SSHOperator):
     """ class for custom operator """
     def execute(self, context=None) -> Union[bytes, str]:
@@ -26,6 +27,7 @@ class MySSHOperator(SSHOperator):
         except Exception as e:
             raise AirflowException(f"SSH operator error: {str(e)}")
         return result.decode('utf-8')
+
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
