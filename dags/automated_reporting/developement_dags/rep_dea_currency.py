@@ -50,7 +50,7 @@ daily_dag = DAG(
 
 ODC_CURRENCY_JOB = [
     "echo DEA ODC Currency job started: $(date)",
-    "pip install ga-reporting-etls==2.2.1",
+    "pip install ga-reporting-etls==2.2.2",
     "odc-currency",
 ]
 
