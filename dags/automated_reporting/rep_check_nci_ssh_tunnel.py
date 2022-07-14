@@ -50,8 +50,8 @@ def select_from_tunnel_db():
 
 with dag:
     python_operator = PythonOperator(
-        task_id= 'test_tunnel_conn',
-        python_callable= select_from_tunnel_db,
-        dag= dag
+        task_id='test_tunnel_conn',
+        python_callable=select_from_tunnel_db,
+        dag=dag
     )
     kick_off_dag >> python_operator
