@@ -39,14 +39,13 @@ def select_from_tunnel_db():
     tunnel.start()
 
     # Connect to DB and run query
-    pg_hook = PostgresHook(
-        postgres_conn_id='lpgs_pg',  # NOTE: host='localhost'
-        schema='datacube'
-    )
+    conn = PostgresHook.get_connection('lpgs_pg')
+    conn.host = "localhost"
+    pg_hook = PostgresHook(connection=conn)
     pg_cursor = pg_hook.get_conn().cursor()
     pg_cursor.execute('select count(*) from agdc.dataset_type;')
     select_val = pg_cursor.fetchall()
-
+    print(select_val)
     return select_val
 
 
