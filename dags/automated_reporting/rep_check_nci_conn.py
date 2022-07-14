@@ -5,11 +5,14 @@ check nci conn dat
 """
 from airflow import DAG
 from airflow.providers.ssh.operators.ssh import SSHOperator
+from airflow import AirflowException
 from datetime import datetime
 
-class MySSHOperator(SSHOperator):
 
+class MySSHOperator(SSHOperator):
+    """ class for custom operator """
     def execute(self, context=None) -> Union[bytes, str]:
+        """ execute ovverride """
         result: Union[bytes, str]
         if self.command is None:
             raise AirflowException("SSH operator error: SSH command not specified. Aborting.")
