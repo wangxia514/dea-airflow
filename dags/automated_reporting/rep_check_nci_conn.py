@@ -10,6 +10,7 @@ from datetime import datetime
 from typing import Union
 from airflow.operators.dummy_operator import DummyOperator
 
+
 class MySSHOperator(SSHOperator):
     """ class for custom operator """
     def execute(self, context=None) -> Union[bytes, str]:
@@ -78,7 +79,7 @@ with dag:
     )
     START = DummyOperator(task_id="check_nci_conn")
     START >> print_ga_storage_task
-    START >> lquota_task 
+    START >> lquota_task
     START >> lquota_task_undocumented
-    START >> project_ksu_task 
-    START >> project_users_task 
+    START >> project_ksu_task
+    START >> project_users_task
