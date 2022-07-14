@@ -7,7 +7,7 @@ from airflow import DAG
 from airflow.providers.ssh.operators.ssh import SSHOperator
 from airflow import AirflowException
 from datetime import datetime
-
+from typing import Union
 
 class MySSHOperator(SSHOperator):
     """ class for custom operator """
