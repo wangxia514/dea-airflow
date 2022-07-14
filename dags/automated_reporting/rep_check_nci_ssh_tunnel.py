@@ -7,6 +7,7 @@ from airflow import DAG
 from datetime import datetime
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python import PythonOperator
+from airflow.contrib.hooks import SSHHook, PostgresHook
 
 default_args = {
     'start_date': datetime(2018, 1, 1, 0, 0),
@@ -46,10 +47,11 @@ def select_from_tunnel_db():
 
     return select_val
 
+
 with dag:
     python_operator = PythonOperator(
-        task_id='test_tunnel_conn',
-        python_callable=select_from_tunnel_db,
-        dag=dag
+        task_id= 'test_tunnel_conn',
+        python_callable= select_from_tunnel_db,
+        dag= dag
     )
-    kick_off_dag >> python_operator 
+    kick_off_dag >> python_operator
