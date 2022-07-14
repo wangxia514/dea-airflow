@@ -8,7 +8,7 @@ from airflow.providers.ssh.operators.ssh import SSHOperator
 from airflow import AirflowException
 from datetime import datetime
 from typing import Union
-
+from airflow.operators.dummy_operator import DummyOperator
 
 class MySSHOperator(SSHOperator):
     """ class for custom operator """
@@ -64,4 +64,21 @@ with dag:
         command="lquota --no-pretty-print | tail -n +4 | sed '1d;$d'",
         do_xcom_push=True,
     )
-    print_ga_storage_task >> lquota_task >> lquota_task_undocumented
+    project_ksu_task = MySSHOperator(
+        task_id="project_ksu_task",
+        ssh_conn_id="lpgs_gadi",
+        command="cat /home/547/lpgs/project_ksu.log",
+        do_xcom_push=True,
+    )
+    project_users_task = MySSHOperator(
+        task_id="project_users_task",
+        ssh_conn_id="lpgs_gadi",
+        command="cat /home/547/lpgs/project_users.log",
+        do_xcom_push=True,
+    )
+    START = DummyOperator(task_id="check_nci_conn")
+    START >> print_ga_storage_task
+    START >> lquota_task 
+    START >> lquota_task_undocumented
+    START >> project_ksu_task 
+    START >> project_users_task 
