@@ -52,4 +52,16 @@ with dag:
         command="cat /scratch/v10/usage_reports/ga_storage_usage_latest.csv",
         do_xcom_push=True,
     )
-    print_ga_storage_task
+    lquota_task = MySSHOperator(
+        task_id="lquota_task",
+        ssh_conn_id="lpgs_gadi",
+        command="lquota",
+        do_xcom_push=True,
+    )
+    lquota_task_undocumented = MySSHOperator(
+        task_id="lquota_task_undocumented",
+        ssh_conn_id="lpgs_gadi",
+        command="lquota --no-pretty-print",
+        do_xcom_push=True,
+    )
+    print_ga_storage_task >> lquota_task >> lquota_task_undocumented
