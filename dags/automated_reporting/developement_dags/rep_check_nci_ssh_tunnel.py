@@ -35,7 +35,7 @@ def select_from_tunnel_db():
     """ ssh tunnel and db connection """
     # Open SSH tunnel
     ssh_hook = SSHHook(ssh_conn_id='lpgs_gadi', keepalive_interval=60)
-    tunnel = ssh_hook.get_tunnel(5432, remote_host='dea-db.nci.org.au', local_port=5432)
+    tunnel = ssh_hook.get_tunnel(5432, remote_host='dea-db.nci.org.au', local_port=5433)
     tunnel.start()
 
     # Connect to DB and run query
