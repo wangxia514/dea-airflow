@@ -105,7 +105,7 @@ def create_sns_task(dag, product_id, pipeline):
 
 with daily_dag:
 
-    START = DummyOperator(task_id="dea-currency-daily")
+    START_DAILY = DummyOperator(task_id="dea-currency-daily")
 
     # Product list to extract the metric for, could potentially be part of dag configuration and managed in airflow UI?
     products_list = [
@@ -124,9 +124,11 @@ with daily_dag:
         "ga_ls_wo_fq_nov_mar_3",
     ]
     daily_odc_tasks = [create_odc_task(daily_dag, product_id, 90, "aws") for product_id in products_list]
-    START >> daily_odc_tasks
+    START_DAILY >> daily_odc_tasks
 
 with rapid_dag:
+
+    START_RAPID = DummyOperator(task_id="dea-currency-rapid")
 
     # Product list to extract the metric for, could potentially be part of dag configuration and managed in airflow UI?
     odc_products_list = [
@@ -143,5 +145,5 @@ with rapid_dag:
 
     rapid_odc_tasks = [create_odc_task(rapid_dag, product_id, 30) for product_id in odc_products_list]
     rapid_sns_tasks = [create_sns_task(rapid_dag, product_id, pipeline) for pipeline, product_id in sns_products_list]
-    START >> rapid_odc_tasks
-    START >> rapid_sns_tasks
+    START_RAPID >> rapid_odc_tasks
+    START_RAPID >> rapid_sns_tasks
