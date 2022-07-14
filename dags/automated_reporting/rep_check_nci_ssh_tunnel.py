@@ -7,7 +7,6 @@ from airflow import DAG
 from plugins.ssh_postgres_plugin.operators.ssh_postgres_operator import SSHPostgresOperator
 from datetime import datetime
 from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators.python_operator import PythonOperator
 
 default_args = {
     'start_date': datetime(2018, 1, 1, 0, 0),
