@@ -91,12 +91,11 @@ def create_odc_task(dag, product_id, days, product_suffix=None):
         env_vars["PRODUCT_SUFFIX"] = product_suffix
     return create_operator("odc", dag, ODC_CURRENCY_JOB, env_vars)
 
-def create_sns_task(dag, product_id, days, pipeline):
+def create_sns_task(dag, product_id, pipeline):
     """
     Function to generate KubernetesPodOperator tasks with id based on `product_id`
     """
     env_vars={
-        "DAYS": str(days),
         "PRODUCT_ID": product_id,
         "PIPELINE": pipeline,
         "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}"
