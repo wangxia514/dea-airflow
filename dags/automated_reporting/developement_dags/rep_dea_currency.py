@@ -36,14 +36,16 @@ default_args = {
     ],
 }
 
+daily_args = default_args.copy()
+daily_args["retry_delay"] = timedelta(minutes=5)
+daily_args["retries"] = 3
+
 daily_dag = DAG(
     "rep_dea_currency_daily",
-    default_args=default_args,
+    default_args=daily_args,
     description="DAG for currency of dea products (run daily)",
     tags=["reporting_dev"],
-    schedule_interval=timedelta(days=1),
-    retry_delay=timedelta(minutes=5),
-    retries=3
+    schedule_interval=timedelta(days=1)
 )
 
 ODC_CURRENCY_JOB = [
