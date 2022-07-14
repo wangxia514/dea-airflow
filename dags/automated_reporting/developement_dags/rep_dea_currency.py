@@ -59,7 +59,7 @@ def create_odc_task(dag, product_id, days, product_suffix=None):
     Function to generate KubernetesPodOperator tasks with id based on `product_id`
     """
     env_vars={
-        "DAYS": days,
+        "DAYS": str(days),
         "PRODUCT_ID": product_id,
         "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}"
     }
