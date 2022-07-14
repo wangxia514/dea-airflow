@@ -4,9 +4,9 @@
 check nci conn dat
 """
 from airflow import DAG
-from plugins.ssh_postgres_plugin.operators.ssh_postgres_operator import SSHPostgresOperator
 from datetime import datetime
 from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.python import PythonOperator
 
 default_args = {
     'start_date': datetime(2018, 1, 1, 0, 0),
@@ -27,12 +27,29 @@ kick_off_dag = DummyOperator(
     dag=dag
 )
 
-sql = "select count(*) from agdc.dataset_type"
+
+def select_from_tunnel_db():
+    """ ssh tunnel and db connection """
+    # Open SSH tunnel
+    ssh_hook = SSHHook(ssh_conn_id='lpgs_gadi', keepalive_interval=60)
+    tunnel = ssh_hook.get_tunnel(5432, remote_host='dea-db.nci.org.au', local_port=5432)
+    tunnel.start()
+
+    # Connect to DB and run query
+    pg_hook = PostgresHook(
+        postgres_conn_id='lpgs_pg',  # NOTE: host='localhost'
+        schema='datacube'
+    )
+    pg_cursor = pg_hook.get_conn().cursor()
+    pg_cursor.execute('select count(*) from agdc.dataset_type;')
+    select_val = pg_cursor.fetchall()
+
+    return select_val
 
 with dag:
-    test = SSHPostgresOperator(task_id='check_for_tunnel',
-                               postgres_conn_id='lpgs_pg',
-                               ssh_conn_id='lpgs_gadi',
-                               sql=sql,
-                               create_tunnel=True)
-    kick_off_dag >> test
+    python_operator = PythonOperator(
+        task_id='test_tunnel_conn',
+        python_callable=select_from_tunnel_db,
+        dag=dag
+    )
+    kick_off_dag >> python_operator 
