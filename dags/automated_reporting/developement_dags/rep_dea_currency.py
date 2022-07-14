@@ -48,7 +48,7 @@ daily_dag = DAG(
 rapid_dag = DAG(
     "rep_dea_currency_rapid",
     default_args=default_args,
-    description="DAG for currency of dea products (run daily)",
+    description="DAG for currency of dea products (run 15mins)",
     tags=["reporting_dev"],
     schedule_interval=timedelta(minutes=15)
 )
@@ -64,7 +64,7 @@ SNS_CURRENCY_JOB = [
     "sns-currency"
 ]
 
-def create_operator(dag, method, job, env_vars):
+def create_operator(method, dag, job, env_vars):
     return  KubernetesPodOperator(
                 dag=dag,
                 namespace="processing",
