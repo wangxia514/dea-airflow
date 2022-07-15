@@ -4,16 +4,16 @@ DEA WIT tooling Dev processing using Conflux.
 Supported configuration arguments:
 
 shapefile
-    Default "s3://dea-public-data-dev/projects/WIT/test_shp/C2_v4_NSW_only.shp"
+    Default "s3://dea-public-data-dev/projects/WIT/test_shp/conflux_wb_Npolygons/wb_3_v2_conflux_10_test.shp"
 
 intermediatedir
-    Default "s3://dea-public-data-dev/projects/WIT/C2_v4_NSW_only_pq"
+    Default "s3://dea-public-data-dev/projects/WIT/test_result/test_10_polygons_09062022/timestamp_base_result"
 
 cmd
-    Datacube query to run. Default "'time > 2021-01-01'"
+    Datacube query to run. Default "'time in [2009-01-01, 2015-01-01] lat in [-30, -29] lon in [141, 143] gqa_mean_x in [-1, 1]'"
 
 csvdir
-    Default "s3://dea-public-data-dev/projects/WIT/C2_v4_NSW_only_csv"
+    Default "s3://dea-public-data-dev/projects/WIT/test_result/test_10_polygons_09062022/polygon_base_result"
 
 flags
     Other flags to pass to Conflux.
