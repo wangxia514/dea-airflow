@@ -19,7 +19,7 @@ default_args = {
     "depends_on_past": False,
     "start_date": dt.now() - timedelta(hours=1),
     "email": ["tom.mcadam@ga.gov.au"],
-    "email_on_failure": False,  ### UPDATE IN PROD ####
+    "email_on_failure": False,
     "email_on_retry": False,
     "retry_delay": timedelta(minutes=5),
     "retries": 3,
