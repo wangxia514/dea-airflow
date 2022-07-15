@@ -17,7 +17,7 @@ from infra.variables import REPORTING_DB_SECRET
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date":  dt(2022, 7, 15, 0, 0, 0, tzinfo=timezone.utc),
+    "start_date": dt(2022, 7, 15, 0, 0, 0, tzinfo=timezone.utc),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
