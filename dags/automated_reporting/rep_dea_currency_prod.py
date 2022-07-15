@@ -10,14 +10,14 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from airflow.operators.dummy import DummyOperator
-from datetime import datetime as dt, timedelta
+from datetime import datetime as dt, timedelta, timezone
 from infra.variables import REPORTING_ODC_DB_SECRET
 from infra.variables import REPORTING_DB_SECRET
 
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt.now() - timedelta(hours=1),
+    "start_date": dt(2022, 7, 15, 0, 0, 0, tzinfo=timezone.utc),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
