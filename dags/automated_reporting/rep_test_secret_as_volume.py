@@ -37,6 +37,7 @@ with dag:
         "apt update -y",
         "apt install -y openssh-server",
         "apt install -y ca-certificates",
+        "while :; do echo 'Hit CTRL+C'; sleep 1; done",
     ]
     kubernetes_secret_vars_ex = KubernetesPodOperator(
         namespace="processing",
