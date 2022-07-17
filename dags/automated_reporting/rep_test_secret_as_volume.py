@@ -24,7 +24,7 @@ default_args = {
 }
 
 dag = DAG(
-    "composer_sample_kubernetes_pod ",
+    "composer_sample_kubernetes_pod",
     description="composer_sample_kubernetes_pod ",
     tags=["reporting_dev"],
     default_args=default_args,
