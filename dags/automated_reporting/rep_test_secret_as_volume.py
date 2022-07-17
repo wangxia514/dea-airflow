@@ -35,7 +35,6 @@ with dag:
     JOBS_CHECK_VOLUME = [
         "echo check tmp contents $(date)",
         "while :; do echo 'Hit CTRL+C'; sleep 1; done",
-done
     ]
     kubernetes_secret_vars_ex = KubernetesPodOperator(
         namespace="processing",
