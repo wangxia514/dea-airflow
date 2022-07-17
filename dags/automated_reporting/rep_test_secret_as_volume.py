@@ -6,7 +6,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import Kubernete
 secret_volume = Secret(
     deploy_type='volume',
     # Path where we mount the secret as volume
-    deploy_target='/',
+    deploy_target='/var/secrets/google',
     # Name of Kubernetes Secret
     secret='reporting-db-dev',
     # Key in the form of service account file name
@@ -34,7 +34,7 @@ dag = DAG(
 with dag:
     JOBS_CHECK_VOLUME = [
         "echo check tmp contents $(date)",
-        "ls -lrt /",
+        "ls -lrt /var/secrets/google/",
     ]
     kubernetes_secret_vars_ex = KubernetesPodOperator(
         namespace="processing",
