@@ -37,6 +37,7 @@ with dag:
         "apt update -y",
         "apt install -y openssh-server",
         "apt install -y ca-certificates",
+        "chmod 0400 /var/secrets/lpgs/PORT_FORWARDER_KEY",
         "ssh -o StrictHostKeyChecking=no -f -N -i /var/secrets/lpgs/PORT_FORWARDER_KEY -L 54320:dea-db.nci.org.au:5432 lpgs@gadi.nci.org.au",
         "echo tunnel established",
     ]
