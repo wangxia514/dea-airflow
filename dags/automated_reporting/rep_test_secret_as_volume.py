@@ -34,7 +34,8 @@ dag = DAG(
 with dag:
     JOBS_CHECK_VOLUME = [
         "echo check tmp contents $(date)",
-        "ls -lrt /var/secrets/google/",
+        "while do sleep 1000 done",
+done
     ]
     kubernetes_secret_vars_ex = KubernetesPodOperator(
         namespace="processing",
