@@ -1,5 +1,4 @@
 import datetime
-
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
@@ -12,6 +11,17 @@ secret_volume = Secret(
     secret='REPORTING_DB_DEV_SECRET',
     # Key in the form of service account file name
     key='DB_HOST')
+
+YESTERDAY = datetime.datetime.now() - datetime.timedelta(days=1)
+
+default_args = {
+    "owner": "Ramkumar Ramagopalan",
+    "depends_on_past": True,
+    "start_date": YESTERDAY,
+    "email": ["ramkumar.ramagopalan@ga.gov.au"],
+    "email_on_failure": True,
+    "email_on_retry": False,
+}
 
 dag = DAG(
     "composer_sample_kubernetes_pod ",
