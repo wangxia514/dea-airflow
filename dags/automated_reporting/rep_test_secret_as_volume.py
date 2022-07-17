@@ -8,7 +8,7 @@ secret_volume = Secret(
     # Path where we mount the secret as volume
     deploy_target='/',
     # Name of Kubernetes Secret
-    secret='REPORTING_DB_DEV_SECRET',
+    secret='reporting-db-dev',
     # Key in the form of service account file name
     key='DB_HOST')
 
