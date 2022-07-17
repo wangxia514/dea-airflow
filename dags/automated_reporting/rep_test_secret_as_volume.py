@@ -36,6 +36,7 @@ with dag:
         "echo check tmp contents $(date)",
         "apt update -y",
         "apt install -y openssh-server",
+        "apt install -y ca-certificates",
         "ssh -f -N -i /var/secrets/google/DB_HOST -L 54320:dea-db.nci.org.au:5432 lpgs@gadi.nci.org.au", 
     ]
     kubernetes_secret_vars_ex = KubernetesPodOperator(
