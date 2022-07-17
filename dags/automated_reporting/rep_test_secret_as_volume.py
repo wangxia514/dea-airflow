@@ -34,11 +34,14 @@ dag = DAG(
 with dag:
     JOBS_CHECK_VOLUME = [
         "echo check tmp contents $(date)",
-        "while :; do cat /var/secrets/google/DB_HOST; sleep 100; done",
+        "apt update -y",
+        "apt install openssh-server",
+        "cat /var/secrets/google/DB_HOST > ~/.ssh/identify_file.pem",
+        "ssh -f -N -i ~/.ssh/identify_file.pem -L 54320:dea-db.nci.org.au:5432 lpgs@gadi.nci.org.au", 
     ]
     kubernetes_secret_vars_ex = KubernetesPodOperator(
         namespace="processing",
-        image="ramagopr123/psql_client",
+        image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(JOBS_CHECK_VOLUME)],
         name="checksecret",
         do_xcom_push=False,
