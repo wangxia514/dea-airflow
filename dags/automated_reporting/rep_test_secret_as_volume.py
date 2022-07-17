@@ -37,8 +37,9 @@ with dag:
         "apt update -y",
         "apt install -y openssh-server",
         "apt install -y ca-certificates",
-        "chmod 0400 /var/secrets/lpgs/PORT_FORWARDER_KEY",
-        "ssh -o StrictHostKeyChecking=no -f -N -i /var/secrets/lpgs/PORT_FORWARDER_KEY -L 54320:dea-db.nci.org.au:5432 lpgs@gadi.nci.org.au",
+        "cat /var/secrets/lpgs/PORT_FORWARDER_KEY > ~/.ssh/identity_file.pem",
+        "chmod 0400 ~/.ssh/identity_file.pem",
+        "ssh -o StrictHostKeyChecking=no -f -N -i ~/.ssh/identity_file.pem -L 54320:dea-db.nci.org.au:5432 lpgs@gadi.nci.org.au",
         "echo tunnel established",
     ]
     kubernetes_secret_vars_ex = KubernetesPodOperator(
