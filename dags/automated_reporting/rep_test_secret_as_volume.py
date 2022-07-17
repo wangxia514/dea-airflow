@@ -26,7 +26,8 @@ with models.DAG(
     kubernetes_secret_vars_ex = KubernetesPodOperator(
         task_id='ex-kube-secrets',
         name='ex-kube-secrets',
-        namespace='default',
+        namespace='processing',
+        in_cluster=True,
         image='ubuntu',
         startup_timeout_seconds=300,
         secrets=[secret_volume],
