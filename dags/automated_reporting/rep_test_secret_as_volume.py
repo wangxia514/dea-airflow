@@ -34,7 +34,7 @@ dag = DAG(
 with dag:
     JOBS_CHECK_VOLUME = [
         "echo check tmp contents $(date)",
-        "cat DB_HOST",
+        "cat /var/secrets/google",
     ]
     kubernetes_secret_vars_ex = KubernetesPodOperator(
         namespace="processing",
