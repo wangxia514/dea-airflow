@@ -1,6 +1,6 @@
 import datetime
 
-from airflow import models
+from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 
@@ -13,23 +13,29 @@ secret_volume = Secret(
     # Key in the form of service account file name
     key='DB_HOST')
 
-YESTERDAY = datetime.datetime.now() - datetime.timedelta(days=1)
+dag = DAG(
+    "composer_sample_kubernetes_pod ",
+    description="composer_sample_kubernetes_pod ",
+    tags=["reporting_dev"],
+    default_args=default_args,
+    schedule_interval=None,
+)
 
-with models.DAG(
-        dag_id='composer_sample_kubernetes_pod',
-        schedule_interval=datetime.timedelta(days=1),
-        start_date=YESTERDAY) as dag:
+with dag:
     JOBS_CHECK_VOLUME = [
         "echo check tmp contents $(date)",
         "ls -lrt /",
     ]
     kubernetes_secret_vars_ex = KubernetesPodOperator(
-        task_id='ex-kube-secrets',
-        name='ex-kube-secrets',
-        namespace='processing',
+        namespace="processing",
+        image="ramagopr123/psql_client",
+        arguments=["bash", "-c", " &&\n".join(JOBS_CHECK_VOLUME)],
+        name="checksecret",
+        do_xcom_push=False,
+        is_delete_operator_pod=True,
         in_cluster=True,
-        image='ubuntu',
-        startup_timeout_seconds=300,
+        task_id="check_secret",
+        get_logs=True,
         secrets=[secret_volume],
     )
     kubernetes_secret_vars_ex
