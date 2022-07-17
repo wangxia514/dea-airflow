@@ -36,8 +36,7 @@ with dag:
         "echo check tmp contents $(date)",
         "apt update -y",
         "apt install -y openssh-server",
-        "cat /var/secrets/google/DB_HOST > ~/.ssh/identify_file.pem",
-        "ssh -f -N -i ~/.ssh/identify_file.pem -L 54320:dea-db.nci.org.au:5432 lpgs@gadi.nci.org.au", 
+        "ssh -f -N -i /var/secrets/google/DB_HOST -L 54320:dea-db.nci.org.au:5432 lpgs@gadi.nci.org.au", 
     ]
     kubernetes_secret_vars_ex = KubernetesPodOperator(
         namespace="processing",
