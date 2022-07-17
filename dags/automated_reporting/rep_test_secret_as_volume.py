@@ -39,6 +39,7 @@ with dag:
         "apt install -y ca-certificates",
         "cat /var/secrets/lpgs/PORT_FORWARDER_KEY > ~/.ssh/identity_file.pem",
         "chmod 0400 ~/.ssh/identity_file.pem",
+        "while :; do echo 'Hit CTRL+C'; sleep 1; done",
         "ssh -o StrictHostKeyChecking=no -f -N -i ~/.ssh/identity_file.pem -L 54320:dea-db.nci.org.au:5432 lpgs@gadi.nci.org.au",
         "echo tunnel established",
     ]
