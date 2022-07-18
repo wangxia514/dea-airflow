@@ -2,6 +2,7 @@ import datetime
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from infra.variables import REPORTING_NCI_ODC_DB_SECRET 
 
 secret_volume = Secret(
     deploy_type='volume',
@@ -21,6 +22,13 @@ default_args = {
     "email": ["ramkumar.ramagopalan@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
+    "secrets": [
+        Secret("env", "DB_HOST", REPORTING_NCI_ODC_DB_SECRET, "DB_HOST"),
+        Secret("env", "DB_NAME", REPORTING_NCI_ODC_DB_SECRET, "DB_NAME"),
+        Secret("env", "DB_PORT", REPORTING_NCI_ODC_DB_SECRET, "DB_PORT"),
+        Secret("env", "DB_USER", REPORTING_NCI_ODC_DB_SECRET, "DB_USER"),
+        Secret("env", "DB_PASSWORD", REPORTING_NCI_ODC_DB_SECRET, "DB_PASSWORD"),
+    ],
 }
 
 dag = DAG(
@@ -32,22 +40,23 @@ dag = DAG(
 )
 
 with dag:
-    JOBS_CHECK_VOLUME = [
+    JOBS_SSH_CONN = [
         "echo try ssh tunnel $(date)",
         "apt update -y",
         "apt install -y openssh-server",
         "apt install -y ca-certificates",
+        "apt-get install -y postgresql-client",
         "mkdir -p ~/.ssh",
         "cat /var/secrets/lpgs/PORT_FORWARDER_KEY > ~/.ssh/identity_file.pem",
         "chmod 0400 ~/.ssh/identity_file.pem",
-        "ssh -o StrictHostKeyChecking=no -f -N -i ~/.ssh/identity_file.pem -L 54320:dea-db.nci.org.au:5432 lpgs@gadi.nci.org.au",
+        "ssh -o StrictHostKeyChecking=no -f -N -i ~/.ssh/identity_file.pem -L 54320:$DB_HOST:$DB_PORT lpgs@gadi.nci.org.au",
         "echo tunnel established",
-        "while :; do echo 'Hit CTRL+C'; sleep 1; done",
+        "PGPASSWORD=$DB_PASSWORD psql -h localhost -p 54320 -U $DB_USER $DB_NAME -c 'select count(*) from agdc.dataset_type'",
     ]
     kubernetes_secret_vars_ex = KubernetesPodOperator(
         namespace="processing",
         image="python:3.8-slim-buster",
-        arguments=["bash", "-c", " &&\n".join(JOBS_CHECK_VOLUME)],
+        arguments=["bash", "-c", " &&\n".join(JOBS_SSH_CONN)],
         name="checksecret",
         do_xcom_push=False,
         is_delete_operator_pod=True,
