@@ -2,16 +2,7 @@ import datetime
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
-from infra.variables import REPORTING_NCI_ODC_DB_SECRET 
-
-secret_volume = Secret(
-    deploy_type='volume',
-    # Path where we mount the secret as volume
-    deploy_target='/var/secrets/lpgs',
-    # Name of Kubernetes Secret
-    secret='lpgs-port-forwarder',
-    # Key in the form of service account file name
-    key='PORT_FORWARDER_KEY')
+from infra.variables import REPORTING_NCI_ODC_DB_SECRET, REPORTING_LPGS_PORT_FORWARDER_SECRET
 
 YESTERDAY = datetime.datetime.now() - datetime.timedelta(days=1)
 
@@ -28,6 +19,7 @@ default_args = {
         Secret("env", "DB_PORT", REPORTING_NCI_ODC_DB_SECRET, "DB_PORT"),
         Secret("env", "DB_USER", REPORTING_NCI_ODC_DB_SECRET, "DB_USER"),
         Secret("env", "DB_PASSWORD", REPORTING_NCI_ODC_DB_SECRET, "DB_PASSWORD"),
+        Secret("env", "PORT_FORWARDER_KEY", REPORTING_LPGS_PORT_FORWARDER_SECRET, "PORT_FORWARDER_KEY"),
     ],
 }
 
@@ -47,7 +39,7 @@ with dag:
         "apt install -y ca-certificates",
         "apt-get install -y postgresql-client",
         "mkdir -p ~/.ssh",
-        "cat /var/secrets/lpgs/PORT_FORWARDER_KEY > ~/.ssh/identity_file.pem",
+        "echo $PORT_FORWARDER_KEY > ~/.ssh/identity_file.pem",
         "chmod 0400 ~/.ssh/identity_file.pem",
         "ssh -o StrictHostKeyChecking=no -f -N -i ~/.ssh/identity_file.pem -L 54320:$DB_HOST:$DB_PORT lpgs@gadi.nci.org.au",
         "echo tunnel established",
