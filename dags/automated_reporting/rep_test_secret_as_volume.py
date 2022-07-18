@@ -21,13 +21,6 @@ default_args = {
     "email": ["ramkumar.ramagopalan@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
-    "secrets": [
-        Secret("env", "DB_HOST", REPORTING_NCI_ODC_DB_SECRET, "DB_HOST"),
-        Secret("env", "DB_NAME", REPORTING_NCI_ODC_DB_SECRET, "DB_NAME"),
-        Secret("env", "DB_PORT", REPORTING_NCI_ODC_DB_SECRET, "DB_PORT"),
-        Secret("env", "DB_USER", REPORTING_NCI_ODC_DB_SECRET, "DB_USER"),
-        Secret("env", "DB_PASSWORD", REPORTING_NCI_ODC_DB_SECRET, "DB_PASSWORD"),
-    ],
 }
 
 secret_env_db_host = Secret(
