@@ -134,3 +134,5 @@ REPORTING_SCIHUB_API_SECRET = Variable.get("reporting_scihub_api_secret", defaul
 REPORTING_UPTIME_API_SECRET = Variable.get("reporting_uptime_api_secret", default_var="reporting-uptime-api")
 
 REPORTING_USGSM2M_API_SECRET = Variable.get("reporting_usgsm2m_api_secret", default_var="reporting-usgsm2m-api")
+
+REPORTING_NCI_ODC_DB_SECRET = Variable.get("reporting_nci_odc_db_secret", default_var="reporting-nci-odc-db")
