@@ -55,6 +55,5 @@ with dag:
         in_cluster=True,
         task_id="check_secret",
         get_logs=True,
-        secrets=[secret_volume],
     )
     kubernetes_secret_vars_ex
