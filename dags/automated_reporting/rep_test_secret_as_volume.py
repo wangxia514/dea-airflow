@@ -2,7 +2,15 @@ import datetime
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
-from infra.variables import REPORTING_NCI_ODC_DB_SECRET, REPORTING_LPGS_PORT_FORWARDER_SECRET
+
+secret_volume = Secret(
+    deploy_type='volume',
+    # Path where we mount the secret as volume
+    deploy_target='/var/secrets/lpgs',
+    # Name of Kubernetes Secret
+    secret='lpgs-port-forwarder',
+    # Key in the form of service account file name
+    key='PORT_FORWARDER_KEY')
 
 YESTERDAY = datetime.datetime.now() - datetime.timedelta(days=1)
 
@@ -19,9 +27,38 @@ default_args = {
         Secret("env", "DB_PORT", REPORTING_NCI_ODC_DB_SECRET, "DB_PORT"),
         Secret("env", "DB_USER", REPORTING_NCI_ODC_DB_SECRET, "DB_USER"),
         Secret("env", "DB_PASSWORD", REPORTING_NCI_ODC_DB_SECRET, "DB_PASSWORD"),
-        Secret("env", "PORT_FORWARDER_KEY", REPORTING_LPGS_PORT_FORWARDER_SECRET, "PORT_FORWARDER_KEY"),
     ],
 }
+
+secret_env_db_host = Secret(
+    deploy_type='env',
+    deploy_target='DB_HOST',
+    secret='reporting-nci-odc-db',
+    key='DB_HOST')
+
+secret_env_db_name = Secret(
+    deploy_type='env',
+    deploy_target='DB_NAME',
+    secret='reporting-nci-odc-db',
+    key='DB_NAME')
+
+secret_env_db_port = Secret(
+    deploy_type='env',
+    deploy_target='DB_PORT',
+    secret='reporting-nci-odc-db',
+    key='DB_PORT')
+
+secret_env_db_user = Secret(
+    deploy_type='env',
+    deploy_target='DB_USER',
+    secret='reporting-nci-odc-db',
+    key='DB_USER')
+
+secret_env_db_password = Secret(
+    deploy_type='env',
+    deploy_target='DB_PASSWORD',
+    secret='reporting-nci-odc-db',
+    key='DB_PASSWORD')
 
 dag = DAG(
     "composer_sample_kubernetes_pod",
@@ -39,7 +76,7 @@ with dag:
         "apt install -y ca-certificates",
         "apt-get install -y postgresql-client",
         "mkdir -p ~/.ssh",
-        "echo $PORT_FORWARDER_KEY > ~/.ssh/identity_file.pem",
+        "cat /var/secrets/lpgs/PORT_FORWARDER_KEY > ~/.ssh/identity_file.pem",
         "chmod 0400 ~/.ssh/identity_file.pem",
         "ssh -o StrictHostKeyChecking=no -f -N -i ~/.ssh/identity_file.pem -L 54320:$DB_HOST:$DB_PORT lpgs@gadi.nci.org.au",
         "echo tunnel established",
@@ -55,5 +92,6 @@ with dag:
         in_cluster=True,
         task_id="check_secret",
         get_logs=True,
+        secrets=[secret_volume, secret_env_db_host, secret_env_db_name, secret_env_db_port, secret_env_db_user, secret_env_db_password],
     )
     kubernetes_secret_vars_ex
