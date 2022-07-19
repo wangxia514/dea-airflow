@@ -58,7 +58,7 @@ with dag:
     usgs_aquisitions_job = [
         "echo DEA USGS Acquisitions job started: $(date)",
         "echo $M2M_USER",
-        "pip install ga-reporting-etls==2.3.1",
+        "pip install ga-reporting-etls==2.3.2",
         "mkdir -p /airflow/xcom/",
         "usgs-acquisitions /airflow/xcom/return.json"
     ]
