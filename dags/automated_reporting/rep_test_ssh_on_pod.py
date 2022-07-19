@@ -37,9 +37,12 @@ with dag:
         "echo run lquota and save in pod dir $(date)",
         "apt update -y",
         "apt install -y openssh-server",
+        "apt install -y ca-certificates",
+        "apt-get install -y postgresql-client",
+        "mkdir -p ~/.ssh",
         "cat /var/secrets/lpgs/PORT_FORWARDER_KEY > ~/.ssh/identity_file.pem",
         "chmod 0400 ~/.ssh/identity_file.pem",
-        "ssh -i ~/.ssh/identity_file.pem lpgs@gadi.nci.org.au '( ls -lart )' > /tmp/a.txt",
+        "ssh -o StrictHostKeyChecking=no -i ~/.ssh/identity_file.pem lpgs@gadi.nci.org.au '( ls -lart )' > /tmp/a.txt",
         "cat /tmp/a.txt",
     ]
     kubernetes_secret_vars_ex = KubernetesPodOperator(
