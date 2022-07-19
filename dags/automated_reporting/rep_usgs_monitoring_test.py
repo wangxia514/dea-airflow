@@ -28,7 +28,7 @@ default_args = {
     "email_on_retry": False,
     "retries": 1,                           ##UPDATE IN PROD
     "retry_delay": timedelta(minutes=5),
-        "secrets": [
+    "secrets": [
         Secret("env", "DB_HOST", REPORTING_DB_DEV_SECRET, "DB_HOST"),
         Secret("env", "DB_NAME", REPORTING_DB_DEV_SECRET, "DB_NAME"),
         Secret("env", "DB_PORT", REPORTING_DB_DEV_SECRET, "DB_PORT"),
@@ -57,6 +57,7 @@ with dag:
 
     usgs_aquisitions_job = [
         "echo DEA USGS Acquisitions job started: $(date)",
+        "echo $M2M_USER",
         "pip install ga-reporting-etls==2.3.1",
         "mkdir -p /airflow/xcom/",
         "usgs-acquisitions /airflow/xcom/return.json"
