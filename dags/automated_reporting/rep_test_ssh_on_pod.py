@@ -3,6 +3,8 @@ from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 
+YESTERDAY = datetime.datetime.now() - datetime.timedelta(days=1)
+
 default_args = {
     "owner": "Ramkumar Ramagopalan",
     "depends_on_past": True,
@@ -21,7 +23,6 @@ secret_volume = Secret(
     # Key in the form of service account file name
     key='PORT_FORWARDER_KEY')
 
-YESTERDAY = datetime.datetime.now() - datetime.timedelta(days=1)
 
 dag = DAG(
     "test_ssh_output",
