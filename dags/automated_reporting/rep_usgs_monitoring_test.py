@@ -54,15 +54,12 @@ dag = DAG(
 
 with dag:
 
-
     usgs_aquisitions_job = [
         "echo DEA USGS Acquisitions job started: $(date)",
-        "echo $M2M_USER",
         "pip install ga-reporting-etls==2.3.2",
         "mkdir -p /airflow/xcom/",
         "usgs-acquisitions /airflow/xcom/return.json"
     ]
-
     usgs_acquisitions = KubernetesPodOperator(
                 namespace="processing",
                 image="python:3.8-slim-buster",
@@ -80,3 +77,25 @@ with dag:
                     "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}"
                 }
     )
+
+    usgs_inserts_job = [
+        "echo DEA USGS Insert Acquisitions job started: $(date)",
+        "pip install ga-reporting-etls==2.3.2",
+        "usgs-inserts"
+    ]
+    usgs_inserts = KubernetesPodOperator(
+                namespace="processing",
+                image="python:3.8-slim-buster",
+                arguments=["bash", "-c", " &&\n".join(usgs_inserts_job)],
+                name="usgs-inserts",
+                is_delete_operator_pod=True,
+                in_cluster=True,
+                task_id="usgs-inserts",
+                get_logs=True,
+                task_concurrency=1,
+                env_vars={
+                    "USGS_ACQ_XCOM": "{{ task_instance.xcom_pull(task_ids='usgs-acquisitions', key='return_value') }}"
+                }
+    )
+
+    usgs_acquisitions >> usgs_inserts
