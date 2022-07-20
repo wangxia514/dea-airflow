@@ -98,4 +98,25 @@ with dag:
                 }
     )
 
+    usgs_inserts_hg_l0_job = [
+        "echo DEA USGS Insert Acquisitions job started: $(date)",
+        "pip install ga-reporting-etls==2.3.2",
+        "usgs-inserts-hg-l0"
+    ]
+    usgs_inserts_hg_l0 = KubernetesPodOperator(
+                namespace="processing",
+                image="python:3.8-slim-buster",
+                arguments=["bash", "-c", " &&\n".join(usgs_inserts_hg_l0_job)],
+                name="usgs-inserts-hg-l0",
+                is_delete_operator_pod=True,
+                in_cluster=True,
+                task_id="usgs-inserts-hg-l0",
+                get_logs=True,
+                task_concurrency=1,
+                env_vars={
+                    "USGS_ACQ_XCOM": "{{ task_instance.xcom_pull(task_ids='usgs-acquisitions', key='return_value') }}"
+                }
+    )
+
     usgs_acquisitions >> usgs_inserts
+    usgs_acquisitions >> usgs_inserts_hg_l0
