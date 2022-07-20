@@ -14,7 +14,7 @@ from datetime import datetime as dt, timedelta
 from infra.variables import REPORTING_IAM_DEA_S3_SECRET
 from infra.variables import REPORTING_DB_DEV_SECRET 
 
-YESTERDAY = datetime.datetime.now() - datetime.timedelta(days=1)
+YESTERDAY = dt.now() - timedelta(days=1)
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
