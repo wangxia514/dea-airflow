@@ -5,39 +5,32 @@ This DAG deletes values for completeness and completeness_missing in
 Repoting DB for a list of product_ids. It keeps the latest set of
 values and the aoi summary values.
 """
-
-import logging
-from datetime import datetime as dt
-from datetime import timedelta
-import pendulum
+import json
+from datetime import datetime as dt, timedelta
 
 from airflow import DAG
-from airflow.operators.python import PythonOperator
-from airflow.hooks.base_hook import BaseHook
-
-from automated_reporting import connections
-from automated_reporting.utilities import helpers
-from automated_reporting.databases import schemas
-
-# Tasks
-from automated_reporting.tasks.check_db import task as check_db_task
-from automated_reporting.tasks.expire_completeness import (
-    task as expire_completeness_task,
+from airflow.kubernetes.secret import Secret
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
 )
-
-log = logging.getLogger("airflow.task")
-
-utc_tz = pendulum.timezone("UTC")
+from infra.variables import REPORTING_DB_DEV_SECRET
 
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt(2021, 7, 12, tzinfo=utc_tz),
+    "start_date": dt.now() - timedelta(hours=4),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 2,
+    "retries": 1,
     "retry_delay": timedelta(minutes=5),
+    "secrets": [
+        Secret("env", "DB_HOST", REPORTING_DB_DEV_SECRET, "DB_HOST"),
+        Secret("env", "DB_NAME", REPORTING_DB_DEV_SECRET, "DB_NAME"),
+        Secret("env", "DB_PORT", REPORTING_DB_DEV_SECRET, "DB_PORT"),
+        Secret("env", "DB_USER", REPORTING_DB_DEV_SECRET, "DB_USER"),
+        Secret("env", "DB_PASSWORD", REPORTING_DB_DEV_SECRET, "DB_PASSWORD"),
+    ],
 }
 
 dag = DAG(
@@ -48,25 +41,11 @@ dag = DAG(
     schedule_interval="10 */2 * * *",  # try and avoid completeness generation
 )
 
-rep_conn = helpers.parse_connection(
-    BaseHook.get_connection(connections.DB_REP_WRITER_CONN_DEV)
-)
-
 with dag:
 
-    check_db_kwargs = {
-        "expected_schema": schemas.COMPLETENESS_SCHEMA,
-        "rep_conn": rep_conn,
-    }
-    check_db = PythonOperator(
-        task_id="check_db_schema",
-        python_callable=check_db_task,
-        op_kwargs=check_db_kwargs,
-    )
-
     products_list = [
-        "ga_s2a_msi_ard_c3",
-        "ga_s2b_msi_ard_c3",
+        "s2a_nrt_granule",
+        "s2b_nrt_granule",
         "usgs_ls8c_level1_nrt_c2",
         "usgs_ls7e_level1_nrt_c2",
         "ga_s2am_ard_provisional_3",
@@ -79,18 +58,19 @@ with dag:
         "esa_s2b_msi_l1c",
     ]
 
-    def create_task(product_id):
-        """
-        Function to generate PythonOperator tasks with id based on `product_id`
-        """
-        expire_completeness_kwargs = {
-            "rep_conn": rep_conn,
-            "product_id": product_id,
-        }
-        return PythonOperator(
-            task_id="expire_completeness_" + product_id,
-            python_callable=expire_completeness_task,
-            op_kwargs=expire_completeness_kwargs,
-        )
-
-    check_db >> [create_task(product_id) for product_id in products_list]
+    usgs_inserts_job = [
+        "echo DEA Expire Completeness job started: $(date)",
+        "pip install ga-reporting-etls==2.4.0",
+        "expire-completeness",
+    ]
+    usgs_inserts = KubernetesPodOperator(
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(usgs_inserts_job)],
+        name="expire-completeness",
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="expire-completeness",
+        get_logs=True,
+        env_vars={"PRODUCT_IDS": json.dumps(products_list)},
+    )
