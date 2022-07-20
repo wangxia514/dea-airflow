@@ -18,7 +18,7 @@ from infra.variables import REPORTING_DB_DEV_SECRET
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt.now() - timedelta(hours=1),
+    "start_date": dt.now() - timedelta(hours=4),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
