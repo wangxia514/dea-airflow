@@ -8,13 +8,16 @@ This DAG
  * Inserts summary completeness and latency reporting data
  * Inserts completeness data for each wrs path row
 """
+import json
+from datetime import datetime as dt, timedelta
+
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from airflow.operators.dummy import DummyOperator
-from datetime import datetime as dt, timedelta
+
 from infra.variables import REPORTING_ODC_DB_SECRET
 from infra.variables import REPORTING_DB_DEV_SECRET
 from infra.variables import REPORTING_USGSM2M_API_SECRET
@@ -56,7 +59,7 @@ with dag:
 
     usgs_aquisitions_job = [
         "echo DEA USGS Acquisitions job started: $(date)",
-        "pip install ga-reporting-etls==2.3.2",
+        "pip install ga-reporting-etls==2.3.3",
         "mkdir -p /airflow/xcom/",
         "usgs-acquisitions /airflow/xcom/return.json"
     ]
@@ -80,7 +83,7 @@ with dag:
 
     usgs_inserts_job = [
         "echo DEA USGS Insert Acquisitions job started: $(date)",
-        "pip install ga-reporting-etls==2.3.2",
+        "pip install ga-reporting-etls==2.3.3",
         "usgs-inserts"
     ]
     usgs_inserts = KubernetesPodOperator(
@@ -100,7 +103,7 @@ with dag:
 
     usgs_inserts_hg_l0_job = [
         "echo DEA USGS Insert Acquisitions job started: $(date)",
-        "pip install ga-reporting-etls==2.3.2",
+        "pip install ga-reporting-etls==2.3.3",
         "usgs-inserts-hg-l0"
     ]
     usgs_inserts_hg_l0 = KubernetesPodOperator(
@@ -118,5 +121,83 @@ with dag:
                 }
     )
 
+
+    usgs_l1_completness_ls8_product = {
+            "s3_code": "L8C2",
+            "acq_code": "LC8%",
+            "rep_code": "usgs_ls8c_level1_nrt_c2"
+    }
+    usgs_completeness_l1_job = [
+        "echo DEA USGS Insert Acquisitions job started: $(date)",
+        "pip install ga-reporting-etls==2.3.3",
+        "mkdir -p /airflow/xcom/",
+        "usgs-l1-completeness /airflow/xcom/return.json"
+    ]
+    usgs_ls8_l1_completeness = KubernetesPodOperator(
+                namespace="processing",
+                image="python:3.8-slim-buster",
+                arguments=["bash", "-c", " &&\n".join(usgs_completeness_l1_job)],
+                name="usgs-completeness-l1",
+                is_delete_operator_pod=True,
+                in_cluster=True,
+                task_id="usgs-completeness-l1",
+                get_logs=True,
+                do_xcom_push=True,
+                task_concurrency=1,
+                env_vars={
+                    "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
+                    "DAYS": "30",
+                    "PRODUCT": json.dumps(usgs_l1_completness_ls8_product)
+                }
+    )
+
+    usgs_ard_completness_ls8_product = {
+        "product": {"odc_code": "ga_ls8c_ard_provisional_3", "acq_code": "LC8%"}
+    }
+    usgs_completeness_ard_job = [
+        "echo DEA USGS Insert Acquisitions job started: $(date)",
+        "pip install ga-reporting-etls==2.3.3",
+        "usgs-ard-completeness"
+    ]
+    usgs_ls8_ard_completeness = KubernetesPodOperator(
+                namespace="processing",
+                image="python:3.8-slim-buster",
+                arguments=["bash", "-c", " &&\n".join(usgs_completeness_ard_job)],
+                name="usgs-completeness-ard",
+                is_delete_operator_pod=True,
+                in_cluster=True,
+                task_id="usgs-completeness-ard",
+                get_logs=True,
+                task_concurrency=1,
+                env_vars={
+                    "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
+                    "DAYS": "30",
+                    "PRODUCT": json.dumps(usgs_ard_completness_ls8_product)
+                }
+    )
+
+    usgs_currency_job = [
+        "echo DEA USGS Insert Acquisitions job started: $(date)",
+        "pip install ga-reporting-etls==2.3.3",
+        "usgs-currency-from-completeness"
+    ]
+    usgs_ls8_l1_currency = KubernetesPodOperator(
+                namespace="processing",
+                image="python:3.8-slim-buster",
+                arguments=["bash", "-c", " &&\n".join(usgs_currency_job)],
+                name="usgs-currency-ls8-l1",
+                is_delete_operator_pod=True,
+                in_cluster=True,
+                task_id="usgs-currency-ls8-l1",
+                get_logs=True,
+                task_concurrency=1,
+                env_vars={
+                    "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
+                    "USGS_COMPLETENESS_XCOM": "{{ task_instance.xcom_pull(task_ids='usgs-completeness-l1', key='return_value') }}"
+                }
+    )
+
     usgs_acquisitions >> usgs_inserts
+    usgs_inserts >> usgs_ls8_ard_completeness
+    usgs_inserts >> usgs_ls8_l1_completeness >> usgs_ls8_l1_currency
     usgs_acquisitions >> usgs_inserts_hg_l0
