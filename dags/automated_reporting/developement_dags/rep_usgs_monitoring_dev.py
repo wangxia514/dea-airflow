@@ -147,7 +147,8 @@ with dag:
     )
 
     usgs_ard_completness_ls8_product = {
-        "product": {"odc_code": "ga_ls8c_ard_provisional_3", "acq_code": "LC8%"}
+        "odc_code": "ga_ls8c_ard_provisional_3",
+        "acq_code": "LC8%",
     }
     usgs_completeness_ard_job = [
         "echo DEA USGS Insert Acquisitions job started: $(date)",
