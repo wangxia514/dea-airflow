@@ -94,7 +94,6 @@ with dag:
         in_cluster=True,
         task_id="usgs-inserts",
         get_logs=True,
-        task_concurrency=1,
         env_vars={
             "USGS_ACQ_XCOM": "{{ task_instance.xcom_pull(task_ids='usgs-acquisitions', key='return_value') }}"
         },
@@ -114,7 +113,6 @@ with dag:
         in_cluster=True,
         task_id="usgs-inserts-hg-l0",
         get_logs=True,
-        task_concurrency=1,
         env_vars={
             "USGS_ACQ_XCOM": "{{ task_instance.xcom_pull(task_ids='usgs-acquisitions', key='return_value') }}"
         },
@@ -141,7 +139,6 @@ with dag:
         task_id="usgs-completeness-l1",
         get_logs=True,
         do_xcom_push=True,
-        task_concurrency=1,
         env_vars={
             "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
             "DAYS": "30",
@@ -166,7 +163,6 @@ with dag:
         in_cluster=True,
         task_id="usgs-completeness-ard",
         get_logs=True,
-        task_concurrency=1,
         env_vars={
             "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
             "DAYS": "30",
@@ -188,7 +184,6 @@ with dag:
         in_cluster=True,
         task_id="usgs-currency-ls8-l1",
         get_logs=True,
-        task_concurrency=1,
         env_vars={
             "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
             "USGS_COMPLETENESS_XCOM": "{{ task_instance.xcom_pull(task_ids='usgs-completeness-l1', key='return_value') }}",
