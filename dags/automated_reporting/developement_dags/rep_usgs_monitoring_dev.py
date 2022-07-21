@@ -16,6 +16,7 @@ from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
+from airflow.models import Variable
 
 from infra.variables import REPORTING_ODC_DB_SECRET
 from infra.variables import REPORTING_DB_DEV_SECRET
@@ -45,6 +46,7 @@ default_args = {
         Secret("env", "M2M_PASSWORD", REPORTING_USGSM2M_API_SECRET, "M2M_PASSWORD"),
     ],
 }
+S3_CREDENTIALS_STR = Variable.get("reporting_s3_secret")
 
 dag = DAG(
     "rep_usgs_monitoring_dev",  # UPDATE IN PROD
@@ -58,7 +60,7 @@ with dag:
 
     usgs_aquisitions_job = [
         "echo DEA USGS Acquisitions job started: $(date)",
-        "pip install ga-reporting-etls==2.3.3",
+        "pip install ga-reporting-etls==2.4.1",
         "mkdir -p /airflow/xcom/",
         "usgs-acquisitions /airflow/xcom/return.json",
     ]
@@ -77,12 +79,13 @@ with dag:
             "DAYS": "{{ dag_run.conf['acquisition_days'] | default(3) }}",
             "PRODUCT_IDS": "landsat_etm_c2_l1,landsat_ot_c2_l1",
             "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
+            "S3_CREDENTIALS": S3_CREDENTIALS_STR,
         },
     )
 
     usgs_inserts_job = [
         "echo DEA USGS Insert Acquisitions job started: $(date)",
-        "pip install ga-reporting-etls==2.3.3",
+        "pip install ga-reporting-etls==2.4.1",
         "usgs-inserts",
     ]
     usgs_inserts = KubernetesPodOperator(
@@ -95,13 +98,14 @@ with dag:
         task_id="usgs-inserts",
         get_logs=True,
         env_vars={
-            "USGS_ACQ_XCOM": "{{ task_instance.xcom_pull(task_ids='usgs-acquisitions', key='return_value') }}"
+            "S3_CREDENTIALS": S3_CREDENTIALS_STR,
+            "USGS_ACQ_XCOM": "{{ task_instance.xcom_pull(task_ids='usgs-acquisitions', key='return_value') }}",
         },
     )
 
     usgs_inserts_hg_l0_job = [
         "echo DEA USGS Insert Acquisitions job started: $(date)",
-        "pip install ga-reporting-etls==2.3.3",
+        "pip install ga-reporting-etls==2.4.1",
         "usgs-inserts-hg-l0",
     ]
     usgs_inserts_hg_l0 = KubernetesPodOperator(
@@ -114,7 +118,8 @@ with dag:
         task_id="usgs-inserts-hg-l0",
         get_logs=True,
         env_vars={
-            "USGS_ACQ_XCOM": "{{ task_instance.xcom_pull(task_ids='usgs-acquisitions', key='return_value') }}"
+            "S3_CREDENTIALS": S3_CREDENTIALS_STR,
+            "USGS_ACQ_XCOM": "{{ task_instance.xcom_pull(task_ids='usgs-acquisitions', key='return_value') }}",
         },
     )
 
@@ -125,7 +130,7 @@ with dag:
     }
     usgs_completeness_l1_job = [
         "echo DEA USGS Insert Acquisitions job started: $(date)",
-        "pip install ga-reporting-etls==2.3.3",
+        "pip install ga-reporting-etls==2.4.1",
         "mkdir -p /airflow/xcom/",
         "usgs-l1-completeness /airflow/xcom/return.json",
     ]
@@ -152,7 +157,7 @@ with dag:
     }
     usgs_completeness_ard_job = [
         "echo DEA USGS Insert Acquisitions job started: $(date)",
-        "pip install ga-reporting-etls==2.3.3",
+        "pip install ga-reporting-etls==2.4.1",
         "usgs-ard-completeness",
     ]
     usgs_ls8_ard_completeness = KubernetesPodOperator(
@@ -173,7 +178,7 @@ with dag:
 
     usgs_currency_job = [
         "echo DEA USGS Insert Acquisitions job started: $(date)",
-        "pip install ga-reporting-etls==2.3.3",
+        "pip install ga-reporting-etls==2.4.1",
         "usgs-currency-from-completeness",
     ]
     usgs_ls8_l1_currency = KubernetesPodOperator(
