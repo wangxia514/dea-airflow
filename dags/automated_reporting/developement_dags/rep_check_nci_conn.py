@@ -17,10 +17,10 @@ default_args = {
 }
 
 dag = DAG(
-    "test_nci_conn",
+    "rep_check_nci_conn",
     default_args=default_args,
     schedule_interval=None,
-    tags=["nci", "utility"],
+    tags=["reporting_dev"],
 )
 
 with dag:

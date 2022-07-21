@@ -53,7 +53,7 @@ default_args = {
 dag = DAG(
     "rep_usgs_monitoring_dev",  # UPDATE IN PROD
     description="DAG for completeness and latency metric on USGS L1 C2 nrt product",
-    tags=["reporting-dev"],  # UPDATE IN PROD
+    tags=["reporting_dev"],  # UPDATE IN PROD
     default_args=default_args,
     schedule_interval=timedelta(minutes=15),
 )
