@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: skip-file
 """
 DEA Currency Dags
 """
@@ -19,7 +20,7 @@ default_args = {
     "depends_on_past": False,
     "start_date": dt.now() - timedelta(hours=1),
     "email": ["tom.mcadam@ga.gov.au"],
-    "email_on_failure": False,  ### UPDATE IN PROD ####
+    "email_on_failure": False,  # UPDATE IN PROD
     "email_on_retry": False,
     "retry_delay": timedelta(minutes=5),
     "retries": 3,
@@ -42,7 +43,7 @@ daily_dag = DAG(
     default_args=default_args,
     description="DAG for currency of dea products (run daily)",
     tags=["reporting_dev"],
-    schedule_interval=timedelta(days=1)
+    schedule_interval=timedelta(days=1),
 )
 
 rapid_dag = DAG(
@@ -50,55 +51,58 @@ rapid_dag = DAG(
     default_args=default_args,
     description="DAG for currency of dea products (run 15mins)",
     tags=["reporting_dev"],
-    schedule_interval=timedelta(minutes=15)
+    schedule_interval=timedelta(minutes=15),
 )
 
 ODC_CURRENCY_JOB = [
     "echo DEA ODC Currency job started: $(date)",
     "pip install ga-reporting-etls==2.2.2",
-    "odc-currency"
+    "odc-currency",
 ]
 SNS_CURRENCY_JOB = [
     "echo DEA ODC Currency job started: $(date)",
     "pip install ga-reporting-etls==2.2.2",
-    "sns-currency"
+    "sns-currency",
 ]
 
+
 def create_operator(method, dag, job, env_vars):
-    return  KubernetesPodOperator(
-                dag=dag,
-                namespace="processing",
-                image="python:3.8-slim-buster",
-                arguments=["bash", "-c", " &&\n".join(job)],
-                name=f"{method}_currency-{env_vars['PRODUCT_ID']}",
-                is_delete_operator_pod=True,
-                in_cluster=True,
-                task_id=f"{method}_currency-{env_vars['PRODUCT_ID']}",
-                get_logs=True,
-                env_vars=env_vars
+    return KubernetesPodOperator(
+        dag=dag,
+        namespace="processing",
+        image="python:3.8-slim-buster",
+        arguments=["bash", "-c", " &&\n".join(job)],
+        name=f"{method}_currency-{env_vars['PRODUCT_ID']}",
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id=f"{method}_currency-{env_vars['PRODUCT_ID']}",
+        get_logs=True,
+        env_vars=env_vars,
     )
+
 
 def create_odc_task(dag, product_id, days, product_suffix=None):
     """
     Function to generate KubernetesPodOperator tasks with id based on `product_id`
     """
-    env_vars={
+    env_vars = {
         "DAYS": str(days),
         "PRODUCT_ID": product_id,
-        "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}"
+        "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
     }
     if product_suffix:
         env_vars["PRODUCT_SUFFIX"] = product_suffix
     return create_operator("odc", dag, ODC_CURRENCY_JOB, env_vars)
 
+
 def create_sns_task(dag, product_id, pipeline):
     """
     Function to generate KubernetesPodOperator tasks with id based on `product_id`
     """
-    env_vars={
+    env_vars = {
         "PRODUCT_ID": product_id,
         "PIPELINE": pipeline,
-        "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}"
+        "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
     }
     return create_operator("sns", dag, SNS_CURRENCY_JOB, env_vars)
 
@@ -123,7 +127,10 @@ with daily_dag:
         "ga_ls_wo_fq_apr_oct_3",
         "ga_ls_wo_fq_nov_mar_3",
     ]
-    daily_odc_tasks = [create_odc_task(daily_dag, product_id, 90, "aws") for product_id in products_list]
+    daily_odc_tasks = [
+        create_odc_task(daily_dag, product_id, 90, "aws")
+        for product_id in products_list
+    ]
     START_DAILY >> daily_odc_tasks
 
 with rapid_dag:
@@ -141,9 +148,17 @@ with rapid_dag:
         "ga_s2bm_ard_provisional_3",
         "ga_s2_ba_provisional_3",
     ]
-    sns_products_list = [("S2A_MSIL1C", "esa_s2a_msi_l1c"), ("S2B_MSIL1C", "esa_s2b_msi_l1c")]
+    sns_products_list = [
+        ("S2A_MSIL1C", "esa_s2a_msi_l1c"),
+        ("S2B_MSIL1C", "esa_s2b_msi_l1c"),
+    ]
 
-    rapid_odc_tasks = [create_odc_task(rapid_dag, product_id, 30) for product_id in odc_products_list]
-    rapid_sns_tasks = [create_sns_task(rapid_dag, product_id, pipeline) for pipeline, product_id in sns_products_list]
+    rapid_odc_tasks = [
+        create_odc_task(rapid_dag, product_id, 30) for product_id in odc_products_list
+    ]
+    rapid_sns_tasks = [
+        create_sns_task(rapid_dag, product_id, pipeline)
+        for pipeline, product_id in sns_products_list
+    ]
     START_RAPID >> rapid_odc_tasks
     START_RAPID >> rapid_sns_tasks

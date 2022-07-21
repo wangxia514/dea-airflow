@@ -1,16 +1,23 @@
+"""
+Dev Dag
+"""
+
 import datetime
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 
 secret_volume = Secret(
-    deploy_type='volume',
+    deploy_type="volume",
     # Path where we mount the secret as volume
-    deploy_target='/var/secrets/lpgs',
+    deploy_target="/var/secrets/lpgs",
     # Name of Kubernetes Secret
-    secret='lpgs-port-forwarder',
+    secret="lpgs-port-forwarder",
     # Key in the form of service account file name
-    key='PORT_FORWARDER_KEY')
+    key="PORT_FORWARDER_KEY",
+)
 
 YESTERDAY = datetime.datetime.now() - datetime.timedelta(days=1)
 
@@ -24,34 +31,39 @@ default_args = {
 }
 
 secret_env_db_host = Secret(
-    deploy_type='env',
-    deploy_target='DB_HOST',
-    secret='reporting-nci-odc-db',
-    key='DB_HOST')
+    deploy_type="env",
+    deploy_target="DB_HOST",
+    secret="reporting-nci-odc-db",
+    key="DB_HOST",
+)
 
 secret_env_db_name = Secret(
-    deploy_type='env',
-    deploy_target='DB_NAME',
-    secret='reporting-nci-odc-db',
-    key='DB_NAME')
+    deploy_type="env",
+    deploy_target="DB_NAME",
+    secret="reporting-nci-odc-db",
+    key="DB_NAME",
+)
 
 secret_env_db_port = Secret(
-    deploy_type='env',
-    deploy_target='DB_PORT',
-    secret='reporting-nci-odc-db',
-    key='DB_PORT')
+    deploy_type="env",
+    deploy_target="DB_PORT",
+    secret="reporting-nci-odc-db",
+    key="DB_PORT",
+)
 
 secret_env_db_user = Secret(
-    deploy_type='env',
-    deploy_target='DB_USER',
-    secret='reporting-nci-odc-db',
-    key='DB_USER')
+    deploy_type="env",
+    deploy_target="DB_USER",
+    secret="reporting-nci-odc-db",
+    key="DB_USER",
+)
 
 secret_env_db_password = Secret(
-    deploy_type='env',
-    deploy_target='DB_PASSWORD',
-    secret='reporting-nci-odc-db',
-    key='DB_PASSWORD')
+    deploy_type="env",
+    deploy_target="DB_PASSWORD",
+    secret="reporting-nci-odc-db",
+    key="DB_PASSWORD",
+)
 
 dag = DAG(
     "composer_sample_kubernetes_pod",
@@ -85,6 +97,13 @@ with dag:
         in_cluster=True,
         task_id="check_secret",
         get_logs=True,
-        secrets=[secret_volume, secret_env_db_host, secret_env_db_name, secret_env_db_port, secret_env_db_user, secret_env_db_password],
+        secrets=[
+            secret_volume,
+            secret_env_db_host,
+            secret_env_db_name,
+            secret_env_db_port,
+            secret_env_db_user,
+            secret_env_db_password,
+        ],
     )
     kubernetes_secret_vars_ex
