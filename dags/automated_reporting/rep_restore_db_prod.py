@@ -42,7 +42,7 @@ dag = DAG(
     schedule_interval=None
 )
 
-BACKUP_RESTORE_IMAGE="538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/automated-reporting-backup:latest"
+BACKUP_RESTORE_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/automated-reporting-backup:latest"
 
 with dag:
     JOBS1 = [

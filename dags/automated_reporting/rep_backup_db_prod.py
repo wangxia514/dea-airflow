@@ -49,7 +49,7 @@ dag = DAG(
     schedule_interval="0 14 * * *",  # daily at 1am AEDT
 )
 
-BACKUP_RESTORE_IMAGE="538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/automated-reporting-backup:latest"
+BACKUP_RESTORE_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/automated-reporting-backup:latest"
 
 with dag:
     JOBSLANDSAT = [
