@@ -37,13 +37,15 @@ dag = DAG(
     schedule_interval="0 15 * * *",  # daily at 1am AEDT
 )
 
+BACKUP_RESTORE_IMAGE="538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/automated-reporting-backup:latest"
+
 with dag:
     JOBS1 = [
         "sh /manage_backup.sh",
     ]
     manage_reporting_db = KubernetesPodOperator(
         namespace="processing",
-        image="ramagopr123/psql_client",
+        image=BACKUP_RESTORE_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS1)],
         name="manage_reporting_db",
         is_delete_operator_pod=True,

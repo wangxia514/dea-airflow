@@ -42,6 +42,8 @@ dag = DAG(
     schedule_interval=None
 )
 
+BACKUP_RESTORE_IMAGE="538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/automated-reporting-backup:latest"
+
 with dag:
     JOBS1 = [
         "echo db restore started: $(date)",
@@ -49,7 +51,7 @@ with dag:
     ]
     restore_reporting_db_landsat = KubernetesPodOperator(
         namespace="processing",
-        image="ramagopr123/psql_client",
+        image=BACKUP_RESTORE_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS1)],
         name="restore_reporting_db_landsat",
         is_delete_operator_pod=True,
@@ -66,7 +68,7 @@ with dag:
     )
     restore_reporting_db_dea = KubernetesPodOperator(
         namespace="processing",
-        image="ramagopr123/psql_client",
+        image=BACKUP_RESTORE_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS1)],
         name="restore_reporting_db_dea",
         is_delete_operator_pod=True,
@@ -83,7 +85,7 @@ with dag:
     )
     restore_reporting_db_cophub = KubernetesPodOperator(
         namespace="processing",
-        image="ramagopr123/psql_client",
+        image=BACKUP_RESTORE_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS1)],
         name="restore_reporting_db_cophub",
         is_delete_operator_pod=True,
@@ -100,7 +102,7 @@ with dag:
     )
     restore_reporting_db_marine = KubernetesPodOperator(
         namespace="processing",
-        image="ramagopr123/psql_client",
+        image=BACKUP_RESTORE_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS1)],
         name="restore_reporting_db_marine",
         is_delete_operator_pod=True,
@@ -117,7 +119,7 @@ with dag:
     )
     restore_reporting_db_nci = KubernetesPodOperator(
         namespace="processing",
-        image="ramagopr123/psql_client",
+        image=BACKUP_RESTORE_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS1)],
         name="restore_reporting_db_nci",
         is_delete_operator_pod=True,
@@ -134,7 +136,7 @@ with dag:
     )
     restore_reporting_db_public = KubernetesPodOperator(
         namespace="processing",
-        image="ramagopr123/psql_client",
+        image=BACKUP_RESTORE_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS1)],
         name="restore_reporting_db_public",
         is_delete_operator_pod=True,
