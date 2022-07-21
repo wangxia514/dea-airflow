@@ -27,13 +27,13 @@ default_args = {
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "secrets": [
-        Secret("env", "ACCESS_KEY", REPORTING_IAM_DEA_S3_SECRET , "ACCESS_KEY"),
-        Secret("env", "SECRET_KEY", REPORTING_IAM_DEA_S3_SECRET , "SECRET_KEY"),
-        Secret("env", "DB_HOST", REPORTING_DB_DEV_SECRET , "DB_HOST"),
-        Secret("env", "DB_NAME", REPORTING_DB_DEV_SECRET , "DB_NAME"),
-        Secret("env", "DB_PORT", REPORTING_DB_DEV_SECRET , "DB_PORT"),
-        Secret("env", "DB_USER", REPORTING_DB_DEV_SECRET , "DB_USER"),
-        Secret("env", "DB_PASSWORD", REPORTING_DB_DEV_SECRET , "DB_PASSWORD"),
+        Secret("env", "ACCESS_KEY", REPORTING_IAM_DEA_S3_SECRET, "ACCESS_KEY"),
+        Secret("env", "SECRET_KEY", REPORTING_IAM_DEA_S3_SECRET, "SECRET_KEY"),
+        Secret("env", "DB_HOST", REPORTING_DB_DEV_SECRET, "DB_HOST"),
+        Secret("env", "DB_NAME", REPORTING_DB_DEV_SECRET, "DB_NAME"),
+        Secret("env", "DB_PORT", REPORTING_DB_DEV_SECRET, "DB_PORT"),
+        Secret("env", "DB_USER", REPORTING_DB_DEV_SECRET, "DB_USER"),
+        Secret("env", "DB_PASSWORD", REPORTING_DB_DEV_SECRET, "DB_PASSWORD"),
     ],
 }
 
@@ -47,7 +47,7 @@ dag = DAG(
 
 
 def aggregate_metrics_from_collections(task_instance):
-    """ pull metrics from the colletors, aggregate and xcom_push """
+    """pull metrics from the colletors, aggregate and xcom_push"""
     # Do a xcompull from 10 collectors based on the pod count
     latest_size_dict = {}
     old_size_dict = {}
@@ -118,7 +118,7 @@ with dag:
         "echo AWS Storage job started: $(date)",
         "pip install ga-reporting-etls==1.2.50",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import etl; etl.task()'`",
-        "mkdir -p /airflow/xcom/; echo '{\"status\": \"success\"}' > /airflow/xcom/return.json",
+        'mkdir -p /airflow/xcom/; echo \'{"status": "success"}\' > /airflow/xcom/return.json',
     ]
     k8s_task_download_inventory = KubernetesPodOperator(
         namespace="processing",
@@ -153,7 +153,7 @@ with dag:
         task_id="push_to_db",
         get_logs=True,
         env_vars={
-            "METRICS" : "{{ task_instance.xcom_pull(task_ids='aggregate_metrics', key='metrics') }}",
+            "METRICS": "{{ task_instance.xcom_pull(task_ids='aggregate_metrics', key='metrics') }}",
             "EXECUTION_DATE": "{{ ds }}",
         },
     )
@@ -173,8 +173,13 @@ with dag:
             task_id=f"collection{i}",
             get_logs=True,
             env_vars={
-                "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}",
-                "COUNTER" : counter,
+                "INVENTORY_FILE": "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}",
+                "COUNTER": counter,
             },
         )
-        k8s_task_download_inventory >> metrics_tasks[i] >> aggregate_metrics >> push_to_db
+        (
+            k8s_task_download_inventory
+            >> metrics_tasks[i]
+            >> aggregate_metrics
+            >> push_to_db
+        )

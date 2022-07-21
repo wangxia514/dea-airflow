@@ -1,7 +1,12 @@
+"""
+Dev Dag
+"""
 import datetime
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 
 YESTERDAY = datetime.datetime.now() - datetime.timedelta(days=1)
 
@@ -15,13 +20,14 @@ default_args = {
 }
 
 secret_volume = Secret(
-    deploy_type='volume',
+    deploy_type="volume",
     # Path where we mount the secret as volume
-    deploy_target='/var/secrets/lpgs',
+    deploy_target="/var/secrets/lpgs",
     # Name of Kubernetes Secret
-    secret='lpgs-port-forwarder',
+    secret="lpgs-port-forwarder",
     # Key in the form of service account file name
-    key='PORT_FORWARDER_KEY')
+    key="PORT_FORWARDER_KEY",
+)
 
 
 dag = DAG(

@@ -52,9 +52,7 @@ def callable_virtualenv(**kwargs):
     )
 
 
-google_analytics_credentials = Variable.get(
-    "google_analytics", deserialize_json=True
-)
+google_analytics_credentials = Variable.get("google_analytics", deserialize_json=True)
 
 
 with dag:
