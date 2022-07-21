@@ -33,7 +33,7 @@ dag = DAG(
 with dag:
 
     k = KubernetesPodOperator(
-        namespace="default",
+        namespace="processing",
         image="ubuntu:16.04",
         cmds=["bash", "-cx"],
         arguments=["echo 10"],
