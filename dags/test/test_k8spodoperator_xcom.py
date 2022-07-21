@@ -10,6 +10,7 @@ from airflow import DAG
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
+from infra.images import INDEXER_IMAGE
 
 default_args = {
     "owner": "Pin Jin",
@@ -32,14 +33,15 @@ dag = DAG(
 
 with dag:
 
-    k = KubernetesPodOperator(
+    KubernetesPodOperator(
         namespace="processing",
-        image="ubuntu:16.04",
+        image=INDEXER_IMAGE,
         cmds=["bash", "-cx"],
         arguments=["echo 10"],
-        labels={"foo": "bar"},
         name="test-xcom-image",
         task_id="task-test",
-        in_cluster=False,
+        get_logs=True,
         do_xcom_push=True,
+        is_delete_operator_pod=True,
+        log_events_on_failure=True,
     )
