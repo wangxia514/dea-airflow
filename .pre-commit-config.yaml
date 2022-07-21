@@ -5,14 +5,21 @@ repos:
       - id: check-yaml
       - id: end-of-file-fixer
       - id: trailing-whitespace
+
   - repo: https://github.com/psf/black
     rev: 22.3.0
     hooks:
       - id: black
+
   - repo: https://github.com/pycqa/pylint
-    rev: v2.13.8
+    rev: v2.14.0-b1
     hooks:
     - id: pylint
       additional_dependencies: [pylint-airflow]
       name: pylint dags
       files: dags/
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 4.0.1
+    hooks:
+      - id: flake8
