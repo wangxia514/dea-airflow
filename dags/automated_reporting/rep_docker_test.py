@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+# pylint: skip-file
 """
 aws cost stats dag for ga-aws-dea
 """
@@ -12,7 +12,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 )
 from datetime import datetime as dt, timedelta
 from infra.variables import REPORTING_IAM_DEA_S3_SECRET
-from infra.variables import REPORTING_DB_DEV_SECRET 
+from infra.variables import REPORTING_DB_DEV_SECRET
 
 YESTERDAY = dt.now() - timedelta(days=1)
 
@@ -36,14 +36,16 @@ default_args = {
     ],
 }
 
-GAREPORTING_ETL_IMAGE= "451924316694.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:latest"
+GAREPORTING_ETL_IMAGE = (
+    "451924316694.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:latest"
+)
 
 dag = DAG(
     "rep_aws_cost_ingestion_docker_check",
     description="DAG for aws cost stats prod ga-aws-dea",
     tags=["reporting"],
     default_args=default_args,
-    schedule_interval=None
+    schedule_interval=None,
 )
 
 with dag:
