@@ -15,7 +15,7 @@ repos:
     rev: v2.14.0-b1
     hooks:
     - id: pylint
-      additional_dependencies: [pylint-airflow]
+      additional_dependencies: ['pylint-airflow','apache-airflow[aws,kubernetes,postgres,redis,ssh,sftp,celery]']
       name: pylint dags
       files: dags/
 
