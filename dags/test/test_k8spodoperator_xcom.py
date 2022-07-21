@@ -22,9 +22,9 @@ default_args = {
 }
 
 dag = DAG(
-    "test_k8sjoboperator",
+    "test_k8spodoperator_xcom_image",
     default_args=default_args,
-    description="Test base job operator",
+    description="Test k8spodoperator xcom image",
     schedule_interval=None,
     tags=["k8s", "test"],
     doc_md=__doc__,
