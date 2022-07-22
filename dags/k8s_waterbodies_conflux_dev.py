@@ -60,7 +60,7 @@ from infra.variables import (
 
 
 CONFLUX_UNSTABLE_IMAGE = "geoscienceaustralia/dea-conflux:latest"
-DB_TO_CSV_CONCURRENCY_NUMBER = 1000
+DB_TO_CSV_CONCURRENCY_NUMBER = 6
 
 # Default config parameters. Only grab 3 days data to test
 DEFAULT_PARAMS = dict(
@@ -515,7 +515,7 @@ with dag:
     with TaskGroup(group_id="makecsvs") as makecsvs:
         for index in range(DB_TO_CSV_CONCURRENCY_NUMBER):
             # only run 0.2% workload as the integration test
-            if index == 0 or index == 1:
-                makecsv = k8s_makecsvs(dag, index_num=index, split_num=DB_TO_CSV_CONCURRENCY_NUMBER)
+            # if index == 0 or index == 1:
+            makecsv = k8s_makecsvs(dag, index_num=index, split_num=DB_TO_CSV_CONCURRENCY_NUMBER)
 
     getids >> makequeue >> push >> task >> delqueue >> makecsvs
