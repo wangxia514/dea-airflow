@@ -1,6 +1,7 @@
 """
 # Debugging Tool (Admin use)
 ## Test kubernetes Pod Operators xcom side car image
+Test if sidecar pulls alpine image from ecr
 
 ## Life span
 Forever
@@ -23,7 +24,7 @@ default_args = {
 }
 
 dag = DAG(
-    "test_k8spodoperator_xcom_image",
+    "test_k8spodoperator_xcom",
     default_args=default_args,
     description="Test k8spodoperator xcom image",
     schedule_interval=None,
@@ -37,7 +38,7 @@ with dag:
         namespace="processing",
         image=INDEXER_IMAGE,
         cmds=["bash", "-cx"],
-        arguments=["echo 10"],
+        arguments=["echo \"{'success': False}\" > /airflow/xcom/return.json;"],
         name="test-xcom-image",
         task_id="task-test",
         get_logs=True,
