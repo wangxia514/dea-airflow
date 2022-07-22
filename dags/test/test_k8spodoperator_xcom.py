@@ -32,13 +32,15 @@ dag = DAG(
     doc_md=__doc__,
 )
 
+r_value = '{"foo": "bar"\n, "buzz": 2}'
+
 with dag:
 
     KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
         cmds=["bash", "-cx"],
-        arguments=["echo '{\"success\": False}' > /airflow/xcom/return.json;"],
+        arguments=["echo '{}' > /airflow/xcom/return.json".format(r_value)],
         name="test-xcom-image",
         task_id="task-test",
         get_logs=True,
