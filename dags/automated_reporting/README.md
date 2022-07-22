@@ -1,48 +1,28 @@
 # Automated Reporting Dags
 
-There are two ways to run and test automated_reporting dags locally
+Automated ETLs are run from dags in this folder. All reporting dags are prefixed with `rep` and have a tag `reporting`. Production dags are suffixed with `_prod`.
 
-## Docker (Old Way)
-It is possible to bring up a set of Airflow containers using `docker-compose up` at the repository root and test that dags are loading correctly. With the upgrade to Airflow 2.x this uses a lot of system resources and has become difficult to run locally on a PC/laptop. Therefore another method of developing dags locally has been developed.
+These dags are used purely as schedulers for running and reporting on Python ETLs located in the `https://bitbucket.org/geoscienceaustralia/automated-reporting-etl/` repo. They contain minimal ETL code.
 
-## Python Venv (New Way)
-Using a virtual environment and by structuring tasks and dags slightly differently it is possible to run and test the ETL code locally without Airflow. The key is to removing all Airflow dependencies from the tasks and their sub-dependencies(utilities etc.). Only use Airflow objects in the Dag file itself and pass them down into to the task in kwargs. In this way the task can run with a local set of kwargs (from .env, file etc.) in a very similar environment to Airflow without a lot of it's complexity.
+All dags use the KubernetesPodOperator to provide standard Python environment, and install the reporting-etl python package, run task. e.g.
+```
+echo DEA ODC Currency job started: $(date)
+pip install ga-reporting-etls==2.2.2
+odc-currency
+```
 
-Basic steps:
+The exception to this are some dags that backup and restore the reporting database, which purely run bash commands and have no code in the reporting ETL repo.
 
-  - Install Python 3.6 (or whatever Airflow currently uses) on your devlopment machine
-  - Create a virtual environment inside the `dags/automated_reporting` folder
-  - Modify the `[VENV FOLDER HERE]/bin/activate` file with a modified Python path to bring the dags folder into scope
-    - `export PYTHONPATH=[ABSOLUTE PATH HERE]/dea-airflow/dags`
-  - Install the `automated_reporting/requirements.txt` in the new venv
-  - Add a `.env` in the `automated_reporting/tests` folder for secrets
+## Secrets
 
-This should allow the running of tasks (not Dags) using python 3.6, in a very similar environment to how Airflow runs them.
+Talk to Ram or Tom about how to expose secrets to the Kuberenetes jobs.
 
-## Tests
-Using the new way of structuring dags and their sub-dependencies it should be simple to test everything apart from the dag.
 
-From with automated_reporting venv:
+## Development Dags
 
-  - `python3.6 dags/automated_reporting/tests/test_completeness.py`
-  - `python3.6 dags/automated_reporting/tests/test_usgs_completeness.py`
+These are used for testing. They are run in the sandbox, rather than dev Airflow environment as the dev Airflow environment has no reporting database issue. The have a tag `reporting-dev` and names are suffixed with `_dev`.
+
 
 ## ToDo
-
-  - Move to the VirtualenvPythonOpertor and install automated_reporting requirements.txt
-    - We don't have any third-party dependencies that are not already included in Airflow (requests, pytz etc.), but an Airflow update or requirement version change could change that and break the automated reporting dags
-  - Move all code (except the actual dags) to the automated reporting ETL repo and install into VirtualenvPythonOperator (which uses pip) using a private python package
-    - `https://bitbucket.org/geoscienceaustralia/automated-reporting-etl/`
-    - This can installed in the requirements list using something like:
-      - `https://[user]:[token]@bitbucket.org/geoscienceaustralia/automated-reporting-etl/get/import-test.tar.gz#egg=ga_nemo_monitoring&subdirectory=ga_nemo_monitoring`
-      - Token is not the account password, it's a token associated to the account with limited privilege
-      - The code is structured as a Python package (has a setup.py, etc.) in a subfolder within the repo
-    - One issue with this is that the token is not obscured in the Airflow logs, but this should be solvable by modifying (sub-classing) the VirtualenvPythonOperator
-
-## M2M API
-For USGS acquisitions the USGS M2M API is now being used as STAC API seems to be still in a development phase. The library we use to query the API is at `dags/automated_reporting/utilities/m2m_api.py`. The API is well documented at `https://m2m.cr.usgs.gov/api/docs/reference/` (login required, register instantly with email).
-
-### Filters
-Filters are a bit complex in the M2M API, as you have to lookup the filter Id for the attribute that you wish to filter on. There is an API endpoint to see all the filters available for a particular dataset `https://m2m.cr.usgs.gov/api/docs/reference/#dataset-filters`. This can be called for a dataset using the API test page `https://m2m.cr.usgs.gov/api/test/json/`, which is useful for building up the desired filters.
-
-The scene filter section of the docs is also useful to undertsand how the filter payloads are structured `https://m2m.cr.usgs.gov/api/docs/datatypes/#sceneFilter`.
+  - Use an image with the reporting etls Python package installed, rather than PyPi hosted Python Package.
+  - Change all dags to use SSM Parameters/Kubernetes secrets

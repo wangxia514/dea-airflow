@@ -15,16 +15,27 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 from airflow.hooks.base_hook import BaseHook
 from airflow.models import Variable
 
-from automated_reporting.utilities import helpers
 from infra import connections as infra_connections
+
+
+def parse_connection(conn_obj):
+    """
+    Parse an Airflow connection object into a dictionary
+    """
+    return dict(
+        user=conn_obj.login,
+        password=conn_obj.password,
+        host=conn_obj.host,
+        dbname=conn_obj.schema,
+        port=conn_obj.port,
+    )
+
 
 REP_CONN_STR = Variable.get("db_rep_secret")
 SCIHUB_CREDENTIALS_STR = Variable.get("copernicus_api_password")
 S3_CREDENTIALS_STR = Variable.get("reporting_s3_secret")
 ODC_CONN_STR = json.dumps(
-    helpers.parse_connection(
-        BaseHook.get_connection(infra_connections.DB_ODC_READER_CONN)
-    )
+    parse_connection(BaseHook.get_connection(infra_connections.DB_ODC_READER_CONN))
 )
 
 default_args = {
