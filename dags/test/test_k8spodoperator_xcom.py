@@ -38,7 +38,7 @@ with dag:
         namespace="processing",
         image=INDEXER_IMAGE,
         cmds=["bash", "-cx"],
-        arguments=["echo \"{'success': False}\" > /airflow/xcom/return.json;"],
+        arguments=["echo '{\"success\": False}' > /airflow/xcom/return.json;"],
         name="test-xcom-image",
         task_id="task-test",
         get_logs=True,
