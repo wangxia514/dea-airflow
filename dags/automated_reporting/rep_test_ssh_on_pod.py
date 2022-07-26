@@ -31,7 +31,7 @@ secret_volume = Secret(
 
 
 dag = DAG(
-    "test_ssh_output",
+    "rep_test_ssh_on_pod",
     description="test_ssh_output",
     tags=["reporting_dev"],
     default_args=default_args,
@@ -48,7 +48,8 @@ with dag:
         "mkdir -p ~/.ssh",
         "cat /var/secrets/lpgs/PORT_FORWARDER_KEY > ~/.ssh/identity_file.pem",
         "chmod 0400 ~/.ssh/identity_file.pem",
-        "ssh -o StrictHostKeyChecking=no -i ~/.ssh/identity_file.pem lpgs@gadi.nci.org.au '( ls -lart )' > /tmp/a.txt",
+        "ssh -o StrictHostKeyChecking=no -f -N -i ~/.ssh/identity_file.pem\
+             -L 54320:$DB_HOST:$DB_PORT $NCI_TUNNEL_USER@$NCI_TUNNEL_HOST",
         "cat /tmp/a.txt",
     ]
     kubernetes_secret_vars_ex = KubernetesPodOperator(

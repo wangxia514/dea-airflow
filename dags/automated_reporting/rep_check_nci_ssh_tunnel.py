@@ -18,7 +18,10 @@ default_args = {
 }
 
 dag = DAG(
-    "test_ssh_tunnel", schedule_interval=None, default_args=default_args, catchup=False
+    "rep_check_nci_ssh_tunnel",
+    schedule_interval=None,
+    default_args=default_args,
+    catchup=False,
 )
 
 kick_off_dag = DummyOperator(task_id="kick_off_dag", dag=dag)
@@ -28,7 +31,7 @@ def select_from_tunnel_db():
     """ssh tunnel and db connection"""
     # Open SSH tunnel
     ssh_hook = SSHHook(ssh_conn_id="lpgs_gadi", keepalive_interval=60)
-    tunnel = ssh_hook.get_tunnel(5432, remote_host="dea-db.nci.org.au", local_port=5432)
+    tunnel = ssh_hook.get_tunnel(5432, remote_host="", local_port=5432)
     tunnel.start()
 
     # Connect to DB and run query
@@ -42,8 +45,12 @@ def select_from_tunnel_db():
     return select_val
 
 
+# fmt: off
 with dag:
     python_operator = PythonOperator(
-        task_id="test_tunnel_conn", python_callable=select_from_tunnel_db, dag=dag
+        task_id="test_tunnel_conn",
+        python_callable=select_from_tunnel_db,
+        dag=dag
     )
     kick_off_dag >> python_operator
+# fmt: on

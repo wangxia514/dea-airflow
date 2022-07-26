@@ -66,7 +66,7 @@ secret_env_db_password = Secret(
 )
 
 dag = DAG(
-    "composer_sample_kubernetes_pod",
+    "rep_test_secret_as_volume",
     description="composer_sample_kubernetes_pod ",
     tags=["reporting_dev"],
     default_args=default_args,
@@ -83,9 +83,11 @@ with dag:
         "mkdir -p ~/.ssh",
         "cat /var/secrets/lpgs/PORT_FORWARDER_KEY > ~/.ssh/identity_file.pem",
         "chmod 0400 ~/.ssh/identity_file.pem",
-        "ssh -o StrictHostKeyChecking=no -f -N -i ~/.ssh/identity_file.pem -L 54320:$DB_HOST:$DB_PORT lpgs@gadi.nci.org.au",
+        "ssh -o StrictHostKeyChecking=no -f -N -i ~/.ssh/identity_file.pem\
+             -L 54320:$DB_HOST:$DB_PORT $NCI_TUNNEL_USER@$NCI_TUNNEL_HOST",
         "echo tunnel established",
-        "PGPASSWORD=$DB_PASSWORD psql -h localhost -p 54320 -U $DB_USER $DB_NAME -c 'select count(*) from agdc.dataset_type'",
+        "PGPASSWORD=$DB_PASSWORD psql -h localhost -p 54320 -U $DB_USER \
+            $DB_NAME -c 'select count(*) from agdc.dataset_type'",
     ]
     kubernetes_secret_vars_ex = KubernetesPodOperator(
         namespace="processing",
