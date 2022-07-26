@@ -129,7 +129,7 @@ with dag:
                 "sqs-to-dc --stac "  # continue
                 f"--update-if-exists --allow-unsafe ${queue} {product}",
             ],
-            labels={"step": "sqs-dc-indexing"},
+            labels={"step": f"sqs-dc-indexing-{product}"},
             name=f"datacube-index-{queue}",
             task_id=f"indexing-task-{queue}",
             get_logs=True,
