@@ -96,15 +96,18 @@ def create_operator(method, dag, job, env_vars, secrets):
     """
     Create a K8S Operator
     """
+    task_id = f"{method}_currency-{env_vars['PRODUCT_ID']}"
+    if "PRODUCT_SUFFIX" in env_vars:
+        task_id = task_id + f"-{env_vars['PRODUCT_SUFFIX']}"
     return KubernetesPodOperator(
         dag=dag,
         namespace="processing",
         image="python:3.8-slim-buster",
         arguments=["bash", "-c", " &&\n".join(job)],
-        name=f"{method}_currency-{env_vars['PRODUCT_ID']}",
+        name=task_id,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id=f"{method}_currency-{env_vars['PRODUCT_ID']}",
+        task_id=task_id,
         get_logs=True,
         env_vars=env_vars,
         secrets=secrets,
