@@ -74,7 +74,7 @@ NCI_ODC_CURRENCY_JOB = [
     "cat /var/secrets/lpgs/PORT_FORWARDER_KEY > ~/.ssh/identity_file.pem",
     "chmod 0400 ~/.ssh/identity_file.pem",
     "echo Establishing NCI tunnel",
-    "ssh -o StrictHostKeyChecking=no -f -N -i ~/.ssh/identity_file.pem -L 54320:$ODC_DB_HOST:$ODC_DB_PORT lpgs@gadi.nci.org.au",
+    "ssh -o StrictHostKeyChecking=no -f -N -i ~/.ssh/identity_file.pem -L 54320:$ODC_DB_HOST:$ODC_DB_PORT $NCI_TUNNEL_USER@$NCI_TUNNEL_HOST",
     "echo NCI tunnel established",
     "echo DEA NCI ODC Currency job started: $(date)",
     "pip install ga-reporting-etls==2.2.2",
