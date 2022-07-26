@@ -14,10 +14,6 @@ from airflow.operators.dummy import DummyOperator
 from datetime import datetime as dt, timedelta
 from airflow.models import Variable
 
-nci_tunnel_creds = json.loads(Variable.get("nci_tunnel_secret"))
-NCI_TUNNEL_HOST = nci_tunnel_creds["host"]
-NCI_TUNNEL_USER = nci_tunnel_creds["user"]
-
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
@@ -126,6 +122,9 @@ def create_odc_task(dag, job, product_id, days, odc_secrets, product_suffix=None
     """
     Function to generate KubernetesPodOperator tasks with id based on `product_id`
     """
+    nci_tunnel_creds = json.loads(Variable.get("nci_tunnel_secret"))
+    NCI_TUNNEL_HOST = nci_tunnel_creds["host"]
+    NCI_TUNNEL_USER = nci_tunnel_creds["user"]
     env_vars = {
         "DAYS": str(days),
         "PRODUCT_ID": product_id,
