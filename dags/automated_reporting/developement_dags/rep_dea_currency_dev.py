@@ -4,6 +4,7 @@ DEA Currency Dags
 """
 
 # The DAG object; we'll need this to instantiate a DAG
+import json
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
@@ -11,6 +12,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 )
 from airflow.operators.dummy import DummyOperator
 from datetime import datetime as dt, timedelta
+from airflow.models import Variable
 
 default_args = {
     "owner": "Tom McAdam",
@@ -74,12 +76,12 @@ NCI_ODC_CURRENCY_JOB = [
     "cat /var/secrets/lpgs/PORT_FORWARDER_KEY > ~/.ssh/identity_file.pem",
     "chmod 0400 ~/.ssh/identity_file.pem",
     "echo Establishing NCI tunnel",
-    "ssh -o StrictHostKeyChecking=no -f -N -i ~/.ssh/identity_file.pem -L 54320:$ODC_DB_HOST:$ODC_DB_PORT lpgs@gadi.nci.org.au",
+    "ssh -o StrictHostKeyChecking=no -f -N -i ~/.ssh/identity_file.pem -L 54320:$ODC_DB_HOST:$ODC_DB_PORT $NCI_TUNNEL_USER@$NCI_TUNNEL_HOST",
     "echo NCI tunnel established",
     "echo DEA NCI ODC Currency job started: $(date)",
     "pip install ga-reporting-etls==2.2.2",
-    "set ODC_DB_HOST=localhost",
-    "set ODC_DB_PORT=54320",
+    "export ODC_DB_HOST=localhost",
+    "export ODC_DB_PORT=54320",
     "odc-currency",
 ]
 AWS_ODC_CURRENCY_JOB = [
@@ -120,10 +122,15 @@ def create_odc_task(dag, job, product_id, days, odc_secrets, product_suffix=None
     """
     Function to generate KubernetesPodOperator tasks with id based on `product_id`
     """
+    nci_tunnel_creds = json.loads(Variable.get("nci_tunnel_secret"))
+    NCI_TUNNEL_HOST = nci_tunnel_creds["host"]
+    NCI_TUNNEL_USER = nci_tunnel_creds["user"]
     env_vars = {
         "DAYS": str(days),
         "PRODUCT_ID": product_id,
         "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
+        "NCI_TUNNEL_HOST": NCI_TUNNEL_HOST,
+        "NCI_TUNNEL_USER": NCI_TUNNEL_USER,
     }
     if product_suffix:
         env_vars["PRODUCT_SUFFIX"] = product_suffix
