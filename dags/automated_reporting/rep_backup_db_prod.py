@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 ### Backup Reporting DB
-This DAG is a scheduled run workflow to backup reporting DB into the nemo production account on a daily basis. The docker image used is ramagopr123/psql_client which can be found in the dockerhub. This is a simple docker image containing ubuntu + psql client + aws cli. The execution command is a pg_dump with RDS master instance details fetched from kubernetes secrets including username and password. The DAG is done as a single task per schema and done in parallel.
+This DAG is a scheduled run workflow to backup reporting DB into the nemo production account on a daily basis. The docker image used is BACKUP_RESTORE_IMAGE which can be found in the dockerhub. This is a simple docker image containing ubuntu + psql client + aws cli. The execution command is a pg_dump with RDS master instance details fetched from kubernetes secrets including username and password. The DAG is done as a single task per schema and done in parallel.
 * `landsat`
 * `dea`
 * `cophub`
@@ -49,6 +49,8 @@ dag = DAG(
     schedule_interval="0 14 * * *",  # daily at 1am AEDT
 )
 
+BACKUP_RESTORE_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/automated-reporting-backup:latest"
+
 with dag:
     JOBSLANDSAT = [
         "echo db backup started: $(date)",
@@ -76,7 +78,7 @@ with dag:
     ]
     backup_reporting_db_landsat = KubernetesPodOperator(
         namespace="processing",
-        image="ramagopr123/psql_client",
+        image=BACKUP_RESTORE_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBSLANDSAT)],
         name="backup_reporting_db_landsat",
         is_delete_operator_pod=True,
@@ -92,7 +94,7 @@ with dag:
     )
     backup_reporting_db_dea = KubernetesPodOperator(
         namespace="processing",
-        image="ramagopr123/psql_client",
+        image=BACKUP_RESTORE_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBSDEA)],
         name="backup_reporting_db_dea",
         is_delete_operator_pod=True,
@@ -108,7 +110,7 @@ with dag:
     )
     backup_reporting_db_cophub = KubernetesPodOperator(
         namespace="processing",
-        image="ramagopr123/psql_client",
+        image=BACKUP_RESTORE_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBSCOPHUB)],
         name="backup_reporting_db_cophub",
         is_delete_operator_pod=True,
@@ -124,7 +126,7 @@ with dag:
     )
     backup_reporting_db_marine = KubernetesPodOperator(
         namespace="processing",
-        image="ramagopr123/psql_client",
+        image=BACKUP_RESTORE_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBSMARINE)],
         name="backup_reporting_db_marine",
         is_delete_operator_pod=True,
@@ -140,7 +142,7 @@ with dag:
     )
     backup_reporting_db_nci = KubernetesPodOperator(
         namespace="processing",
-        image="ramagopr123/psql_client",
+        image=BACKUP_RESTORE_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBSNCI)],
         name="backup_reporting_db_nci",
         is_delete_operator_pod=True,
@@ -156,7 +158,7 @@ with dag:
     )
     backup_reporting_db_public = KubernetesPodOperator(
         namespace="processing",
-        image="ramagopr123/psql_client",
+        image=BACKUP_RESTORE_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBSPUBLIC)],
         name="backup_reporting_db_public",
         is_delete_operator_pod=True,
