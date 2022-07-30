@@ -43,26 +43,25 @@ dag = DAG(
     schedule_interval="0 14 * * *",  # daily at 1am AEDT
 )
 
+ETL_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
+
 with dag:
     JOBS1 = [
         "echo year-wise scene usage ingestion processing: $(date)",
-        "pip install ga-reporting-etls==2.0.3",
         "s3-usage-year-ingestion",
     ]
     JOBS2 = [
         "echo region-wise scene usage ingestion processing: $(date)",
-        "pip install ga-reporting-etls==2.0.3",
         "s3-usage-region-ingestion",
     ]
     JOBS3 = [
         "echo ip-requester-wise scene usage ingestion processing: $(date)",
-        "pip install ga-reporting-etls==2.0.3",
         "s3-usage-ip-requester-ingestion",
     ]
     START = DummyOperator(task_id="aws-scene-usage-stats")
     aws_s3_year_wise_scene_usage_ingestion = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS1)],
         name="aws_s3_year_wise_scene_usage_ingestion",
         is_delete_operator_pod=True,
@@ -76,7 +75,7 @@ with dag:
     )
     aws_s3_region_wise_scene_usage_ingestion = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS2)],
         name="aws_s3_region_wise_scene_usage_ingestion",
         is_delete_operator_pod=True,
@@ -90,7 +89,7 @@ with dag:
     )
     aws_s3_ip_requester_wise_scene_usage_ingestion = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS3)],
         name="aws_s3_ip_requester_wise_scene_usage_ingestion",
         is_delete_operator_pod=True,
