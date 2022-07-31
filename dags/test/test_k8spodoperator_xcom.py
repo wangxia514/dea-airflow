@@ -43,6 +43,7 @@ with dag:
         arguments=["echo '{}' > /airflow/xcom/return.json".format(r_value)],
         name="test-xcom-image",
         task_id="task-test",
+        labels={"dag": "test-xcom"},
         get_logs=True,
         do_xcom_push=True,
         is_delete_operator_pod=True,
