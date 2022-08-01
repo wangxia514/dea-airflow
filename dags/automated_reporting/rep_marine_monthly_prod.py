@@ -39,6 +39,10 @@ default_args = {
     ],
 }
 
+ETL_IMAGE = (
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
+)
+
 dag = DAG(
     "rep_marine_monthly_prod",
     description="DAG for marine ungrouped user stats",
@@ -84,7 +88,6 @@ with dag:
     # ]
     JOBS7 = [
         "echo Elvis ingestion processing: $(date)",
-        "pip install ga-reporting-etls==1.20.0",
         "marine-elvis-ingestion",
     ]
     START = DummyOperator(task_id="marine-monthly-stats")
@@ -180,7 +183,7 @@ with dag:
     # )
     elvis_ingestion = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS7)],
         name="elvis_ingestion",
         do_xcom_push=False,
