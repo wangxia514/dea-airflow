@@ -46,6 +46,6 @@ with dag:
         labels={"dag": "test-xcom-sidecar"},
         get_logs=True,
         do_xcom_push=True,
-        is_delete_operator_pod=False,
+        is_delete_operator_pod=True,
         log_events_on_failure=True,
     )
