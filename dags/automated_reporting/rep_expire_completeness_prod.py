@@ -33,6 +33,10 @@ default_args = {
     ],
 }
 
+ETL_IMAGE = (
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
+)
+
 dag = DAG(
     "rep_expire_completeness_prod",
     description="Expire redundent completeness metrics",
@@ -60,12 +64,11 @@ with dag:
 
     usgs_inserts_job = [
         "echo DEA Expire Completeness job started: $(date)",
-        "pip install ga-reporting-etls==2.4.0",
         "expire-completeness",
     ]
     usgs_inserts = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(usgs_inserts_job)],
         name="expire-completeness",
         image_pull_policy="IfNotPresent",

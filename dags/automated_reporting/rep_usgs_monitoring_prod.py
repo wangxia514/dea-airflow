@@ -50,6 +50,10 @@ default_args = {
     ],
 }
 
+ETL_IMAGE = (
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
+)
+
 dag = DAG(
     "rep_usgs_monitoring_prod",
     description="DAG for completeness and latency metric on USGS rapid mapping products",
@@ -62,13 +66,12 @@ with dag:
 
     usgs_aquisitions_job = [
         "echo DEA USGS Acquisitions job started: $(date)",
-        "pip install ga-reporting-etls==2.4.2",
         "mkdir -p /airflow/xcom/",
         "usgs-acquisitions /airflow/xcom/return.json",
     ]
     usgs_acquisitions = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(usgs_aquisitions_job)],
         name="usgs-acquisitions",
         is_delete_operator_pod=True,
@@ -86,12 +89,11 @@ with dag:
 
     usgs_inserts_job = [
         "echo DEA USGS Insert Acquisitions job started: $(date)",
-        "pip install ga-reporting-etls==2.4.2",
         "usgs-inserts",
     ]
     usgs_inserts = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(usgs_inserts_job)],
         name="usgs-inserts",
         is_delete_operator_pod=True,
@@ -105,12 +107,11 @@ with dag:
 
     usgs_inserts_hg_l0_job = [
         "echo DEA USGS Insert Acquisitions job started: $(date)",
-        "pip install ga-reporting-etls==2.4.2",
         "usgs-inserts-hg-l0",
     ]
     usgs_inserts_hg_l0 = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(usgs_inserts_hg_l0_job)],
         name="usgs-inserts-hg-l0",
         is_delete_operator_pod=True,
@@ -129,13 +130,12 @@ with dag:
     }
     usgs_completeness_l1_job = [
         "echo DEA USGS Insert Acquisitions job started: $(date)",
-        "pip install ga-reporting-etls==2.4.2",
         "mkdir -p /airflow/xcom/",
         "usgs-l1-completeness /airflow/xcom/return.json",
     ]
     usgs_ls8_l1_completeness = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(usgs_completeness_l1_job)],
         name="usgs-completeness-l1",
         is_delete_operator_pod=True,
@@ -156,12 +156,11 @@ with dag:
     }
     usgs_completeness_ard_job = [
         "echo DEA USGS Insert Acquisitions job started: $(date)",
-        "pip install ga-reporting-etls==2.4.2",
         "usgs-ard-completeness",
     ]
     usgs_ls8_ard_completeness = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(usgs_completeness_ard_job)],
         name="usgs-completeness-ard",
         is_delete_operator_pod=True,
@@ -177,12 +176,11 @@ with dag:
 
     usgs_currency_job = [
         "echo DEA USGS Insert Acquisitions job started: $(date)",
-        "pip install ga-reporting-etls==2.4.2",
         "usgs-currency-from-completeness",
     ]
     usgs_ls8_l1_currency = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(usgs_currency_job)],
         name="usgs-currency-ls8-l1",
         is_delete_operator_pod=True,
