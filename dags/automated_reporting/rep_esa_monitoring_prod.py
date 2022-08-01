@@ -57,17 +57,20 @@ dag = DAG(
     schedule_interval=timedelta(minutes=15),
 )
 
+ETL_IMAGE = (
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
+)
+
 with dag:
 
     SCIHUB_ACQS_TASK = [
         "echo Get SCIHUB acquisitions: $(date)",
-        "pip install ga-reporting-etls==1.20.2",
         "mkdir -p /airflow/xcom/",
         "esa-acquisitions /airflow/xcom/return.json",
     ]
     scihub_s2_acquisitions = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(SCIHUB_ACQS_TASK)],
         name="scihub_s2_acquisitions",
         is_delete_operator_pod=True,
@@ -87,12 +90,11 @@ with dag:
 
     INSERT_ACQS_TASK = [
         "echo Insert S2 acquisitions: $(date)",
-        "pip install ga-reporting-etls==1.20.2",
         "esa-inserts",
     ]
     insert_s2_acquisitions = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(INSERT_ACQS_TASK)],
         name="insert_s2_acquisitions",
         is_delete_operator_pod=True,
@@ -155,12 +157,11 @@ with dag:
 
     COMPUTE_COMPLETENESS_TASK = [
         "echo Compute S2 L1 Completeness: $(date)",
-        "pip install ga-reporting-etls==1.20.2",
         "esa-completeness",
     ]
     compute_s2_l1_completeness = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(COMPUTE_COMPLETENESS_TASK)],
         name="compute_s2_l1_completeness",
         is_delete_operator_pod=True,
@@ -177,7 +178,7 @@ with dag:
     )
     compute_s2_ard_completeness = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(COMPUTE_COMPLETENESS_TASK)],
         name="compute_s2_ard_completeness",
         is_delete_operator_pod=True,
@@ -194,7 +195,7 @@ with dag:
     )
     compute_s2_ardp_completeness = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(COMPUTE_COMPLETENESS_TASK)],
         name="compute_s2_ardp_completeness",
         is_delete_operator_pod=True,
