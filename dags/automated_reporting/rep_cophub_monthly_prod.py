@@ -36,6 +36,10 @@ default_args = {
     ],
 }
 
+ETL_IMAGE = (
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
+)
+
 dag = DAG(
     "rep_cophub_monthly_prod",
     description="DAG for sara history ingestion and processing",
@@ -47,52 +51,42 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo Sara history ingestion started: $(date)",
-        "pip install ga-reporting-etls==2.1.0",
         "sara-history-ingestion",
     ]
     JOBS2 = [
         "echo Sara history processing: $(date)",
-        "pip install ga-reporting-etls==2.1.0",
         "sara-history-processing",
     ]
     JOBS3 = [
         "echo Archie ingestion started: $(date)",
-        "pip install ga-reporting-etls==1.21.8",
         "archie-ingestion",
     ]
     JOBS4 = [
         "echo Archie processing - SatToEsa started: $(date)",
-        "pip install ga-reporting-etls==1.21.8",
         "archie-latency sat_to_esa",
     ]
     JOBS5 = [
         "echo Archie processing - EsaToNciTask started: $(date)",
-        "pip install ga-reporting-etls==1.21.8",
         "archie-latency esa_to_nci",
     ]
     JOBS6 = [
         "echo Archie processing - EsaToNciS1Task started: $(date)",
-        "pip install ga-reporting-etls==1.21.8",
         "archie-latency esa_to_nci_s1",
     ]
     JOBS7 = [
         "echo Archie processing - EsaToNciS2Task started: $(date)",
-        "pip install ga-reporting-etls==1.21.8",
         "archie-latency esa_to_nci_s2",
     ]
     JOBS8 = [
         "echo Archie processing - EsaToNciS3Task started: $(date)",
-        "pip install ga-reporting-etls==1.21.8",
         "archie-latency esa_to_nci_s3",
     ]
     JOBS9 = [
         "echo Archie processing - Downloads started: $(date)",
-        "pip install ga-reporting-etls==1.21.8",
         "archie-download-volume",
     ]
     JOBS10 = [
         "echo FJ7 disk usage download and processing: $(date)",
-        "pip install ga-reporting-etls==1.21.8",
         "jsonresult=`python3 -c 'from nemo_reporting.fj7_storage import fj7_disk_usage; fj7_disk_usage.task()'`",
     ]
     # JOBS11 = [
@@ -109,7 +103,7 @@ with dag:
     START = DummyOperator(task_id="nci-monthly-stats")
     sara_history_ingestion = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS1)],
         name="sarra-history-ingestion",
         is_delete_operator_pod=True,
@@ -123,7 +117,7 @@ with dag:
     )
     sara_history_processing = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS2)],
         name="sara-history-processing",
         is_delete_operator_pod=True,
@@ -136,7 +130,7 @@ with dag:
     )
     archie_ingestion = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS3)],
         name="archie_ingestion",
         is_delete_operator_pod=True,
@@ -150,7 +144,7 @@ with dag:
     )
     archie_processing_sattoesa = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS4)],
         name="archie_processing_sattoesa",
         is_delete_operator_pod=True,
@@ -163,7 +157,7 @@ with dag:
     )
     archie_processing_esatoncitask = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS5)],
         name="archie_processing_esatoncitask",
         is_delete_operator_pod=True,
@@ -176,7 +170,7 @@ with dag:
     )
     archie_processing_esatoncis1task = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS6)],
         name="archie_processing_esatoncis1task",
         is_delete_operator_pod=True,
@@ -189,7 +183,7 @@ with dag:
     )
     archie_processing_esatoncis2task = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS7)],
         name="archie_processing_esatoncis2task",
         is_delete_operator_pod=True,
@@ -202,7 +196,7 @@ with dag:
     )
     archie_processing_esatoncis3task = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS8)],
         name="archie_processing_esatoncis3task",
         is_delete_operator_pod=True,
@@ -215,7 +209,7 @@ with dag:
     )
     archie_processing_downloads = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS9)],
         name="archie_processing_downloads",
         is_delete_operator_pod=True,
@@ -228,7 +222,7 @@ with dag:
     )
     fj7_disk_usage = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS10)],
         name="fj7_disk_usage",
         is_delete_operator_pod=True,
@@ -241,7 +235,7 @@ with dag:
     )
     # fj7_ungrouped_user_stats_ingestion = KubernetesPodOperator(
     #    namespace="processing",
-    #    image="python:3.8-slim-buster",
+    #    image=ETL_IMAGE,
     #    arguments=["bash", "-c", " &&\n".join(JOBS11)],
     #    name="write-xcom",
     #    do_xcom_push=True,
@@ -256,7 +250,7 @@ with dag:
     # )
     # fj7_ungrouped_user_stats_processing = KubernetesPodOperator(
     #    namespace="processing",
-    #    image="python:3.8-slim-buster",
+    #    image=ETL_IMAGE,
     #    arguments=["bash", "-c", " &&\n".join(JOBS12)],
     #    name="fj7_ungrouped_user_stats_processing",
     #    do_xcom_push=False,
