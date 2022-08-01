@@ -15,7 +15,6 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 from airflow.models import Variable
 
 REP_CONN_STR = Variable.get("db_rep_secret")
-REPORTING_PACKAGE_VERSION = "1.21.0"
 GOOGLE_ANALYTICS_CREDENTIALS_STR = Variable.get("google_analytics_apikey")
 
 default_args = {
@@ -37,10 +36,13 @@ dag = DAG(
     schedule_interval="0 1 * * *",
 )
 
+ETL_IMAGE = (
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
+)
+
 # fmt: off
 JOBS = [
     "echo Reporting task started: $(date)",
-    f"pip install ga-reporting-etls=={REPORTING_PACKAGE_VERSION}",
     "marine-google-analytics"
 ]
 
@@ -132,7 +134,7 @@ with dag:
         """Genrate tasks based on list of query parameters"""
         return KubernetesPodOperator(
             namespace="processing",
-            image="python:3.8-slim-buster",
+            image=ETL_IMAGE,
             arguments=["bash", "-c", " &&\n".join(JOBS)],
             name="write-xcom",
             do_xcom_push=False,
