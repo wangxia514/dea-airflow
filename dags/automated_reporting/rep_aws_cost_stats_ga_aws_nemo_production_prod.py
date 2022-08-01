@@ -42,15 +42,18 @@ dag = DAG(
     schedule_interval="0 14 * * *",  # daily at 1am AEDT
 )
 
+ETL_IMAGE = (
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
+)
+
 with dag:
     JOBS1 = [
         "echo AWS Usage job started: $(date)",
-        "pip install ga-reporting-etls==2.0.3",
         "aws-cost-ingestion",
     ]
     aws_s3_cost_stats_ingestion = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS1)],
         name="aws_s3_cost_stats_ingestion",
         is_delete_operator_pod=True,
