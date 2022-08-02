@@ -19,10 +19,10 @@ default_args = {
     "depends_on_past": False,
     "start_date": dt.now() - timedelta(hours=1),
     "email": ["tom.mcadam@ga.gov.au"],
-    "email_on_failure": False,
+    "email_on_failure": True,
     "email_on_retry": False,
     "retry_delay": timedelta(minutes=5),
-    "retries": 3,
+    "retries": 2,
 }
 
 ETL_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.5.1"
