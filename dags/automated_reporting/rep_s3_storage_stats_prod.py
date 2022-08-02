@@ -156,6 +156,7 @@ with dag:
         get_logs=True,
         env_vars={
             "METRICS" : "{{ task_instance.xcom_pull(task_ids='aggregate_metrics', key='metrics') }}",
+            "REPORTING_BUCKET": "dea-public-data-inventory",
             "REPORTING_DATE": "{{ ds }}",
         },
     )
