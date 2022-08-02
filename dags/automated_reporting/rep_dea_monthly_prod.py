@@ -44,23 +44,24 @@ dag = DAG(
     schedule_interval="0 14 1 * *",
 )
 
+ETL_IMAGE = (
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
+)
 
 with dag:
     JOBS1 = [
         "echo fk4 user stats ingestion: $(date)",
-        "pip install ga-reporting-etls==1.21.8",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fk4_user_stats_ingestion; fk4_user_stats_ingestion.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS2 = [
         "echo fk4 user stats processing: $(date)",
-        "pip install ga-reporting-etls==1.21.8",
         "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fk4_user_stats_processing; fk4_user_stats_processing.task()'`",
     ]
     START = DummyOperator(task_id="dea-ungrouped-user-stats")
     fk4_ingestion = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS1)],
         name="write-xcom",
         do_xcom_push=True,
@@ -75,7 +76,7 @@ with dag:
     )
     fk4_processing = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS2)],
         name="fk4_processing",
         do_xcom_push=False,
