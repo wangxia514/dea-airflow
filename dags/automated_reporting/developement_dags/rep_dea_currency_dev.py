@@ -25,7 +25,7 @@ default_args = {
     "retries": 3,
 }
 
-ETL_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.5.0"
+ETL_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.5.1"
 
 REPORTING_DB_SECRET = "reporting-db-dev"
 
