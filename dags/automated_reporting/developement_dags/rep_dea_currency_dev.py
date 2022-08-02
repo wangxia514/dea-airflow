@@ -132,7 +132,7 @@ def create_odc_task(dag, job, product_id, days, odc_secrets, product_suffix=None
         "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
     }
     if days:
-        env_vars["DAYS"]: str(days)
+        env_vars["DAYS"] = str(days)
     if product_suffix:
         env_vars["PRODUCT_SUFFIX"] = product_suffix
     secrets = rep_db_secrets + odc_secrets
@@ -163,7 +163,7 @@ with monthly_dag:
     ]
     monthly_nci_odc_tasks = [
         create_odc_task(
-            daily_dag,
+            monthly_dag,
             NCI_ODC_CURRENCY_JOB,
             product["product_id"],
             product.get("days"),
