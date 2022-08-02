@@ -5,13 +5,13 @@ DEA Currency Dags
 
 # The DAG object; we'll need this to instantiate a DAG
 import json
+from datetime import datetime as dt, timedelta
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from airflow.operators.dummy import DummyOperator
-from datetime import datetime as dt, timedelta
 from airflow.models import Variable
 
 default_args = {
@@ -25,10 +25,14 @@ default_args = {
     "retries": 3,
 }
 
+ETL_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.5.0"
+
 REPORTING_DB_SECRET = "reporting-db-dev"
 
 nci_odc_secrets = [
     Secret("volume", "/var/secrets/lpgs", "lpgs-port-forwarder", "PORT_FORWARDER_KEY"),
+    Secret("env", "NCI_TUNNEL_HOST", "reporting-nci-tunnel", "NCI_HOST"),
+    Secret("env", "NCI_TUNNEL_USER", "reporting-nci-tunnel", "NCI_USER"),
     Secret("env", "ODC_DB_HOST", "reporting-nci-odc-db", "DB_HOST"),
     Secret("env", "ODC_DB_NAME", "reporting-nci-odc-db", "DB_NAME"),
     Secret("env", "ODC_DB_PORT", "reporting-nci-odc-db", "DB_PORT"),
@@ -50,12 +54,20 @@ rep_db_secrets = [
     Secret("env", "DB_PASSWORD", REPORTING_DB_SECRET, "DB_PASSWORD"),
 ]
 
+monthly_dag = DAG(
+    "rep_dea_currency_monthly_dev",
+    default_args=default_args,
+    description="DAG for currency of dea products (run monthly)",
+    tags=["reporting_dev"],
+    schedule_interval="@monthly",
+)
+
 daily_dag = DAG(
     "rep_dea_currency_daily_dev",
     default_args=default_args,
     description="DAG for currency of dea products (run daily)",
     tags=["reporting_dev"],
-    schedule_interval=timedelta(days=1),
+    schedule_interval="@daily",
 )
 
 rapid_dag = DAG(
@@ -63,15 +75,11 @@ rapid_dag = DAG(
     default_args=default_args,
     description="DAG for currency of dea products (run 15mins)",
     tags=["reporting_dev"],
-    schedule_interval=timedelta(minutes=15),
+    schedule_interval="*/15 * * * *",
 )
 
 NCI_ODC_CURRENCY_JOB = [
     "echo Configuring SSH",
-    "apt update -y",
-    "apt install -y openssh-server",
-    "apt install -y ca-certificates",
-    "apt-get install -y postgresql-client",
     "mkdir -p ~/.ssh",
     "cat /var/secrets/lpgs/PORT_FORWARDER_KEY > ~/.ssh/identity_file.pem",
     "chmod 0400 ~/.ssh/identity_file.pem",
@@ -79,19 +87,16 @@ NCI_ODC_CURRENCY_JOB = [
     "ssh -o StrictHostKeyChecking=no -f -N -i ~/.ssh/identity_file.pem -L 54320:$ODC_DB_HOST:$ODC_DB_PORT $NCI_TUNNEL_USER@$NCI_TUNNEL_HOST",
     "echo NCI tunnel established",
     "echo DEA NCI ODC Currency job started: $(date)",
-    "pip install ga-reporting-etls==2.2.2",
     "export ODC_DB_HOST=localhost",
     "export ODC_DB_PORT=54320",
-    "odc-currency",
+    "odc-currency-views",
 ]
 AWS_ODC_CURRENCY_JOB = [
     "echo DEA ODC Currency job started: $(date)",
-    "pip install ga-reporting-etls==2.2.2",
     "odc-currency",
 ]
 SNS_CURRENCY_JOB = [
     "echo DEA ODC Currency job started: $(date)",
-    "pip install ga-reporting-etls==2.2.2",
     "sns-currency",
 ]
 
@@ -100,13 +105,13 @@ def create_operator(method, dag, job, env_vars, secrets):
     """
     Create a K8S Operator
     """
-    task_id = f"{method}_currency-{env_vars['PRODUCT_ID']}"
+    task_id = f"{method}-{env_vars['PRODUCT_ID']}"
     if "PRODUCT_SUFFIX" in env_vars:
         task_id = task_id + f"-{env_vars['PRODUCT_SUFFIX']}"
     return KubernetesPodOperator(
         dag=dag,
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(job)],
         name=task_id,
         is_delete_operator_pod=True,
@@ -122,16 +127,12 @@ def create_odc_task(dag, job, product_id, days, odc_secrets, product_suffix=None
     """
     Function to generate KubernetesPodOperator tasks with id based on `product_id`
     """
-    nci_tunnel_creds = json.loads(Variable.get("nci_tunnel_secret"))
-    NCI_TUNNEL_HOST = nci_tunnel_creds["host"]
-    NCI_TUNNEL_USER = nci_tunnel_creds["user"]
     env_vars = {
-        "DAYS": str(days),
         "PRODUCT_ID": product_id,
         "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
-        "NCI_TUNNEL_HOST": NCI_TUNNEL_HOST,
-        "NCI_TUNNEL_USER": NCI_TUNNEL_USER,
     }
+    if days:
+        env_vars["DAYS"]: str(days)
     if product_suffix:
         env_vars["PRODUCT_SUFFIX"] = product_suffix
     secrets = rep_db_secrets + odc_secrets
@@ -149,6 +150,28 @@ def create_sns_task(dag, product_id, pipeline):
     }
     secrets = rep_db_secrets
     return create_operator("sns", dag, SNS_CURRENCY_JOB, env_vars, secrets)
+
+
+with monthly_dag:
+
+    START_MONTHLY = DummyOperator(task_id="dea-currency-monthly")
+
+    nci_products_list = [
+        x
+        for x in json.loads(Variable.get("rep_currency_product_list_nci_odc"))
+        if x["rate"] == "monthly"
+    ]
+    monthly_nci_odc_tasks = [
+        create_odc_task(
+            daily_dag,
+            NCI_ODC_CURRENCY_JOB,
+            product["product_id"],
+            product.get("days"),
+            nci_odc_secrets,
+        )
+        for product in nci_products_list
+    ]
+    START_MONTHLY >> monthly_nci_odc_tasks
 
 
 with daily_dag:
@@ -171,15 +194,13 @@ with daily_dag:
         "ga_ls_wo_fq_apr_oct_3",
         "ga_ls_wo_fq_nov_mar_3",
     ]
+
     nci_products_list = [
-        # Baseline
-        "ga_ls8c_ard_3",
-        "s2a_ard_granule",
-        "s2b_ard_granule",
-        # Derivavtives
-        "ga_ls_wo_3",
-        "ga_ls_fc_3",
+        x
+        for x in json.loads(Variable.get("rep_currency_product_list_nci_odc"))
+        if x["rate"] == "daily"
     ]
+
     # Generate a task for each product
     daily_aws_odc_tasks = [
         create_odc_task(
@@ -189,13 +210,18 @@ with daily_dag:
     ]
     daily_nci_odc_tasks = [
         create_odc_task(
-            daily_dag, NCI_ODC_CURRENCY_JOB, product_id, 90, nci_odc_secrets, "nci"
+            daily_dag,
+            NCI_ODC_CURRENCY_JOB,
+            product["product_id"],
+            product.get("days"),
+            nci_odc_secrets,
         )
-        for product_id in nci_products_list
+        for product in nci_products_list
     ]
 
     daily_odc_tasks = daily_aws_odc_tasks + daily_nci_odc_tasks
     START_DAILY >> daily_odc_tasks
+
 
 with rapid_dag:
 

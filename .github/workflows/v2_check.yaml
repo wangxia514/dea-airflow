@@ -76,7 +76,7 @@ jobs:
           airflow variables set 'google_analytics_apikey' '{"pass":"PASS"}'
           airflow variables set 'copernicus_api_password' '{"pass":"PASS"}'
           airflow variables set 'reporting_s3_secret' '{"pass":"PASS"}'
-          airflow variables set 'nci_tunnel_secret' '{"host":"PASS", "user": "USER"}'
+          airflow variables set 'rep_currency_product_list_nci_odc' '[{"product_id":"product_id","rate":"daily"}]'
           airflow variables set 'reporting_s3_bucket' 'bucket-name'
           airflow info
           airflow dags list -v
