@@ -45,6 +45,9 @@ dag = DAG(
     schedule_interval="0 14 * * *",  # daily at 1am AEDT
 )
 
+ETL_IMAGE = (
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
+)
 
 def aggregate_metrics_from_collections(task_instance):
     """ pull metrics from the colletors, aggregate and xcom_push """
@@ -104,25 +107,22 @@ def aggregate_metrics_from_collections(task_instance):
 with dag:
     JOBS1 = [
         "echo AWS Storage job started: $(date)",
-        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import downloadinventory; downloadinventory.task()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS2 = [
         "echo AWS Storage job started: $(date)",
-        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import process; process.calc_size_and_count()'`",
         "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
     ]
     JOBS3 = [
         "echo AWS Storage job started: $(date)",
-        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import etl; etl.task()'`",
         "mkdir -p /airflow/xcom/; echo '{\"status\": \"success\"}' > /airflow/xcom/return.json",
     ]
     k8s_task_download_inventory = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS1)],
         name="write-xcom",
         do_xcom_push=True,
@@ -144,7 +144,7 @@ with dag:
 
     push_to_db = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS3)],
         name="write-xcom",
         do_xcom_push=True,
@@ -164,7 +164,7 @@ with dag:
         counter = str(i)
         metrics_tasks[i] = KubernetesPodOperator(
             namespace="processing",
-            image="python:3.8-slim-buster",
+            image=ETL_IMAGE,
             arguments=["bash", "-c", " &&\n".join(JOBS2)],
             name="write-xcom",
             do_xcom_push=True,

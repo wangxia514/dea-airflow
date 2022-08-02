@@ -41,15 +41,18 @@ dag = DAG(
     schedule_interval="0 14 * * *",  # daily at 1am AEDT
 )
 
+ETL_IMAGE = (
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
+)
+
 with dag:
     JOBS1 = [
         "echo uptime robot processing dea started: $(date)",
-        "pip install ga-reporting-etls==1.7.10",
         "jsonresult=`python3 -c 'from nemo_reporting.uptime_robot import dea_uptime_robot_processing; dea_uptime_robot_processing.task()'`",
     ]
     uptime_robot_processing_dea = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS1)],
         name="uptime_robot_processing_dea",
         is_delete_operator_pod=True,
