@@ -107,19 +107,19 @@ def aggregate_metrics_from_collections(task_instance):
 
 with dag:
     JOBS1 = [
-        "echo AWS Storage job started: $(date)",
-        "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import downloadinventory; downloadinventory.task()'`",
-        "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
+        "echo AWS Storage job started - download: $(date)",
+        "mkdir -p /airflow/xcom/",
+        "aws-storage-download /airflow/xcom/return.json",
     ]
     JOBS2 = [
-        "echo AWS Storage job started: $(date)",
-        "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import process; process.calc_size_and_count()'`",
-        "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
+        "echo AWS Storage job started - process: $(date)",
+        "mkdir -p /airflow/xcom/",
+        "aws-storage-process /airflow/xcom/return.json",
     ]
     JOBS3 = [
-        "echo AWS Storage job started: $(date)",
-        "jsonresult=`python3 -c 'from nemo_reporting.aws_storage_stats import etl; etl.task()'`",
-        "mkdir -p /airflow/xcom/; echo '{\"status\": \"success\"}' > /airflow/xcom/return.json",
+        "echo AWS Storage job started - ingestion to db: $(date)",
+        "mkdir -p /airflow/xcom/",
+        "aws-storage-ingestion /airflow/xcom/return.json",
     ]
     k8s_task_download_inventory = KubernetesPodOperator(
         namespace="processing",
@@ -133,7 +133,7 @@ with dag:
         get_logs=True,
         env_vars={
             "POD_COUNT": AWS_STORAGE_STATS_POD_COUNT,
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_DATE": "{{ ds }}",
         },
     )
 
@@ -155,7 +155,7 @@ with dag:
         get_logs=True,
         env_vars={
             "METRICS" : "{{ task_instance.xcom_pull(task_ids='aggregate_metrics', key='metrics') }}",
-            "EXECUTION_DATE": "{{ ds }}",
+            "REPORTING_DATE": "{{ ds }}",
         },
     )
 
