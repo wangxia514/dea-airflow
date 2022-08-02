@@ -133,6 +133,7 @@ with dag:
         get_logs=True,
         env_vars={
             "POD_COUNT": AWS_STORAGE_STATS_POD_COUNT,
+            "REPORTING_BUCKET": "dea-public-data-inventory",
             "REPORTING_DATE": "{{ ds }}",
         },
     )
