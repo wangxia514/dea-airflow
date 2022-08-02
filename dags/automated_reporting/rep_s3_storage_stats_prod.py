@@ -118,8 +118,7 @@ with dag:
     ]
     JOBS3 = [
         "echo AWS Storage job started - ingestion to db: $(date)",
-        "mkdir -p /airflow/xcom/",
-        "aws-storage-ingestion /airflow/xcom/return.json",
+        "aws-storage-ingestion",
     ]
     k8s_task_download_inventory = KubernetesPodOperator(
         namespace="processing",
@@ -149,7 +148,7 @@ with dag:
         image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS3)],
         name="write-xcom",
-        do_xcom_push=True,
+        do_xcom_push=False,
         is_delete_operator_pod=True,
         in_cluster=True,
         task_id="push_to_db",
