@@ -107,7 +107,7 @@ def create_operator(method, dag, job, env_vars, secrets):
     """
     task_id = f"{method}-{env_vars['PRODUCT_ID']}"
     if "PRODUCT_SUFFIX" in env_vars:
-        task_id = task_id + f"-{env_vars['PRODUCT_SUFFIX']}"
+        task_id = f"{task_id}-{env_vars['PRODUCT_SUFFIX']}"
     return KubernetesPodOperator(
         dag=dag,
         namespace="processing",
@@ -132,7 +132,7 @@ def create_odc_task(dag, job, product_id, days, odc_secrets, product_suffix=None
         "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
     }
     if days:
-        env_vars["DAYS"]: str(days)
+        env_vars["DAYS"] = str(days)
     if product_suffix:
         env_vars["PRODUCT_SUFFIX"] = product_suffix
     secrets = rep_db_secrets + odc_secrets
@@ -156,20 +156,20 @@ with monthly_dag:
 
     START_MONTHLY = DummyOperator(task_id="dea-currency-monthly")
 
-    nci_products_list = [
+    nci_monthly_products_list = [
         x
         for x in json.loads(Variable.get("rep_currency_product_list_nci_odc"))
         if x["rate"] == "monthly"
     ]
     monthly_nci_odc_tasks = [
         create_odc_task(
-            daily_dag,
+            monthly_dag,
             NCI_ODC_CURRENCY_JOB,
             product["product_id"],
             product.get("days"),
             nci_odc_secrets,
         )
-        for product in nci_products_list
+        for product in nci_monthly_products_list
     ]
     START_MONTHLY >> monthly_nci_odc_tasks
 
@@ -195,7 +195,7 @@ with daily_dag:
         "ga_ls_wo_fq_nov_mar_3",
     ]
 
-    nci_products_list = [
+    nci_daily_products_list = [
         x
         for x in json.loads(Variable.get("rep_currency_product_list_nci_odc"))
         if x["rate"] == "daily"
@@ -216,7 +216,7 @@ with daily_dag:
             product.get("days"),
             nci_odc_secrets,
         )
-        for product in nci_products_list
+        for product in nci_daily_products_list
     ]
 
     daily_odc_tasks = daily_aws_odc_tasks + daily_nci_odc_tasks
