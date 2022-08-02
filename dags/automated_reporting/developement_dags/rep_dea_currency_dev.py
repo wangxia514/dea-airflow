@@ -132,7 +132,7 @@ def create_odc_task(dag, job, product_id, days, odc_secrets, product_suffix=None
         "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
     }
     if days:
-        env_vars["DAYS"]: str(days)
+        env_vars["DAYS"] = str(days)
     if product_suffix:
         env_vars["PRODUCT_SUFFIX"] = product_suffix
     secrets = rep_db_secrets + odc_secrets
