@@ -73,6 +73,7 @@ jobs:
           airflow variables set 'm2m_api_password' '{"pass":"PASS"}'
           airflow variables set 'copernicus_api_password' '{"pass":"PASS"}'
           airflow variables set 'google_analytics' '{"pass":"PASS"}'
+          airflow variables set 'rep_currency_product_list_nci_odc' '[{"product_id":"product_id","rate":"daily"}]'
           airflow info
           airflow dags list -v
 
