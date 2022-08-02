@@ -49,6 +49,7 @@ ETL_IMAGE = (
     "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
 )
 
+
 def aggregate_metrics_from_collections(task_instance):
     """ pull metrics from the colletors, aggregate and xcom_push """
     # Do a xcompull from 10 collectors based on the pod count
