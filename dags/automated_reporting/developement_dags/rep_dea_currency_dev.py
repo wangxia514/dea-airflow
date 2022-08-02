@@ -152,26 +152,26 @@ def create_sns_task(dag, product_id, pipeline):
     return create_operator("sns", dag, SNS_CURRENCY_JOB, env_vars, secrets)
 
 
-# with monthly_dag:
+with monthly_dag:
 
-#     START_MONTHLY = DummyOperator(task_id="dea-currency-monthly")
+    START_MONTHLY = DummyOperator(task_id="dea-currency-monthly")
 
-#     nci_monthly_products_list = [
-#         x
-#         for x in json.loads(Variable.get("rep_currency_product_list_nci_odc"))
-#         if x["rate"] == "monthly"
-#     ]
-#     monthly_nci_odc_tasks = [
-#         create_odc_task(
-#             daily_dag,
-#             NCI_ODC_CURRENCY_JOB,
-#             product["product_id"],
-#             product.get("days"),
-#             nci_odc_secrets,
-#         )
-#         for product in nci_monthly_products_list
-#     ]
-#     START_MONTHLY >> monthly_nci_odc_tasks
+    nci_monthly_products_list = [
+        x
+        for x in json.loads(Variable.get("rep_currency_product_list_nci_odc"))
+        if x["rate"] == "monthly"
+    ]
+    monthly_nci_odc_tasks = [
+        create_odc_task(
+            daily_dag,
+            NCI_ODC_CURRENCY_JOB,
+            product["product_id"],
+            product.get("days"),
+            nci_odc_secrets,
+        )
+        for product in nci_monthly_products_list
+    ]
+    START_MONTHLY >> monthly_nci_odc_tasks
 
 
 with daily_dag:
