@@ -55,7 +55,7 @@ rep_db_secrets = [
 ]
 
 monthly_dag = DAG(
-    "rep_dea_currency_monthly",
+    "rep_dea_currency_monthly_prod",
     default_args=default_args,
     description="DAG for currency of dea products (run monthly)",
     tags=["reporting"],
@@ -63,7 +63,7 @@ monthly_dag = DAG(
 )
 
 daily_dag = DAG(
-    "rep_dea_currency_daily",
+    "rep_dea_currency_daily_prod",
     default_args=default_args,
     description="DAG for currency of dea products (run daily)",
     tags=["reporting"],
@@ -71,7 +71,7 @@ daily_dag = DAG(
 )
 
 rapid_dag = DAG(
-    "rep_dea_currency_rapid",
+    "rep_dea_currency_rapid_prod",
     default_args=default_args,
     description="DAG for currency of dea products (run 15mins)",
     tags=["reporting"],
