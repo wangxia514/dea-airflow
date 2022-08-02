@@ -163,7 +163,7 @@ with monthly_dag:
     ]
     monthly_nci_odc_tasks = [
         create_odc_task(
-            daily_dag,
+            monthly_dag,
             NCI_ODC_CURRENCY_JOB,
             product["product_id"],
             product.get("days"),
