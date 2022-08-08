@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 ### Restore Reporting DB
-This DAG is a scheduled run workflow to restore reporting DB into the DEV instance. The docker image used is ramagopr123/psql_client which can be found in the dockerhub. This is a simple docker image containing ubuntu + psql client + aws cli. The execution command is a shell script `restore.sh` which can be found under folder `backup_restore_docker_scripts`. RDS develop instance details fetched from kubernetes secrets including username and password. The DAG restores the s3 backup folder onto develop instance based on the date input.
+This DAG is a scheduled run workflow to restore reporting DB into the DEV instance. The docker image used is automated-reporting-backup from the ECR. This is a simple docker image containing ubuntu + psql client + aws cli. The execution command is a shell script `restore.sh` which can be found under folder `backup_restore_docker_scripts`. RDS develop instance details fetched from kubernetes secrets including username and password. The DAG restores the s3 backup folder onto develop instance based on the date input. e.g. {"EXECUTION_DATE":"2022-08-06"}
 """
 # pylint: disable=C0301
 # pylint: disable=W0104
@@ -36,6 +36,7 @@ default_args = {
 
 dag = DAG(
     "rep_restore_reporting_db_prod",
+    doc_md=__doc__,
     description="Restore develop db",
     tags=["reporting"],
     default_args=default_args,
