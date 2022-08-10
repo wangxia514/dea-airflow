@@ -27,7 +27,18 @@ dag_run.conf format:
 """
 
 from airflow import DAG
+from textwrap import dedent
+
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
+from airflow.utils.trigger_rule import TriggerRule
+
 from dea_utils.update_ows_products import ows_update_operator
+from infra.images import INDEXER_IMAGE
+from infra.podconfig import (
+    ONDEMAND_NODE_AFFINITY,
+)
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
@@ -55,6 +66,33 @@ DEFAULT_ARGS = {
     },
 }
 
+S3_TO_DC_CMD = [
+    "bash",
+    "-c",
+    dedent(
+        """
+        # Point to the internal API server hostname
+        APISERVER=https://kubernetes.default.svc
+
+        # Path to ServiceAccount token
+        SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount
+
+        # Read this Pod's namespace
+        NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace)
+
+        # Read the ServiceAccount bearer token
+        TOKEN=$(cat ${SERVICEACCOUNT}/token)
+
+        # Reference the internal certificate authority (CA)
+        CACERT=${SERVICEACCOUNT}/ca.crt
+
+        # Explore the API with TOKEN
+        curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X GET ${APISERVER}/api
+
+        curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X GET ${APISERVER}/apis/apps/v1/namespaces/web/deployments
+        """
+    ),
+]
 
 # THE DAG
 dag = DAG(
@@ -69,3 +107,18 @@ dag = DAG(
 with dag:
 
     ows_update_operator(products="{{ dag_run.conf.products }}", dag=dag)
+
+    REROLL_DEPLOYMENT = KubernetesPodOperator(
+        namespace="processing",
+        image=INDEXER_IMAGE,
+        image_pull_policy="IfNotPresent",
+        labels={"step": "ows-deployment-restart"},
+        service_account_name="ows-deployment-reroller",
+        arguments=S3_TO_DC_CMD,
+        name="datacube-index",
+        task_id="reroll-pods",
+        get_logs=True,
+        affinity=ONDEMAND_NODE_AFFINITY,
+        is_delete_operator_pod=True,
+        trigger_rule=TriggerRule.NONE_FAILED_OR_SKIPPED,  # Needed in case add product was skipped
+    )
