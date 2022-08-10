@@ -32,7 +32,6 @@ from textwrap import dedent
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-from airflow.utils.trigger_rule import TriggerRule
 
 from dea_utils.update_ows_products import ows_update_operator
 from infra.images import INDEXER_IMAGE
@@ -66,7 +65,7 @@ DEFAULT_ARGS = {
     },
 }
 
-S3_TO_DC_CMD = [
+K8S_API_CMD = [
     "bash",
     "-c",
     dedent(
@@ -89,7 +88,19 @@ S3_TO_DC_CMD = [
         # Explore the API with TOKEN
         curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X GET ${APISERVER}/api
 
-        curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X GET ${APISERVER}/apis/apps/v1/namespaces/web/deployments
+        curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X GET ${APISERVER}/apis/apps/v1/namespaces/web/deployments/ows-datacube-ows-dev
+
+        curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" --request PATCH 'https://kubernetes.default.svc/apis/apps/v1/namespaces/web/deployments/ows-datacube-ows-dev?fieldManager=kubectl-rollout&pretty=true' --header 'Content-Type: application/strategic-merge-patch+json'  --data-raw '{
+            "spec": {
+                "template": {
+                    "metadata": {
+                        "annotations": {
+                            "kubectl.kubernetes.io/restartedAt":"'"$(date +%Y-%m-%dT%T)"'"
+                        }
+                    }
+                }
+            }
+        }'
         """
     ),
 ]
@@ -106,19 +117,22 @@ dag = DAG(
 
 with dag:
 
-    ows_update_operator(products="{{ dag_run.conf.products }}", dag=dag)
+    OWS_UPDATE_EXTENTS = ows_update_operator(
+        products="{{ dag_run.conf.products }}", dag=dag
+    )
 
-    REROLL_DEPLOYMENT = KubernetesPodOperator(
+    DEPLOYMENT_RESTART = KubernetesPodOperator(
         namespace="processing",
         image=INDEXER_IMAGE,
         image_pull_policy="IfNotPresent",
         labels={"step": "ows-deployment-restart"},
         service_account_name="ows-deployment-reroller",
-        arguments=S3_TO_DC_CMD,
+        arguments=K8S_API_CMD,
         name="datacube-index",
         task_id="reroll-pods",
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
-        trigger_rule=TriggerRule.NONE_FAILED_OR_SKIPPED,  # Needed in case add product was skipped
     )
+
+    OWS_UPDATE_EXTENTS >> DEPLOYMENT_RESTART
