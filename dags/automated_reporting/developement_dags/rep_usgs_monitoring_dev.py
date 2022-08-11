@@ -9,7 +9,7 @@ This DAG
  * Inserts completeness data for each wrs path row
 """
 import json
-from datetime import datetime as dt, timedelta
+from datetime import datetime as dt, timedelta, timezone
 
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
@@ -17,58 +17,57 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 
-from infra.variables import REPORTING_ODC_DB_SECRET
-from infra.variables import REPORTING_DB_DEV_SECRET
-from infra.variables import REPORTING_USGSM2M_API_SECRET
-from infra.variables import REPORTING_AIRFLOW_S3_SECRET
+REPORTING_DB_SECRET = "reporting-db-dev"
+ETL_IMAGE = (
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls-dev:latest"
+)
 
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt.now() - timedelta(hours=1),
+    "start_date": dt.now(tz=timezone.utc) - timedelta(hours=1),
     "email": ["tom.mcadam@ga.gov.au"],
-    "email_on_failure": False,  # UPDATE IN PROD
+    "email_on_failure": True,
     "email_on_retry": False,
-    "retries": 1,  # UPDATE IN PROD
+    "retries": 2,
     "retry_delay": timedelta(minutes=5),
     "secrets": [
-        Secret("env", "S3_ACCESS_KEY", REPORTING_AIRFLOW_S3_SECRET, "ACCESS_KEY"),
-        Secret("env", "S3_BUCKET", REPORTING_AIRFLOW_S3_SECRET, "BUCKET"),
-        Secret("env", "S3_SECRET_KEY", REPORTING_AIRFLOW_S3_SECRET, "SECRET_KEY"),
-        Secret("env", "DB_HOST", REPORTING_DB_DEV_SECRET, "DB_HOST"),
-        Secret("env", "DB_NAME", REPORTING_DB_DEV_SECRET, "DB_NAME"),
-        Secret("env", "DB_PORT", REPORTING_DB_DEV_SECRET, "DB_PORT"),
-        Secret("env", "DB_USER", REPORTING_DB_DEV_SECRET, "DB_USER"),
-        Secret("env", "DB_PASSWORD", REPORTING_DB_DEV_SECRET, "DB_PASSWORD"),
-        Secret("env", "ODC_DB_HOST", REPORTING_ODC_DB_SECRET, "DB_HOST"),
-        Secret("env", "ODC_DB_NAME", REPORTING_ODC_DB_SECRET, "DB_NAME"),
-        Secret("env", "ODC_DB_PORT", REPORTING_ODC_DB_SECRET, "DB_PORT"),
-        Secret("env", "ODC_DB_USER", REPORTING_ODC_DB_SECRET, "DB_USER"),
-        Secret("env", "ODC_DB_PASSWORD", REPORTING_ODC_DB_SECRET, "DB_PASSWORD"),
-        Secret("env", "M2M_USER", REPORTING_USGSM2M_API_SECRET, "M2M_USER"),
-        Secret("env", "M2M_PASSWORD", REPORTING_USGSM2M_API_SECRET, "M2M_PASSWORD"),
+        Secret("env", "S3_ACCESS_KEY", "reporting-airflow", "ACCESS_KEY"),
+        Secret("env", "S3_BUCKET", "reporting-airflow", "BUCKET"),
+        Secret("env", "S3_SECRET_KEY", "reporting-airflow", "SECRET_KEY"),
+        Secret("env", "DB_HOST", REPORTING_DB_SECRET, "DB_HOST"),
+        Secret("env", "DB_NAME", REPORTING_DB_SECRET, "DB_NAME"),
+        Secret("env", "DB_PORT", REPORTING_DB_SECRET, "DB_PORT"),
+        Secret("env", "DB_USER", REPORTING_DB_SECRET, "DB_USER"),
+        Secret("env", "DB_PASSWORD", REPORTING_DB_SECRET, "DB_PASSWORD"),
+        Secret("env", "ODC_DB_HOST", "reporting-odc-db", "DB_HOST"),
+        Secret("env", "ODC_DB_NAME", "reporting-odc-db", "DB_NAME"),
+        Secret("env", "ODC_DB_PORT", "reporting-odc-db", "DB_PORT"),
+        Secret("env", "ODC_DB_USER", "reporting-odc-db", "DB_USER"),
+        Secret("env", "ODC_DB_PASSWORD", "reporting-odc-db", "DB_PASSWORD"),
+        Secret("env", "M2M_USER", "reporting-usgsm2m-api", "M2M_USER"),
+        Secret("env", "M2M_PASSWORD", "reporting-usgsm2m-api", "M2M_PASSWORD"),
     ],
 }
 
 dag = DAG(
-    "rep_usgs_monitoring_dev",  # UPDATE IN PROD
-    description="DAG for completeness and latency metric on USGS L1 C2 nrt product",
-    tags=["reporting_dev"],  # UPDATE IN PROD
+    "rep_usgs_monitoring_dev",
+    description="DAG for completeness and latency metric on USGS rapid mapping products",
+    tags=["reporting-dev"],
     default_args=default_args,
-    schedule_interval=timedelta(minutes=15),
+    schedule_interval="*/15 * * * *",
 )
 
 with dag:
 
     usgs_aquisitions_job = [
         "echo DEA USGS Acquisitions job started: $(date)",
-        "pip install ga-reporting-etls==2.4.2",
         "mkdir -p /airflow/xcom/",
         "usgs-acquisitions /airflow/xcom/return.json",
     ]
     usgs_acquisitions = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(usgs_aquisitions_job)],
         name="usgs-acquisitions",
         is_delete_operator_pod=True,
@@ -79,19 +78,18 @@ with dag:
         task_concurrency=1,
         env_vars={
             "DAYS": "{{ dag_run.conf['acquisition_days'] | default(3) }}",
-            "PRODUCT_IDS": "landsat_etm_c2_l1,landsat_ot_c2_l1",
+            "CATEGORY": "nrt",
             "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
         },
     )
 
     usgs_inserts_job = [
         "echo DEA USGS Insert Acquisitions job started: $(date)",
-        "pip install ga-reporting-etls==2.4.2",
         "usgs-inserts",
     ]
     usgs_inserts = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(usgs_inserts_job)],
         name="usgs-inserts",
         is_delete_operator_pod=True,
@@ -105,12 +103,11 @@ with dag:
 
     usgs_inserts_hg_l0_job = [
         "echo DEA USGS Insert Acquisitions job started: $(date)",
-        "pip install ga-reporting-etls==2.4.2",
         "usgs-inserts-hg-l0",
     ]
     usgs_inserts_hg_l0 = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(usgs_inserts_hg_l0_job)],
         name="usgs-inserts-hg-l0",
         is_delete_operator_pod=True,
@@ -122,20 +119,17 @@ with dag:
         },
     )
 
-    usgs_l1_completness_ls8_product = {
-        "s3_code": "L8C2",
-        "acq_code": "LC8%",
-        "rep_code": "usgs_ls8c_level1_nrt_c2",
-    }
+    usgs_l1_completness_ls8_product = dict(
+        scene_prefix="LC8%", acq_categories=("RT",), rep_code="usgs_ls8c_level1_nrt_c2"
+    )
     usgs_completeness_l1_job = [
         "echo DEA USGS Insert Acquisitions job started: $(date)",
-        "pip install ga-reporting-etls==2.4.2",
         "mkdir -p /airflow/xcom/",
         "usgs-l1-completeness /airflow/xcom/return.json",
     ]
     usgs_ls8_l1_completeness = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(usgs_completeness_l1_job)],
         name="usgs-completeness-l1",
         is_delete_operator_pod=True,
@@ -150,18 +144,16 @@ with dag:
         },
     )
 
-    usgs_ard_completness_ls8_product = {
-        "odc_code": "ga_ls8c_ard_provisional_3",
-        "acq_code": "LC8%",
-    }
+    usgs_ard_completness_ls8_product = dict(
+        odc_code="ga_ls8c_ard_provisional_3", acq_code="LC8%", acq_categories=("RT",)
+    )
     usgs_completeness_ard_job = [
         "echo DEA USGS Insert Acquisitions job started: $(date)",
-        "pip install ga-reporting-etls==2.4.2",
         "usgs-ard-completeness",
     ]
     usgs_ls8_ard_completeness = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(usgs_completeness_ard_job)],
         name="usgs-completeness-ard",
         is_delete_operator_pod=True,
@@ -177,12 +169,11 @@ with dag:
 
     usgs_currency_job = [
         "echo DEA USGS Insert Acquisitions job started: $(date)",
-        "pip install ga-reporting-etls==2.4.2",
         "usgs-currency-from-completeness",
     ]
     usgs_ls8_l1_currency = KubernetesPodOperator(
         namespace="processing",
-        image="python:3.8-slim-buster",
+        image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(usgs_currency_job)],
         name="usgs-currency-ls8-l1",
         is_delete_operator_pod=True,
