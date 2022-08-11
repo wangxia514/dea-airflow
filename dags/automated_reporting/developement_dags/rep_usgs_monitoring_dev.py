@@ -9,7 +9,7 @@ This DAG
  * Inserts completeness data for each wrs path row
 """
 import json
-from datetime import datetime as dt, timedelta, timezone
+from datetime import datetime as dt, timedelta
 
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
@@ -25,7 +25,7 @@ ETL_IMAGE = (
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt.now(tz=timezone.utc) - timedelta(hours=1),
+    "start_date": dt.now() - timedelta(hours=1),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
