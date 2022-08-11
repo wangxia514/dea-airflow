@@ -211,10 +211,10 @@ with dag:
         namespace="processing",
         image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(usgs_currency_job)],
-        name="usgs-currency-ls8-l1",
+        name="usgs-currency-ls9-l1",
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="usgs-currency-ls8-l1",
+        task_id="usgs-currency-ls9-l1",
         get_logs=True,
         env_vars={
             "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
