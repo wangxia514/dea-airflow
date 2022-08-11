@@ -131,16 +131,38 @@ with dag:
         namespace="processing",
         image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(usgs_completeness_l1_job)],
-        name="usgs-completeness-l1",
+        name="usgs-completeness-ls8-l1",
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="usgs-completeness-l1",
+        task_id="usgs-completeness-ls8-l1",
         get_logs=True,
         do_xcom_push=True,
         env_vars={
             "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
             "DAYS": "30",
             "PRODUCT": json.dumps(usgs_l1_completness_ls8_product),
+        },
+    )
+
+    usgs_l1_completness_ls9_product = dict(
+        scene_prefix="LC9%",
+        acq_categories=("T1", "T2"),
+        rep_code="usgs_ls9c_level1_nrt_c2",
+    )
+    usgs_ls9_l1_completeness = KubernetesPodOperator(
+        namespace="processing",
+        image=ETL_IMAGE,
+        arguments=["bash", "-c", " &&\n".join(usgs_completeness_l1_job)],
+        name="usgs-completeness-ls9-l1",
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="usgs-completeness-ls9-l1",
+        get_logs=True,
+        do_xcom_push=True,
+        env_vars={
+            "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
+            "DAYS": "30",
+            "PRODUCT": json.dumps(usgs_l1_completness_ls9_product),
         },
     )
 
@@ -182,11 +204,26 @@ with dag:
         get_logs=True,
         env_vars={
             "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
-            "USGS_COMPLETENESS_XCOM": "{{ task_instance.xcom_pull(task_ids='usgs-completeness-l1', key='return_value') }}",
+            "USGS_COMPLETENESS_XCOM": "{{ task_instance.xcom_pull(task_ids='usgs-completeness-ls8-l1', key='return_value') }}",
+        },
+    )
+    usgs_ls9_l1_currency = KubernetesPodOperator(
+        namespace="processing",
+        image=ETL_IMAGE,
+        arguments=["bash", "-c", " &&\n".join(usgs_currency_job)],
+        name="usgs-currency-ls9-l1",
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="usgs-currency-ls9-l1",
+        get_logs=True,
+        env_vars={
+            "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
+            "USGS_COMPLETENESS_XCOM": "{{ task_instance.xcom_pull(task_ids='usgs-completeness-ls9-l1', key='return_value') }}",
         },
     )
 
     usgs_acquisitions >> usgs_inserts
     usgs_inserts >> usgs_ls8_ard_completeness
     usgs_inserts >> usgs_ls8_l1_completeness >> usgs_ls8_l1_currency
+    usgs_inserts >> usgs_ls9_l1_completeness >> usgs_ls9_l1_currency
     usgs_acquisitions >> usgs_inserts_hg_l0
