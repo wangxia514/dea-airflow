@@ -126,7 +126,7 @@ with rapid_dag:
         cmds=[
             "echo DEA USGS Insert Acquisitions job started: $(date)",
             "mkdir -p /airflow/xcom/",
-            "usgs-l1-completeness /airflow/xcom/return.json",
+            "usgs-s3-completeness /airflow/xcom/return.json",
         ],
         env_vars={
             "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
@@ -148,7 +148,7 @@ with rapid_dag:
         cmds=[
             "echo DEA USGS Insert Acquisitions job started: $(date)",
             "mkdir -p /airflow/xcom/",
-            "usgs-l1-completeness /airflow/xcom/return.json",
+            "usgs-s3-completeness /airflow/xcom/return.json",
         ],
         env_vars={
             "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
@@ -166,7 +166,7 @@ with rapid_dag:
         task_id="usgs-completeness-ls8-ard",
         cmds=[
             "echo DEA USGS Insert Acquisitions job started: $(date)",
-            "usgs-ard-completeness",
+            "usgs-odc-completeness",
         ],
         env_vars={
             "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
