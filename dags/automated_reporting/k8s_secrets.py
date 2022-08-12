@@ -17,6 +17,17 @@ aws_odc_secrets = [
     Secret("env", "ODC_DB_PASSWORD", "reporting-odc-db", "DB_PASSWORD"),
 ]
 
+nci_odc_secrets = [
+    Secret("volume", "/var/secrets/lpgs", "lpgs-port-forwarder", "PORT_FORWARDER_KEY"),
+    Secret("env", "NCI_TUNNEL_HOST", "reporting-nci-tunnel", "NCI_HOST"),
+    Secret("env", "NCI_TUNNEL_USER", "reporting-nci-tunnel", "NCI_USER"),
+    Secret("env", "ODC_DB_HOST", "reporting-nci-odc-db", "DB_HOST"),
+    Secret("env", "ODC_DB_NAME", "reporting-nci-odc-db", "DB_NAME"),
+    Secret("env", "ODC_DB_PORT", "reporting-nci-odc-db", "DB_PORT"),
+    Secret("env", "ODC_DB_USER", "reporting-nci-odc-db", "DB_USER"),
+    Secret("env", "ODC_DB_PASSWORD", "reporting-nci-odc-db", "DB_PASSWORD"),
+]
+
 reporting_db_secrets = [
     Secret("env", "DB_HOST", "reporting-db", "DB_HOST"),
     Secret("env", "DB_NAME", "reporting-db", "DB_NAME"),
