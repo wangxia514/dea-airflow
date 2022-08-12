@@ -104,7 +104,6 @@ with daily_dag:
 
     # NB. Not inserting cached acquisitions into high_granlarity.dataset table for
     #     definitive products at this time.
-    +k8s_secrets.aws_odc_secrets
     # usgs_ls8_l1_nci_completeness
     # Calculate USGS LS8 ARD NRT completeness, comparing acquisitions with ODC
     usgs_ls8_l1_nci_product = dict(
