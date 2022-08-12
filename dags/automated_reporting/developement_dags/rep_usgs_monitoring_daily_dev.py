@@ -31,10 +31,6 @@ default_args = {
     "email_on_retry": False,
     "retries": 2,
     "retry_delay": timedelta(minutes=5),
-    "secrets": k8s_secrets.s3_secrets
-    + k8s_secrets.db_secrets(ENV)
-    + k8s_secrets.aws_odc_secrets
-    + k8s_secrets.m2m_api_secrets,
 }
 
 # A 15 minute cycle dag for USGS monitoring
@@ -47,7 +43,9 @@ daily_dag = DAG(
 )
 
 
-def k8s_operator(dag, task_id, cmds, env_vars, task_concurrency=None, xcom=False):
+def k8s_operator(
+    dag, task_id, cmds, env_vars, secrets=None, task_concurrency=None, xcom=False
+):
     """
     A helper function to save a few lines of code on the common kwargs for KubernetesPodOperator
     """
@@ -63,6 +61,7 @@ def k8s_operator(dag, task_id, cmds, env_vars, task_concurrency=None, xcom=False
         do_xcom_push=xcom,
         task_concurrency=task_concurrency,
         env_vars=env_vars,
+        secrets=secrets,
     )
 
 
@@ -85,6 +84,7 @@ with daily_dag:
             "CATEGORY": "def",  # query for definitive acquisitions
             "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
         },
+        secrets=k8s_secrets.s3_secrets + k8s_secrets.m2m_api_secrets,
     )
 
     # Insert cached acquisitions into dea.usgs_acquisitions table
@@ -99,11 +99,12 @@ with daily_dag:
             "USGS_ACQ_XCOM": "{{ task_instance.xcom_pull(task_ids=\
                 'usgs-acquisitions', key='return_value') }}",
         },
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.s3_secrets,
     )
 
     # NB. Not inserting cached acquisitions into high_granlarity.dataset table for
     #     definitive products at this time.
-
+    +k8s_secrets.aws_odc_secrets
     # usgs_ls8_l1_nci_completeness
     # Calculate USGS LS8 ARD NRT completeness, comparing acquisitions with ODC
     usgs_ls8_l1_nci_product = dict(
@@ -124,6 +125,7 @@ with daily_dag:
             "DAYS": "90",
             "PRODUCT": json.dumps(usgs_ls8_l1_nci_product),
         },
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.nci_odc_secrets,
     )
 
     # usgs_ls9_l1_nci_completeness (not indexed yet)
