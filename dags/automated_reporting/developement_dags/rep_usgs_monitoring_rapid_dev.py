@@ -8,6 +8,7 @@ This DAG
  * Inserts summary completeness and latency reporting data
  * Inserts completeness data for each wrs path row
 """
+# pylint: skip-file
 import json
 from datetime import datetime as dt, timedelta
 

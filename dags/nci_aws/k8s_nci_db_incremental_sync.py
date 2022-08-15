@@ -28,7 +28,6 @@ from airflow.providers.amazon.aws.sensors.s3_key import S3KeySensor
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy import DummyOperator
 from datetime import datetime, timedelta
