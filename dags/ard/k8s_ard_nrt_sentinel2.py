@@ -1,7 +1,6 @@
 """
 Run Sentinel-2 NRT pipeline in Airflow.
 """
-# pylint: disable=no-name-in-module
 import json
 import logging
 from datetime import datetime, timedelta

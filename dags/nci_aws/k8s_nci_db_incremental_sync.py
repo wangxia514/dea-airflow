@@ -21,7 +21,6 @@ for a day's backup to be available via
 [S3KeySensor](https://airflow.apache.org/docs/stable/_api/airflow/sensors/s3_key_sensor/index.html)
 and executes downstream task
 """
-# pylint: disable=no-name-in-module,import-error
 import kubernetes.client.models as k8s
 import pendulum
 from airflow import DAG

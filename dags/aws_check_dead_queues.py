@@ -5,7 +5,6 @@ If they're not, send email notifications that there have been processing failure
 
 Todo: create specific creds.
 """
-# pylint: disable=no-name-in-module
 import logging
 from collections import namedtuple
 from datetime import datetime
