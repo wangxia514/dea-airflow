@@ -8,6 +8,7 @@ This DAG
  * Inserts summary completeness and latency reporting data
  * Inserts completeness data for each wrs path row
 """
+# pylint: skip-file
 import json
 from datetime import datetime as dt, timedelta
 
@@ -35,7 +36,7 @@ default_args = {
 
 # A 15 minute cycle dag for USGS monitoring
 daily_dag = DAG(
-    "rep_usgs_monitoring_daily" + "_" + ENV,
+    f"rep_usgs_monitoring_daily_{ENV}",
     description="DAG for completeness metric on USGS definitive mapping products",
     tags=["reporting"] if ENV == "prod" else ["reporting_dev"],
     default_args=default_args,
