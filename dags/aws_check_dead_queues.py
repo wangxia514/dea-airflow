@@ -5,15 +5,14 @@ If they're not, send email notifications that there have been processing failure
 
 Todo: create specific creds.
 """
+# pylint: disable=no-name-in-module
 import logging
 from collections import namedtuple
 from datetime import datetime
 from textwrap import dedent
 
 from airflow import DAG, AirflowException
-from airflow.providers.amazon.aws.hooks.sqs import (
-    SQSHook,
-)  # pylint: disable=no-name-in-module
+from airflow.providers.amazon.aws.hooks.sqs import SQSHook
 from airflow.operators.python import PythonOperator
 from infra.connections import AWS_DEAD_LETTER_QUEUE_CHECKER_CONN
 

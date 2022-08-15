@@ -21,16 +21,14 @@ for a day's backup to be available via
 [S3KeySensor](https://airflow.apache.org/docs/stable/_api/airflow/sensors/s3_key_sensor/index.html)
 and executes downstream task
 """
+# pylint: disable=no-name-in-module,import-error
 import kubernetes.client.models as k8s
 import pendulum
 from airflow import DAG
-from airflow.providers.amazon.aws.sensors.s3_key import (
-    S3KeySensor,
-)  # pylint: disable=no-name-in-module,import-error
+from airflow.providers.amazon.aws.sensors.s3_key import S3KeySensor
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy import DummyOperator
 from datetime import datetime, timedelta
