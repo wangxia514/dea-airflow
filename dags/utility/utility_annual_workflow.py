@@ -41,6 +41,8 @@ from infra.variables import (
     SECRET_ODC_WRITER_NAME,
     AWS_DEFAULT_REGION,
     DB_PORT,
+    STATSD_HOST,
+    STATSD_PORT,
 )
 from infra.podconfig import (
     ONDEMAND_NODE_AFFINITY,
@@ -95,6 +97,8 @@ with dag:
             # "cemp_insar_alos_displacement",
             # Jinja templates for arguments
             "--skip-lineage",
+            "--statsd-setting",
+            f"{STATSD_HOST}:{STATSD_PORT}",
             "--no-sign-request",
             "{{ dag_run.conf.s3_glob }}",
             "{{ dag_run.conf.product }}",

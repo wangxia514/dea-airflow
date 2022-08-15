@@ -14,7 +14,12 @@ from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-from infra.variables import DB_HOSTNAME, SECRET_ODC_WRITER_NAME
+from infra.variables import (
+    DB_HOSTNAME,
+    SECRET_ODC_WRITER_NAME,
+    STATSD_HOST,
+    STATSD_PORT,
+)
 from infra.images import INDEXER_IMAGE
 from infra.sqs_queues import SENTINEL_2_ARD_INDEXING_SQS_QUEUE_NAME_ODC_DB
 from infra.variables import SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET
@@ -92,6 +97,8 @@ with dag:
         arguments=[
             "sqs-to-dc",
             "--stac",
+            "--statsd-setting",
+            f"{STATSD_HOST}:{STATSD_PORT}",
             "--skip-lineage",
             "--absolute",
             dag.default_args["index_sqs_queue"],
