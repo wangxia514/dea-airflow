@@ -37,7 +37,7 @@ default_args = {
 daily_dag = DAG(
     "rep_usgs_monitoring_daily" + "_" + ENV,
     description="DAG for completeness metric on USGS definitive mapping products",
-    tags=["reporting"] if ENV == "prod" else ["reporting-dev"],
+    tags=["reporting"] if ENV == "prod" else ["reporting_dev"],
     default_args=default_args,
     schedule_interval="@daily",
 )
@@ -104,14 +104,15 @@ with daily_dag:
 
     # NB. Not inserting cached acquisitions into high_granlarity.dataset table for
     #     definitive products at this time.
+
     # usgs_ls8_l1_nci_completeness
-    # Calculate USGS LS8 ARD NRT completeness, comparing acquisitions with ODC
+    # Calculate USGS LS8 L1 Definitive completeness, comparing acquisitions with NCI ODC
     usgs_ls8_l1_nci_product = dict(
         acq_code="LC8%", acq_categories=("T1", "T2"), odc_code="usgs_ls8c_level1_2"
     )
     usgs_ls8_l1_nci_completeness = k8s_operator(
         dag=daily_dag,
-        task_id="usgs-completeness-ls8-ard",
+        task_id="usgs-completeness-ls8-l1",
         cmds=utilities.NCI_TUNNEL_CMDS
         + [
             "echo DEA USGS Completeness Job: $(date)",
@@ -129,10 +130,32 @@ with daily_dag:
 
     # usgs_ls9_l1_nci_completeness (not indexed yet)
 
-    # usgs_ls8_ard_aws_completeness
     # usgs_ls8_ard_nci_completeness
+    # Calculate USGS LS8 ARD Definitive completeness, comparing acquisitions with NCI ODC
+    usgs_ls8_ard_nci_product = dict(
+        acq_code="LC8%", acq_categories=("T1", "T2"), odc_code="ga_ls8c_ard_3"
+    )
+    usgs_ls8_ard_nci_completeness = k8s_operator(
+        dag=daily_dag,
+        task_id="usgs-completeness-ls8-ard",
+        cmds=utilities.NCI_TUNNEL_CMDS
+        + [
+            "echo DEA USGS Completeness Job: $(date)",
+            "export ODC_DB_HOST=localhost",
+            "export ODC_DB_PORT=54320",
+            "usgs-odc-completeness",
+        ],
+        env_vars={
+            "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
+            "DAYS": "90",
+            "PRODUCT": json.dumps(usgs_ls8_ard_nci_product),
+        },
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.nci_odc_secrets,
+    )
+
+    # usgs_ls8_ard_aws_completeness
 
     usgs_acquisitions >> usgs_inserts
     usgs_inserts >> usgs_ls8_l1_nci_completeness
+    usgs_inserts >> usgs_ls8_ard_nci_completeness
     # usgs_inserts >> usgs_ls8_ard_aws_completeness
-    # usgs_inserts >> usgs_ls8_ard_nci_completeness
