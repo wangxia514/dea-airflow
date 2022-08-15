@@ -18,6 +18,8 @@ from infra.variables import (
     DB_HOSTNAME,
     ALCHEMIST_S2_C3_WO_NRT_USER_SECRET,
     SECRET_ODC_WRITER_NAME,
+    STATSD_HOST,
+    STATSD_PORT,
 )
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.images import INDEXER_IMAGE
@@ -109,7 +111,7 @@ with dag:
                 f"echo ${queue} && "
                 "echo ${WO_SQS_INDEXING_QUEUE} && "
                 "sqs-to-dc --stac "  # continue
-                f"--update-if-exists --allow-unsafe ${queue} {product}",
+                f"--statsd-setting {STATSD_HOST}:{STATSD_PORT} --update-if-exists --allow-unsafe ${queue} {product}",
             ],
             labels={"step": f"sqs-dc-indexing-{product}"},
             name=f"datacube-index-{queue}",

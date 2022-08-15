@@ -10,7 +10,9 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from textwrap import dedent
 
 from infra.images import INDEXER_IMAGE
@@ -19,6 +21,8 @@ from infra.variables import (
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
     AWS_DEFAULT_REGION,
+    STATSD_HOST,
+    STATSD_PORT,
 )
 from infra.pools import DEA_NEWDATA_PROCESSING_POOL
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
@@ -65,11 +69,11 @@ INDEXING_BASH_COMMAND = [
     dedent(
         """
             for uri in %s; do
-               s3-to-dc $uri "%s" --skip-lineage --no-sign-request;
+               s3-to-dc $uri "%s" --skip-lineage --no-sign-request --statsd-setting %s:%s;
             done
         """
     )
-    % (uri_string, " ".join(INDEXING_PRODUCTS)),
+    % (uri_string, " ".join(INDEXING_PRODUCTS), STATSD_HOST, STATSD_PORT),
 ]
 
 

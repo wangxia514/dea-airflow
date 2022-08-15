@@ -19,6 +19,8 @@ from infra.variables import (
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
     LANDSAT_C3_AWS_USER_SECRET,
+    STATSD_HOST,
+    STATSD_PORT,
 )
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.images import INDEXER_IMAGE
@@ -99,6 +101,8 @@ with dag:
         arguments=[
             "sqs-to-dc",
             "--stac",
+            "--statsd-setting",
+            f"{STATSD_HOST}:{STATSD_PORT}",
             "--skip-lineage",
             dag.default_args["index_sqs_queue"],
             dag.default_args["products"],
