@@ -20,6 +20,8 @@ from infra.variables import (
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
     AWS_DEFAULT_REGION,
+    STATSD_HOST,
+    STATSD_PORT,
 )
 from infra.sqs_queues import SQS_QUEUE_NAME
 from infra.iam_roles import INDEXING_ROLE
@@ -29,8 +31,6 @@ from dea_public_data_sns_indexing.env_cfg import (
     NRT_PATHS,
 )
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
-
-INDEXER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/datacube-index:0.0.20"
 
 # DAG CONFIGURATION
 DEFAULT_ARGS = {
@@ -64,7 +64,7 @@ record_path_string = " ".join(record_path_list_with_prefix)
 INDEXING_BASH_COMMAND = [
     "bash",
     "-c",
-    f"sqs-to-dc --skip-lineage --allow-unsafe {SQS_QUEUE_NAME} '{index_product_string}' {record_path_string}",
+    f"sqs-to-dc --skip-lineage --statsd-setting {STATSD_HOST}:{STATSD_PORT}--allow-unsafe {SQS_QUEUE_NAME} '{index_product_string}' {record_path_string}",
 ]
 
 
