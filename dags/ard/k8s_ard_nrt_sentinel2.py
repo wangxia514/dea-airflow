@@ -13,7 +13,9 @@ from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
-from airflow.providers.amazon.aws.hooks.sqs import SQSHook
+from airflow.providers.amazon.aws.hooks.sqs import (
+    SQSHook,
+)  # pylint: disable=no-name-in-module
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )

@@ -24,7 +24,9 @@ and executes downstream task
 import kubernetes.client.models as k8s
 import pendulum
 from airflow import DAG
-from airflow.providers.amazon.aws.sensors.s3_key import S3KeySensor
+from airflow.providers.amazon.aws.sensors.s3_key import (
+    S3KeySensor,
+)  # pylint: disable=no-name-in-module,import-error
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )

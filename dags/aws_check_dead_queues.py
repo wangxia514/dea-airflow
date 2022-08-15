@@ -11,7 +11,9 @@ from datetime import datetime
 from textwrap import dedent
 
 from airflow import DAG, AirflowException
-from airflow.providers.amazon.aws.hooks.sqs import SQSHook
+from airflow.providers.amazon.aws.hooks.sqs import (
+    SQSHook,
+)  # pylint: disable=no-name-in-module
 from airflow.operators.python import PythonOperator
 from infra.connections import AWS_DEAD_LETTER_QUEUE_CHECKER_CONN
 
