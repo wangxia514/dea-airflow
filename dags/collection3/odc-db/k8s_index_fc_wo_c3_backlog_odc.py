@@ -81,7 +81,7 @@ def load_subdag(parent_dag_name, child_dag_name, product, rows, args):
                     " ".join(products),
                 ],
                 labels={"backlog": "s3-to-dc"},
-                name="datacube-index",
+                name="datacube-index-fc-wo-c3-backlog",
                 task_id=f"{product}--Backlog-indexing-row--{row}",
                 get_logs=True,
                 is_delete_operator_pod=True,

@@ -13,7 +13,9 @@ The DAG has to be parameterized with index date as below.
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from airflow.kubernetes.secret import Secret
 
 
@@ -50,7 +52,7 @@ dag = DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     catchup=False,
-    tags=['k8s', 'sentinel_2']
+    tags=["k8s", "sentinel_2"],
 )
 
 
@@ -98,7 +100,7 @@ with dag:
             "ga_s2b_ard_nbar_granule",
         ],
         labels={"step": "s3-to-rds"},
-        name="datacube-index",
+        name="datacube-index-s2-nbar",
         task_id="indexing-task",
         get_logs=True,
     )
