@@ -13,9 +13,7 @@ import json
 from datetime import datetime as dt, timedelta
 
 from airflow import DAG
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
-    KubernetesPodOperator,
-)
+
 from automated_reporting import k8s_secrets, utilities
 
 ENV = "dev"
@@ -43,35 +41,13 @@ daily_dag = DAG(
     schedule_interval="@daily",
 )
 
-
-def k8s_operator(
-    dag, task_id, cmds, env_vars, secrets=None, task_concurrency=None, xcom=False
-):
-    """
-    A helper function to save a few lines of code on the common kwargs for KubernetesPodOperator
-    """
-    return KubernetesPodOperator(
-        namespace="processing",
-        image=ETL_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(cmds)],
-        name=task_id,
-        is_delete_operator_pod=True,
-        in_cluster=True,
-        task_id=task_id,
-        get_logs=True,
-        do_xcom_push=xcom,
-        task_concurrency=task_concurrency,
-        env_vars=env_vars,
-        secrets=secrets,
-    )
-
-
 with daily_dag:
 
     # Get last n (default 7) days of acquisitions from USGS M2M API and cache in S3
     # LS8 T1/T2 and LS9 T1/T2
-    usgs_acquisitions = k8s_operator(
+    usgs_acquisitions = utilities.k8s_operator(
         dag=daily_dag,
+        image=ETL_IMAGE,
         task_id="usgs-acquisitions",
         xcom=True,
         task_concurrency=1,
@@ -89,8 +65,9 @@ with daily_dag:
     )
 
     # Insert cached acquisitions into dea.usgs_acquisitions table
-    usgs_inserts = k8s_operator(
+    usgs_inserts = utilities.k8s_operator(
         dag=daily_dag,
+        image=ETL_IMAGE,
         task_id="usgs-inserts",
         cmds=[
             "echo DEA USGS Insert Acquisitions job started: $(date)",
@@ -111,8 +88,9 @@ with daily_dag:
     usgs_ls8_l1_nci_product = dict(
         acq_code="LC8%", acq_categories=("T1", "T2"), odc_code="usgs_ls8c_level1_2"
     )
-    usgs_ls8_l1_nci_completeness = k8s_operator(
+    usgs_ls8_l1_nci_completeness = utilities.k8s_operator(
         dag=daily_dag,
+        image=ETL_IMAGE,
         task_id="usgs-completeness-ls8-l1",
         cmds=utilities.NCI_TUNNEL_CMDS
         + [
@@ -136,8 +114,9 @@ with daily_dag:
     usgs_ls8_ard_nci_product = dict(
         acq_code="LC8%", acq_categories=("T1", "T2"), odc_code="ga_ls8c_ard_3"
     )
-    usgs_ls8_ard_nci_completeness = k8s_operator(
+    usgs_ls8_ard_nci_completeness = utilities.k8s_operator(
         dag=daily_dag,
+        image=ETL_IMAGE,
         task_id="usgs-completeness-ls8-ard",
         cmds=utilities.NCI_TUNNEL_CMDS
         + [
