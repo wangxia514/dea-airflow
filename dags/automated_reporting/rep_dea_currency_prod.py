@@ -5,7 +5,7 @@ DEA Currency Dags
 
 # The DAG object; we'll need this to instantiate a DAG
 import json
-from datetime import datetime as dt, timedelta, timezone
+from datetime import datetime as dt, timedelta
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
@@ -17,7 +17,7 @@ from airflow.models import Variable
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt(2022, 8, 1, 0, 0, 0, tzinfo=timezone.utc),
+    "start_date": dt(2022, 8, 1),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
