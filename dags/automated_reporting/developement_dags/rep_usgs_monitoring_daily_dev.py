@@ -67,6 +67,7 @@ with daily_dag:
     # Insert cached acquisitions into dea.usgs_acquisitions table
     usgs_inserts = utilities.k8s_operator(
         dag=daily_dag,
+        image=ETL_IMAGE,
         task_id="usgs-inserts",
         cmds=[
             "echo DEA USGS Insert Acquisitions job started: $(date)",

@@ -4,6 +4,7 @@ DEA Currency Dags
 """
 
 # The DAG object; we'll need this to instantiate a DAG
+# pylint: skip-file
 import json
 from datetime import datetime as dt, timedelta
 
@@ -98,7 +99,7 @@ with daily_dag:
             env_vars={
                 "PRODUCT_ID": product.get("product_id"),
                 "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
-                "DAYS": product.get("days", default=0),
+                "DAYS": product.get("days", 0),
             },
             secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.nci_odc_secrets,
         )
