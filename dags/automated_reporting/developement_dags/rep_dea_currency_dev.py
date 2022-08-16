@@ -63,7 +63,7 @@ monthly_dag = DAG(
 )
 
 daily_dag = DAG(
-    "rep_dea_currency_daily_dev",
+    "rep_dea_currency_daily_v1_dev",
     default_args=default_args,
     description="DAG for currency of dea products (run daily)",
     tags=["reporting_dev"],
