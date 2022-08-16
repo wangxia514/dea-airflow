@@ -82,7 +82,7 @@ with dag:
                     dag.default_args["products"],
                 ],
                 labels={"step": "s3-dc-indexing"},
-                name="datacube-index",
+                name="datacube-index-s2-nbart-backlog",
                 task_id=f"indexing-task-{year}-Q{i+1}",
                 get_logs=True,
                 is_delete_operator_pod=True,

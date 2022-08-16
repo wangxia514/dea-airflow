@@ -85,7 +85,7 @@ with DAG(
         annotations={"iam.amazonaws.com/role": INDEXING_ROLE},
         arguments=INDEXING_BASH_COMMAND,
         labels={"step": "sqs-to-rds"},
-        name="datacube-index",
+        name="datacube-index-dea-public-data-streamline",
         task_id="indexing-task",
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,

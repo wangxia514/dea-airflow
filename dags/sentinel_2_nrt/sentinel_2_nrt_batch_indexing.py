@@ -10,7 +10,9 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 
 from textwrap import dedent
 
@@ -89,7 +91,7 @@ with DAG(
         image_pull_policy="IfNotPresent",
         arguments=INDEXING_BASH_COMMAND,
         labels={"step": "s3-to-rds"},
-        name="datacube-index",
+        name="datacube-index-s2-nrt-batch",
         task_id="batch-indexing-task",
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,

@@ -24,7 +24,9 @@ dag_run.conf format:
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from airflow.kubernetes.secret import Secret
 
 from dea_utils.update_explorer_summaries import explorer_refresh_operator
@@ -94,7 +96,7 @@ with DAG(
             "{{ dag_run.conf.product }}",
             "--no-sign-request",
         ],
-        name="datacube-index",
+        name="datacube-index-utility-annual-workflow",
         task_id="batch-indexing-task",
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,

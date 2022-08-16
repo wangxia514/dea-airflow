@@ -195,7 +195,7 @@ with dag:
         image_pull_policy="IfNotPresent",
         labels={"step": "s3-to-dc"},
         arguments=S3_TO_DC_CMD,
-        name="datacube-index",
+        name="datacube-index-utility-add-product",
         task_id=INDEXING_TASK_ID,
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,
