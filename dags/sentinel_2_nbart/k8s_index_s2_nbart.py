@@ -105,7 +105,7 @@ with dag:
             dag.default_args["products"],
         ],
         labels={"step": "sqs-dc-indexing"},
-        name="datacube-index",
+        name="datacube-index-s2-ard",
         task_id="indexing-task",
         get_logs=True,
         is_delete_operator_pod=True,

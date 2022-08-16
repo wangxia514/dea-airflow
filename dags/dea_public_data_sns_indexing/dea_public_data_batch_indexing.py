@@ -95,7 +95,7 @@ with dag:
         image_pull_policy="IfNotPresent",
         arguments=INDEXING_BASH_COMMAND,
         labels={"app": "dag_s2_nrt_batch"},
-        name="datacube-index",
+        name="datacube-index-s2-nrt-batch",
         task_id="batch-indexing-task",
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,

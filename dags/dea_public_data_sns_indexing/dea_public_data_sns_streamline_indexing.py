@@ -89,7 +89,7 @@ with dag:
         annotations={"iam.amazonaws.com/role": INDEXING_ROLE},
         arguments=INDEXING_BASH_COMMAND,
         labels={"app": "dag_s2_nrt_streamline"},
-        name="datacube-index",
+        name="datacube-index-s2-nrt-streamline",
         task_id="streamline-indexing-task",
         get_logs=True,
         pool=DEA_NEWDATA_PROCESSING_POOL,

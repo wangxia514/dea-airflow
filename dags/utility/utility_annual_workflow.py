@@ -103,7 +103,7 @@ with dag:
             "{{ dag_run.conf.s3_glob }}",
             "{{ dag_run.conf.product }}",
         ],
-        name="datacube-index",
+        name="datacube-index-utility-annual",
         task_id="batch-indexing-task",
         get_logs=True,
         affinity=ONDEMAND_NODE_AFFINITY,
