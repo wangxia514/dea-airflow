@@ -79,32 +79,32 @@ with daily_dag:
         for product_id in aws_products_list
     ]
 
-    # NCI TASKS
-    products_list = json.loads(Variable.get("rep_currency_product_list_nci_odc"))
-    nci_products_list = [
-        product for product in products_list if product["rate"] == "daily"
-    ]
-    NCI_ODC_CURRENCY_JOB = [
-        "echo DEA NCI ODC Currency job started: $(date)",
-        "export ODC_DB_HOST=localhost",
-        "export ODC_DB_PORT=54320",
-        "odc-currency-views",
-    ]
-    daily_nci_odc_tasks = [
-        utilities.k8s_operator(
-            dag=daily_dag,
-            image=ETL_IMAGE,
-            task_id=f"nci-odc_{product.get('product_id')}",
-            cmds=utilities.NCI_TUNNEL_CMDS + NCI_ODC_CURRENCY_JOB,
-            env_vars={
-                "PRODUCT_ID": product.get("product_id"),
-                "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
-                "DAYS": product.get("days", 0)
-            },
-            secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.nci_odc_secrets
-        )
-        for product in nci_products_list
-    ]
+    # # NCI TASKS
+    # products_list = json.loads(Variable.get("rep_currency_product_list_nci_odc"))
+    # nci_products_list = [
+    #     product for product in products_list if product["rate"] == "daily"
+    # ]
+    # NCI_ODC_CURRENCY_JOB = [
+    #     "echo DEA NCI ODC Currency job started: $(date)",
+    #     "export ODC_DB_HOST=localhost",
+    #     "export ODC_DB_PORT=54320",
+    #     "odc-currency-views",
+    # ]
+    # daily_nci_odc_tasks = [
+    #     utilities.k8s_operator(
+    #         dag=daily_dag,
+    #         image=ETL_IMAGE,
+    #         task_id=f"nci-odc_{product.get('product_id')}",
+    #         cmds=utilities.NCI_TUNNEL_CMDS + NCI_ODC_CURRENCY_JOB,
+    #         env_vars={
+    #             "PRODUCT_ID": product.get("product_id"),
+    #             "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
+    #             "DAYS": product.get("days", 0)
+    #         },
+    #         secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.nci_odc_secrets
+    #     )
+    #     for product in nci_products_list
+    # ]
 
-    daily_odc_tasks = daily_aws_odc_tasks + daily_nci_odc_tasks
+    daily_odc_tasks = daily_aws_odc_tasks #+ daily_nci_odc_tasks
     START_DAILY >> daily_odc_tasks
