@@ -22,7 +22,7 @@ ETL_IMAGE = (
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt.now() - timedelta(hours=1),
+    "start_date": dt.now() - timedelta(days=2),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": True if ENV == "prod" else False,
     "email_on_retry": False,
