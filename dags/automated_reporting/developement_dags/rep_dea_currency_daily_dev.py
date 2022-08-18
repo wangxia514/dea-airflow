@@ -75,6 +75,7 @@ with daily_dag:
                 "PRODUCT_SUFFIX": "aws",
             },
             secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.aws_odc_secrets,
+            task_concurrency=3
         )
         for product_id in aws_products_list
     ]
