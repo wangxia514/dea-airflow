@@ -43,6 +43,8 @@ from infra.variables import (
     SECRET_ODC_WRITER_NAME,
     DB_PORT,
     AWS_DEFAULT_REGION,
+    STATSD_HOST,
+    STATSD_PORT,
 )
 
 DAG_NAME = "utility_indexing_annual_ows_explorer_update"
@@ -95,6 +97,8 @@ with DAG(
             "{{ dag_run.conf.s3_glob }}",
             "{{ dag_run.conf.product }}",
             "--no-sign-request",
+            "--statsd-setting",
+            f"{STATSD_HOST}:{STATSD_PORT}",
         ],
         name="datacube-index-utility-annual-workflow",
         task_id="batch-indexing-task",

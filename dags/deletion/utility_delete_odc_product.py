@@ -40,8 +40,6 @@ from infra.podconfig import (
 
 DAG_NAME = "deletion_utility_odc_product_ows_explorer"
 
-INDEXER_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/datacube-index:0.0.31"
-
 # DAG CONFIGURATION
 DEFAULT_ARGS = {
     "owner": "Pin Jin",
