@@ -71,7 +71,7 @@ with daily_dag:
             env_vars={
                 "PRODUCT_ID": product_id,
                 "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
-                "DAYS": 90,
+                "DAYS": "90",
                 "PRODUCT_SUFFIX": "aws",
             }
         )
