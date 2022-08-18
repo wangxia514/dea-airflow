@@ -67,15 +67,14 @@ with daily_dag:
             dag=daily_dag,
             image=ETL_IMAGE,
             task_id=f"aws-odc_{product_id}",
-            cmds=AWS_ODC_CURRENCY_JOB,
+            cmds=["bash", "-c", " &&\n".join(AWS_ODC_CURRENCY_JOB)],
             env_vars={
                 "PRODUCT_ID": product_id,
                 "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
                 "DAYS": 90,
                 "PRODUCT_SUFFIX": "aws",
             },
-            secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.aws_odc_secrets,
-            task_concurrency=3
+            secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.aws_odc_secrets
         )
         for product_id in aws_products_list
     ]
