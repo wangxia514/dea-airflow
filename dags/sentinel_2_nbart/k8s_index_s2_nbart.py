@@ -20,6 +20,8 @@ from infra.variables import (
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
     SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET,
+    STATSD_HOST,
+    STATSD_PORT,
 )
 
 from infra.images import INDEXER_IMAGE
@@ -88,13 +90,15 @@ with DAG(
         arguments=[
             "sqs-to-dc",
             "--stac",
+            "--statsd-setting",
+            f"{STATSD_HOST}:{STATSD_PORT}",
             "--skip-lineage",
             "--absolute",
             SENTINEL_2_ARD_INDEXING_SQS_QUEUE_NAME_ODC_DB,
             "s2a_ard_granule s2b_ard_granule",
         ],
         labels={"step": "sqs-dc-indexing"},
-        name="datacube-index",
+        name="datacube-index-s2-nbart",
         task_id="indexing-task",
         get_logs=True,
         is_delete_operator_pod=True,

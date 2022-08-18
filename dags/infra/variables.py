@@ -118,3 +118,6 @@ REPORTING_USGSM2M_API_SECRET = Variable.get(
 REPORTING_AIRFLOW_S3_SECRET = Variable.get(
     "reporting_airflow_secret", default_var="reporting-airflow"
 )
+
+STATSD_HOST = Variable.get("statsd_host", default_var="localhost")
+STATSD_PORT = Variable.get("statsd_port", default_var="8125")

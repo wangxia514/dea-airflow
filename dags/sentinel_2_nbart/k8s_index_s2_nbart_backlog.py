@@ -15,7 +15,12 @@ from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-from infra.variables import DB_HOSTNAME, SECRET_ODC_WRITER_NAME
+from infra.variables import (
+    DB_HOSTNAME,
+    SECRET_ODC_WRITER_NAME,
+    STATSD_HOST,
+    STATSD_PORT,
+)
 from infra.images import INDEXER_IMAGE
 
 DEFAULT_ARGS = {
@@ -74,6 +79,8 @@ with dag:
                     "s3-to-dc",
                     "--skip-lineage",
                     "--allow-unsafe",
+                    "--statsd-setting",
+                    f"{STATSD_HOST}:{STATSD_PORT}",
                     "--update-if-exists",
                     "--no-sign-request",
                     "s3://dea-public-data/baseline/s2[ab]_ard_granule/"

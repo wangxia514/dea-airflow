@@ -26,6 +26,8 @@ from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
+    STATSD_HOST,
+    STATSD_PORT,
 )
 from infra.sqs_queues import (
     C3_ARCHIVAL_SQS_QUEUE_NAME,
@@ -106,6 +108,8 @@ with dag:
         arguments=[
             "sqs-to-dc",
             "--stac",
+            "--statsd-setting",
+            f"{STATSD_HOST}:{STATSD_PORT}",
             "--skip-lineage",
             dag.default_args["index_sqs_queue"],
             dag.default_args["products"],
@@ -127,6 +131,8 @@ with dag:
             "--archive",
             dag.default_args["archive_sqs_queue"],
             dag.default_args["products"],
+            "--statsd-setting",
+            f"{STATSD_HOST}:{STATSD_PORT}",
         ],
         labels={"step": "sqs-dc-archiving"},
         name="datacube-archive-ls-c3",

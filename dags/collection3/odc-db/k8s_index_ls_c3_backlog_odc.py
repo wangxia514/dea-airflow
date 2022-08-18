@@ -19,6 +19,8 @@ from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
+    STATSD_HOST,
+    STATSD_PORT,
 )
 from infra.images import INDEXER_IMAGE
 from infra.podconfig import ONDEMAND_NODE_AFFINITY
@@ -78,6 +80,8 @@ def load_subdag(parent_dag_name, child_dag_name, product, rows, args):
                     "s3-to-dc",
                     "--stac",
                     "--no-sign-request",
+                    "--statsd-setting",
+                    f"{STATSD_HOST}:{STATSD_PORT}",
                     "--skip-lineage",
                     f"s3://dea-public-data/baseline/{product}/{row:03d}/**/*.json",
                     product,

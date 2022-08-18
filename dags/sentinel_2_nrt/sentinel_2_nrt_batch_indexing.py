@@ -24,6 +24,8 @@ from infra.variables import (
     SECRET_ODC_WRITER_NAME,
     AWS_DEFAULT_REGION,
     DB_PORT,
+    STATSD_HOST,
+    STATSD_PORT,
 )
 from sentinel_2_nrt.env_cfg import (
     INDEXING_PRODUCTS,
@@ -68,11 +70,11 @@ INDEXING_BASH_COMMAND = [
     dedent(
         """
             for uri in %s; do
-               s3-to-dc $uri "%s" --skip-lineage --no-sign-request;
+               s3-to-dc $uri "%s" --skip-lineage --no-sign-request --statsd-setting %s:%s;
             done
         """
     )
-    % (uri_string, " ".join(INDEXING_PRODUCTS)),
+    % (uri_string, " ".join(INDEXING_PRODUCTS), STATSD_HOST, STATSD_PORT),
 ]
 
 # THE DAG

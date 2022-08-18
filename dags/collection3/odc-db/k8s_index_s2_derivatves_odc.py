@@ -10,12 +10,16 @@ and configuration installed.
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from airflow.kubernetes.secret import Secret
 from infra.variables import (
     DB_DATABASE,
     DB_HOSTNAME,
     SECRET_ODC_WRITER_NAME,
+    STATSD_HOST,
+    STATSD_PORT,
 )
 from infra.variables import C3_BA_ALCHEMIST_SECRET
 from infra.images import INDEXER_IMAGE
@@ -72,7 +76,7 @@ DEFAULT_ARGS = {
             "BURNS_SNS_INDEXING_QUEUE",
             C3_BA_ALCHEMIST_SECRET,
             "BURNS_SNS_INDEXING_QUEUE",
-        )
+        ),
     ],
 }
 
@@ -95,7 +99,7 @@ with dag:
             arguments=[
                 "bash",
                 "-c",
-                f"sqs-to-dc --stac --update-if-exists --allow-unsafe $BURNS_SNS_INDEXING_QUEUE ga_s2_{product}_provisional_3",
+                f"sqs-to-dc --stac --statsd-setting {STATSD_HOST}:{STATSD_PORT} --update-if-exists --allow-unsafe $BURNS_SNS_INDEXING_QUEUE ga_s2_{product}_provisional_3",
             ],
             labels={"step": "sqs-dc-indexing"},
             name=f"datacube-index-{product}",
