@@ -117,7 +117,7 @@ with daily_dag:
     usgs_ls8_ard_nci_completeness = utilities.k8s_operator(
         dag=daily_dag,
         image=ETL_IMAGE,
-        task_id="usgs-completeness-ls8-ard",
+        task_id="completeness-ls8-ard-nci",
         cmds=utilities.NCI_TUNNEL_CMDS
         + [
             "echo DEA USGS Completeness Job: $(date)",
@@ -134,8 +134,30 @@ with daily_dag:
     )
 
     # usgs_ls8_ard_aws_completeness
+    # Calculate USGS LS8 ARD Definitive completeness, comparing acquisitions with AWS ODC
+    usgs_ls8_ard_aws_product = dict(
+        acq_code="LC8%",
+        acq_categories=("T1", "T2"),
+        odc_code="ga_ls8c_ard_3",
+        suffix="aws",
+    )
+    usgs_ls8_ard_aws_completeness = utilities.k8s_operator(
+        dag=daily_dag,
+        image=ETL_IMAGE,
+        task_id="completeness-ls8-ard-aws",
+        cmds=[
+            "echo DEA USGS Completeness Job: $(date)",
+            "usgs-odc-completeness",
+        ],
+        env_vars={
+            "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
+            "DAYS": "90",
+            "PRODUCT": json.dumps(usgs_ls8_ard_aws_product),
+        },
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.aws_odc_secrets,
+    )
 
     usgs_acquisitions >> usgs_inserts
     usgs_inserts >> usgs_ls8_l1_nci_completeness
     usgs_inserts >> usgs_ls8_ard_nci_completeness
-    # usgs_inserts >> usgs_ls8_ard_aws_completeness
+    usgs_inserts >> usgs_ls8_ard_aws_completeness
