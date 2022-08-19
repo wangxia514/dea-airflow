@@ -31,8 +31,8 @@ default_args = {
 }
 
 monthly_dag = DAG(
-    f"rep_dea_currency_daily_{ENV}",
-    description="DAG for currency of dea products (run daily)",
+    f"rep_dea_currency_monthly_{ENV}",
+    description="DAG for currency of dea products (run monthly)",
     tags=["reporting"] if ENV == "prod" else ["reporting_dev"],
     default_args=default_args,
     schedule_interval="@monthly",
