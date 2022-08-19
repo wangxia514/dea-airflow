@@ -99,7 +99,7 @@ with daily_dag:
             env_vars={
                 "PRODUCT_ID": product.get("product_id"),
                 "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
-                "DAYS": product.get("days", "0")
+                "DAYS": str(product.get("days", 0))
             },
             secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.nci_odc_secrets
         )
