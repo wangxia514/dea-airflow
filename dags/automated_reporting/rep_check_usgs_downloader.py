@@ -17,7 +17,7 @@ default_args = {
     "email": ["ramkumar.ramagopalan@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
-    "start_date": dt(2022, 8, 20),
+    "start_date": dt(2022, 8, 17),
     "secrets": [
         Secret("env", "ACCESS_KEY", REPORTING_IAM_SQS_SECRET, "ACCESS_KEY"),
         Secret("env", "SECRET_KEY", REPORTING_IAM_SQS_SECRET, "SECRET_KEY"),
