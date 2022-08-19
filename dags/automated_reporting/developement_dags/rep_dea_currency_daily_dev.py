@@ -71,7 +71,7 @@ with daily_dag:
             env_vars={
                 "PRODUCT_ID": product_id,
                 "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
-                "DAYS": 90,
+                "DAYS": "90",
                 "PRODUCT_SUFFIX": "aws",
             },
             secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.aws_odc_secrets,
@@ -99,9 +99,9 @@ with daily_dag:
             env_vars={
                 "PRODUCT_ID": product.get("product_id"),
                 "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
-                "DAYS": product.get("days", 0),
+                "DAYS": product.get("days", "0")
             },
-            secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.nci_odc_secrets,
+            secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.nci_odc_secrets
         )
         for product in nci_products_list
     ]
