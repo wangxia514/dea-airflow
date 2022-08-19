@@ -91,7 +91,7 @@ with daily_dag:
     usgs_ls8_l1_nci_completeness = utilities.k8s_operator(
         dag=daily_dag,
         image=ETL_IMAGE,
-        task_id="usgs-completeness-ls8-l1",
+        task_id="completeness-ls8-l1-nci",
         cmds=utilities.NCI_TUNNEL_CMDS
         + [
             "echo DEA USGS Completeness Job: $(date)",
