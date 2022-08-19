@@ -33,7 +33,7 @@ dag = DAG(
 )
 
 ETL_IMAGE = (
-    "451924316694.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls-dev:latest"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls-dev:latest"
 )
 
 with dag:
