@@ -51,6 +51,8 @@ with dag:
         in_cluster=True,
         task_id="usgs_l1_nrt_downloads",
         get_logs=True,
+        task_concurrency=1,
+        do_xcom_push=True,
         env_vars={
             "QUEUE_NAME": "automated-reporting-ls-l1-nrt",
         }
