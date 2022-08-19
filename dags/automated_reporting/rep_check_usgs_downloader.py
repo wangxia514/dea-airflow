@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
-
 """
 aws cost stats dag for ga-aws-dea
 """
-
 # The DAG object; we'll need this to instantiate a DAG
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-from datetime import datetime as dt, timedelta
 from infra.variables import REPORTING_IAM_SQS_SECRET
 
 default_args = {
@@ -28,7 +25,7 @@ default_args = {
 dag = DAG(
     "rep_usgs_l1_nrt_downloads",
     description="DAG for usgs_l1_nrt_downloads dev",
-    tags=["reporting"],
+    tags=["reporting_dev"],
     default_args=default_args,
     schedule_interval=None,
 )
