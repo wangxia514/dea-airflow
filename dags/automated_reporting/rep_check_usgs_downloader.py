@@ -3,6 +3,7 @@
 aws cost stats dag for ga-aws-dea
 """
 # The DAG object; we'll need this to instantiate a DAG
+from datetime import datetime as dt
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
@@ -16,6 +17,7 @@ default_args = {
     "email": ["ramkumar.ramagopalan@ga.gov.au"],
     "email_on_failure": True,
     "email_on_retry": False,
+    "start_date": dt(2022, 8, 20),
     "secrets": [
         Secret("env", "ACCESS_KEY", REPORTING_IAM_SQS_SECRET, "ACCESS_KEY"),
         Secret("env", "SECRET_KEY", REPORTING_IAM_SQS_SECRET, "SECRET_KEY"),
