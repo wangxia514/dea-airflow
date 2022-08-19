@@ -31,7 +31,7 @@ default_args = {
 }
 
 daily_dag = DAG(
-    f"rep_dea_currency_daily_v2_{ENV}",
+    f"rep_dea_currency_daily_{ENV}",
     description="DAG for currency of dea products (run daily)",
     tags=["reporting"] if ENV == "prod" else ["reporting_dev"],
     default_args=default_args,
@@ -99,9 +99,9 @@ with daily_dag:
             env_vars={
                 "PRODUCT_ID": product.get("product_id"),
                 "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
-                "DAYS": str(product.get("days", 0))
+                "DAYS": str(product.get("days", 0)),
             },
-            secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.nci_odc_secrets
+            secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.nci_odc_secrets,
         )
         for product in nci_products_list
     ]
