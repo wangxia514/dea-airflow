@@ -52,7 +52,7 @@ with dag:
         task_id="usgs_l1_nrt_downloads",
         get_logs=True,
         env_vars={
-            "QUEUE_NAME": "automated-reporting-ls-l1-nrt”",
+            "QUEUE_NAME": "automated-reporting-ls-l1-nrt",
         }
     )
     usgs_l1_nrt_downloads
