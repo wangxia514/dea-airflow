@@ -51,7 +51,6 @@ with dag:
         get_logs=True,
         env_vars={
             "QUEUE_NAME": "automated-reporting-ls-l1-nrt”",
-        },
-        execution_timeout=timedelta(minutes=30),
+        }
     )
     usgs_l1_nrt_downloads
