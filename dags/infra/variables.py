@@ -154,5 +154,5 @@ STATSD_HOST = Variable.get("statsd_host", default_var="localhost")
 STATSD_PORT = Variable.get("statsd_port", default_var="8125")
 
 REPORTING_IAM_SQS_SECRET = Variable.get(
-    "reporting_iam_sqs_secret", default_var="reporting-iam-sqs.creds"
+    "reporting_iam_sqs_secret", default_var="reporting-iam-sqs"
 )
