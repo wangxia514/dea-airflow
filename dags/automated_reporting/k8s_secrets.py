@@ -50,8 +50,8 @@ m2m_api_secrets = [
 ]
 
 sqs_secrets = [
-        Secret("env", "ACCESS_KEY", "reporting-iam-sqs", "ACCESS_KEY"),
-        Secret("env", "SECRET_KEY", "reporting-iam-sqs", "SECRET_KEY"),
+    Secret("env", "ACCESS_KEY", "reporting-iam-sqs", "ACCESS_KEY"),
+    Secret("env", "SECRET_KEY", "reporting-iam-sqs", "SECRET_KEY"),
 ]
 
 
