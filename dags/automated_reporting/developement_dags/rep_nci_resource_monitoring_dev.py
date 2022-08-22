@@ -65,10 +65,10 @@ with rapid_dag:
         cmds=[
             "echo Configuring SSH",
             "mkdir -p ~/.ssh",
-            'cat /var/secrets/lpgs/LPGS_COMMANDS_KEY > "~/.ssh/identity_file.pem"',
+            "cat /var/secrets/lpgs/LPGS_COMMANDS_KEY > ~/.ssh/identity_file.pem",
             "chmod 0400 ~/.ssh/identity_file.pem",
             "echo SSH Key Generated",
-            'ssh -o "IdentitiesOnly=yes" -i "~/.ssh/identity_file.pem" \
+            'ssh -o "IdentitiesOnly=yes" -i ~/.ssh/identity_file.pem \
                 $NCI_TUNNEL_USER@$NCI_TUNNEL_HOST cat $NCI_DATA_CSV > $COMPUTE_DATA_FILE',
             "echo NCI Compute Ingestion job started: $(date)",
             "nci-compute-ingestion",
