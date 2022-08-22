@@ -47,6 +47,11 @@ with dag:
         "mkdir -p /airflow/xcom/",
         "usgs-l1-nrt-downloads /airflow/xcom/return.json",
     ]
+    JOBS2 = [
+        "echo usgs-l1-nrt-downloads job started: $(date)",
+        "mkdir -p /airflow/xcom/",
+        "usgs-l1-nrt-ingestion /airflow/xcom/return.json",
+    ]
     usgs_l1_nrt_downloads = KubernetesPodOperator(
         namespace="processing",
         image=ETL_IMAGE,
@@ -65,14 +70,14 @@ with dag:
     usgs_l1_nrt_ingestion = KubernetesPodOperator(
         namespace="processing",
         image=ETL_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(JOBS1)],
+        arguments=["bash", "-c", " &&\n".join(JOBS2)],
         name="usgs_l1_nrt_ingestion",
         is_delete_operator_pod=True,
         in_cluster=True,
         task_id="usgs_l1_nrt_ingestion",
         get_logs=True,
         task_concurrency=1,
-        do_xcom_push=True,
+        do_xcom_push=False,
         env_vars={
             "METRICS": "{{ task_instance.xcom_pull(task_ids='usgs_l1_nrt_downloads') }}",
         }
