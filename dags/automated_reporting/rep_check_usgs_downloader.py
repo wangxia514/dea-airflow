@@ -49,8 +49,7 @@ with dag:
     ]
     JOBS2 = [
         "echo usgs-l1-nrt-downloads job started: $(date)",
-        "mkdir -p /airflow/xcom/",
-        "usgs-l1-nrt-ingestion /airflow/xcom/return.json",
+        "usgs-l1-nrt-ingestion",
     ]
     usgs_l1_nrt_downloads = KubernetesPodOperator(
         namespace="processing",
