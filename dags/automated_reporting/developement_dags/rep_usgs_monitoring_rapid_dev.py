@@ -204,7 +204,7 @@ with rapid_dag:
             "echo DEA USGS downloader job started: $(date)",
             "mkdir -p /airflow/xcom/",
             "usgs-acquisitions /airflow/xcom/return.json",
-        ],        
+        ],
         name="usgs_l1_nrt_downloads",
         is_delete_operator_pod=True,
         in_cluster=True,
@@ -224,7 +224,7 @@ with rapid_dag:
         cmds=[
             "echo DEA USGS Ingestion job started: $(date)",
             "usgs-l1-nrt-ingestion",
-        ],           
+        ],
         name="usgs_l1_nrt_inserts",
         is_delete_operator_pod=True,
         in_cluster=True,
