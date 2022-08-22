@@ -198,7 +198,7 @@ with rapid_dag:
     )
 
     usgs_l1_nrt_downloads = utilities.k8s_operator(
-        namespace="processing",
+        dag=rapid_dag,
         image=ETL_IMAGE,
         cmds=[
             "echo DEA USGS downloader job started: $(date)",
@@ -206,12 +206,8 @@ with rapid_dag:
             "usgs-acquisitions /airflow/xcom/return.json",
         ],
         name="usgs_l1_nrt_downloads",
-        is_delete_operator_pod=True,
-        in_cluster=True,
         task_id="usgs_l1_nrt_downloads",
-        get_logs=True,
-        task_concurrency=1,
-        do_xcom_push=True,
+        xcom=True,
         env_vars={
             "QUEUE_NAME": "automated-reporting-ls-l1-nrt",
         },
@@ -219,19 +215,14 @@ with rapid_dag:
     )
 
     usgs_l1_nrt_inserts = utilities.k8s_operator(
-        namespace="processing",
+        dag=rapid_dag,
         image=ETL_IMAGE,
         cmds=[
             "echo DEA USGS Ingestion job started: $(date)",
             "usgs-l1-nrt-ingestion",
         ],
         name="usgs_l1_nrt_inserts",
-        is_delete_operator_pod=True,
-        in_cluster=True,
         task_id="usgs_l1_nrt_inserts",
-        get_logs=True,
-        task_concurrency=1,
-        do_xcom_push=False,
         env_vars={
             "METRICS": "{{ task_instance.xcom_pull(task_ids='usgs_l1_nrt_downloads') }}",
         },
