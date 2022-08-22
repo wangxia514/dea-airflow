@@ -28,6 +28,12 @@ nci_odc_secrets = [
     Secret("env", "ODC_DB_PASSWORD", "reporting-nci-odc-db", "DB_PASSWORD"),
 ]
 
+nci_command_secrets = [
+    Secret("volume", "/var/secrets/lpgs", "lpgs-commands", "LPGS_COMMANDS_KEY"),
+    Secret("env", "NCI_TUNNEL_HOST", "reporting-nci-tunnel", "NCI_HOST"),
+    Secret("env", "NCI_TUNNEL_USER", "reporting-nci-tunnel", "NCI_USER"),
+]
+
 reporting_db_secrets = [
     Secret("env", "DB_HOST", "reporting-db", "DB_HOST"),
     Secret("env", "DB_NAME", "reporting-db", "DB_NAME"),
