@@ -29,7 +29,7 @@ nci_odc_secrets = [
 ]
 
 nci_command_secrets = [
-    Secret("volume", "/var/secrets/lpgs", "lpgs-commands", "LPGS_COMMANDS_KEY"),
+    Secret("volume", "/var/secrets/lpgs", "reporting-lpgs-commands", "LPGS_COMMANDS_KEY"),
     Secret("env", "NCI_TUNNEL_HOST", "reporting-nci-tunnel", "NCI_HOST"),
     Secret("env", "NCI_TUNNEL_USER", "reporting-nci-tunnel", "NCI_USER"),
 ]
