@@ -241,6 +241,6 @@ with rapid_dag:
     usgs_l1_nrt_downloads >> usgs_l1_nrt_inserts
     usgs_acquisitions >> usgs_inserts
     usgs_inserts >> usgs_ls8_ard_completeness
-    [ usgs_inserts, usgs_l1_nrt_inserts ] >> usgs_ls8_l1_completeness >> usgs_ls8_l1_currency
+    [usgs_inserts, usgs_l1_nrt_inserts] >> usgs_ls8_l1_completeness >> usgs_ls8_l1_currency
     usgs_inserts >> usgs_ls9_l1_completeness >> usgs_ls9_l1_currency
     usgs_acquisitions >> usgs_inserts_hg_l0

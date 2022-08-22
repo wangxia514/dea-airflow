@@ -54,6 +54,7 @@ sqs_secrets = [
         Secret("env", "SECRET_KEY", "reporting-iam-sqs", "SECRET_KEY"),
 ]
 
+
 def db_secrets(env):
     """
     Helper to get db secrets based on environment
