@@ -76,5 +76,5 @@ with dag:
         env_vars={
             "METRICS": "{{ task_instance.xcom_pull(task_ids='usgs_l1_nrt_downloads') }}",
         }
-    )    
+    )
     usgs_l1_nrt_downloads >> usgs_l1_nrt_ingestion
