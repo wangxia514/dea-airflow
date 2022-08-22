@@ -49,6 +49,10 @@ m2m_api_secrets = [
     Secret("env", "M2M_PASSWORD", "reporting-usgsm2m-api", "M2M_PASSWORD"),
 ]
 
+sqs_secrets = [
+        Secret("env", "ACCESS_KEY", "reporting-iam-sqs", "ACCESS_KEY"),
+        Secret("env", "SECRET_KEY", "reporting-iam-sqs", "SECRET_KEY"),
+]
 
 def db_secrets(env):
     """
