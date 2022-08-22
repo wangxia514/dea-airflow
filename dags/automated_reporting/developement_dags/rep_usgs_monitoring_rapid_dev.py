@@ -205,7 +205,6 @@ with rapid_dag:
             "mkdir -p /airflow/xcom/",
             "usgs-acquisitions /airflow/xcom/return.json",
         ],
-        name="usgs_l1_nrt_downloads",
         task_id="usgs_l1_nrt_downloads",
         xcom=True,
         env_vars={
@@ -221,7 +220,6 @@ with rapid_dag:
             "echo DEA USGS Ingestion job started: $(date)",
             "usgs-l1-nrt-ingestion",
         ],
-        name="usgs_l1_nrt_inserts",
         task_id="usgs_l1_nrt_inserts",
         env_vars={
             "METRICS": "{{ task_instance.xcom_pull(task_ids='usgs_l1_nrt_downloads') }}",
