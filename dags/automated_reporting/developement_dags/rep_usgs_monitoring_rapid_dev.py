@@ -17,7 +17,7 @@ from automated_reporting import k8s_secrets, utilities
 
 ENV = "dev"
 ETL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls-dev:9fad0a823a"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls-dev:latest"
 )
 
 default_args = {
@@ -197,8 +197,39 @@ with rapid_dag:
         secrets=k8s_secrets.db_secrets(ENV),
     )
 
+    usgs_l1_nrt_downloads = utilities.k8s_operator(
+        dag=rapid_dag,
+        image=ETL_IMAGE,
+        cmds=[
+            "echo DEA USGS downloader job started: $(date)",
+            "mkdir -p /airflow/xcom/",
+            "usgs-acquisitions /airflow/xcom/return.json",
+        ],
+        task_id="usgs_l1_nrt_downloads",
+        xcom=True,
+        env_vars={
+            "QUEUE_NAME": "automated-reporting-ls-l1-nrt",
+        },
+        secrets=k8s_secrets.sqs_secrets,
+    )
+
+    usgs_l1_nrt_inserts = utilities.k8s_operator(
+        dag=rapid_dag,
+        image=ETL_IMAGE,
+        cmds=[
+            "echo DEA USGS Ingestion job started: $(date)",
+            "usgs-l1-nrt-ingestion",
+        ],
+        task_id="usgs_l1_nrt_inserts",
+        env_vars={
+            "METRICS": "{{ task_instance.xcom_pull(task_ids='usgs_l1_nrt_downloads') }}",
+        },
+        secrets=k8s_secrets.db_secrets(ENV),
+    )
+
+    usgs_l1_nrt_downloads >> usgs_l1_nrt_inserts
     usgs_acquisitions >> usgs_inserts
     usgs_inserts >> usgs_ls8_ard_completeness
-    usgs_inserts >> usgs_ls8_l1_completeness >> usgs_ls8_l1_currency
+    [usgs_inserts, usgs_l1_nrt_inserts] >> usgs_ls8_l1_completeness >> usgs_ls8_l1_currency
     usgs_inserts >> usgs_ls9_l1_completeness >> usgs_ls9_l1_currency
     usgs_acquisitions >> usgs_inserts_hg_l0
