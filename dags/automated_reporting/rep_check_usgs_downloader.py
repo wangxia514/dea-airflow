@@ -9,7 +9,7 @@ from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-from infra.variables import REPORTING_IAM_SQS_SECRET
+from infra.variables import REPORTING_IAM_SQS_SECRET, REPORTING_DB_DEV_SECRET
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
@@ -21,6 +21,11 @@ default_args = {
     "secrets": [
         Secret("env", "ACCESS_KEY", REPORTING_IAM_SQS_SECRET, "ACCESS_KEY"),
         Secret("env", "SECRET_KEY", REPORTING_IAM_SQS_SECRET, "SECRET_KEY"),
+        Secret("env", "DB_HOST", REPORTING_DB_DEV_SECRET, "DB_HOST"),
+        Secret("env", "DB_NAME", REPORTING_DB_DEV_SECRET, "DB_NAME"),
+        Secret("env", "DB_PORT", REPORTING_DB_DEV_SECRET, "DB_PORT"),
+        Secret("env", "DB_USER", REPORTING_DB_DEV_SECRET, "DB_USER"),
+        Secret("env", "DB_PASSWORD", REPORTING_DB_DEV_SECRET, "DB_PASSWORD"),
     ],
 }
 
@@ -57,4 +62,19 @@ with dag:
             "QUEUE_NAME": "automated-reporting-ls-l1-nrt",
         }
     )
-    usgs_l1_nrt_downloads
+    usgs_l1_nrt_ingestion = KubernetesPodOperator(
+        namespace="processing",
+        image=ETL_IMAGE,
+        arguments=["bash", "-c", " &&\n".join(JOBS1)],
+        name="usgs_l1_nrt_ingestion",
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="usgs_l1_nrt_ingestion",
+        get_logs=True,
+        task_concurrency=1,
+        do_xcom_push=True,
+        env_vars={
+            "METRICS": "{{ task_instance.xcom_pull(task_ids='usgs_l1_nrt_downloads') }}",
+        }
+    )    
+    usgs_l1_nrt_downloads >> usgs_l1_nrt_ingestion
