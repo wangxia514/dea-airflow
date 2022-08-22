@@ -15,7 +15,7 @@ ETL_IMAGE = (
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt.now() - timedelta(hours=1),
+    "start_date": dt.now() - timedelta(hours=3),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": True if ENV == "prod" else False,
     "email_on_retry": False,
@@ -57,4 +57,28 @@ with rapid_dag:
         secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.nci_command_secrets,
     )
 
+    nci_compute = utilities.k8s_operator(
+        dag=rapid_dag,
+        image=ETL_IMAGE,
+        task_id="nci-compute-ingestion",
+        task_concurrency=1,
+        cmds=[
+            "echo Configuring SSH",
+            "mkdir -p ~/.ssh",
+            'cat /var/secrets/lpgs/LPGS_COMMANDS_KEY > "~/.ssh/identity_file.pem"',
+            "chmod 0400 ~/.ssh/identity_file.pem",
+            "echo SSH Key Generated",
+            'ssh -o "IdentitiesOnly=yes" -i "~/.ssh/identity_file.pem" \
+                $NCI_TUNNEL_USER@$NCI_TUNNEL_HOST cat $NCI_DATA_CSV > $COMPUTE_DATA_FILE',
+            "echo NCI Compute Ingestion job started: $(date)",
+            "nci-compute-ingestion",
+        ],
+        env_vars={
+            "COMPUTE_DATA_FILE": "/tmp/storage.csv",
+            "NCI_DATA_CSV": "/home/547/lpgs/project_ksu.log",
+        },
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.nci_command_secrets,
+    )
+
     nci_storage
+    nci_compute
