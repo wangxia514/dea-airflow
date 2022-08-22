@@ -203,7 +203,7 @@ with rapid_dag:
         cmds=[
             "echo DEA USGS downloader job started: $(date)",
             "mkdir -p /airflow/xcom/",
-            "usgs-acquisitions /airflow/xcom/return.json",
+            "usgs-l1-nrt-downloads /airflow/xcom/return.json",
         ],
         task_id="usgs_l1_nrt_downloads",
         xcom=True,
