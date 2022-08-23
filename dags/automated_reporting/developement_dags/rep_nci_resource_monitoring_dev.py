@@ -3,6 +3,7 @@
 """
 # pylint: skip-file
 from datetime import datetime as dt, timedelta
+from airflow.kubernetes.secret import Secret
 
 from airflow import DAG
 from automated_reporting import k8s_secrets, utilities
@@ -77,7 +78,17 @@ with rapid_dag:
             "COMPUTE_DATA_FILE": "/tmp/storage.csv",
             "NCI_DATA_CSV": "/home/547/lpgs/project_ksu.log",
         },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.nci_command_secrets,
+        secrets=k8s_secrets.db_secrets(ENV)
+        + [
+            Secret(
+                "volume",
+                "/var/secrets/lpgs",
+                "reporting-lpgs-commands",
+                "LPGS_COMMANDS_KEY",
+            ),
+            Secret("env", "NCI_TUNNEL_HOST", "reporting-nci-tunnel", "NCI_HOST"),
+            Secret("env", "NCI_TUNNEL_USER", "reporting-nci-tunnel", "NCI_USER"),
+        ],
     )
 
     nci_storage
