@@ -64,6 +64,7 @@ with rapid_dag:
         task_id="nci-compute-ingestion",
         task_concurrency=1,
         cmds=[
+            "echo $NCI_TUNNEL_HOST",
             "echo Configuring SSH",
             "mkdir -p ~/.ssh",
             "cat /var/secrets/lpgs/LPGS_COMMANDS_KEY > ~/.ssh/identity_file.pem",
@@ -78,17 +79,11 @@ with rapid_dag:
             "COMPUTE_DATA_FILE": "/tmp/storage.csv",
             "NCI_DATA_CSV": "/home/547/lpgs/project_ksu.log",
         },
-        secrets=k8s_secrets.db_secrets(ENV)
-        + [
-            Secret(
-                "volume",
-                "/var/secrets/lpgs",
-                "reporting-lpgs-commands",
-                "LPGS_COMMANDS_KEY",
-            ),
+        secrets=k8s_secrets.db_secrets(ENV) + [
+            Secret("volume", "/var/secrets/lpgs", "reporting-lpgs-commands", "LPGS_COMMANDS_KEY"),
             Secret("env", "NCI_TUNNEL_HOST", "reporting-nci-tunnel", "NCI_HOST"),
-            Secret("env", "NCI_TUNNEL_USER", "reporting-nci-tunnel", "NCI_USER"),
-        ],
+            Secret("env", "NCI_TUNNEL_USER", "reporting-nci-tunnel", "NCI_USER")
+        ]
     )
 
     nci_storage
