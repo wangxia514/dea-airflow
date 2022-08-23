@@ -5,12 +5,22 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 
-NCI_TUNNEL_CMDS = [
-    "echo Configuring SSH",
-    "mkdir -p ~/.ssh",
-    "cat /var/secrets/lpgs/PORT_FORWARDER_KEY > ~/.ssh/identity_file.pem",
-    "chmod 0400 ~/.ssh/identity_file.pem",
-    "echo SSH Key Generated",
+
+def configure_ssh_cmds(secret_key_name):
+    """
+    Common cmds for confiuring ssh key from kubernetes volume secret
+    """
+
+    return [
+        "echo Configuring SSH",
+        "mkdir -p ~/.ssh",
+        f"cat /var/secrets/lpgs/{secret_key_name} > ~/.ssh/identity_file.pem",
+        "chmod 0400 ~/.ssh/identity_file.pem",
+        "echo SSH Key Generated",
+    ]
+
+
+NCI_TUNNEL_CMDS = configure_ssh_cmds("PORT_FORWARDER_KEY") + [
     "echo Establishing NCI tunnel",
     "ssh -o StrictHostKeyChecking=no -f -N -i ~/.ssh/identity_file.pem -L 54320:$ODC_DB_HOST:$ODC_DB_PORT $NCI_TUNNEL_USER@$NCI_TUNNEL_HOST",
     "echo NCI tunnel established",

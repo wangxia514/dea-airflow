@@ -17,9 +17,7 @@ from airflow import DAG
 from automated_reporting import k8s_secrets, utilities
 
 ENV = "prod"
-ETL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.6.0"
-)
+ETL_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.7.0"
 
 default_args = {
     "owner": "Tom McAdam",
@@ -231,6 +229,10 @@ with rapid_dag:
     usgs_l1_nrt_downloads >> usgs_l1_nrt_inserts
     usgs_acquisitions >> usgs_inserts
     usgs_inserts >> usgs_ls8_ard_completeness
-    [usgs_inserts, usgs_l1_nrt_inserts] >> usgs_ls8_l1_completeness >> usgs_ls8_l1_currency
+    (
+        [usgs_inserts, usgs_l1_nrt_inserts]
+        >> usgs_ls8_l1_completeness
+        >> usgs_ls8_l1_currency
+    )
     usgs_inserts >> usgs_ls9_l1_completeness >> usgs_ls9_l1_currency
     usgs_acquisitions >> usgs_inserts_hg_l0
