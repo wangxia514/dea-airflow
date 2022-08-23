@@ -45,7 +45,7 @@ with rapid_dag:
             "cat /var/secrets/lpgs/LPGS_COMMAND_KEY > ~/.ssh/identity_file.pem",
             "chmod 0400 ~/.ssh/identity_file.pem",
             "echo SSH Key Generated",
-            'ssh -o "IdentitiesOnly=yes" -i ~/.ssh/identity_file.pem \
+            'ssh -o StrictHostKeyChecking=no -o "IdentitiesOnly=yes" -i ~/.ssh/identity_file.pem \
                 $NCI_TUNNEL_USER@$NCI_TUNNEL_HOST cat $NCI_DATA_CSV > $STORAGE_DATA_FILE',
             "echo NCI Storage Ingestion job started: $(date)",
             "nci-storage-ingestion",
@@ -68,7 +68,7 @@ with rapid_dag:
             "cat /var/secrets/lpgs/LPGS_COMMAND_KEY > ~/.ssh/identity_file.pem",
             "chmod 0400 ~/.ssh/identity_file.pem",
             "echo SSH Key Generated",
-            'ssh -o "IdentitiesOnly=yes" -i ~/.ssh/identity_file.pem \
+            'ssh -o StrictHostKeyChecking=no -o "IdentitiesOnly=yes" -i ~/.ssh/identity_file.pem \
                 $NCI_TUNNEL_USER@$NCI_TUNNEL_HOST cat $NCI_DATA_CSV > $COMPUTE_DATA_FILE',
             "echo NCI Compute Ingestion job started: $(date)",
             "nci-compute-ingestion",
