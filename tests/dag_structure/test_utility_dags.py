@@ -23,9 +23,7 @@ class testClass(unittest.TestCase):
 
     def test_ows_utility_dag(self):
         self.assertDagDictEqual(
-            {
-                "ows-update-range": [],
-            },
+            {"ows-update-range": ["reroll-pods"], "reroll-pods": []},
             ows_utility_dag,
         )
 
