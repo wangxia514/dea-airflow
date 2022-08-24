@@ -20,7 +20,7 @@ WAGL_IMAGE = (
 STAT_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/datacube-statistician:0.3.31"
 
 WAGL_IMAGE_POC = "geoscienceaustralia/dea-wagl-docker:0.1.12"
-WAGL_IMAGE_POC_LATEST = "geoscienceaustralia/dea-wagl-docker:latest"
+WAGL_IMAGE_POC_LATEST = "geoscienceaustralia/dea-wagl-docker:0.1.26"
 
 S5CMD_IMAGE = "peakcom/s5cmd:v1.4.0"
 
