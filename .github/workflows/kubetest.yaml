@@ -4,26 +4,54 @@ on:
 jobs:
   job1:
     runs-on: ubuntu-latest
-    name: build example and deploy to minikube
+    strategy:
+      matrix:
+        python-version: [3.8]
+        airflow-version: [2.2.2]
+    name: job1
     steps:
-    - uses: actions/checkout@v2
-    - name: Start minikube
-      uses: medyagh/setup-minikube@master
-    - name: Try the cluster !
-      run: kubectl get pods -A
-    - name: Build image
-      run: |
-        export SHELL=/bin/bash
-        eval $(minikube -p minikube docker-env)
-        docker build -f ./Dockerfile -t local/example .
-        echo -n "verifying images:"
-        docker images
-    - name: Deploy to minikube
-      run:
-        kubectl apply -f deploy-to-minikube.yaml
-    - name: Test service URLs
-      run: |
-        minikube service list
-        minikube service example --url
-        echo "------------------opening the service------------------"
-        curl $(minikube service example --url)
+      - name: start minikube
+        id: minikube
+        with:
+          minikube-version: 1.24.0
+          driver: docker
+          container-runtime: containerd
+          kubernetes-version: v1.22.3
+          cpus: 4
+          memory: 4000m
+          cni: bridge
+        uses: medyagh/setup-minikube@master
+      # now you can run kubectl to see the pods in the cluster
+      - name: kubectl
+        run: kubectl get pods -A
+
+      - name: checkout git
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Install Airflow and Lint
+        uses: s-weigand/setup-conda@v1
+        with:
+          update-conda: true
+          python-version: ${{ matrix.python-version }}
+          conda-channels: anaconda, conda-forge
+      - name: Check conda version
+        run: conda --version
+      - name: Check python
+        run: which python
+      - name: Install airflow and run pylint
+        run: |
+          pip install apache-airflow[amazon,cncf.kubernetes,sftp,postgres,redis,ssh,celery,http]==${{ matrix.airflow-version }} -c "https://raw.githubusercontent.com/apache/airflow/constraints-2.2.2/constraints-3.7.txt"
+          pip install -r requirements.txt -c constraints.txt
+          pip install pylint pylint-airflow -c constraints.txt
+          pylint --load-plugins=pylint_airflow --disable=C,W --disable=similarities dags
+
+      - name: run tests on dags
+        run: |
+          # export AIRFLOW__CORE__UNIT_TEST_MODE="True"
+          export PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}${PWD}/dags"
+          pip install pylint==2.7.2 pytest==6.2.2 pylint-airflow
+          pytest tests/dag_structure
+
+          pip install kubetest
+          pytest tests/buildpod/test_nginx.py
