@@ -572,7 +572,7 @@ def k8s_makecsvs(dag):
         dedent(
             """
             echo "Using dea-conflux image {image}"
-            dea-conflux stack --parquet-path {{{{ dag_run.conf.get("intermediatedir", "{intermediatedir}") }}}} --output {{{{ dag_run.conf.get("csvdir", "{csvdir}") }}}} --mode wit_tooling
+            dea-conflux stack --parquet-path {{{{ dag_run.conf.get("intermediatedir", "{intermediatedir}") }}}} --output {{{{ dag_run.conf.get("csvdir", "{csvdir}") }}}} --mode wit_tooling --remove-duplicated-data
             """.format(
                 image=CONFLUX_WIT_IMAGE,
                 csvdir=DEFAULT_PARAMS['csvdir'],

@@ -29,6 +29,6 @@ EXPLORER_UNSTABLE_IMAGE = "opendatacube/explorer:2.5.0-3-gd9f5a67"
 
 WATERBODIES_UNSTABLE_IMAGE = "geoscienceaustralia/dea-waterbodies:1.1.5-47-gea919a5"
 CONFLUX_UNSTABLE_IMAGE = "geoscienceaustralia/dea-conflux:0.1.12-1-g0eb520d"
-CONFLUX_WIT_IMAGE = "geoscienceaustralia/dea-conflux:0.1.12-76-gc6abddf"
+CONFLUX_WIT_IMAGE = "geoscienceaustralia/dea-conflux:0.1.13-2-g86fff06"
 CONFLUX_DEV_IMAGE = "geoscienceaustralia/dea-conflux:latest"
 CONFLUX_WATERBODIES_IMAGE = "geoscienceaustralia/dea-conflux:0.1.12-109-g8643fb4"
