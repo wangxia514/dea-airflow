@@ -38,7 +38,7 @@ jobs:
         run: which python
       - name: run test k8s
         run: |
-          pip install kubetest
-          pip freeze | grep kubetest
+          pip install k8scheck
+          pip freeze | grep k8scheck
           cd tests/buildpod
-          pytest  --kube-config=./.kube/config test_nginx.py
+          pytest  --kube-config=~/.kube/config test_nginx.py
