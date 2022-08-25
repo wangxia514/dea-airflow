@@ -261,4 +261,4 @@ with dag:
             compute_s2_ardp_completeness,
         ]
     )
-    [syn_l1_nrt_ingestion,insert_s2_acquisitions] >> compute_s2_l1_completeness
+    [syn_l1_nrt_ingestion, insert_s2_acquisitions] >> compute_s2_l1_completeness
