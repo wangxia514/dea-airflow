@@ -1,7 +1,7 @@
-import pytest
+# import pytest
 
 
-@pytest.mark.applymanifests("configs", files=["nginx.yaml"])
+# @pytest.mark.applymanifests("configs", files=["nginx.yaml"])
 def test_nginx(kube):
     """An example test against an Nginx deployment."""
 

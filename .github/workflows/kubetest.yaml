@@ -23,29 +23,29 @@ jobs:
       - name: kubectl
         run: kubectl get pods -A
 
-      - name: checkout git
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Install Airflow and Lint
-        uses: s-weigand/setup-conda@v1
-        with:
-          update-conda: true
-          python-version: ${{ matrix.python-version }}
-          conda-channels: anaconda, conda-forge
-      - name: Check conda version
-        run: conda --version
-      - name: Check python
-        run: which python
-      - name: Install airflow and run pytest
-        run: |
-          pip install apache-airflow[amazon,cncf.kubernetes,sftp,postgres,redis,ssh,celery,http]==${{ matrix.airflow-version }} -c "https://raw.githubusercontent.com/apache/airflow/constraints-2.2.2/constraints-3.7.txt"
-          pip install -r requirements.txt -c constraints.txt
-          pip install pylint pylint-airflow -c constraints.txt
+      # - name: checkout git
+      #   uses: actions/checkout@v2
+      #   with:
+      #     fetch-depth: 0
+      # - name: Install Airflow and Lint
+      #   uses: s-weigand/setup-conda@v1
+      #   with:
+      #     update-conda: true
+      #     python-version: ${{ matrix.python-version }}
+      #     conda-channels: anaconda, conda-forge
+      # - name: Check conda version
+      #   run: conda --version
+      # - name: Check python
+      #   run: which python
+      # - name: Install airflow and run pytest
+      #   run: |
+      #     pip install apache-airflow[amazon,cncf.kubernetes,sftp,postgres,redis,ssh,celery,http]==${{ matrix.airflow-version }} -c "https://raw.githubusercontent.com/apache/airflow/constraints-2.2.2/constraints-3.7.txt"
+      #     pip install -r requirements.txt -c constraints.txt
+      #     pip install pylint pylint-airflow -c constraints.txt
 
-          export PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}${PWD}/dags"
-          pip install pylint==2.7.2 pytest==6.2.2 pylint-airflow
-          pytest tests/dag_structure
+      #     export PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}${PWD}/dags"
+      #     pip install pylint==2.7.2 pytest==6.2.2 pylint-airflow
+      #     pytest tests/dag_structure
 
   job2:
     runs-on: ubuntu-latest
