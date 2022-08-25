@@ -253,7 +253,6 @@ with dag:
         },
     )
     syn_l1_nrt_download >> syn_l1_nrt_ingestion
-    
     (
         scihub_s2_acquisitions
         >> insert_s2_acquisitions
