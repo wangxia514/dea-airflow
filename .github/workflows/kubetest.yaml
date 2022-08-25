@@ -16,7 +16,7 @@ jobs:
           minikube-version: 1.24.0
           driver: docker
           container-runtime: containerd
-          kubernetes-version: v1.22.3
+          kubernetes-version: v1.21.3
           cni: bridge
         uses: medyagh/setup-minikube@master
       # now you can run kubectl to see the pods in the cluster
