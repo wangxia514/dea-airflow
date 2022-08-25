@@ -55,6 +55,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: run test k8s
+        run: |
           export PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}${PWD}/dags"
 
           pip install -r https://raw.githubusercontent.com/vapor-ware/kubetest/master/requirements.txt
