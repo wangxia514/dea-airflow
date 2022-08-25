@@ -50,7 +50,7 @@ default_args = {
 }
 
 dag = DAG(
-    "rep_esa_monitoring_prod",
+    "rep_esa_monitoring_dev",
     description="DAG ESA dev monitoring",
     tags=["reporting_dev"],
     default_args=default_args,
