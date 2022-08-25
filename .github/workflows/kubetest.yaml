@@ -47,5 +47,15 @@ jobs:
           pip install pylint==2.7.2 pytest==6.2.2 pylint-airflow
           pytest tests/dag_structure
 
+  job2:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout git
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: run test k8s
+          export PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}${PWD}/dags"
+
           pip install -r https://raw.githubusercontent.com/vapor-ware/kubetest/master/requirements.txt
           pytest tests/buildpod/test_nginx.py
