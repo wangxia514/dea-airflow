@@ -257,8 +257,8 @@ with dag:
         scihub_s2_acquisitions
         >> insert_s2_acquisitions
         >> [
-            compute_s2_l1_completeness,
-            [syn_l1_nrt_ingestion] >> compute_s2_ard_completeness,
+            compute_s2_ard_completeness,
             compute_s2_ardp_completeness,
         ]
     )
+    [syn_l1_nrt_ingestion, insert_s2_acquisitions] >> compute_s2_l1_completeness
