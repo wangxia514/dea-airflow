@@ -45,11 +45,11 @@ with dag:
     JOBS1 = [
         "echo sentinel-l1-nrt-downloads job started: $(date)",
         "mkdir -p /airflow/xcom/",
-        "sentinel-l1-nrt-downloads /airflow/xcom/return.json",
+        "usgs-l1-nrt-sentinel-downloads /airflow/xcom/return.json",
     ]
     JOBS2 = [
         "echo sentinel-l1-nrt-downloads job started: $(date)",
-        "sentinel-l1-nrt-ingestion",
+        "usgs-l1-nrt-sentinel-ingestion",
     ]
     sentinel_l1_nrt_downloads = KubernetesPodOperator(
         namespace="processing",
