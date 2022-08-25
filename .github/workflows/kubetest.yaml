@@ -37,19 +37,15 @@ jobs:
         run: conda --version
       - name: Check python
         run: which python
-      - name: Install airflow and run pylint
+      - name: Install airflow and run pytest
         run: |
           pip install apache-airflow[amazon,cncf.kubernetes,sftp,postgres,redis,ssh,celery,http]==${{ matrix.airflow-version }} -c "https://raw.githubusercontent.com/apache/airflow/constraints-2.2.2/constraints-3.7.txt"
           pip install -r requirements.txt -c constraints.txt
           pip install pylint pylint-airflow -c constraints.txt
-          pylint --load-plugins=pylint_airflow --disable=C,W --disable=similarities dags
 
-      - name: run tests on dags
-        run: |
-          # export AIRFLOW__CORE__UNIT_TEST_MODE="True"
           export PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}${PWD}/dags"
           pip install pylint==2.7.2 pytest==6.2.2 pylint-airflow
           pytest tests/dag_structure
 
-          pip install kubetest
+          pip install -r https://raw.githubusercontent.com/vapor-ware/kubetest/master/requirements.txt
           pytest tests/buildpod/test_nginx.py
