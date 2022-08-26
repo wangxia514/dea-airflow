@@ -16,6 +16,7 @@ from airflow.hooks.base_hook import BaseHook
 from airflow.models import Variable
 
 from infra import connections as infra_connections
+from automated_reporting import k8s_secrets, utilities
 
 
 def parse_connection(conn_obj):
@@ -57,8 +58,9 @@ dag = DAG(
     schedule_interval=timedelta(minutes=15),
 )
 
+ENV = "prod"
 ETL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.9.0"
 )
 
 with dag:
@@ -210,13 +212,41 @@ with dag:
             "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
         },
     )
-
+    syn_l1_nrt_download = utilities.k8s_operator(
+        dag=dag,
+        image=ETL_IMAGE,
+        cmds=[
+            "echo syn_l1_nrt_download job started: $(date)",
+            "mkdir -p /airflow/xcom/",
+            "syn_l1_nrt_downloads /airflow/xcom/return.json",
+        ],
+        task_id="syn_l1_nrt_download",
+        xcom=True,
+        env_vars={
+            "QUEUE_NAME": "dea-sandbox-eks-automated-reporting-sqs",
+        },
+        secrets=k8s_secrets.sqs_secrets,
+    )
+    syn_l1_nrt_ingestion = utilities.k8s_operator(
+        dag=dag,
+        image=ETL_IMAGE,
+        cmds=[
+            "echo syn_l1_nrt_ingestion job started: $(date)",
+            "syn_l1_nrt_ingestion",
+        ],
+        task_id="syn_l1_nrt_ingestion",
+        env_vars={
+            "METRICS": "{{ task_instance.xcom_pull(task_ids='syn_l1_nrt_download') }}",
+        },
+        secrets=k8s_secrets.db_secrets(ENV),
+    )
+    syn_l1_nrt_download >> syn_l1_nrt_ingestion
     (
         scihub_s2_acquisitions
         >> insert_s2_acquisitions
         >> [
-            compute_s2_l1_completeness,
             compute_s2_ard_completeness,
             compute_s2_ardp_completeness,
         ]
     )
+    [syn_l1_nrt_ingestion, insert_s2_acquisitions] >> compute_s2_l1_completeness
