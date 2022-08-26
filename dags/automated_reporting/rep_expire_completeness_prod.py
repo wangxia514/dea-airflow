@@ -33,9 +33,7 @@ default_args = {
     ],
 }
 
-ETL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
-)
+ETL_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
 
 dag = DAG(
     "rep_expire_completeness_prod",
@@ -56,6 +54,7 @@ with dag:
         "ga_s2bm_ard_provisional_3",
         "ga_ls7e_ard_provisional_3",
         "ga_ls8c_ard_provisional_3",
+        "ga_ls9c_ard_provisional_3",
         "ga_s2_ba_provisional_3",
         "ga_s2_wo_3",
         "esa_s2a_msi_l1c",
