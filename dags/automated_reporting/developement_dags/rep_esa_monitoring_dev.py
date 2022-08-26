@@ -131,7 +131,7 @@ with dag:
         task_concurrency=1,
         do_xcom_push=True,
         env_vars={
-            "QUEUE_NAME": "sentinel-sqs-test",
+            "QUEUE_NAME": "dea-sandbox-eks-automated-reporting-sqs",
         }
     )
     syn_l1_nrt_ingestion = KubernetesPodOperator(
