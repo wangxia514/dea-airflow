@@ -219,11 +219,11 @@ with dag:
             "echo syn_l1_nrt_download job started: $(date)",
             "mkdir -p /airflow/xcom/",
             "syn_l1_nrt_downloads /airflow/xcom/return.json",
-        ],        
+        ],
         task_id="syn_l1_nrt_download",
         xcom=True,
         env_vars={
-            "QUEUE_NAME": "sentinel-sqs-test",
+            "QUEUE_NAME": "dea-sandbox-eks-automated-reporting-sqs",
         },
         secrets=k8s_secrets.sqs_secrets,
     )
@@ -233,7 +233,7 @@ with dag:
         cmds=[
             "echo syn_l1_nrt_ingestion job started: $(date)",
             "syn_l1_nrt_ingestion",
-        ],          
+        ],
         task_id="syn_l1_nrt_ingestion",
         env_vars={
             "METRICS": "{{ task_instance.xcom_pull(task_ids='syn_l1_nrt_download') }}",
