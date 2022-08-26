@@ -13,7 +13,7 @@ from airflow.operators.dummy import DummyOperator
 from automated_reporting import k8s_secrets, utilities
 
 ENV = "prod"
-ETL_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.7.1"
+ETL_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.9.0"
 
 default_args = {
     "owner": "Tom McAdam",
