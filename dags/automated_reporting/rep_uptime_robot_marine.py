@@ -40,7 +40,7 @@ with dag:
     uptime_robot_processing_marine = utilities.k8s_operator(
         dag=dag,
         image=ETL_IMAGE,
-        cmds = [
+        cmds=[
             "echo uptime robot processing marine started: $(date)",
             "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
             "jsonresult=`python3 -c 'from nemo_reporting.uptime_robot import marine_uptime_robot_processing; marine_uptime_robot_processing.task()'`",
@@ -50,6 +50,6 @@ with dag:
             "MONITORING_IDS": "785233301, 785236465, 785236456, 785233316, 785233317, 785233343, 785233341, 785251927, 785251954, 785252068, 785252069, 790085518",
             "EXECUTION_DATE": "{{ ds }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV)   
+        secrets=k8s_secrets.db_secrets(ENV)
     )
     uptime_robot_processing_marine
