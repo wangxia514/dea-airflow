@@ -13,7 +13,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 )
 from datetime import datetime as dt, timedelta
 from infra.variables import REPORTING_IAM_DEA_S3_SECRET
-from infra.variables import REPORTING_DB_SECRET
+from automated_reporting import k8s_secrets, utilities
 from infra.variables import AWS_STORAGE_STATS_POD_COUNT
 import json
 
@@ -29,11 +29,6 @@ default_args = {
     "secrets": [
         Secret("env", "ACCESS_KEY", REPORTING_IAM_DEA_S3_SECRET, "ACCESS_KEY"),
         Secret("env", "SECRET_KEY", REPORTING_IAM_DEA_S3_SECRET, "SECRET_KEY"),
-        Secret("env", "DB_HOST", REPORTING_DB_SECRET, "DB_HOST"),
-        Secret("env", "DB_NAME", REPORTING_DB_SECRET, "DB_NAME"),
-        Secret("env", "DB_PORT", REPORTING_DB_SECRET, "DB_PORT"),
-        Secret("env", "DB_USER", REPORTING_DB_SECRET, "DB_USER"),
-        Secret("env", "DB_PASSWORD", REPORTING_DB_SECRET, "DB_PASSWORD"),
     ],
 }
 
@@ -45,6 +40,7 @@ dag = DAG(
     schedule_interval="0 14 * * *",  # daily at 1am AEDT
 )
 
+ENV = "prod"
 ETL_IMAGE = (
     "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
 )
@@ -106,38 +102,23 @@ def aggregate_metrics_from_collections(task_instance):
 
 
 with dag:
-    JOBS1 = [
+    k8s_task_download_inventory = utilities.k8s_operator(
+        dag=dag,
+        image=ETL_IMAGE,
+        cmds=[
         "echo AWS Storage job started - download: $(date)",
         "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
         "mkdir -p /airflow/xcom/",
         "aws-storage-download /airflow/xcom/return.json",
-    ]
-    JOBS2 = [
-        "echo AWS Storage job started - process: $(date)",
-        "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
-        "mkdir -p /airflow/xcom/",
-        "aws-storage-process /airflow/xcom/return.json",
-    ]
-    JOBS3 = [
-        "echo AWS Storage job started - ingestion to db: $(date)",
-        "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
-        "aws-storage-ingestion",
-    ]
-    k8s_task_download_inventory = KubernetesPodOperator(
-        namespace="processing",
-        image=ETL_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(JOBS1)],
-        name="write-xcom",
-        do_xcom_push=True,
-        is_delete_operator_pod=True,
-        in_cluster=True,
+        ] ,
+        xcom=True,
         task_id="get_inventory_files",
-        get_logs=True,
         env_vars={
             "POD_COUNT": AWS_STORAGE_STATS_POD_COUNT,
             "REPORTING_BUCKET": "dea-public-data-inventory",
             "REPORTING_DATE": "{{ ds }}",
         },
+        secrets=k8s_secrets.db_secrets(ENV)
     )
 
     aggregate_metrics = PythonOperator(
@@ -146,21 +127,21 @@ with dag:
         provide_context=True,
     )
 
-    push_to_db = KubernetesPodOperator(
-        namespace="processing",
+    push_to_db = utilities.k8s_operator(
+        dag=dag,
         image=ETL_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(JOBS3)],
-        name="write-xcom",
-        do_xcom_push=False,
-        is_delete_operator_pod=True,
-        in_cluster=True,
+        cmds=[
+            "echo AWS Storage job started - ingestion to db: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+            "aws-storage-ingestion",
+        ],
         task_id="push_to_db",
-        get_logs=True,
         env_vars={
             "METRICS" : "{{ task_instance.xcom_pull(task_ids='aggregate_metrics', key='metrics') }}",
             "REPORTING_BUCKET": "dea-public-data-inventory",
             "REPORTING_DATE": "{{ ds }}",
         },
+        secrets=k8s_secrets.db_secrets(ENV)
     )
 
     # k8s_task_download_inventory >> metrics_task1 >> metrics_task2 >> metrics_task3
@@ -168,19 +149,21 @@ with dag:
     for i in range(1, int(AWS_STORAGE_STATS_POD_COUNT) + 1):
         counter = str(i)
         metrics_tasks[i] = KubernetesPodOperator(
-            namespace="processing",
+            dag=dag,
             image=ETL_IMAGE,
-            arguments=["bash", "-c", " &&\n".join(JOBS2)],
-            name="write-xcom",
-            do_xcom_push=True,
-            is_delete_operator_pod=True,
-            in_cluster=True,
+            cmds=[
+                "echo AWS Storage job started - process: $(date)",
+                "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
+                "mkdir -p /airflow/xcom/",
+                "aws-storage-process /airflow/xcom/return.json",
+            ],
+            xcom=True,
             task_id=f"collection{i}",
-            get_logs=True,
             env_vars={
                 "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}",
                 "REPORTING_BUCKET": "dea-public-data-inventory",
                 "COUNTER" : counter,
             },
+            secrets=k8s_secrets.db_secrets(ENV)
         )
         k8s_task_download_inventory >> metrics_tasks[i] >> aggregate_metrics >> push_to_db
