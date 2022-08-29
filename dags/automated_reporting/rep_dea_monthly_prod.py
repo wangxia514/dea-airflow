@@ -65,7 +65,7 @@ with dag:
         image=ETL_IMAGE,
         cmds=[
             "echo fk4 user stats processing: $(date)",
-            "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
             "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fk4_user_stats_processing; fk4_user_stats_processing.task()'`",
         ],
         task_id="fk4_processing",

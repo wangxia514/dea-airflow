@@ -58,7 +58,7 @@ with daily_dag:
     ]
     AWS_ODC_CURRENCY_JOB = [
         "echo DEA AWS ODC Currency job started: $(date)",
-        "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
+        "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
         "odc-currency",
     ]
     daily_aws_odc_tasks = [
@@ -87,7 +87,6 @@ with daily_dag:
         "echo DEA NCI ODC Currency job started: $(date)",
         "export ODC_DB_HOST=localhost",
         "export ODC_DB_PORT=54320",
-        "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
         "odc-currency-views",
     ]
     daily_nci_odc_tasks = [

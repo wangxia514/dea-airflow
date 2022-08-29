@@ -52,7 +52,7 @@ with dag:
 
     usgs_inserts_job = [
         "echo DEA Expire Completeness job started: $(date)",
-        "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
+        "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
         "expire-completeness",
     ]
     usgs_inserts = utilities.k8s_operator(
@@ -60,7 +60,7 @@ with dag:
         image=ETL_IMAGE,
         cmds=[
             "echo DEA Expire Completeness job started: $(date)",
-            "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
             "expire-completeness",
         ],
         task_id="expire-completeness",

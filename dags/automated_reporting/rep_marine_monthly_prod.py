@@ -77,11 +77,6 @@ with dag:
     #    "pip install ga-reporting-etls==1.18.0",
     #    "jsonresult=`python3 -c 'from nemo_reporting.user_stats import pw31_user_stats_processing; pw31_user_stats_processing.task()'`",
     # ]
-    JOBS7 = [
-        "echo Elvis ingestion processing: $(date)",
-        "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
-        "marine-elvis-ingestion",
-    ]
     START = DummyOperator(task_id="marine-monthly-stats")
     # fk1_ingestion = KubernetesPodOperator(
     #    namespace="processing",

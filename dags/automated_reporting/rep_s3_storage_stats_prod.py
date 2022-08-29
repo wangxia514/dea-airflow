@@ -104,7 +104,7 @@ with dag:
         image=ETL_IMAGE,
         cmds=[
             "echo AWS Storage job started - download: $(date)",
-            "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
             "mkdir -p /airflow/xcom/",
             "aws-storage-download /airflow/xcom/return.json",
         ] ,
@@ -150,7 +150,7 @@ with dag:
             image=ETL_IMAGE,
             cmds=[
                 "echo AWS Storage job started - process: $(date)",
-                "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
+                "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
                 "mkdir -p /airflow/xcom/",
                 "aws-storage-process /airflow/xcom/return.json",
             ],
