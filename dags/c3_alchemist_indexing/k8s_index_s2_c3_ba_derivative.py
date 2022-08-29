@@ -84,9 +84,9 @@ dag = DAG(
     "k8s_index_s2_c3_ba_derivative",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
-    schedule_interval="0,30 * * * * *",
+    schedule_interval="0,30 * * * *",
     catchup=False,
-    tags=["k8s", "burns_s2", "sentinel2_derivatives"],
+    tags=["k8s", "burns_s2", "sentinel_2", "derivatives"],
 )
 
 with dag:
