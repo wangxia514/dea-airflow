@@ -145,7 +145,7 @@ with dag:
     metrics_tasks = {}
     for i in range(1, int(AWS_STORAGE_STATS_POD_COUNT) + 1):
         counter = str(i)
-        metrics_tasks[i] = KubernetesPodOperator(
+        metrics_tasks[i] = utilities.k8s_operator(
             dag=dag,
             image=ETL_IMAGE,
             cmds=[
