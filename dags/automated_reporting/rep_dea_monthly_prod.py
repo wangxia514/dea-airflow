@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy import DummyOperator
-from dags.automated_reporting import utilities, k8s_secrets
+from automated_reporting import utilities, k8s_secrets
 from infra.variables import REPORTING_IAM_REP_S3_SECRET
 
 default_args = {

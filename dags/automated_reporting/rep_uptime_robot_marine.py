@@ -6,7 +6,7 @@ uptime robot marine dag
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from datetime import datetime as dt, timedelta
-from dags.automated_reporting import utilities, k8s_secrets
+from automated_reporting import k8s_secrets, utilities
 from infra.variables import REPORTING_UPTIME_API_SECRET
 
 default_args = {
