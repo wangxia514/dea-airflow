@@ -156,3 +156,7 @@ STATSD_PORT = Variable.get("statsd_port", default_var="8125")
 REPORTING_IAM_SQS_SECRET = Variable.get(
     "reporting_iam_sqs_secret", default_var="reporting-iam-sqs"
 )
+
+C3_BA_ALCHEMIST_SECRET = Variable.get(
+    "s2_c3_ba_indexing_secret", "s2-c3-ba-derivative-user-creds"
+)
