@@ -8,9 +8,6 @@ aws storage stats dag
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.operators.python_operator import PythonOperator
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
-    KubernetesPodOperator,
-)
 from datetime import datetime as dt, timedelta
 from infra.variables import REPORTING_IAM_DEA_S3_SECRET
 from automated_reporting import k8s_secrets, utilities
@@ -106,10 +103,10 @@ with dag:
         dag=dag,
         image=ETL_IMAGE,
         cmds=[
-        "echo AWS Storage job started - download: $(date)",
-        "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
-        "mkdir -p /airflow/xcom/",
-        "aws-storage-download /airflow/xcom/return.json",
+            "echo AWS Storage job started - download: $(date)",
+            "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
+            "mkdir -p /airflow/xcom/",
+            "aws-storage-download /airflow/xcom/return.json",
         ] ,
         xcom=True,
         task_id="get_inventory_files",
