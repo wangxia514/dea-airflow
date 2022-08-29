@@ -21,7 +21,7 @@ default_args = {
     "retry_delay": timedelta(minutes=5),
 }
 
-ENV="prod"
+ENV = "prod"
 ETL_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
 
 dag = DAG(

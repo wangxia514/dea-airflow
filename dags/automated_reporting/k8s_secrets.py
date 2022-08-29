@@ -68,6 +68,7 @@ reporting_master_db_secret = [
     Secret("env", "REP_DB_URI", "reporting-master-db", "REP_DB_URI"),
 ]
 
+
 def db_secrets(env):
     """
     Helper to get db secrets based on environment

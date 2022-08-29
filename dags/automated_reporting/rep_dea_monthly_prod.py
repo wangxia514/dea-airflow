@@ -36,7 +36,7 @@ dag = DAG(
     schedule_interval="0 14 1 * *",
 )
 
-ENV="prod"
+ENV = "prod"
 ETL_IMAGE = (
     "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
 )
@@ -64,9 +64,9 @@ with dag:
         dag=dag,
         image=ETL_IMAGE,
         cmds=[
-        "echo fk4 user stats processing: $(date)",
-        "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
-        "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fk4_user_stats_processing; fk4_user_stats_processing.task()'`",
+            "echo fk4 user stats processing: $(date)",
+            "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
+            "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fk4_user_stats_processing; fk4_user_stats_processing.task()'`",
         ],
         task_id="fk4_processing",
         env_vars={

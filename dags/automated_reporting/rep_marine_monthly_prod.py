@@ -10,9 +10,6 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
-    KubernetesPodOperator,
-)
 from airflow.operators.dummy import DummyOperator
 from airflow.models import Variable
 
@@ -33,12 +30,10 @@ default_args = {
         Secret("env", "SECRET_KEY", REPORTING_IAM_REP_S3_SECRET, "SECRET_KEY"),
     ],
 }
-
-ENV="prod"
+ENV = "prod"
 ETL_IMAGE = (
     "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
 )
-
 dag = DAG(
     "rep_marine_monthly_prod",
     description="DAG for marine ungrouped user stats",
