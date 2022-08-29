@@ -43,7 +43,6 @@ ETL_IMAGE = (
 # fmt: off
 JOBS = [
     "echo Reporting task started: $(date)",
-    "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
     "marine-google-analytics"
 ]
 

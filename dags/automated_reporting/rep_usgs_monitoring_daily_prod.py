@@ -17,7 +17,7 @@ from airflow import DAG
 from automated_reporting import k8s_secrets, utilities
 
 ENV = "prod"
-ETL_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.9.0"
+ETL_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.10.0"
 
 default_args = {
     "owner": "Tom McAdam",
@@ -51,7 +51,7 @@ with daily_dag:
         task_concurrency=1,
         cmds=[
             "echo DEA USGS Acquisitions job started: $(date)",
-            "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
             "mkdir -p /airflow/xcom/",
             "usgs-acquisitions /airflow/xcom/return.json",
         ],
@@ -147,7 +147,7 @@ with daily_dag:
         task_id="completeness-ls8-ard-aws",
         cmds=[
             "echo DEA USGS Completeness Job: $(date)",
-            "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
             "usgs-odc-completeness",
         ],
         env_vars={

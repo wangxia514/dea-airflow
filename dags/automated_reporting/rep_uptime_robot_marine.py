@@ -33,7 +33,7 @@ dag = DAG(
 
 ENV = "prod"
 ETL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.10.0"
 )
 
 with dag:
@@ -42,7 +42,7 @@ with dag:
         image=ETL_IMAGE,
         cmds=[
             "echo uptime robot processing marine started: $(date)",
-            "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
             "jsonresult=`python3 -c 'from nemo_reporting.uptime_robot import marine_uptime_robot_processing; marine_uptime_robot_processing.task()'`",
         ],
         task_id="uptime_robot_processing_marine",
