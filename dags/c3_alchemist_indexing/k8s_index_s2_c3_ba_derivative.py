@@ -75,7 +75,7 @@ DEFAULT_ARGS = {
             "env",
             "BURNS_SNS_INDEXING_QUEUE",
             C3_BA_ALCHEMIST_SECRET,
-            "BA_INDEXING_QUEUE:",
+            "BA_INDEXING_QUEUE",
         ),
     ],
 }
