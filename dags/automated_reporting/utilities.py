@@ -1,6 +1,7 @@
 """
 Common code needed for reporting dags
 """
+from datetime import timedelta
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
@@ -24,6 +25,7 @@ NCI_TUNNEL_CMDS = configure_ssh_cmds("PORT_FORWARDER_KEY") + [
     "echo Establishing NCI tunnel",
     "ssh -o StrictHostKeyChecking=no -f -N -i ~/.ssh/identity_file.pem -L 54320:$ODC_DB_HOST:$ODC_DB_PORT $NCI_TUNNEL_USER@$NCI_TUNNEL_HOST",
     "echo NCI tunnel established",
+    "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
 ]
 
 
@@ -46,4 +48,5 @@ def k8s_operator(
         task_concurrency=task_concurrency,
         env_vars=env_vars,
         secrets=secrets,
+        execution_timeout=timedelta(minutes=30),
     )

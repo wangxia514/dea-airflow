@@ -17,7 +17,7 @@ from airflow.operators.dummy import DummyOperator
 from airflow.models import Variable
 
 from infra.variables import REPORTING_IAM_REP_S3_SECRET
-from infra.variables import REPORTING_DB_SECRET
+from automated_reporting import k8s_secrets, utilities
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
@@ -31,14 +31,10 @@ default_args = {
     "secrets": [
         Secret("env", "ACCESS_KEY", REPORTING_IAM_REP_S3_SECRET, "ACCESS_KEY"),
         Secret("env", "SECRET_KEY", REPORTING_IAM_REP_S3_SECRET, "SECRET_KEY"),
-        Secret("env", "DB_HOST", REPORTING_DB_SECRET, "DB_HOST"),
-        Secret("env", "DB_NAME", REPORTING_DB_SECRET, "DB_NAME"),
-        Secret("env", "DB_PORT", REPORTING_DB_SECRET, "DB_PORT"),
-        Secret("env", "DB_USER", REPORTING_DB_SECRET, "DB_USER"),
-        Secret("env", "DB_PASSWORD", REPORTING_DB_SECRET, "DB_PASSWORD"),
     ],
 }
 
+ENV="prod"
 ETL_IMAGE = (
     "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
 )
@@ -88,6 +84,7 @@ with dag:
     # ]
     JOBS7 = [
         "echo Elvis ingestion processing: $(date)",
+        "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
         "marine-elvis-ingestion",
     ]
     START = DummyOperator(task_id="marine-monthly-stats")
@@ -181,20 +178,20 @@ with dag:
     #        "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
     #    },
     # )
-    elvis_ingestion = KubernetesPodOperator(
-        namespace="processing",
+    elvis_ingestion = utilities.k8s_operator(
+        dag=dag,
         image=ETL_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(JOBS7)],
-        name="elvis_ingestion",
-        do_xcom_push=False,
-        is_delete_operator_pod=True,
-        in_cluster=True,
+        cmds=[
+            "echo Elvis ingestion processing: $(date)",
+            "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
+            "marine-elvis-ingestion",
+        ],
         task_id="elvis_ingestion",
-        get_logs=True,
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
             "REPORTING_BUCKET": Variable.get("reporting_s3_bucket"),
         },
+        secrets=k8s_secrets.db_secrets(ENV),
     )
     # START >> fk1_ingestion >> fk1_processing
     # START >> iy57_ingestion >> iy57_processing

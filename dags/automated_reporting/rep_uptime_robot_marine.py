@@ -46,15 +46,13 @@ ETL_IMAGE = (
 with dag:
     JOBS1 = [
         "echo uptime robot processing marine started: $(date)",
+        "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
         "jsonresult=`python3 -c 'from nemo_reporting.uptime_robot import marine_uptime_robot_processing; marine_uptime_robot_processing.task()'`",
     ]
     uptime_robot_processing_marine = KubernetesPodOperator(
-        namespace="processing",
+        dag=dag,
         image=ETL_IMAGE,
         arguments=["bash", "-c", " &&\n".join(JOBS1)],
-        name="uptime_robot_processing_marine",
-        is_delete_operator_pod=True,
-        in_cluster=True,
         task_id="uptime_robot_processing_marine",
         get_logs=True,
         env_vars={

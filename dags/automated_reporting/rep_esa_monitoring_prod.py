@@ -67,6 +67,7 @@ with dag:
 
     SCIHUB_ACQS_TASK = [
         "echo Get SCIHUB acquisitions: $(date)",
+        
         "mkdir -p /airflow/xcom/",
         "esa-acquisitions /airflow/xcom/return.json",
     ]

@@ -43,6 +43,7 @@ with rapid_dag:
             'ssh -o StrictHostKeyChecking=no -o "IdentitiesOnly=yes" -i ~/.ssh/identity_file.pem \
                 $NCI_TUNNEL_USER@$NCI_TUNNEL_HOST cat $NCI_DATA_CSV > $STORAGE_DATA_FILE',
             "echo NCI Storage Ingestion job started: $(date)",
+            "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
             "nci-storage-ingestion",
         ],
         env_vars={
@@ -63,6 +64,7 @@ with rapid_dag:
             'ssh -o StrictHostKeyChecking=no -o "IdentitiesOnly=yes" -i ~/.ssh/identity_file.pem \
                 $NCI_TUNNEL_USER@$NCI_TUNNEL_HOST cat $NCI_DATA_CSV > $COMPUTE_DATA_FILE',
             "echo NCI Compute Ingestion job started: $(date)",
+            "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
             "nci-compute-ingestion",
         ],
         env_vars={

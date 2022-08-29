@@ -51,6 +51,7 @@ with daily_dag:
         task_concurrency=1,
         cmds=[
             "echo DEA USGS Acquisitions job started: $(date)",
+            "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
             "mkdir -p /airflow/xcom/",
             "usgs-acquisitions /airflow/xcom/return.json",
         ],
@@ -69,6 +70,7 @@ with daily_dag:
         task_id="usgs-inserts",
         cmds=[
             "echo DEA USGS Insert Acquisitions job started: $(date)",
+            "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
             "usgs-inserts",
         ],
         env_vars={
@@ -145,6 +147,7 @@ with daily_dag:
         task_id="completeness-ls8-ard-aws",
         cmds=[
             "echo DEA USGS Completeness Job: $(date)",
+            "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
             "usgs-odc-completeness",
         ],
         env_vars={

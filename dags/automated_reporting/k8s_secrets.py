@@ -60,9 +60,16 @@ sqs_secrets = [
     Secret("env", "SECRET_KEY", "reporting-iam-sqs", "SECRET_KEY"),
 ]
 
+reporting_dev_db_secret = [
+    Secret("env", "REP_DB_URI", "reporting-dev-db", "REP_DB_URI"),
+]
+
+reporting_master_db_secret = [
+    Secret("env", "REP_DB_URI", "reporting-master-db", "REP_DB_URI"),
+]
 
 def db_secrets(env):
     """
     Helper to get db secrets based on environment
     """
-    return reporting_db_secrets if env == "prod" else reporting_db_dev_secrets
+    return reporting_master_db_secret if env == "prod" else reporting_dev_db_secret

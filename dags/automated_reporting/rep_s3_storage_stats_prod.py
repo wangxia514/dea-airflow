@@ -108,16 +108,19 @@ def aggregate_metrics_from_collections(task_instance):
 with dag:
     JOBS1 = [
         "echo AWS Storage job started - download: $(date)",
+        "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
         "mkdir -p /airflow/xcom/",
         "aws-storage-download /airflow/xcom/return.json",
     ]
     JOBS2 = [
         "echo AWS Storage job started - process: $(date)",
+        "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
         "mkdir -p /airflow/xcom/",
         "aws-storage-process /airflow/xcom/return.json",
     ]
     JOBS3 = [
         "echo AWS Storage job started - ingestion to db: $(date)",
+        "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
         "aws-storage-ingestion",
     ]
     k8s_task_download_inventory = KubernetesPodOperator(

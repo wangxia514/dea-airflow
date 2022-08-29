@@ -8,13 +8,10 @@ cophub monthly dag for prod
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
-    KubernetesPodOperator,
-)
 from airflow.models import Variable
 from airflow.operators.dummy import DummyOperator
+from automated_reporting import k8s_secrets, utilities
 from infra.variables import REPORTING_IAM_REP_S3_SECRET
-from infra.variables import REPORTING_DB_SECRET
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
@@ -28,14 +25,10 @@ default_args = {
     "secrets": [
         Secret("env", "ACCESS_KEY", REPORTING_IAM_REP_S3_SECRET, "ACCESS_KEY"),
         Secret("env", "SECRET_KEY", REPORTING_IAM_REP_S3_SECRET, "SECRET_KEY"),
-        Secret("env", "DB_HOST", REPORTING_DB_SECRET, "DB_HOST"),
-        Secret("env", "DB_NAME", REPORTING_DB_SECRET, "DB_NAME"),
-        Secret("env", "DB_PORT", REPORTING_DB_SECRET, "DB_PORT"),
-        Secret("env", "DB_USER", REPORTING_DB_SECRET, "DB_USER"),
-        Secret("env", "DB_PASSWORD", REPORTING_DB_SECRET, "DB_PASSWORD"),
     ],
 }
 
+ENV = "prod"
 ETL_IMAGE = (
     "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
 )
@@ -49,46 +42,6 @@ dag = DAG(
 )
 
 with dag:
-    JOBS1 = [
-        "echo Sara history ingestion started: $(date)",
-        "sara-history-ingestion",
-    ]
-    JOBS2 = [
-        "echo Sara history processing: $(date)",
-        "sara-history-processing",
-    ]
-    JOBS3 = [
-        "echo Archie ingestion started: $(date)",
-        "archie-ingestion",
-    ]
-    JOBS4 = [
-        "echo Archie processing - SatToEsa started: $(date)",
-        "archie-latency sat_to_esa",
-    ]
-    JOBS5 = [
-        "echo Archie processing - EsaToNciTask started: $(date)",
-        "archie-latency esa_to_nci",
-    ]
-    JOBS6 = [
-        "echo Archie processing - EsaToNciS1Task started: $(date)",
-        "archie-latency esa_to_nci_s1",
-    ]
-    JOBS7 = [
-        "echo Archie processing - EsaToNciS2Task started: $(date)",
-        "archie-latency esa_to_nci_s2",
-    ]
-    JOBS8 = [
-        "echo Archie processing - EsaToNciS3Task started: $(date)",
-        "archie-latency esa_to_nci_s3",
-    ]
-    JOBS9 = [
-        "echo Archie processing - Downloads started: $(date)",
-        "archie-download-volume",
-    ]
-    JOBS10 = [
-        "echo FJ7 disk usage download and processing: $(date)",
-        "jsonresult=`python3 -c 'from nemo_reporting.fj7_storage import fj7_disk_usage; fj7_disk_usage.task()'`",
-    ]
     # JOBS11 = [
     #    "echo FJ7 user stats ingestion: $(date)",
     #    "pip install ga-reporting-etls==1.21.8",
@@ -101,139 +54,149 @@ with dag:
     #    "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fj7_user_stats_processing; fj7_user_stats_processing.task()'`",
     # ]
     START = DummyOperator(task_id="nci-monthly-stats")
-    sara_history_ingestion = KubernetesPodOperator(
-        namespace="processing",
+    sara_history_ingestion = utilities.k8s_operator(
+        dag=dag,
         image=ETL_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(JOBS1)],
-        name="sarra-history-ingestion",
-        is_delete_operator_pod=True,
-        in_cluster=True,
+        cmds=[
+            "echo Sara history ingestion started: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+            "sara-history-ingestion",
+        ],
         task_id="sara_history_ingestion",
-        get_logs=True,
         env_vars={
             "REPORTING_MONTH": "{{  dag_run.data_interval_start | ds }}",
             "REPORTING_BUCKET": Variable.get("reporting_s3_bucket"),
         },
+        secrets=k8s_secrets.db_secrets(ENV)
     )
-    sara_history_processing = KubernetesPodOperator(
-        namespace="processing",
+    sara_history_processing = utilities.k8s_operator(
+        dag=dag,
         image=ETL_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(JOBS2)],
-        name="sara-history-processing",
-        is_delete_operator_pod=True,
-        in_cluster=True,
+        cmds=[
+            "echo Sara history processing: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+            "sara-history-processing",
+        ],
         task_id="sara_history_processing",
-        get_logs=True,
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
+        secrets=k8s_secrets.db_secrets(ENV)
     )
-    archie_ingestion = KubernetesPodOperator(
-        namespace="processing",
+    archie_ingestion = utilities.k8s_operator(
+        dag=dag,
         image=ETL_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(JOBS3)],
-        name="archie_ingestion",
-        is_delete_operator_pod=True,
-        in_cluster=True,
+        cmds=[
+            "echo Archie ingestion started: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+            "archie-ingestion",
+        ],
         task_id="archie_ingestion",
-        get_logs=True,
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
             "REPORTING_BUCKET": Variable.get("reporting_s3_bucket"),
         },
+        secrets=k8s_secrets.db_secrets(ENV)
     )
-    archie_processing_sattoesa = KubernetesPodOperator(
-        namespace="processing",
+    archie_processing_sattoesa = utilities.k8s_operator(
+        dag=dag,
         image=ETL_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(JOBS4)],
-        name="archie_processing_sattoesa",
-        is_delete_operator_pod=True,
-        in_cluster=True,
+        cmds=[
+            "echo Archie processing - SatToEsa started: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+            "archie-latency sat_to_esa",
+        ],
         task_id="archie_processing_sattoesa",
-        get_logs=True,
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
+        secrets=k8s_secrets.db_secrets(ENV)
     )
-    archie_processing_esatoncitask = KubernetesPodOperator(
-        namespace="processing",
+    archie_processing_esatoncitask = utilities.k8s_operator(
+        dag=dag,
         image=ETL_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(JOBS5)],
-        name="archie_processing_esatoncitask",
-        is_delete_operator_pod=True,
-        in_cluster=True,
+        cmds=[
+            "echo Archie processing - EsaToNciTask started: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+            "archie-latency esa_to_nci",
+        ],
         task_id="archie_processing_esatoncitask",
-        get_logs=True,
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
+        secrets=k8s_secrets.db_secrets(ENV)
     )
-    archie_processing_esatoncis1task = KubernetesPodOperator(
-        namespace="processing",
+    archie_processing_esatoncis1task = utilities.k8s_operator(
+        dag=dag,
         image=ETL_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(JOBS6)],
-        name="archie_processing_esatoncis1task",
-        is_delete_operator_pod=True,
-        in_cluster=True,
+        cmds=[
+            "echo Archie processing - EsaToNciS1Task started: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+            "archie-latency esa_to_nci_s1",
+        ],
         task_id="archie_processing_esatoncis1task",
-        get_logs=True,
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
+        secrets=k8s_secrets.db_secrets(ENV)
     )
-    archie_processing_esatoncis2task = KubernetesPodOperator(
-        namespace="processing",
+    archie_processing_esatoncis2task = utilities.k8s_operator(
+        dag=dag,
         image=ETL_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(JOBS7)],
-        name="archie_processing_esatoncis2task",
-        is_delete_operator_pod=True,
-        in_cluster=True,
+        cmds=[
+            "echo Archie processing - EsaToNciS2Task started: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+            "archie-latency esa_to_nci_s2",
+        ],
         task_id="archie_processing_esatoncis2task",
-        get_logs=True,
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
+        secrets=k8s_secrets.db_secrets(ENV)
     )
-    archie_processing_esatoncis3task = KubernetesPodOperator(
-        namespace="processing",
+    archie_processing_esatoncis3task = utilities.k8s_operator(
+        dag=dag,
         image=ETL_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(JOBS8)],
-        name="archie_processing_esatoncis3task",
-        is_delete_operator_pod=True,
-        in_cluster=True,
+        cmds=[
+            "echo Archie processing - EsaToNciS3Task started: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+            "archie-latency esa_to_nci_s3",
+        ],
         task_id="archie_processing_esatoncis3task",
-        get_logs=True,
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
+        secrets=k8s_secrets.db_secrets(ENV)
     )
-    archie_processing_downloads = KubernetesPodOperator(
-        namespace="processing",
+    archie_processing_downloads = utilities.k8s_operator(
+        dag=dag,
         image=ETL_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(JOBS9)],
-        name="archie_processing_downloads",
-        is_delete_operator_pod=True,
-        in_cluster=True,
+        cmds=[
+            "echo Archie processing - Downloads started: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+            "archie-download-volume",
+        ],
         task_id="archie_processing_downloads",
-        get_logs=True,
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
+        secrets=k8s_secrets.db_secrets(ENV)
     )
-    fj7_disk_usage = KubernetesPodOperator(
-        namespace="processing",
+    fj7_disk_usage = utilities.k8s_operator(
+        dag=dag,
         image=ETL_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(JOBS10)],
-        name="fj7_disk_usage",
-        is_delete_operator_pod=True,
-        in_cluster=True,
+        cmds=[
+            "echo FJ7 disk usage download and processing: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+            "jsonresult=`python3 -c 'from nemo_reporting.fj7_storage import fj7_disk_usage; fj7_disk_usage.task()'`",
+        ],
         task_id="fj7_disk_usage",
-        get_logs=True,
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
+        secrets=k8s_secrets.db_secrets(ENV)
     )
-    # fj7_ungrouped_user_stats_ingestion = KubernetesPodOperator(
+    # fj7_ungrouped_user_stats_ingestion = utilities.k8s_operator(
     #    namespace="processing",
     #    image=ETL_IMAGE,
     #    arguments=["bash", "-c", " &&\n".join(JOBS11)],
@@ -248,7 +211,7 @@ with dag:
     #        "FILE_TO_PROCESS": "fj7",
     #    },
     # )
-    # fj7_ungrouped_user_stats_processing = KubernetesPodOperator(
+    # fj7_ungrouped_user_stats_processing = utilities.k8s_operator(
     #    namespace="processing",
     #    image=ETL_IMAGE,
     #    arguments=["bash", "-c", " &&\n".join(JOBS12)],

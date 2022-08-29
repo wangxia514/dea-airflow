@@ -50,6 +50,7 @@ with rapid_dag:
     ]
     AWS_ODC_CURRENCY_JOB = [
         "echo DEA AWS ODC Currency job started: $(date)",
+        "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
         "odc-currency",
     ]
     rapid_aws_odc_tasks = [
@@ -74,6 +75,7 @@ with rapid_dag:
     ]
     SNS_CURRENCY_JOB = [
         "echo DEA ODC Currency job started: $(date)",
+        "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
         "sns-currency",
     ]
     rapid_aws_sns_tasks = [

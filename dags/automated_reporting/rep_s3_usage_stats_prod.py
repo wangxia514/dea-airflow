@@ -49,6 +49,7 @@ dag = DAG(
 with dag:
     JOBS1 = [
         "echo AWS Usage job started: $(date)",
+        "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
         "aws-usage-ingestion",
     ]
     aws_s3_usage_stats_ingestion = KubernetesPodOperator(
