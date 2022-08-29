@@ -67,15 +67,13 @@ INDEXING_BASH_COMMAND = [
     "bash",
     "-c",
     dedent(
-        """
-            for uri in %s; do
-               s3-to-dc $uri "%s" --skip-lineage --no-sign-request --statsd-setting %s:%s;
+        f"""
+            for uri in {uri_string}; do
+               s3-to-dc $uri "{" ".join(INDEXING_PRODUCTS)}" --skip-lineage --no-sign-request --statsd-setting {STATSD_HOST}:{STATSD_PORT};
             done
         """
-    )
-    % (uri_string, " ".join(INDEXING_PRODUCTS), STATSD_HOST, STATSD_PORT),
+    ),
 ]
-
 
 # THE DAG
 dag = DAG(
