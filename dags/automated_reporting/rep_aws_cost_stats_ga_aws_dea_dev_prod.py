@@ -39,7 +39,7 @@ with dag:
         image=ETL_IMAGE,
         cmds=[
             "echo AWS Cost Stats job started: $(date)",
-            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env"
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
             "aws-cost-ingestion",
         ],
         task_id="aws_s3_cost_stats_ingestion",
