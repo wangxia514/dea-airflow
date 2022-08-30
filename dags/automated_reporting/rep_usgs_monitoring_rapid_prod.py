@@ -51,7 +51,6 @@ with rapid_dag:
         task_concurrency=1,
         cmds=[
             "echo DEA USGS Acquisitions job started: $(date)",
-            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
             "mkdir -p /airflow/xcom/",
             "usgs-acquisitions /airflow/xcom/return.json",
         ],
@@ -209,7 +208,6 @@ with rapid_dag:
         image=ETL_IMAGE,
         cmds=[
             "echo DEA USGS downloader job started: $(date)",
-            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
             "mkdir -p /airflow/xcom/",
             "usgs-l1-nrt-downloads /airflow/xcom/return.json",
         ],
