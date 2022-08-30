@@ -8,7 +8,6 @@ dea ungrouped user stats dag
 # pylint: disable=E0401
 from datetime import datetime, timedelta
 from airflow import DAG
-from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy import DummyOperator
 from automated_reporting import utilities, k8s_secrets
 

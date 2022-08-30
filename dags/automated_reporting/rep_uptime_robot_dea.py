@@ -6,7 +6,6 @@ uptime robot dea dag
 
 # The DAG object; we'll need this to instantiate a DAG
 from airflow import DAG
-from airflow.kubernetes.secret import Secret
 from datetime import datetime as dt, timedelta
 from automated_reporting import k8s_secrets, utilities
 

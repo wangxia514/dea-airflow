@@ -7,7 +7,6 @@ cophub monthly dag for prod
 # The DAG object; we'll need this to instantiate a DAG
 from datetime import datetime, timedelta
 from airflow import DAG
-from airflow.kubernetes.secret import Secret
 from airflow.models import Variable
 from airflow.operators.dummy import DummyOperator
 from automated_reporting import k8s_secrets, utilities
