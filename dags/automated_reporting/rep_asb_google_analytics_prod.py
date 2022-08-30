@@ -9,40 +9,37 @@ from datetime import datetime as dt, timedelta
 
 # The DAG object; we'll need this to instantiate a DAG
 from airflow import DAG
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
-    KubernetesPodOperator,
-)
-from airflow.models import Variable
 
-REP_CONN_STR = Variable.get("db_rep_secret")
-GOOGLE_ANALYTICS_CREDENTIALS_STR = Variable.get("google_analytics_apikey")
+from automated_reporting import k8s_secrets, utilities
+
+ENV = "prod"
+ETL_IMAGE = (
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.11.0"
+)
 
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
     "start_date": dt(2020, 6, 15),
     "email": ["tom.mcadam@ga.gov.au"],
-    "email_on_failure": True,
+    "email_on_failure": True if ENV == "prod" else False,
     "email_on_retry": False,
     "retries": 2,
     "retry_delay": timedelta(minutes=60),
 }
 
 dag = DAG(
-    "rep_asb_google_analytics_prod",
+    f"rep_asb_google_analytics_{ENV}",
     description="DAG pulling Google Analytics stats",
-    tags=["reporting"],
+    tags=["reporting"] if ENV == "prod" else ["reporting_dev"],
     default_args=default_args,
     schedule_interval="0 1 * * *",
 )
 
-ETL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
-)
-
 # fmt: off
-JOBS = [
+GOOGLE_ANALYTICS_JOB = [
     "echo Reporting task started: $(date)",
+    "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
     "marine-google-analytics"
 ]
 
@@ -132,22 +129,17 @@ with dag:
 
     def create_task(task_def):
         """Genrate tasks based on list of query parameters"""
-        return KubernetesPodOperator(
-            namespace="processing",
+        env_vars = {
+            "QUERY_DEFS": json.dumps(task_def["query_defs"]),
+            "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ds }}",
+        }
+        return utilities.k8s_operator(
+            dag=dag,
             image=ETL_IMAGE,
-            arguments=["bash", "-c", " &&\n".join(JOBS)],
-            name="write-xcom",
-            do_xcom_push=False,
-            is_delete_operator_pod=True,
-            in_cluster=True,
             task_id=task_def["id"],
-            get_logs=True,
-            env_vars={
-                "GOOGLE_ANALYTICS_CREDENTIALS": GOOGLE_ANALYTICS_CREDENTIALS_STR,
-                "QUERY_DEFS": json.dumps(task_def["query_defs"]),
-                "REP_CONN": REP_CONN_STR,
-                "EXECUTION_DATE": "{{ ds }}",
-            }
+            cmds=GOOGLE_ANALYTICS_JOB,
+            env_vars=env_vars,
+            secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.google_analytics_secret
         )
 
     [create_task(task_def) for task_def in tasks_list]
