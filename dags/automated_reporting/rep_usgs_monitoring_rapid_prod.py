@@ -17,7 +17,7 @@ from airflow import DAG
 from automated_reporting import k8s_secrets, utilities
 
 ENV = "prod"
-ETL_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.9.0"
+ETL_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.10.0"
 
 default_args = {
     "owner": "Tom McAdam",
@@ -51,6 +51,7 @@ with rapid_dag:
         task_concurrency=1,
         cmds=[
             "echo DEA USGS Acquisitions job started: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
             "mkdir -p /airflow/xcom/",
             "usgs-acquisitions /airflow/xcom/return.json",
         ],
@@ -69,6 +70,7 @@ with rapid_dag:
         task_id="usgs-inserts",
         cmds=[
             "echo DEA USGS Insert Acquisitions job started: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
             "usgs-inserts",
         ],
         env_vars={
@@ -85,6 +87,7 @@ with rapid_dag:
         task_id="usgs-inserts-hg-l0",
         cmds=[
             "echo DEA USGS Insert Acquisitions job started: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
             "usgs-inserts-hg-l0",
         ],
         env_vars={
@@ -105,6 +108,7 @@ with rapid_dag:
         xcom=True,
         cmds=[
             "echo DEA USGS Insert Acquisitions job started: $(date)",
+            "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
             "mkdir -p /airflow/xcom/",
             "usgs-s3-completeness /airflow/xcom/return.json",
         ],
@@ -129,6 +133,7 @@ with rapid_dag:
         xcom=True,
         cmds=[
             "echo DEA USGS Insert Acquisitions job started: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
             "mkdir -p /airflow/xcom/",
             "usgs-s3-completeness /airflow/xcom/return.json",
         ],
@@ -150,6 +155,7 @@ with rapid_dag:
         task_id="usgs-completeness-ls8-ard",
         cmds=[
             "echo DEA USGS Insert Acquisitions job started: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
             "usgs-odc-completeness",
         ],
         env_vars={
@@ -168,6 +174,7 @@ with rapid_dag:
         task_id="usgs-currency-ls8-l1",
         cmds=[
             "echo DEA USGS Insert Acquisitions job started: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
             "usgs-currency-from-completeness",
         ],
         env_vars={
@@ -186,6 +193,7 @@ with rapid_dag:
         task_id="usgs-currency-ls9-l1",
         cmds=[
             "echo DEA USGS Insert Acquisitions job started: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
             "usgs-currency-from-completeness",
         ],
         env_vars={
@@ -201,6 +209,7 @@ with rapid_dag:
         image=ETL_IMAGE,
         cmds=[
             "echo DEA USGS downloader job started: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
             "mkdir -p /airflow/xcom/",
             "usgs-l1-nrt-downloads /airflow/xcom/return.json",
         ],
@@ -217,6 +226,7 @@ with rapid_dag:
         image=ETL_IMAGE,
         cmds=[
             "echo DEA USGS Ingestion job started: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
             "usgs-l1-nrt-ingestion",
         ],
         task_id="usgs_l1_nrt_inserts",

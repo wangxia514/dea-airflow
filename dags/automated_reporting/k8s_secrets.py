@@ -9,6 +9,25 @@ s3_secrets = [
     Secret("env", "S3_SECRET_KEY", "reporting-airflow", "SECRET_KEY"),
 ]
 
+iam_dea_dev_secrets = [
+    Secret("env", "ACCESS_KEY", "reporting-iam-dea-dev", "ACCESS_KEY"),
+    Secret("env", "SECRET_KEY", "reporting-iam-dea-dev", "SECRET_KEY"),
+]
+
+iam_dea_secrets = [
+    Secret("env", "ACCESS_KEY", "reporting-iam-dea-s3", "ACCESS_KEY"),
+    Secret("env", "SECRET_KEY", "reporting-iam-dea-s3", "SECRET_KEY"),
+]
+
+iam_rep_secrets = [
+    Secret("env", "ACCESS_KEY", "reporting-iam-rep-s3", "ACCESS_KEY"),
+    Secret("env", "SECRET_KEY", "reporting-iam-rep-s3", "SECRET_KEY"),
+]
+
+uptime_api = [
+    Secret("env", "API_KEY", "reporting-uptime-api", "UPTIME_KEY"),
+]
+
 aws_odc_secrets = [
     Secret("env", "ODC_DB_HOST", "reporting-odc-db", "DB_HOST"),
     Secret("env", "ODC_DB_NAME", "reporting-odc-db", "DB_NAME"),
@@ -60,9 +79,17 @@ sqs_secrets = [
     Secret("env", "SECRET_KEY", "reporting-iam-sqs", "SECRET_KEY"),
 ]
 
+reporting_dev_db_secret = [
+    Secret("env", "REP_DB_URI", "reporting-dev-db", "REP_DB_URI"),
+]
+
+reporting_master_db_secret = [
+    Secret("env", "REP_DB_URI", "reporting-master-db", "REP_DB_URI"),
+]
+
 
 def db_secrets(env):
     """
     Helper to get db secrets based on environment
     """
-    return reporting_db_secrets if env == "prod" else reporting_db_dev_secrets
+    return reporting_master_db_secret if env == "prod" else reporting_dev_db_secret

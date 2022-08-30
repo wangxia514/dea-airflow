@@ -8,13 +8,8 @@ dea ungrouped user stats dag
 # pylint: disable=E0401
 from datetime import datetime, timedelta
 from airflow import DAG
-from airflow.kubernetes.secret import Secret
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
-    KubernetesPodOperator,
-)
 from airflow.operators.dummy import DummyOperator
-from infra.variables import REPORTING_IAM_REP_S3_SECRET
-from infra.variables import REPORTING_DB_SECRET
+from automated_reporting import utilities, k8s_secrets
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
@@ -25,15 +20,6 @@ default_args = {
     "email_on_retry": False,
     "retries": 90,
     "retry_delay": timedelta(days=1),
-    "secrets": [
-        Secret("env", "ACCESS_KEY", REPORTING_IAM_REP_S3_SECRET, "ACCESS_KEY"),
-        Secret("env", "SECRET_KEY", REPORTING_IAM_REP_S3_SECRET, "SECRET_KEY"),
-        Secret("env", "DB_HOST", REPORTING_DB_SECRET, "DB_HOST"),
-        Secret("env", "DB_NAME", REPORTING_DB_SECRET, "DB_NAME"),
-        Secret("env", "DB_PORT", REPORTING_DB_SECRET, "DB_PORT"),
-        Secret("env", "DB_USER", REPORTING_DB_SECRET, "DB_USER"),
-        Secret("env", "DB_PASSWORD", REPORTING_DB_SECRET, "DB_PASSWORD"),
-    ],
 }
 
 dag = DAG(
@@ -44,49 +30,43 @@ dag = DAG(
     schedule_interval="0 14 1 * *",
 )
 
+ENV = "prod"
 ETL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.10.0"
 )
 
 with dag:
-    JOBS1 = [
-        "echo fk4 user stats ingestion: $(date)",
-        "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fk4_user_stats_ingestion; fk4_user_stats_ingestion.task()'`",
-        "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
-    ]
-    JOBS2 = [
-        "echo fk4 user stats processing: $(date)",
-        "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fk4_user_stats_processing; fk4_user_stats_processing.task()'`",
-    ]
     START = DummyOperator(task_id="dea-ungrouped-user-stats")
-    fk4_ingestion = KubernetesPodOperator(
-        namespace="processing",
+    fk4_ingestion = utilities.k8s_operator(
+        dag=dag,
         image=ETL_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(JOBS1)],
-        name="write-xcom",
-        do_xcom_push=True,
-        is_delete_operator_pod=True,
-        in_cluster=True,
+        cmds=[
+            "echo fk4 user stats ingestion: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+            "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fk4_user_stats_ingestion; fk4_user_stats_ingestion.task()'`",
+            "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
+        ],
+        xcom=True,
         task_id="fk4_ingestion",
-        get_logs=True,
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
             "FILE_TO_PROCESS": "fk4",
         },
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets,
     )
-    fk4_processing = KubernetesPodOperator(
-        namespace="processing",
+    fk4_processing = utilities.k8s_operator(
+        dag=dag,
         image=ETL_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(JOBS2)],
-        name="fk4_processing",
-        do_xcom_push=False,
-        is_delete_operator_pod=True,
-        in_cluster=True,
+        cmds=[
+            "echo fk4 user stats processing: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+            "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fk4_user_stats_processing; fk4_user_stats_processing.task()'`",
+        ],
         task_id="fk4_processing",
-        get_logs=True,
         env_vars={
             "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fk4_ingestion') }}",
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
+        secrets=k8s_secrets.db_secrets(ENV),
     )
     START >> fk4_ingestion >> fk4_processing

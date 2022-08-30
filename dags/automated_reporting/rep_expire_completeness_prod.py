@@ -7,13 +7,8 @@ values and the aoi summary values.
 """
 import json
 from datetime import datetime as dt, timedelta
-
 from airflow import DAG
-from airflow.kubernetes.secret import Secret
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
-    KubernetesPodOperator,
-)
-from infra.variables import REPORTING_DB_SECRET
+from automated_reporting import k8s_secrets, utilities
 
 default_args = {
     "owner": "Tom McAdam",
@@ -24,16 +19,10 @@ default_args = {
     "email_on_retry": False,
     "retries": 2,
     "retry_delay": timedelta(minutes=5),
-    "secrets": [
-        Secret("env", "DB_HOST", REPORTING_DB_SECRET, "DB_HOST"),
-        Secret("env", "DB_NAME", REPORTING_DB_SECRET, "DB_NAME"),
-        Secret("env", "DB_PORT", REPORTING_DB_SECRET, "DB_PORT"),
-        Secret("env", "DB_USER", REPORTING_DB_SECRET, "DB_USER"),
-        Secret("env", "DB_PASSWORD", REPORTING_DB_SECRET, "DB_PASSWORD"),
-    ],
 }
 
-ETL_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.4.4"
+ENV = "prod"
+ETL_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.10.0"
 
 dag = DAG(
     "rep_expire_completeness_prod",
@@ -63,17 +52,18 @@ with dag:
 
     usgs_inserts_job = [
         "echo DEA Expire Completeness job started: $(date)",
+        "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
         "expire-completeness",
     ]
-    usgs_inserts = KubernetesPodOperator(
-        namespace="processing",
+    usgs_inserts = utilities.k8s_operator(
+        dag=dag,
         image=ETL_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(usgs_inserts_job)],
-        name="expire-completeness",
-        image_pull_policy="IfNotPresent",
-        is_delete_operator_pod=True,
-        in_cluster=True,
+        cmds=[
+            "echo DEA Expire Completeness job started: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+            "expire-completeness",
+        ],
         task_id="expire-completeness",
-        get_logs=True,
         env_vars={"PRODUCT_IDS": json.dumps(products_list)},
+        secrets=k8s_secrets.db_secrets(ENV),
     )
