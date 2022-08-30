@@ -9,6 +9,25 @@ s3_secrets = [
     Secret("env", "S3_SECRET_KEY", "reporting-airflow", "SECRET_KEY"),
 ]
 
+iam_dea_dev_secrets = [
+    Secret("env", "ACCESS_KEY", "reporting-iam-dea-dev", "ACCESS_KEY"),
+    Secret("env", "SECRET_KEY", "reporting-iam-dea-dev", "SECRET_KEY"),
+]
+
+iam_dea_secrets = [
+    Secret("env", "ACCESS_KEY", "reporting-iam-dea-s3", "ACCESS_KEY"),
+    Secret("env", "SECRET_KEY", "reporting-iam-dea-s3", "SECRET_KEY"),
+]
+
+iam_rep_secrets = [
+    Secret("env", "ACCESS_KEY", "reporting-iam-rep-s3", "ACCESS_KEY"),
+    Secret("env", "SECRET_KEY", "reporting-iam-rep-s3", "SECRET_KEY"),
+]
+
+uptime_api = [
+    Secret("env", "API_KEY", "reporting-uptime-api", "UPTIME_KEY"),
+]
+
 aws_odc_secrets = [
     Secret("env", "ODC_DB_HOST", "reporting-odc-db", "DB_HOST"),
     Secret("env", "ODC_DB_NAME", "reporting-odc-db", "DB_NAME"),

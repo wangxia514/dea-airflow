@@ -12,8 +12,6 @@ from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy import DummyOperator
 from airflow.models import Variable
-
-from infra.variables import REPORTING_IAM_REP_S3_SECRET
 from automated_reporting import k8s_secrets, utilities
 
 default_args = {
@@ -25,10 +23,6 @@ default_args = {
     "email_on_retry": False,
     "retries": 90,
     "retry_delay": timedelta(days=1),
-    "secrets": [
-        Secret("env", "ACCESS_KEY", REPORTING_IAM_REP_S3_SECRET, "ACCESS_KEY"),
-        Secret("env", "SECRET_KEY", REPORTING_IAM_REP_S3_SECRET, "SECRET_KEY"),
-    ],
 }
 ENV = "prod"
 ETL_IMAGE = (
@@ -181,7 +175,7 @@ with dag:
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
             "REPORTING_BUCKET": Variable.get("reporting_s3_bucket"),
         },
-        secrets=k8s_secrets.db_secrets(ENV),
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets,
     )
     # START >> fk1_ingestion >> fk1_processing
     # START >> iy57_ingestion >> iy57_processing

@@ -11,7 +11,6 @@ from airflow.kubernetes.secret import Secret
 from airflow.models import Variable
 from airflow.operators.dummy import DummyOperator
 from automated_reporting import k8s_secrets, utilities
-from infra.variables import REPORTING_IAM_REP_S3_SECRET
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
@@ -22,10 +21,6 @@ default_args = {
     "email_on_retry": False,
     "retries": 90,
     "retry_delay": timedelta(days=1),
-    "secrets": [
-        Secret("env", "ACCESS_KEY", REPORTING_IAM_REP_S3_SECRET, "ACCESS_KEY"),
-        Secret("env", "SECRET_KEY", REPORTING_IAM_REP_S3_SECRET, "SECRET_KEY"),
-    ],
 }
 
 ENV = "prod"
@@ -67,7 +62,7 @@ with dag:
             "REPORTING_MONTH": "{{  dag_run.data_interval_start | ds }}",
             "REPORTING_BUCKET": Variable.get("reporting_s3_bucket"),
         },
-        secrets=k8s_secrets.db_secrets(ENV)
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets
     )
     sara_history_processing = utilities.k8s_operator(
         dag=dag,
@@ -96,7 +91,7 @@ with dag:
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
             "REPORTING_BUCKET": Variable.get("reporting_s3_bucket"),
         },
-        secrets=k8s_secrets.db_secrets(ENV)
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets
     )
     archie_processing_sattoesa = utilities.k8s_operator(
         dag=dag,
@@ -194,7 +189,7 @@ with dag:
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV)
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets
     )
     # fj7_ungrouped_user_stats_ingestion = utilities.k8s_operator(
     #    namespace="processing",

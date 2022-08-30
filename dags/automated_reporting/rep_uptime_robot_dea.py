@@ -9,7 +9,6 @@ from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from datetime import datetime as dt, timedelta
 from automated_reporting import k8s_secrets, utilities
-from infra.variables import REPORTING_UPTIME_API_SECRET
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
@@ -20,9 +19,6 @@ default_args = {
     "email_on_retry": False,
     "retries": 3,
     "retry_delay": timedelta(days=1),
-    "secrets": [
-        Secret("env", "API_KEY", REPORTING_UPTIME_API_SECRET, "UPTIME_KEY"),
-    ],
 }
 
 dag = DAG(
@@ -52,6 +48,6 @@ with dag:
             "MONITORING_IDS": "784117804, 784122998, 784122995",
             "EXECUTION_DATE": "{{ ds }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV)
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.uptime_api,
     )
     uptime_robot_processing_dea

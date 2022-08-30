@@ -9,7 +9,6 @@ from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy import DummyOperator
 from datetime import datetime as dt, timedelta
-from infra.variables import REPORTING_IAM_DEA_S3_SECRET
 from automated_reporting import k8s_secrets, utilities
 
 default_args = {
@@ -21,10 +20,6 @@ default_args = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
-    "secrets": [
-        Secret("env", "ACCESS_KEY", REPORTING_IAM_DEA_S3_SECRET, "ACCESS_KEY"),
-        Secret("env", "SECRET_KEY", REPORTING_IAM_DEA_S3_SECRET, "SECRET_KEY"),
-    ],
 }
 
 dag = DAG(
@@ -55,7 +50,7 @@ with dag:
         env_vars={
             "REPORTING_BUCKET": "s3-server-access-logs-schedule",
         },
-        secrets=k8s_secrets.db_secrets(ENV)
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_dea_secrets
     )
     aws_s3_region_wise_scene_usage_ingestion = utilities.k8s_operator(
         dag=dag,
@@ -69,7 +64,7 @@ with dag:
         env_vars={
             "REPORTING_BUCKET": "s3-server-access-logs-schedule",
         },
-        secrets=k8s_secrets.db_secrets(ENV)
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_dea_secrets
     )
     aws_s3_ip_requester_wise_scene_usage_ingestion = utilities.k8s_operator(
         dag=dag,
@@ -83,7 +78,7 @@ with dag:
         env_vars={
             "REPORTING_BUCKET": "s3-server-access-logs-schedule",
         },
-        secrets=k8s_secrets.db_secrets(ENV)
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_dea_secrets,
     )
     START >> aws_s3_year_wise_scene_usage_ingestion
     START >> aws_s3_region_wise_scene_usage_ingestion

@@ -8,7 +8,6 @@ aws cost stats dag for ga-aws-dea-dev
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from datetime import datetime as dt, timedelta
-from infra.variables import REPORTING_IAM_DEA_DEV_SECRET
 from automated_reporting import k8s_secrets, utilities
 
 default_args = {
@@ -20,10 +19,6 @@ default_args = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
-    "secrets": [
-        Secret("env", "ACCESS_KEY", REPORTING_IAM_DEA_DEV_SECRET, "ACCESS_KEY"),
-        Secret("env", "SECRET_KEY", REPORTING_IAM_DEA_DEV_SECRET, "SECRET_KEY"),
-    ],
 }
 
 dag = DAG(
@@ -52,6 +47,6 @@ with dag:
         env_vars={
             "REPORTING_DATE": "{{ ds }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV)
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_dea_dev_secrets,
     )
     aws_s3_cost_stats_ingestion

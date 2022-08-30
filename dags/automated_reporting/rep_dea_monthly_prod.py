@@ -11,7 +11,6 @@ from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy import DummyOperator
 from automated_reporting import utilities, k8s_secrets
-from infra.variables import REPORTING_IAM_REP_S3_SECRET
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
@@ -22,10 +21,6 @@ default_args = {
     "email_on_retry": False,
     "retries": 90,
     "retry_delay": timedelta(days=1),
-    "secrets": [
-        Secret("env", "ACCESS_KEY", REPORTING_IAM_REP_S3_SECRET, "ACCESS_KEY"),
-        Secret("env", "SECRET_KEY", REPORTING_IAM_REP_S3_SECRET, "SECRET_KEY"),
-    ],
 }
 
 dag = DAG(
@@ -58,7 +53,7 @@ with dag:
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
             "FILE_TO_PROCESS": "fk4",
         },
-        secrets=k8s_secrets.db_secrets(ENV)
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets,
     )
     fk4_processing = utilities.k8s_operator(
         dag=dag,
@@ -73,6 +68,6 @@ with dag:
             "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fk4_ingestion') }}",
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV)
+        secrets=k8s_secrets.db_secrets(ENV),
     )
     START >> fk4_ingestion >> fk4_processing

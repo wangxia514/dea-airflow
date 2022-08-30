@@ -9,7 +9,6 @@ from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.operators.python_operator import PythonOperator
 from datetime import datetime as dt, timedelta
-from infra.variables import REPORTING_IAM_DEA_S3_SECRET
 from automated_reporting import k8s_secrets, utilities
 from infra.variables import AWS_STORAGE_STATS_POD_COUNT
 import json
@@ -23,10 +22,6 @@ default_args = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
-    "secrets": [
-        Secret("env", "ACCESS_KEY", REPORTING_IAM_DEA_S3_SECRET, "ACCESS_KEY"),
-        Secret("env", "SECRET_KEY", REPORTING_IAM_DEA_S3_SECRET, "SECRET_KEY"),
-    ],
 }
 
 dag = DAG(
@@ -115,7 +110,7 @@ with dag:
             "REPORTING_BUCKET": "dea-public-data-inventory",
             "REPORTING_DATE": "{{ ds }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV)
+        secrets=k8s_secrets.iam_dea_secrets
     )
 
     aggregate_metrics = PythonOperator(
@@ -138,7 +133,7 @@ with dag:
             "REPORTING_BUCKET": "dea-public-data-inventory",
             "REPORTING_DATE": "{{ ds }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV)
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_dea_secrets
     )
 
     # k8s_task_download_inventory >> metrics_task1 >> metrics_task2 >> metrics_task3
@@ -161,6 +156,6 @@ with dag:
                 "REPORTING_BUCKET": "dea-public-data-inventory",
                 "COUNTER" : counter,
             },
-            secrets=k8s_secrets.db_secrets(ENV)
+            secrets=k8s_secrets.iam_dea_secrets,
         )
         k8s_task_download_inventory >> metrics_tasks[i] >> aggregate_metrics >> push_to_db
