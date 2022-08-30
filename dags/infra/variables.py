@@ -67,6 +67,7 @@ REPORTING_DB_DEV_SECRET = Variable.get(
 REPORTING_IAM_NEMO_PROD_SECRET = Variable.get(
     "reporting_iam_nemo_prod_secret", default_var="reporting-iam-nemo-production"
 )
+REPORTING_DB_SECRET = Variable.get("reporting_db_secret", default_var="reporting-db")
 
 STATSD_HOST = Variable.get("statsd_host", default_var="localhost")
 STATSD_PORT = Variable.get("statsd_port", default_var="8125")
