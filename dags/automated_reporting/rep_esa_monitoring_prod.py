@@ -60,7 +60,7 @@ dag = DAG(
 
 ENV = "prod"
 ETL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.9.0"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.10.0"
 )
 
 with dag:
@@ -232,6 +232,7 @@ with dag:
         image=ETL_IMAGE,
         cmds=[
             "echo syn_l1_nrt_ingestion job started: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
             "syn_l1_nrt_ingestion",
         ],
         task_id="syn_l1_nrt_ingestion",
