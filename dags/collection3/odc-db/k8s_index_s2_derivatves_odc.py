@@ -1,7 +1,7 @@
 """
-# Landsat Collection-3 indexing automation for odc db
+# Sentinel 2 Collection-3 BA Derivative
 
-DAG to periodically index/archive Landsat Collection-3 data.
+DAG to index Sentinel 2 Collection-3 BA derivative datasets.
 
 This DAG uses k8s executors and in cluster with relevant tooling
 and configuration installed.
@@ -84,9 +84,9 @@ dag = DAG(
     "k8s_index_s2_derivatves_odc",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
-    schedule_interval="0,30 * * * * *",
+    schedule_interval="0,30 * * * *",
     catchup=False,
-    tags=["k8s", "burns_s2", "sentinel2_derivatives"],
+    tags=["k8s", "burns_s2", "sentinel_2", "derivatives"],
 )
 
 with dag:
