@@ -47,6 +47,6 @@ with dag:
             "MONITORING_IDS": "784117804, 784122998, 784122995",
             "EXECUTION_DATE": "{{ ds }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.uptime_api,
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.uptime_robot_secret,
     )
     uptime_robot_processing_dea
