@@ -18,6 +18,7 @@ repos:
       additional_dependencies: ['pylint-airflow','apache-airflow[aws,kubernetes,postgres,redis,ssh,sftp,celery]']
       name: pylint dags
       files: dags/
+      exclude: ^dags/automated_reporting/
 
   - repo: https://github.com/pycqa/flake8
     rev: 4.0.1

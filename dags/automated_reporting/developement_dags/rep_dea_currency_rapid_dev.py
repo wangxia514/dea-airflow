@@ -4,7 +4,6 @@ DEA Currency Dags
 """
 
 # The DAG object; we'll need this to instantiate a DAG
-# pylint: skip-file
 from datetime import datetime as dt, timedelta
 
 from airflow import DAG

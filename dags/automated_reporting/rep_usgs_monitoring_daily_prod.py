@@ -8,7 +8,6 @@ This DAG
  * Inserts summary completeness and latency reporting data
  * Inserts completeness data for each wrs path row
 """
-# pylint: skip-file
 import json
 from datetime import datetime as dt, timedelta
 
@@ -17,7 +16,9 @@ from airflow import DAG
 from automated_reporting import k8s_secrets, utilities
 
 ENV = "prod"
-ETL_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.10.0"
+ETL_IMAGE = (
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.10.0"
+)
 
 default_args = {
     "owner": "Tom McAdam",

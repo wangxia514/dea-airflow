@@ -1,7 +1,6 @@
 """
 # Run tasks to monitor NCI resource usage
 """
-# pylint: skip-file
 from datetime import datetime as dt, timedelta
 
 from airflow import DAG
