@@ -1,0 +1,49 @@
+---
+name: DAGs lint
+
+on:
+  push:
+    paths:
+      - 'dags/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'plugins/**'
+      - '.github/workflows/**'
+      - 'requirements-dev.txt'
+      - 'requirements.txt'
+      - 'constraints.txt'
+  pull_request:
+    types: [opened, reopened]
+    branches:
+      - master
+      - develop
+    paths:
+      - 'dags/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'plugins/**'
+      - '.github/workflows/**'
+      - 'requirements-dev.txt'
+      - 'requirements.txt'
+      - 'constraints.txt'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8]
+        airflow-version: [2.2.2]
+    name: Airflow ${{ matrix.airflow-version }}
+    steps:
+      - name: checkout git
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: 'Validate DAGs'
+        uses: jayamanikharyono/airflow-dag-action@v2.0
+        with:
+          # requirementsFile: tests/requirements.txt
+          dagPaths: dags
+          # varFile: tests/var.json
+          accessToken: ${{ secrets.GITHUB_TOKEN }}
