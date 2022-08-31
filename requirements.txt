@@ -3,4 +3,4 @@ kubernetes
 airflow-kubernetes-job-operator
 SQLAlchemy
 cryptography
-apache-airflow[amazon,cncf.kubernetes,sftp,postgres,redis,ssh,celery,http]
+apache-airflow[amazon,cncf.kubernetes,sftp,postgres,redis,ssh,celery,http]==2.2.2
