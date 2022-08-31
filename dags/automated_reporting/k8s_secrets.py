@@ -24,7 +24,7 @@ iam_rep_secrets = [
     Secret("env", "SECRET_KEY", "reporting-iam-rep-s3", "SECRET_KEY"),
 ]
 
-uptime_api = [
+uptime_robot_secret = [
     Secret("env", "API_KEY", "reporting-uptime-api", "UPTIME_KEY"),
 ]
 
