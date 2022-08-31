@@ -3,6 +3,7 @@
 """
 Automated Reporting - Uptime Robot Monitoring - DEA
 """
+# pylint: skip-file
 from datetime import datetime as dt, timedelta
 
 # The DAG object; we'll need this to instantiate a DAG
