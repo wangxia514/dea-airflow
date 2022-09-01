@@ -61,7 +61,7 @@ with dag:
         """Generate tasks based on list of query parameters"""
         env_vars = {
             "MONITOR_ID": str(monitor_id),
-            "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ds }}",
+            "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts }}",
         }
         return utilities.k8s_operator(
             dag=dag,
