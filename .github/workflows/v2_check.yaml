@@ -65,6 +65,7 @@ jobs:
           export AIRFLOW__CORE__PLUGINS_FOLDER="/home/runner/work/dea-airflow/dea-airflow/plugins"
           export AIRFLOW__CORE__DAGS_FOLDER="/home/runner/work/dea-airflow/dea-airflow/dags"
 
+          airflow connections add 'db_rep_writer_dev' --conn-type 'postgres' --conn-login 'USERNAME' --conn-password 'PASS'
           airflow variables set 'm2m_api_password' '{"pass":"PASS"}'
           airflow variables set 'copernicus_api_password' '{"pass":"PASS"}'
           airflow variables set 'google_analytics' '{"pass":"PASS"}'
