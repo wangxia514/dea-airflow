@@ -7,6 +7,7 @@ from datetime import datetime as dt, timedelta
 
 # The DAG object; we'll need this to instantiate a DAG
 from airflow import DAG
+from airflow.models import Variable
 
 from automated_reporting import k8s_secrets, utilities
 
@@ -42,7 +43,7 @@ UPTIME_ROBOT_JOB = [
 
 with dag:
 
-    monitoring_ids = [784117804, 784122998, 784122995]
+    monitoring_ids = Variable.get("dea_uptime_monitoring", deserialize_json=True)
 
     def create_task(monitor_id):
         """Generate tasks based on list of query parameters"""
