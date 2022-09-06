@@ -41,11 +41,14 @@ from infra.podconfig import (
     ONDEMAND_NODE_AFFINITY,
 )
 
-from infra.variables import (
+from infra.projects.hhrs import (
     WATERBODIES_DEV_USER_SECRET,
     SECRET_HNRS_DC_WRITER_NAME,
     SECRET_HNRS_DC_ADMIN_NAME,
     HNRS_DB_DATABASE,
+)
+
+from infra.variables import (
     DB_HOSTNAME,
     DB_PORT,
 )
@@ -119,7 +122,7 @@ def update_metadata(dag):
             # Push the IDs to the queue.
             python elvis_lidar_metadata_changing.py --log=INFO
             """.format(
-                script_path=DEFAULT_PARAMS['script_path'],
+                script_path=DEFAULT_PARAMS["script_path"],
             )
         ),
     ]
@@ -193,9 +196,13 @@ def add_metadata_type(dag):
         affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
         secrets=[
-            Secret("env", "DB_USERNAME", SECRET_HNRS_DC_ADMIN_NAME, "postgres-username"),
-            Secret("env", "DB_PASSWORD", SECRET_HNRS_DC_ADMIN_NAME, "postgres-password"),
-        ]
+            Secret(
+                "env", "DB_USERNAME", SECRET_HNRS_DC_ADMIN_NAME, "postgres-username"
+            ),
+            Secret(
+                "env", "DB_PASSWORD", SECRET_HNRS_DC_ADMIN_NAME, "postgres-password"
+            ),
+        ],
     )
 
 
@@ -212,8 +219,12 @@ def add_products(dag):
         affinity=ONDEMAND_NODE_AFFINITY,
         is_delete_operator_pod=True,
         secrets=[
-            Secret("env", "DB_USERNAME", SECRET_HNRS_DC_ADMIN_NAME, "postgres-username"),
-            Secret("env", "DB_PASSWORD", SECRET_HNRS_DC_ADMIN_NAME, "postgres-password"),
+            Secret(
+                "env", "DB_USERNAME", SECRET_HNRS_DC_ADMIN_NAME, "postgres-username"
+            ),
+            Secret(
+                "env", "DB_PASSWORD", SECRET_HNRS_DC_ADMIN_NAME, "postgres-password"
+            ),
         ],
     )
 

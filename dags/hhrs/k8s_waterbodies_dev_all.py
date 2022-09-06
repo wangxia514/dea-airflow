@@ -21,12 +21,15 @@ from textwrap import dedent
 
 from infra.images import WATERBODIES_UNSTABLE_IMAGE
 
+from infra.projects.hhrs import (
+    WATERBODIES_DEV_USER_SECRET,
+)
+
 from infra.variables import (
     DB_DATABASE,
     DB_READER_HOSTNAME,
     AWS_DEFAULT_REGION,
     DB_PORT,
-    WATERBODIES_DEV_USER_SECRET,
     SECRET_ODC_READER_NAME,
 )
 

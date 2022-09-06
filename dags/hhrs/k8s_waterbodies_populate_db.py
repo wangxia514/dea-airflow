@@ -29,23 +29,36 @@ from infra.podconfig import ONDEMAND_NODE_AFFINITY
 from infra.variables import (
     AWS_DEFAULT_REGION,
     DB_PORT,
+)
+from infra.projects.hhrs import (
     WATERBODIES_DEV_USER_SECRET,
     WATERBODIES_DB_WRITER_SECRET,
 )
 
-
 # DAG CONFIGURATION
 SECRETS = {
     "env_vars": {
-        "WATERBODIES_DB_HOST": "pgbouncer.service.svc.cluster.local",
+        "WATERBODIES_DB_HOST": "pgbouncer.service.svc.cluster.local",  # TODO: feed from infra
         "WATERBODIES_DB_PORT": DB_PORT,
         "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
     },
     # Lift secrets into environment variables
     "secrets": [
-        Secret("env", "WATERBODIES_DB_NAME", WATERBODIES_DB_WRITER_SECRET, "database-name"),
-        Secret("env", "WATERBODIES_DB_USER", WATERBODIES_DB_WRITER_SECRET, "postgres-username"),
-        Secret("env", "WATERBODIES_DB_PASS", WATERBODIES_DB_WRITER_SECRET, "postgres-password"),
+        Secret(
+            "env", "WATERBODIES_DB_NAME", WATERBODIES_DB_WRITER_SECRET, "database-name"
+        ),
+        Secret(
+            "env",
+            "WATERBODIES_DB_USER",
+            WATERBODIES_DB_WRITER_SECRET,
+            "postgres-username",
+        ),
+        Secret(
+            "env",
+            "WATERBODIES_DB_PASS",
+            WATERBODIES_DB_WRITER_SECRET,
+            "postgres-password",
+        ),
         Secret(
             "env",
             "AWS_ACCESS_KEY_ID",
@@ -61,10 +74,10 @@ SECRETS = {
     ],
 }
 DEFAULT_ARGS = {
-    "owner": "Matthew Alger",
+    "owner": "Sai Ma",
     "depends_on_past": False,
     "start_date": datetime(2021, 6, 2),
-    "email": ["matthew.alger@ga.gov.au"],
+    "email": ["sai.ma@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,

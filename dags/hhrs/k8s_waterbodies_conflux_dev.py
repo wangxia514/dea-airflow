@@ -7,13 +7,13 @@ shapefile
     Default "s3://dea-public-data-dev/projects/WaterBodies/c3_shp/ga_ls_wb_3_v2_dev.shp"
 
 outdir
-    Default "s3://dea-public-data-dev/projects/WaterBodies/timeseries_pq_v2"
+    Default "s3://dea-public-data-dev/projects/WaterBodies/integration_testing/timeseries_pq_v2"
 
 product
     Default "ga_ls_wo_3".
 
 cmd
-    Datacube query to run. Default "'time in [2021-01-01, 2099-01-01]'"
+    Datacube query to run. Default "'time in [2021-01-01, 2021-01-03]'"
     https://datacube-core.readthedocs.io/en/stable/ops/tools.html#datacube-dataset-search
     e.g. "'lat in [-36.006, -34.671]' 'lon in [142.392, 144.496]' 'gqa_mean_x in [-1, 1]'"
 
@@ -21,17 +21,16 @@ plugin
     Plugin to drill with. Default "waterbodies_c3".
 
 queue_name
-    Amazon SQS queue name to save processing tasks. Default "waterbodies_conflux_sqs"
+    Amazon SQS queue name to save processing tasks. Default "waterbodies_conflux_dev_sqs"
 
 csvdir
-    Default "s3://dea-public-data-dev/derivative/dea_waterbodies/2-0-0/timeseries"
+    Default "s3://dea-public-data-dev/projects/WaterBodies/integration_testing/timeseries"
 
 flags
     Other flags to pass to Conflux.
 
 """
 from datetime import datetime, timedelta
-import logging
 
 # import json
 
@@ -44,17 +43,15 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 
-from airflow.operators.python import PythonOperator
 from airflow.utils.task_group import TaskGroup
 
 from textwrap import dedent
-
-from infra.images import CONFLUX_WATERBODIES_IMAGE
 
 from infra.projects.hhrs import (
     WATERBODIES_DEV_USER_SECRET,
     WATERBODIES_DB_WRITER_SECRET,
 )
+
 
 from infra.variables import (
     DB_DATABASE,
@@ -65,26 +62,24 @@ from infra.variables import (
     SECRET_ODC_READER_NAME,
 )
 
-from infra.images import S5CMD_IMAGE
-from infra.iam_roles import UTILITY_S3_COPY_MOVE_ROLE
 
-# Default config parameters.
+CONFLUX_UNSTABLE_IMAGE = "geoscienceaustralia/dea-conflux:latest"
+DB_TO_CSV_CONCURRENCY_NUMBER = 1000
+
+# Default config parameters. Only grab 3 days data to test
 DEFAULT_PARAMS = dict(
     shapefile="s3://dea-public-data-dev/projects/WaterBodies/c3_shp/ga_ls_wb_3_v2_dev.shp",
-    outdir="s3://dea-public-data-dev/projects/WaterBodies/timeseries_pq_v2",
+    outdir="s3://dea-public-data-dev/projects/WaterBodies/integration_testing/timeseries_pq_v2",
     product="ga_ls_wo_3",
-    # this will break in 2100
-    # good luck y'all future folks
-    cmd="'time in [2021-01-01, 2099-01-01]'",
+    cmd="'time in [2021-01-01, 2021-01-03]'",
     plugin="waterbodies_c3",
-    queue_name="waterbodies_conflux_sqs",
-    csvdir="s3://dea-public-data-dev/derivative/dea_waterbodies/2-0-0/timeseries",
+    queue_name="waterbodies_conflux_dev_sqs",
+    csvdir="s3://dea-public-data-dev/projects/WaterBodies/integration_testing/timeseries",
+    flags="--overwrite",
 )
 
 # Requested memory. Memory limit is twice this.
 CONFLUX_POD_MEMORY_MB = 6000
-# The number of EC2 will be used to run db-to-csv step
-DB_TO_CSV_CONCURRENCY_NUMBER = 6
 
 # DAG CONFIGURATION
 SECRETS = {
@@ -130,10 +125,10 @@ SECRETS = {
     ],
 }
 DEFAULT_ARGS = {
-    "owner": "Sai Ma",
+    "owner": "Matthew Alger",
     "depends_on_past": False,
     "start_date": datetime(2021, 6, 2),
-    "email": ["sai.ma@ga.gov.au"],
+    "email": ["matthew.alger@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
@@ -174,13 +169,13 @@ tolerations = [
 
 # THE DAG
 dag = DAG(
-    "k8s_waterbodies_conflux",
+    "k8s_waterbodies_conflux_dev",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
-    schedule_interval=timedelta(hours=84),  # run every 3.5 days (84 hours)
+    schedule_interval="0 0 * * 1-5",  # runs at 00:00 on every day-of-week from Monday through Friday
     catchup=False,
     concurrency=128,
-    tags=["k8s", "landsat", "waterbodies", "conflux"],
+    tags=["k8s", "landsat", "waterbodies", "conflux", "integration test"],
 )
 
 
@@ -188,7 +183,7 @@ def k8s_job_task(dag, queue_name):
     mem = CONFLUX_POD_MEMORY_MB
     req_mem = "{}Mi".format(int(mem))
     lim_mem = "{}Mi".format(int(mem) * 2)
-    parallelism = 24
+    parallelism = 6
 
     yaml = {
         "apiVersion": "batch/v1",
@@ -205,7 +200,7 @@ def k8s_job_task(dag, queue_name):
                     "containers": [
                         {
                             "name": "conflux",
-                            "image": CONFLUX_WATERBODIES_IMAGE,
+                            "image": CONFLUX_UNSTABLE_IMAGE,
                             "imagePullPolicy": "IfNotPresent",
                             "resources": {
                                 "requests": {
@@ -229,14 +224,14 @@ def k8s_job_task(dag, queue_name):
                                             --queue {queue} \
                                             --overedge \
                                             --partial \
-                                            --db \
                                             --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} \
-                                            --output {{{{ dag_run.conf.get("outdir", "{outdir}") }}}} {{{{ dag_run.conf.get("flags", "") }}}}
+                                            --output {{{{ dag_run.conf.get("outdir", "{outdir}") }}}} {{{{ dag_run.conf.get("flags", "{flags}") }}}}
                                     """.format(
                                         queue=queue_name,
                                         shapefile=DEFAULT_PARAMS["shapefile"],
                                         outdir=DEFAULT_PARAMS["outdir"],
                                         plugin=DEFAULT_PARAMS["plugin"],
+                                        flags=DEFAULT_PARAMS["flags"],
                                     )
                                 ),
                             ],
@@ -329,7 +324,7 @@ def k8s_job_task(dag, queue_name):
     }
 
     job_task = KubernetesJobOperator(
-        image=CONFLUX_WATERBODIES_IMAGE,
+        image=CONFLUX_UNSTABLE_IMAGE,
         dag=dag,
         task_id="waterbodies-conflux-run",
         get_logs=False,
@@ -356,7 +351,7 @@ def k8s_queue_push(dag, queue_name):
         ),
     ]
     return KubernetesPodOperator(
-        image=CONFLUX_WATERBODIES_IMAGE,
+        image=CONFLUX_UNSTABLE_IMAGE,
         dag=dag,
         name="waterbodies-conflux-push",
         arguments=cmd,
@@ -391,7 +386,7 @@ def k8s_getids(dag, cmd, product):
     ]
 
     getids = KubernetesPodOperator(
-        image=CONFLUX_WATERBODIES_IMAGE,
+        image=CONFLUX_UNSTABLE_IMAGE,
         name="waterbodies-conflux-getids",
         arguments=getids_cmd,
         image_pull_policy="IfNotPresent",
@@ -423,12 +418,12 @@ def k8s_makequeue(dag, queue_name):
             echo "Using dea-conflux image {image}"
             dea-conflux make {name}
             """.format(
-                image=CONFLUX_WATERBODIES_IMAGE, name=queue_name
+                image=CONFLUX_UNSTABLE_IMAGE, name=queue_name
             )
         ),
     ]
     makequeue = KubernetesPodOperator(
-        image=CONFLUX_WATERBODIES_IMAGE,
+        image=CONFLUX_UNSTABLE_IMAGE,
         name="waterbodies-conflux-makequeue",
         arguments=makequeue_cmd,
         image_pull_policy="IfNotPresent",
@@ -459,13 +454,13 @@ def k8s_delqueue(dag, queue_name):
             echo "Using dea-conflux image {image}"
             dea-conflux delete {name}
             """.format(
-                image=CONFLUX_WATERBODIES_IMAGE,
+                image=CONFLUX_UNSTABLE_IMAGE,
                 name=queue_name,
             )
         ),
     ]
     delqueue = KubernetesPodOperator(
-        image=CONFLUX_WATERBODIES_IMAGE,
+        image=CONFLUX_UNSTABLE_IMAGE,
         name="waterbodies-conflux-delqueue",
         arguments=delqueue_cmd,
         image_pull_policy="IfNotPresent",
@@ -493,7 +488,7 @@ def k8s_makecsvs(dag, index_num, split_num):
             echo "Using dea-conflux image {image}"
             dea-conflux db-to-csv --output {{{{ dag_run.conf.get("csvdir", "{csvdir}") }}}} --jobs 64 --verbose --index-num {index_num} --split-num {split_num}
             """.format(
-                image=CONFLUX_WATERBODIES_IMAGE,
+                image=CONFLUX_UNSTABLE_IMAGE,
                 csvdir=DEFAULT_PARAMS["csvdir"],
                 index_num=index_num,
                 split_num=split_num,
@@ -501,8 +496,8 @@ def k8s_makecsvs(dag, index_num, split_num):
         ),
     ]
     makecsvs = KubernetesPodOperator(
-        image=CONFLUX_WATERBODIES_IMAGE,
-        name="waterbodies-conflux-makecsvs" + str(index_num),
+        image=CONFLUX_UNSTABLE_IMAGE,
+        name="waterbodies-conflux-makecsvs-" + str(index_num),
         arguments=makecsvs_cmd,
         image_pull_policy="IfNotPresent",
         labels={"app": "waterbodies-conflux-makecsvs"},
@@ -515,48 +510,9 @@ def k8s_makecsvs(dag, index_num, split_num):
         },
         namespace="processing",
         tolerations=tolerations,
-        task_id="waterbodies-conflux-makecsvs" + str(index_num),
+        task_id="waterbodies-conflux-makecsvs-" + str(index_num),
     )
     return makecsvs
-
-
-# Hard code this CMD, to make sure we always copy data from dev bucket to prod bucket
-S3_COPY_COMMAND = [
-    "-c",
-    "./s5cmd cp --acl bucket-owner-full-control 's3://dea-public-data-dev/derivative/dea_waterbodies/2-0-0/timeseries/*' s3://dea-public-data/derivative/dea_waterbodies/2-0-0/timeseries/",
-]
-
-
-def k8s_s3_copy(dag):
-    s3_copy = KubernetesPodOperator(
-        namespace="processing",
-        image=S5CMD_IMAGE,
-        cmds=["/bin/sh"],
-        arguments=S3_COPY_COMMAND,
-        annotations={"iam.amazonaws.com/role": UTILITY_S3_COPY_MOVE_ROLE},
-        labels={"app": "waterbodies-conflux-s3-copy"},
-        name="waterbodies-conflux-s3-copy",
-        task_id="waterbodies-conflux-s3-copy",
-        get_logs=False,
-        affinity=affinity,
-        tolerations=tolerations,
-        is_delete_operator_pod=True,
-        # if not pass emtpy list, it will grab waterbodies AWS keys, and overwrite AWS role
-        secrets=[],
-    )
-    return s3_copy
-
-
-def print_configuration_function(ds, **kwargs):
-    """Print the configuration of this DAG"""
-    logging.info("Running Configurations:")
-    logging.info("ds:                    " + str(ds))
-    logging.info("CONFLUX_POD_MEMORY_MB: " + str(CONFLUX_POD_MEMORY_MB))
-    logging.info("shapefile:             " + str(kwargs["shapefile"]))
-    logging.info("cmd:                   " + str(kwargs["cmd"]))
-    logging.info("csvdir:                " + str(kwargs["csvdir"]))
-    logging.info("outdir:                " + str(kwargs["outdir"]))
-    logging.info("")
 
 
 with dag:
@@ -569,28 +525,6 @@ with dag:
     queue_name = '{{{{ dag_run.conf.get("queue_name", "{queue_name}") }}}}'.format(
         queue_name=DEFAULT_PARAMS["queue_name"],
     )
-    outdir = '{{{{ dag_run.conf.get("outdir", "{outdir}") }}}}'.format(
-        outdir=DEFAULT_PARAMS["outdir"],
-    )
-    csvdir = '{{{{ dag_run.conf.get("csvdir", "{csvdir}") }}}}'.format(
-        csvdir=DEFAULT_PARAMS["csvdir"],
-    )
-    shapefile = '{{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}}'.format(
-        shapefile=DEFAULT_PARAMS["shapefile"],
-    )
-
-    print_configuration = PythonOperator(
-        task_id="print_sys_conf",
-        python_callable=print_configuration_function,
-        provide_context=True,
-        op_kwargs={
-            "cmd": cmd,
-            "shapefile": shapefile,
-            "csvdir": csvdir,
-            "outdir": outdir,
-        },
-        dag=dag,
-    )
 
     getids = k8s_getids(dag, cmd, product)
     makequeue = k8s_makequeue(dag, queue_name)
@@ -600,22 +534,14 @@ with dag:
     task = k8s_job_task(dag, queue_name)
     # Finally delete the queue.
     delqueue = k8s_delqueue(dag, queue_name)
+    # Then update the DB -> CSV.
 
     with TaskGroup(group_id="makecsvs") as makecsvs:
         for index in range(DB_TO_CSV_CONCURRENCY_NUMBER):
-            makecsv = k8s_makecsvs(
-                dag, index_num=index, split_num=DB_TO_CSV_CONCURRENCY_NUMBER
-            )
+            # only run 0.2% workload as the integration test
+            if index == 0 or index == 1:
+                makecsv = k8s_makecsvs(
+                    dag, index_num=index, split_num=DB_TO_CSV_CONCURRENCY_NUMBER
+                )
 
-    s3_copy = k8s_s3_copy(dag)
-
-    (
-        print_configuration
-        >> getids
-        >> makequeue
-        >> push
-        >> task
-        >> delqueue
-        >> makecsvs
-        >> s3_copy
-    )
+    getids >> makequeue >> push >> task >> delqueue >> makecsvs

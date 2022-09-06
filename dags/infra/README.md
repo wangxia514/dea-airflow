@@ -8,6 +8,9 @@ AWS side provisioned airflow connections strings from terraform. If the connecti
 ## Variables
 Variables supplied by terraform, can also provide default value if terraform is not supplying that value
 
+### Projects
+variables used for each projects are in its own file under `projects` folder.
+
 ## podconfig
 `KubernetesPodOperator` configurations recommended by infrastracture maintainers.
 
