@@ -1,3 +1,7 @@
+"""
+# qa audit check: 07/09/2022
+
+"""
 from airflow.models import Variable
 
 # HNRS ((Hydrometric Networks and Remote Sensing) DB config
@@ -14,11 +18,12 @@ SECRET_HNRS_DC_WRITER_NAME = Variable.get(
 
 WATERBODIES_DEV_USER_SECRET = Variable.get(
     "waterbodies_dev_user_secret", default_var="waterbodies-dev-user-creds"
-)
+) # qa
 
 WIT_DEV_USER_SECRET = Variable.get(
     "wit_dev_user_secret", default_var="wit-dev-user-creds"
 )
+
 WATERBODIES_DB_WRITER_SECRET = Variable.get(
     "waterbodies_writer", default_var="waterbodies-writer"
 )
