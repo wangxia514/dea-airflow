@@ -15,9 +15,7 @@ SECRET_HNRS_DC_WRITER_NAME = Variable.get(
 WATERBODIES_DEV_USER_SECRET = Variable.get(
     "waterbodies_dev_user_secret", default_var="waterbodies-dev-user-creds"
 )
-ELVIS_DEV_USER_SECRET = Variable.get(
-    "processing_aws_creds_elvis", default_var="processing-aws-creds-elvis"
-)  # not in use
+
 WIT_DEV_USER_SECRET = Variable.get(
     "wit_dev_user_secret", default_var="wit-dev-user-creds"
 )
