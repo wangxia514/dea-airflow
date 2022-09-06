@@ -11,8 +11,8 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 from datetime import datetime as dt, timedelta
-from infra.variables import REPORTING_IAM_DEA_S3_SECRET
-from infra.variables import REPORTING_DB_DEV_SECRET
+from automated_reporting.variables import REPORTING_IAM_DEA_S3_SECRET
+from automated_reporting.variables import REPORTING_DB_DEV_SECRET
 
 YESTERDAY = dt.now() - timedelta(days=1)
 

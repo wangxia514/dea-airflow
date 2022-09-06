@@ -9,7 +9,10 @@ from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-from infra.variables import REPORTING_IAM_SQS_SECRET, REPORTING_DB_DEV_SECRET
+from automated_reporting.variables import (
+    REPORTING_IAM_SQS_SECRET,
+    REPORTING_DB_DEV_SECRET,
+)
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
@@ -64,7 +67,7 @@ with dag:
         do_xcom_push=True,
         env_vars={
             "QUEUE_NAME": "sentinel-sqs-test",
-        }
+        },
     )
     sentinel_l1_nrt_ingestion = KubernetesPodOperator(
         namespace="processing",
@@ -79,6 +82,6 @@ with dag:
         do_xcom_push=False,
         env_vars={
             "METRICS": "{{ task_instance.xcom_pull(task_ids='sentinel_l1_nrt_downloads') }}",
-        }
+        },
     )
     sentinel_l1_nrt_downloads >> sentinel_l1_nrt_ingestion
