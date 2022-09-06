@@ -13,7 +13,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 )
 from airflow.kubernetes.secret import Secret
 
-from infra.variables import REPORTING_ODC_DB_SECRET
+from automated_reporting.variables import REPORTING_ODC_DB_SECRET
 
 default_args = {
     "owner": "Tom McAdam",

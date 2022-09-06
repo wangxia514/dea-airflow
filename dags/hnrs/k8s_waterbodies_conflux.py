@@ -130,10 +130,10 @@ SECRETS = {
     ],
 }
 DEFAULT_ARGS = {
-    "owner": "Matthew Alger",
+    "owner": "Sai Ma",
     "depends_on_past": False,
     "start_date": datetime(2021, 6, 2),
-    "email": ["matthew.alger@ga.gov.au"],
+    "email": ["sai.ma@ga.gov.au"],
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
