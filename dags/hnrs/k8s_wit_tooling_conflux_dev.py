@@ -38,12 +38,15 @@ from airflow.utils.task_group import TaskGroup
 
 from textwrap import dedent
 
+from infra.projects.hnrs import (
+    WIT_DEV_USER_SECRET,
+)
+
 from infra.variables import (
     DB_DATABASE,
     DB_READER_HOSTNAME,
     AWS_DEFAULT_REGION,
     DB_PORT,
-    WIT_DEV_USER_SECRET,
     SECRET_ODC_READER_NAME,
 )
 

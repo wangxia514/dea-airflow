@@ -41,7 +41,7 @@ from infra.podconfig import (
     ONDEMAND_NODE_AFFINITY,
 )
 
-from infra.projects.hhrs import (
+from infra.projects.hnrs import (
     WATERBODIES_DEV_USER_SECRET,
     SECRET_HNRS_DC_WRITER_NAME,
     SECRET_HNRS_DC_ADMIN_NAME,

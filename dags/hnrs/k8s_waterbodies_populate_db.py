@@ -30,7 +30,7 @@ from infra.variables import (
     AWS_DEFAULT_REGION,
     DB_PORT,
 )
-from infra.projects.hhrs import (
+from infra.projects.hnrs import (
     WATERBODIES_DEV_USER_SECRET,
     WATERBODIES_DB_WRITER_SECRET,
 )

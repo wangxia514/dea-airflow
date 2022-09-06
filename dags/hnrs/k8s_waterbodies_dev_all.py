@@ -21,7 +21,7 @@ from textwrap import dedent
 
 from infra.images import WATERBODIES_UNSTABLE_IMAGE
 
-from infra.projects.hhrs import (
+from infra.projects.hnrs import (
     WATERBODIES_DEV_USER_SECRET,
 )
 
