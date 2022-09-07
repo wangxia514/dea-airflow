@@ -9,6 +9,7 @@ This DAG is a scheduled run workflow to restore reporting DB into the DEV instan
 
 from datetime import datetime as dt
 from airflow import DAG
+from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy import DummyOperator
 from infra.variables import REPORTING_DB_DEV_SECRET
 from automated_reporting import k8s_secrets, utilities

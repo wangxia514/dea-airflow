@@ -84,7 +84,7 @@ with dag:
     backup_reporting_db_cophub = utilities.k8s_operator(
         dag=dag,
         image=BACKUP_RESTORE_IMAGE,
-        cmds = [
+        cmds=[
             "echo db backup started: $(date)",
             "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n cophub | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$S3_BUCKET/$EXECUTION_DATE/cophub-dump.sql",
         ],
@@ -99,7 +99,7 @@ with dag:
     backup_reporting_db_marine = KubernetesPodOperator(
         dag=dag,
         image=BACKUP_RESTORE_IMAGE,
-        cmds = [
+        cmds=[
             "echo db backup started: $(date)",
             "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n marine | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$S3_BUCKET/$EXECUTION_DATE/marine-dump.sql",
         ],
@@ -114,7 +114,7 @@ with dag:
     backup_reporting_db_nci = utilities.k8s_operator(
         dag=dag,
         image=BACKUP_RESTORE_IMAGE,
-        cmds = [
+        cmds=[
             "echo db backup started: $(date)",
             "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n nci | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$S3_BUCKET/$EXECUTION_DATE/nci-dump.sql",
         ],
@@ -129,7 +129,7 @@ with dag:
     backup_reporting_db_public = utilities.k8s_operator(
         dag=dag,
         image=BACKUP_RESTORE_IMAGE,
-        cmds = [
+        cmds=[
             "echo db backup started: $(date)",
             "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n public | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$S3_BUCKET/$EXECUTION_DATE/public-dump.sql",
         ],
