@@ -12,7 +12,7 @@ from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
-from infra.variables import REPORTING_IAM_NEMO_PROD_SECRET
+from automated_reporting import k8s_secrets, utilities
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
@@ -23,10 +23,6 @@ default_args = {
     "email_on_retry": False,
     "retries": 3,
     "retry_delay": timedelta(days=1),
-    "secrets": [
-        Secret("env", "AWS_ACCESS_KEY_ID", REPORTING_IAM_NEMO_PROD_SECRET, "ACCESS_KEY"),
-        Secret("env", "AWS_SECRET_ACCESS_KEY", REPORTING_IAM_NEMO_PROD_SECRET, "SECRET_KEY"),
-    ],
 }
 
 dag = DAG(
@@ -41,22 +37,17 @@ dag = DAG(
 BACKUP_RESTORE_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/automated-reporting-backup:latest"
 
 with dag:
-    JOBS1 = [
-        "sh /manage_backup.sh",
-    ]
-    manage_reporting_db = KubernetesPodOperator(
-        namespace="processing",
+    manage_reporting_db = utilities.k8s_operator(
+        dag=dag,
         image=BACKUP_RESTORE_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(JOBS1)],
-        name="manage_reporting_db",
-        is_delete_operator_pod=True,
-        in_cluster=True,
+        cmds = [
+            "sh /manage_backup.sh",
+        ],
         task_id="manage_reporting_db",
-        get_logs=True,
         env_vars={
             "EXECUTION_DATE": "{{ ds }}",
             "AWS_DEFAULT_REGION": "ap-southeast-2",
-            "REPORTING_BUCKET": "automated-reporting-db-dump",
         },
+        secrets=k8s_secrets.s3_db_dump_bucket + k8s_secrets.iam_nemo_production_secrets,
     )
     manage_reporting_db

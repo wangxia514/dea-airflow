@@ -59,9 +59,8 @@ with dag:
         task_id="sara_history_ingestion",
         env_vars={
             "REPORTING_MONTH": "{{  dag_run.data_interval_start | ds }}",
-            "REPORTING_BUCKET": Variable.get("reporting_s3_bucket"),
         },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.s3_automated_operation_bucket + k8s_secrets.iam_rep_secrets
     )
     sara_history_processing = utilities.k8s_operator(
         dag=dag,
@@ -88,9 +87,8 @@ with dag:
         task_id="archie_ingestion",
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-            "REPORTING_BUCKET": Variable.get("reporting_s3_bucket"),
         },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.s3_automated_operation_bucket + k8s_secrets.iam_rep_secrets
     )
     archie_processing_sattoesa = utilities.k8s_operator(
         dag=dag,

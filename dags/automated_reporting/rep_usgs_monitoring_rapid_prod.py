@@ -60,7 +60,7 @@ with rapid_dag:
             "CATEGORY": "nrt",
             "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
         },
-        secrets=k8s_secrets.m2m_api_secrets + k8s_secrets.s3_secrets,
+        secrets=k8s_secrets.m2m_api_secrets + k8s_secrets.s3_automated_operation_bucket + k8s_secrets.iam_rep_secrets,
     )
 
     # Insert cached acquisitions into dea.usgs_acquisitions table
@@ -77,7 +77,7 @@ with rapid_dag:
             "USGS_ACQ_XCOM": "{{ task_instance.xcom_pull(task_ids=\
                 'usgs-acquisitions', key='return_value') }}",
         },
-        secrets=k8s_secrets.s3_secrets + k8s_secrets.db_secrets(ENV),
+        secrets=k8s_secrets.s3_automated_operation_bucket + k8s_secrets.iam_rep_secrets + k8s_secrets.db_secrets(ENV),
     )
 
     # Insert cached acquisitions into high_granlarity.dataset table
@@ -94,7 +94,7 @@ with rapid_dag:
             "USGS_ACQ_XCOM": "{{ task_instance.xcom_pull(task_ids=\
                 'usgs-acquisitions', key='return_value') }}",
         },
-        secrets=k8s_secrets.s3_secrets + k8s_secrets.db_secrets(ENV),
+        secrets=k8s_secrets.s3_automated_operation_bucket + k8s_secrets.iam_rep_secrets + k8s_secrets.db_secrets(ENV),
     )
 
     # Calculate USGS LS8 L1 NRT completeness, comparing LS8 RT acquisitions with S3 inventory

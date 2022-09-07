@@ -43,9 +43,6 @@ with dag:
             "aws-usage-ingestion",
         ],
         task_id="aws_s3_usage_stats_ingestion",
-        env_vars={
-            "REPORTING_BUCKET": "s3-server-access-logs-schedule",
-        },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_dea_secrets,
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_dea_secrets + k8s_secrets.s3_server_access_log_bucket,
     )
     aws_s3_usage_stats_ingestion
