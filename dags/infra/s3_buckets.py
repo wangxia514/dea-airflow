@@ -1,7 +1,9 @@
 """
 # S3 buckets
 Audit check:
-    date: 21/04/2021
+    date: 07/09/2022
+lines commented with qa has been checked in infrastracture
+helm setup
 """
 from airflow.models import Variable
 
