@@ -47,15 +47,19 @@ from airflow.utils.task_group import TaskGroup
 
 from textwrap import dedent
 
+from infra.projects.hnrs import (
+    WATERBODIES_DEV_USER_SECRET,
+    WATERBODIES_DB_WRITER_SECRET,
+)
+
+
 from infra.variables import (
     DB_DATABASE,
     DB_READER_HOSTNAME,
     AWS_DEFAULT_REGION,
     DB_HOSTNAME,
     DB_PORT,
-    WATERBODIES_DEV_USER_SECRET,
     SECRET_ODC_READER_NAME,
-    WATERBODIES_DB_WRITER_SECRET,
 )
 
 
@@ -89,9 +93,21 @@ SECRETS = {
     },
     # Lift secrets into environment variables
     "secrets": [
-        Secret("env", "WATERBODIES_DB_NAME", WATERBODIES_DB_WRITER_SECRET, "database-name"),
-        Secret("env", "WATERBODIES_DB_USER", WATERBODIES_DB_WRITER_SECRET, "postgres-username"),
-        Secret("env", "WATERBODIES_DB_PASS", WATERBODIES_DB_WRITER_SECRET, "postgres-password"),
+        Secret(
+            "env", "WATERBODIES_DB_NAME", WATERBODIES_DB_WRITER_SECRET, "database-name"
+        ),
+        Secret(
+            "env",
+            "WATERBODIES_DB_USER",
+            WATERBODIES_DB_WRITER_SECRET,
+            "postgres-username",
+        ),
+        Secret(
+            "env",
+            "WATERBODIES_DB_PASS",
+            WATERBODIES_DB_WRITER_SECRET,
+            "postgres-password",
+        ),
         Secret("env", "DB_USERNAME", SECRET_ODC_READER_NAME, "postgres-username"),
         Secret("env", "DB_PASSWORD", SECRET_ODC_READER_NAME, "postgres-password"),
         Secret(
@@ -172,8 +188,7 @@ def k8s_job_task(dag, queue_name):
     yaml = {
         "apiVersion": "batch/v1",
         "kind": "Job",
-        "metadata": {"name": "waterbodies-conflux-job",
-                     "namespace": "processing"},
+        "metadata": {"name": "waterbodies-conflux-job", "namespace": "processing"},
         "spec": {
             "parallelism": parallelism,
             "backoffLimit": 3,
@@ -211,18 +226,26 @@ def k8s_job_task(dag, queue_name):
                                             --partial \
                                             --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} \
                                             --output {{{{ dag_run.conf.get("outdir", "{outdir}") }}}} {{{{ dag_run.conf.get("flags", "{flags}") }}}}
-                                    """.format(queue=queue_name,
-                                               shapefile=DEFAULT_PARAMS['shapefile'],
-                                               outdir=DEFAULT_PARAMS['outdir'],
-                                               plugin=DEFAULT_PARAMS['plugin'],
-                                               flags=DEFAULT_PARAMS['flags'],
-                                               )),
+                                    """.format(
+                                        queue=queue_name,
+                                        shapefile=DEFAULT_PARAMS["shapefile"],
+                                        outdir=DEFAULT_PARAMS["outdir"],
+                                        plugin=DEFAULT_PARAMS["plugin"],
+                                        flags=DEFAULT_PARAMS["flags"],
+                                    )
+                                ),
                             ],
                             "env": [
                                 {"name": "DB_HOSTNAME", "value": DB_READER_HOSTNAME},
                                 {"name": "DB_DATABASE", "value": DB_DATABASE},
-                                {"name": "WATERBODIES_DB_HOST", "value": SECRETS['env_vars']['WATERBODIES_DB_HOST']},
-                                {"name": "WATERBODIES_DB_PORT", "value": SECRETS['env_vars']['WATERBODIES_DB_PORT']},
+                                {
+                                    "name": "WATERBODIES_DB_HOST",
+                                    "value": SECRETS["env_vars"]["WATERBODIES_DB_HOST"],
+                                },
+                                {
+                                    "name": "WATERBODIES_DB_PORT",
+                                    "value": SECRETS["env_vars"]["WATERBODIES_DB_PORT"],
+                                },
                                 {"name": "AWS_NO_SIGN_REQUEST", "value": "YES"},
                                 {"name": "DB_PORT", "value": DB_PORT},
                                 {
@@ -356,7 +379,9 @@ def k8s_getids(dag, cmd, product):
             """
             echo "Writing to /airflow/xcom/return.json"
             dea-conflux get-ids {product} {cmd} --s3 > /airflow/xcom/return.json
-            """.format(cmd=cmd, product=product)
+            """.format(
+                cmd=cmd, product=product
+            )
         ),
     ]
 
@@ -393,8 +418,7 @@ def k8s_makequeue(dag, queue_name):
             echo "Using dea-conflux image {image}"
             dea-conflux make {name}
             """.format(
-                image=CONFLUX_UNSTABLE_IMAGE,
-                name=queue_name
+                image=CONFLUX_UNSTABLE_IMAGE, name=queue_name
             )
         ),
     ]
@@ -465,7 +489,7 @@ def k8s_makecsvs(dag, index_num, split_num):
             dea-conflux db-to-csv --output {{{{ dag_run.conf.get("csvdir", "{csvdir}") }}}} --jobs 64 --verbose --index-num {index_num} --split-num {split_num}
             """.format(
                 image=CONFLUX_UNSTABLE_IMAGE,
-                csvdir=DEFAULT_PARAMS['csvdir'],
+                csvdir=DEFAULT_PARAMS["csvdir"],
                 index_num=index_num,
                 split_num=split_num,
             )
@@ -493,13 +517,13 @@ def k8s_makecsvs(dag, index_num, split_num):
 
 with dag:
     cmd = '{{{{ dag_run.conf.get("cmd", "{cmd}") }}}}'.format(
-        cmd=DEFAULT_PARAMS['cmd'],
+        cmd=DEFAULT_PARAMS["cmd"],
     )
     product = '{{{{ dag_run.conf.get("product", "{product}") }}}}'.format(
-        product=DEFAULT_PARAMS['product'],
+        product=DEFAULT_PARAMS["product"],
     )
     queue_name = '{{{{ dag_run.conf.get("queue_name", "{queue_name}") }}}}'.format(
-        queue_name=DEFAULT_PARAMS['queue_name'],
+        queue_name=DEFAULT_PARAMS["queue_name"],
     )
 
     getids = k8s_getids(dag, cmd, product)
@@ -516,6 +540,8 @@ with dag:
         for index in range(DB_TO_CSV_CONCURRENCY_NUMBER):
             # only run 0.2% workload as the integration test
             if index == 0 or index == 1:
-                makecsv = k8s_makecsvs(dag, index_num=index, split_num=DB_TO_CSV_CONCURRENCY_NUMBER)
+                makecsv = k8s_makecsvs(
+                    dag, index_num=index, split_num=DB_TO_CSV_CONCURRENCY_NUMBER
+                )
 
     getids >> makequeue >> push >> task >> delqueue >> makecsvs

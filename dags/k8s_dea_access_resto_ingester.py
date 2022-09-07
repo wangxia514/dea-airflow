@@ -53,11 +53,14 @@ from airflow import DAG
 from airflow.kubernetes.secret import Secret
 
 # Operators; we need this to operate!
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 from airflow.operators.dummy_operator import DummyOperator
-from infra.variables import DEA_ACCESS_RESTO_API_ADMIN_SECRET
+from infra.projects.dea_access import DEA_ACCESS_RESTO_API_ADMIN_SECRET
 import requests
 import csv
+
 # [END import_module]
 
 # [START default_args]
@@ -73,15 +76,24 @@ default_args = {
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "secrets": [
-        Secret("env", "API_ADMIN_USERID", DEA_ACCESS_RESTO_API_ADMIN_SECRET, "API_ADMIN_USERID"),
-        Secret("env", "JWT_PASSPHRASE", DEA_ACCESS_RESTO_API_ADMIN_SECRET, "JWT_PASSPHRASE"),
+        Secret(
+            "env",
+            "API_ADMIN_USERID",
+            DEA_ACCESS_RESTO_API_ADMIN_SECRET,
+            "API_ADMIN_USERID",
+        ),
+        Secret(
+            "env", "JWT_PASSPHRASE", DEA_ACCESS_RESTO_API_ADMIN_SECRET, "JWT_PASSPHRASE"
+        ),
     ],
 }
 # [END default_args]
 
 # Docker images
 CURL_SVC_IMAGE = "curlimages/curl:7.71.1"
-STAC2RESTO_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dea-access/stac-to-resto:latest"
+STAC2RESTO_IMAGE = (
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dea-access/stac-to-resto:latest"
+)
 
 # Set kubernetes secret
 SECRET_ENV = Secret(
@@ -117,24 +129,24 @@ SECRET_ENV_JWT_PASSPHRASE = Secret(
 # TODO: Investigate if this can be fetched from a google doc and loaded with XCom (maybe),
 #       OPS could then just update a google doc and start the pipeline.
 # read from github dea-config the latest csv file
-url = 'https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/NEMO-run-ga-ls-fc-3/workspaces/collections.csv'
+url = "https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/NEMO-run-ga-ls-fc-3/workspaces/collections.csv"
 r = requests.get(url, allow_redirects=True)
 
 # read the name and the count columns
-open('collections.csv', 'wb').write(r.content)
-with open('collections.csv', 'rt') as csvfile:
+open("collections.csv", "wb").write(r.content)
+with open("collections.csv", "rt") as csvfile:
     # get number of columns
     for line in csvfile.readlines():
-        array = line.split(',')
+        array = line.split(",")
 
     num_columns = len(array)
     csvfile.seek(0)
-    reader = csv.reader(csvfile, delimiter=',')
+    reader = csv.reader(csvfile, delimiter=",")
     next(reader, None)  # skip the headers
     included_cols = [5]
     COLLECTIONS_LIST = []
     for row in reader:
-        if row[5] != 'None':
+        if row[5] != "None":
             COLLECTIONS_LIST.append(row[5])
 
 # [START instantiate_dag]
@@ -240,7 +252,11 @@ with pipeline:
                         "RESTO_URL": "{{ params.RESTO_URL }}",
                         "COLLECTION_LIST": collection,
                     },
-                    secrets=[SECRET_ENV, SECRET_ENV_API_USERID, SECRET_ENV_JWT_PASSPHRASE],
+                    secrets=[
+                        SECRET_ENV,
+                        SECRET_ENV_API_USERID,
+                        SECRET_ENV_JWT_PASSPHRASE,
+                    ],
                     reattach_on_restart=True,
                     resources={
                         "request_cpu": "250m",
@@ -252,7 +268,11 @@ with pipeline:
                 )
 
                 # [Setting up Dependencies]
-                [
-                    task_http_itag_svc_sensor_check,
-                    task_http_resto_svc_sensor_check,
-                ] >> all_ingester_tasks[index] >> task_final_ingester_check
+                (
+                    [
+                        task_http_itag_svc_sensor_check,
+                        task_http_resto_svc_sensor_check,
+                    ]
+                    >> all_ingester_tasks[index]
+                    >> task_final_ingester_check
+                )

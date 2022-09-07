@@ -12,8 +12,8 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 )
 from airflow.operators.dummy import DummyOperator
 from datetime import datetime as dt, timedelta
-from infra.variables import REPORTING_ODC_DB_SECRET
-from infra.variables import REPORTING_DB_DEV_SECRET
+from automated_reporting.variables import REPORTING_ODC_DB_SECRET
+from automated_reporting.variables import REPORTING_DB_DEV_SECRET
 
 default_args = {
     "owner": "Tom McAdam",

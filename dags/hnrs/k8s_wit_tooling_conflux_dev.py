@@ -4,16 +4,16 @@ DEA WIT tooling Dev processing using Conflux.
 Supported configuration arguments:
 
 shapefile
-    Default "s3://dea-public-data-dev/projects/WIT/test_shp/C2_v4_NSW_only.shp"
+    Default "s3://dea-public-data-dev/projects/WIT/test_shp/conflux_wb_Npolygons/wb_3_v2_conflux_10_test.shp"
 
 intermediatedir
-    Default "s3://dea-public-data-dev/projects/WIT/C2_v4_NSW_only_pq"
+    Default "s3://dea-public-data-dev/projects/WIT/test_result/test_10_polygons_09062022/timestamp_base_result"
 
 cmd
-    Datacube query to run. Default "'time > 2021-01-01'"
+    Datacube query to run. Default "'time in [2009-01-01, 2015-01-01] lat in [-30, -29] lon in [141, 143] gqa_mean_x in [-1, 1]'"
 
 csvdir
-    Default "s3://dea-public-data-dev/projects/WIT/C2_v4_NSW_only_csv"
+    Default "s3://dea-public-data-dev/projects/WIT/test_result/test_10_polygons_09062022/polygon_base_result"
 
 flags
     Other flags to pass to Conflux.
@@ -38,16 +38,17 @@ from airflow.utils.task_group import TaskGroup
 
 from textwrap import dedent
 
+from infra.projects.hnrs import (
+    WIT_DEV_USER_SECRET,
+)
+
 from infra.variables import (
     DB_DATABASE,
     DB_READER_HOSTNAME,
     AWS_DEFAULT_REGION,
     DB_PORT,
-    WIT_DEV_USER_SECRET,
     SECRET_ODC_READER_NAME,
 )
-
-from infra.images import CONFLUX_WIT_IMAGE
 
 # Default config parameters.
 DEFAULT_PARAMS = dict(
@@ -61,8 +62,9 @@ DEFAULT_PARAMS = dict(
 # Requested memory. Memory limit is twice this.
 CONFLUX_POD_MEMORY_MB = 40000
 
-EC2_NUM = 8
+EC2_NUM = 4
 
+CONFLUX_UNSTABLE_IMAGE = "geoscienceaustralia/dea-conflux:latest"
 
 # DAG CONFIGURATION
 SECRETS = {
@@ -149,18 +151,32 @@ def print_configuration_function(ds, **kwargs):
 
 # THE DAG
 dag = DAG(
-    "k8s_wit_conflux",
+    "k8s_wit_conflux_dev",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
     schedule_interval=None,  # triggered only
     catchup=False,
     concurrency=128,
-    tags=["k8s", "landsat", "wit", "conflux"],
+    tags=["k8s", "landsat", "wit", "conflux", "integration test"],
 )
 
-WIT_INPUTS = [{"product": "ga_ls5t_ard_3", "plugin": "wit_ls5", "queue": "wit_conflux_ls5_sqs"},
-              {"product": "ga_ls7e_ard_3", "plugin": "wit_ls7", "queue": "wit_conflux_ls7_sqs"},
-              {"product": "ga_ls8c_ard_3", "plugin": "wit_ls8", "queue": "wit_conflux_ls8_sqs"}]
+WIT_INPUTS = [
+    {
+        "product": "ga_ls5t_ard_3",
+        "plugin": "wit_ls5",
+        "queue": "wit_conflux_ls5_integration_test_sqs",
+    },
+    {
+        "product": "ga_ls7e_ard_3",
+        "plugin": "wit_ls7",
+        "queue": "wit_conflux_ls7_integration_test_sqs",
+    },
+    {
+        "product": "ga_ls8c_ard_3",
+        "plugin": "wit_ls8",
+        "queue": "wit_conflux_ls8_integration_test_sqs",
+    },
+]
 
 
 def k8s_job_filter_task(dag, raw_queue_name, final_queue_name, use_id):
@@ -182,8 +198,7 @@ def k8s_job_filter_task(dag, raw_queue_name, final_queue_name, use_id):
     yaml = {
         "apiVersion": "batch/v1",
         "kind": "Job",
-        "metadata": {"name": "filter-job",
-                     "namespace": "processing"},
+        "metadata": {"name": "filter-job", "namespace": "processing"},
         "spec": {
             "parallelism": parallelism,
             "backoffLimit": 32,
@@ -195,7 +210,7 @@ def k8s_job_filter_task(dag, raw_queue_name, final_queue_name, use_id):
                     "containers": [
                         {
                             "name": "conflux",
-                            "image": CONFLUX_WIT_IMAGE,
+                            "image": CONFLUX_UNSTABLE_IMAGE,
                             "imagePullPolicy": "IfNotPresent",
                             "resources": {
                                 "requests": {
@@ -218,12 +233,14 @@ def k8s_job_filter_task(dag, raw_queue_name, final_queue_name, use_id):
                                         --shapefile {{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}} \
                                         --num-worker {cpu} \
                                         --use-id {use_id}
-                                    """.format(input_queue_name=raw_queue_name,
-                                               output_queue_name=final_queue_name,
-                                               shapefile=DEFAULT_PARAMS['shapefile'],
-                                               cpu=cpu,
-                                               use_id=use_id,
-                                               )),
+                                    """.format(
+                                        input_queue_name=raw_queue_name,
+                                        output_queue_name=final_queue_name,
+                                        shapefile=DEFAULT_PARAMS["shapefile"],
+                                        cpu=cpu,
+                                        use_id=use_id,
+                                    )
+                                ),
                             ],
                             "env": [
                                 {"name": "DB_HOSTNAME", "value": DB_READER_HOSTNAME},
@@ -279,7 +296,7 @@ def k8s_job_filter_task(dag, raw_queue_name, final_queue_name, use_id):
     }
 
     job_task = KubernetesJobOperator(
-        image=CONFLUX_WIT_IMAGE,
+        image=CONFLUX_UNSTABLE_IMAGE,
         dag=dag,
         task_id="filter",
         get_logs=False,
@@ -303,8 +320,7 @@ def k8s_job_run_wit_task(dag, queue_name, plugin, use_id):
     yaml = {
         "apiVersion": "batch/v1",
         "kind": "Job",
-        "metadata": {"name": "processing-job",
-                     "namespace": "processing"},
+        "metadata": {"name": "processing-job", "namespace": "processing"},
         "spec": {
             "parallelism": parallelism,
             "backoffLimit": 32,
@@ -316,7 +332,7 @@ def k8s_job_run_wit_task(dag, queue_name, plugin, use_id):
                     "containers": [
                         {
                             "name": "conflux",
-                            "image": CONFLUX_WIT_IMAGE,
+                            "image": CONFLUX_UNSTABLE_IMAGE,
                             "imagePullPolicy": "IfNotPresent",
                             "resources": {
                                 "requests": {
@@ -344,12 +360,16 @@ def k8s_job_run_wit_task(dag, queue_name, plugin, use_id):
                                             --not-dump-empty-dataframe \
                                             --timeout 7200 \
                                             --use-id {use_id}
-                                    """.format(queue=queue_name,
-                                               shapefile=DEFAULT_PARAMS['shapefile'],
-                                               intermediatedir=DEFAULT_PARAMS['intermediatedir'],
-                                               plugin=plugin,
-                                               use_id=use_id,
-                                               )),
+                                    """.format(
+                                        queue=queue_name,
+                                        shapefile=DEFAULT_PARAMS["shapefile"],
+                                        intermediatedir=DEFAULT_PARAMS[
+                                            "intermediatedir"
+                                        ],
+                                        plugin=plugin,
+                                        use_id=use_id,
+                                    )
+                                ),
                             ],
                             "env": [
                                 {"name": "DB_HOSTNAME", "value": DB_READER_HOSTNAME},
@@ -405,7 +425,7 @@ def k8s_job_run_wit_task(dag, queue_name, plugin, use_id):
     }
 
     job_task = KubernetesJobOperator(
-        image=CONFLUX_WIT_IMAGE,
+        image=CONFLUX_UNSTABLE_IMAGE,
         dag=dag,
         task_id="run",
         get_logs=False,
@@ -434,7 +454,7 @@ def k8s_queue_push(dag, queue_name, filename, task_id):
         ),
     ]
     return KubernetesPodOperator(
-        image=CONFLUX_WIT_IMAGE,
+        image=CONFLUX_UNSTABLE_IMAGE,
         dag=dag,
         name="wit-conflux-push",
         arguments=cmd,
@@ -462,12 +482,14 @@ def k8s_getids(dag, cmd, product):
             """
             echo "Writing to /airflow/xcom/return.json"
             dea-conflux get-ids {product} {cmd} --s3 > /airflow/xcom/return.json
-            """.format(cmd=cmd, product=product)
+            """.format(
+                cmd=cmd, product=product
+            )
         ),
     ]
 
     getids = KubernetesPodOperator(
-        image=CONFLUX_WIT_IMAGE,
+        image=CONFLUX_UNSTABLE_IMAGE,
         name="wit-conflux-getids",
         arguments=getids_cmd,
         image_pull_policy="IfNotPresent",
@@ -500,14 +522,14 @@ def k8s_makequeues(dag, raw_queue_name, final_queue_name):
             dea-conflux make {raw_queue_name} --timeout 7200 --retries 1
             dea-conflux make {final_queue_name} --timeout 7200 --retries 1
             """.format(
-                image=CONFLUX_WIT_IMAGE,
+                image=CONFLUX_UNSTABLE_IMAGE,
                 raw_queue_name=raw_queue_name,
                 final_queue_name=final_queue_name,
             )
         ),
     ]
     makequeue = KubernetesPodOperator(
-        image=CONFLUX_WIT_IMAGE,
+        image=CONFLUX_UNSTABLE_IMAGE,
         name="wit-cconflux-makequeue",
         arguments=makequeue_cmd,
         image_pull_policy="IfNotPresent",
@@ -539,14 +561,14 @@ def k8s_delqueues(dag, raw_queue_name, final_queue_name):
             dea-conflux delete {raw_queue_name}
             dea-conflux delete {final_queue_name}
             """.format(
-                image=CONFLUX_WIT_IMAGE,
+                image=CONFLUX_UNSTABLE_IMAGE,
                 raw_queue_name=raw_queue_name,
                 final_queue_name=final_queue_name,
             )
         ),
     ]
     delqueue = KubernetesPodOperator(
-        image=CONFLUX_WIT_IMAGE,
+        image=CONFLUX_UNSTABLE_IMAGE,
         name="wit-conflux-delqueue",
         arguments=delqueue_cmd,
         image_pull_policy="IfNotPresent",
@@ -572,17 +594,17 @@ def k8s_makecsvs(dag):
         dedent(
             """
             echo "Using dea-conflux image {image}"
-            dea-conflux stack --parquet-path {{{{ dag_run.conf.get("intermediatedir", "{intermediatedir}") }}}} --output {{{{ dag_run.conf.get("csvdir", "{csvdir}") }}}} --mode wit_tooling --remove-duplicated-data
+            dea-conflux stack --parquet-path {{{{ dag_run.conf.get("intermediatedir", "{intermediatedir}") }}}} --output {{{{ dag_run.conf.get("csvdir", "{csvdir}") }}}} --mode wit_tooling
             """.format(
-                image=CONFLUX_WIT_IMAGE,
-                csvdir=DEFAULT_PARAMS['csvdir'],
-                intermediatedir=DEFAULT_PARAMS['intermediatedir'],
+                image=CONFLUX_UNSTABLE_IMAGE,
+                csvdir=DEFAULT_PARAMS["csvdir"],
+                intermediatedir=DEFAULT_PARAMS["intermediatedir"],
             )
         ),
     ]
     # we are using r5.4xlarge to run WIT. It has 16vCPU, and 128GB RAM.
     makecsvs = KubernetesPodOperator(
-        image=CONFLUX_WIT_IMAGE,
+        image=CONFLUX_UNSTABLE_IMAGE,
         name="wit-conflux-makecsvs",
         arguments=makecsvs_cmd,
         image_pull_policy="IfNotPresent",
@@ -603,39 +625,46 @@ def k8s_makecsvs(dag):
 
 with dag:
     cmd = '{{{{ dag_run.conf.get("cmd", "{cmd}") }}}}'.format(
-        cmd=DEFAULT_PARAMS['cmd'],
+        cmd=DEFAULT_PARAMS["cmd"],
     )
 
     shapefile = '{{{{ dag_run.conf.get("shapefile", "{shapefile}") }}}}'.format(
-        shapefile=DEFAULT_PARAMS['shapefile'],
+        shapefile=DEFAULT_PARAMS["shapefile"],
     )
 
     csvdir = '{{{{ dag_run.conf.get("csvdir", "{csvdir}") }}}}'.format(
-        csvdir=DEFAULT_PARAMS['csvdir'],
+        csvdir=DEFAULT_PARAMS["csvdir"],
     )
 
-    intermediatedir = '{{{{ dag_run.conf.get("intermediatedir", "{intermediatedir}") }}}}'.format(
-        intermediatedir=DEFAULT_PARAMS['intermediatedir'],
+    intermediatedir = (
+        '{{{{ dag_run.conf.get("intermediatedir", "{intermediatedir}") }}}}'.format(
+            intermediatedir=DEFAULT_PARAMS["intermediatedir"],
+        )
     )
 
     print_configuration = PythonOperator(
         task_id="print_sys_conf",
         python_callable=print_configuration_function,
         provide_context=True,
-        op_kwargs={'cmd': cmd, 'shapefile': shapefile, 'csvdir': csvdir, 'intermediatedir': intermediatedir},
+        op_kwargs={
+            "cmd": cmd,
+            "shapefile": shapefile,
+            "csvdir": csvdir,
+            "intermediatedir": intermediatedir,
+        },
         dag=dag,
     )
 
     use_id = '{{{{ dag_run.conf.get("use_id", "{use_id}") }}}}'.format(
-        use_id=DEFAULT_PARAMS['use_id'],
+        use_id=DEFAULT_PARAMS["use_id"],
     )
 
     makecsvs = k8s_makecsvs(dag)
 
     for wit_input in WIT_INPUTS:
-        product = wit_input['product']
-        plugin = wit_input['plugin']
-        queue = wit_input['queue']
+        product = wit_input["product"]
+        plugin = wit_input["plugin"]
+        queue = wit_input["queue"]
 
         raw_queue_name = f"{queue}_raw"
         final_queue_name = queue
@@ -643,7 +672,9 @@ with dag:
         with TaskGroup(group_id=f"wit-conflux-{plugin}") as tg:
             getids = k8s_getids(dag, cmd, product)
             makeprequeues = k8s_makequeues(dag, raw_queue_name, final_queue_name)
-            push = k8s_queue_push(dag, raw_queue_name, f"{product}-id.txt", f"wit-conflux-{plugin}.getids")
+            push = k8s_queue_push(
+                dag, raw_queue_name, f"{product}-id.txt", f"wit-conflux-{plugin}.getids"
+            )
             filter = k8s_job_filter_task(dag, raw_queue_name, final_queue_name, use_id)
             processing = k8s_job_run_wit_task(dag, final_queue_name, plugin, use_id)
             delprequeues = k8s_delqueues(dag, raw_queue_name, final_queue_name)
