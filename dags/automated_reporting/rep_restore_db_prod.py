@@ -7,13 +7,8 @@ This DAG is a scheduled run workflow to restore reporting DB into the DEV instan
 # pylint: disable=W0104
 # pylint: disable=E0401
 
-from ctypes import util
 from datetime import datetime as dt
 from airflow import DAG
-from airflow.kubernetes.secret import Secret
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
-    KubernetesPodOperator,
-)
 from airflow.operators.dummy import DummyOperator
 from infra.variables import REPORTING_DB_DEV_SECRET
 from automated_reporting import k8s_secrets, utilities
@@ -52,7 +47,7 @@ with dag:
     restore_reporting_db_landsat = utilities.k8s_operator(
         dag=dag,
         image=BACKUP_RESTORE_IMAGE,
-        cmds = [
+        cmds=[
             "echo db restore started: $(date)",
             "sh /restore.sh",
         ],
@@ -68,7 +63,7 @@ with dag:
     restore_reporting_db_dea = utilities.k8s_operator(
         dag=dag,
         image=BACKUP_RESTORE_IMAGE,
-        cmds = [
+        cmds=[
             "echo db restore started: $(date)",
             "sh /restore.sh",
         ],
@@ -84,7 +79,7 @@ with dag:
     restore_reporting_db_cophub = utilities.k8s_operator(
         dag=dag,
         image=BACKUP_RESTORE_IMAGE,
-        cmds = [
+        cmds=[
             "echo db restore started: $(date)",
             "sh /restore.sh",
         ],
@@ -100,7 +95,7 @@ with dag:
     restore_reporting_db_marine = utilities.k8s_operator(
         dag=dag,
         image=BACKUP_RESTORE_IMAGE,
-        cmds = [
+        cmds=[
             "echo db restore started: $(date)",
             "sh /restore.sh",
         ],
@@ -116,7 +111,7 @@ with dag:
     restore_reporting_db_nci = utilities.k8s_operator(
         dag=dag,
         image=BACKUP_RESTORE_IMAGE,
-        cmds = [
+        cmds=[
             "echo db restore started: $(date)",
             "sh /restore.sh",
         ],
@@ -132,7 +127,7 @@ with dag:
     restore_reporting_db_public = utilities.k8s_operator(
         dag=dag,
         image=BACKUP_RESTORE_IMAGE,
-        cmds = [
+        cmds=[
             "echo db restore started: $(date)",
             "sh /restore.sh",
         ],

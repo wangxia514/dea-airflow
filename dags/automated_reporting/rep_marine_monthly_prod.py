@@ -10,7 +10,6 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.operators.dummy import DummyOperator
-from airflow.models import Variable
 from automated_reporting import k8s_secrets, utilities
 
 default_args = {

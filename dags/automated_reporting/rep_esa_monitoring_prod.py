@@ -56,8 +56,8 @@ with dag:
             "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
         },
         secrets=k8s_secrets.scihub_secrets
-        + k8s_secrets.s3_automated_operation_bucket 
-        + k8s_secrets.iam_rep_secrets 
+        + k8s_secrets.s3_automated_operation_bucket
+        + k8s_secrets.iam_rep_secrets
         + k8s_secrets.db_secrets(ENV),
     )
 

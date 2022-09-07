@@ -47,7 +47,7 @@ with dag:
         ],
         task_id="aws_s3_year_wise_scene_usage_ingestion",
         secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.s3_server_access_log_bucket + k8s_secrets.iam_dea_secrets,
-    ) 
+    )
     aws_s3_region_wise_scene_usage_ingestion = utilities.k8s_operator(
         dag=dag,
         image=ETL_IMAGE,

@@ -72,7 +72,6 @@ with dag:
         cmds=[
             "echo db backup started: $(date)",
             "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n dea | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$S3_BUCKET/$EXECUTION_DATE/dea-dump.sql",
-  
         ],
         task_id="backup_reporting_db_dea",
         env_vars={
