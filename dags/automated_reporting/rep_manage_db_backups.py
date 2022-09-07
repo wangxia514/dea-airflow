@@ -8,10 +8,6 @@ This DAG is a scheduled run workflow to manage reporting DB backups in the S3 bu
 # pylint: disable=E0401
 from datetime import datetime as dt, timedelta
 from airflow import DAG
-from airflow.kubernetes.secret import Secret
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
-    KubernetesPodOperator,
-)
 from automated_reporting import k8s_secrets, utilities
 
 default_args = {
