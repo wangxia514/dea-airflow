@@ -36,7 +36,7 @@ with dag:
     manage_reporting_db = utilities.k8s_operator(
         dag=dag,
         image=BACKUP_RESTORE_IMAGE,
-        cmds = [
+        cmds=[
             "sh /manage_backup.sh",
         ],
         task_id="manage_reporting_db",
