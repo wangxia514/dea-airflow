@@ -15,9 +15,6 @@ This DAG is a scheduled run workflow to backup reporting DB into the nemo produc
 from datetime import datetime as dt, timedelta
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
-    KubernetesPodOperator,
-)
 from airflow.operators.dummy import DummyOperator
 from infra.variables import REPORTING_DB_SECRET
 from automated_reporting import k8s_secrets, utilities
@@ -96,7 +93,7 @@ with dag:
         },
         secrets=k8s_secrets.s3_db_dump_bucket + k8s_secrets.iam_nemo_production_secrets,
     )
-    backup_reporting_db_marine = KubernetesPodOperator(
+    backup_reporting_db_marine = utilities.k8s_operator(
         dag=dag,
         image=BACKUP_RESTORE_IMAGE,
         cmds=[
