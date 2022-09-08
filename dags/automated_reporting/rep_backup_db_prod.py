@@ -14,9 +14,7 @@ This DAG is a scheduled run workflow to backup reporting DB into the nemo produc
 # pylint: disable=E0401
 from datetime import datetime as dt, timedelta
 from airflow import DAG
-from airflow.kubernetes.secret import Secret
 from airflow.operators.dummy import DummyOperator
-from infra.variables import REPORTING_DB_SECRET
 from automated_reporting import k8s_secrets, utilities
 
 default_args = {
@@ -28,12 +26,6 @@ default_args = {
     "email_on_retry": False,
     "retries": 3,
     "retry_delay": timedelta(days=1),
-    "secrets": [
-        Secret("env", "DB_HOST", REPORTING_DB_SECRET, "DB_HOST"),
-        Secret("env", "DB_NAME", REPORTING_DB_SECRET, "DB_NAME"),
-        Secret("env", "DB_USER", REPORTING_DB_SECRET, "DB_USER"),
-        Secret("env", "PGPASSWORD", REPORTING_DB_SECRET, "DB_PASSWORD"),
-    ],
 }
 
 dag = DAG(
