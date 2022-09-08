@@ -6,5 +6,8 @@
     "google_analytics_apikey": {"pass":"PASS"},
     "db_rep_secret": {"pass":"PASS"},
     "db_rep_dev_secret": {"pass":"PASS"},
-    "m2m_api_password": {"pass":"PASS"}
+    "m2m_api_password": {"pass":"PASS"},
+    "dea_uptime_monitoring": [1234567,2345678],
+    "marine_uptime_monitoring": [1234567,2345678]
+
 }
