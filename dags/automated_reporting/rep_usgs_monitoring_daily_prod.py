@@ -60,7 +60,7 @@ with daily_dag:
             "CATEGORY": "def",  # query for definitive acquisitions
             "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
         },
-        secrets=k8s_secrets.s3_secrets + k8s_secrets.m2m_api_secrets,
+        secrets=k8s_secrets.s3_automated_operation_bucket + k8s_secrets.iam_rep_secrets + k8s_secrets.m2m_api_secrets,
     )
 
     # Insert cached acquisitions into dea.usgs_acquisitions table
@@ -77,7 +77,7 @@ with daily_dag:
             "USGS_ACQ_XCOM": "{{ task_instance.xcom_pull(task_ids=\
                 'usgs-acquisitions', key='return_value') }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.s3_secrets,
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.s3_automated_operation_bucket + k8s_secrets.iam_rep_secrets,
     )
 
     # NB. Not inserting cached acquisitions into high_granlarity.dataset table for

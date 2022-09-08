@@ -10,7 +10,6 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.operators.dummy import DummyOperator
-from airflow.models import Variable
 from automated_reporting import k8s_secrets, utilities
 
 default_args = {
@@ -172,9 +171,8 @@ with dag:
         task_id="elvis_ingestion",
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-            "REPORTING_BUCKET": Variable.get("reporting_s3_bucket"),
         },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets,
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.s3_automated_operation_bucket + k8s_secrets.iam_rep_secrets,
     )
     # START >> fk1_ingestion >> fk1_processing
     # START >> iy57_ingestion >> iy57_processing

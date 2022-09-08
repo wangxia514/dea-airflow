@@ -105,10 +105,9 @@ with dag:
         task_id="get_inventory_files",
         env_vars={
             "POD_COUNT": AWS_STORAGE_STATS_POD_COUNT,
-            "REPORTING_BUCKET": "dea-public-data-inventory",
             "REPORTING_DATE": "{{ ds }}",
         },
-        secrets=k8s_secrets.iam_dea_secrets
+        secrets=k8s_secrets.iam_dea_secrets + k8s_secrets.s3_public_data_inventory_bucket,
     )
 
     aggregate_metrics = PythonOperator(
@@ -128,10 +127,9 @@ with dag:
         task_id="push_to_db",
         env_vars={
             "METRICS" : "{{ task_instance.xcom_pull(task_ids='aggregate_metrics', key='metrics') }}",
-            "REPORTING_BUCKET": "dea-public-data-inventory",
             "REPORTING_DATE": "{{ ds }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_dea_secrets
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_dea_secrets + k8s_secrets.s3_public_data_inventory_bucket,
     )
 
     # k8s_task_download_inventory >> metrics_task1 >> metrics_task2 >> metrics_task3
@@ -150,9 +148,8 @@ with dag:
             task_id=f"collection{i}",
             env_vars={
                 "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}",
-                "REPORTING_BUCKET": "dea-public-data-inventory",
                 "COUNTER" : counter,
             },
-            secrets=k8s_secrets.iam_dea_secrets,
+            secrets=k8s_secrets.iam_dea_secrets + k8s_secrets.s3_public_data_inventory_bucket,
         )
         k8s_task_download_inventory >> metrics_tasks[i] >> aggregate_metrics >> push_to_db
