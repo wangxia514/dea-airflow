@@ -17,7 +17,7 @@ from automated_reporting import k8s_secrets, utilities
 
 ENV = "prod"
 ETL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.10.0"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.13.0"
 )
 
 default_args = {
