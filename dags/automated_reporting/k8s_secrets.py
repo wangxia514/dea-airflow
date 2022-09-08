@@ -30,8 +30,8 @@ iam_dea_secrets = [
 ]
 
 iam_rep_secrets = [
-    Secret("env", "ACCESS_KEY", "reporting-iam-rep-s3", "ACCESS_KEY"),
-    Secret("env", "SECRET_KEY", "reporting-iam-rep-s3", "SECRET_KEY"),
+    Secret("env", "ACCESS_KEY", "reporting-airflow", "ACCESS_KEY"),
+    Secret("env", "SECRET_KEY", "reporting-airflow", "SECRET_KEY"),
 ]
 
 iam_nemo_production_secrets = [
