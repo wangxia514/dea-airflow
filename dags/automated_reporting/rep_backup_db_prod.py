@@ -28,12 +28,6 @@ default_args = {
     "email_on_retry": False,
     "retries": 3,
     "retry_delay": timedelta(days=1),
-    "secrets": [
-        Secret("env", "DB_HOST", REPORTING_DB_SECRET, "DB_HOST"),
-        Secret("env", "DB_NAME", REPORTING_DB_SECRET, "DB_NAME"),
-        Secret("env", "DB_USER", REPORTING_DB_SECRET, "DB_USER"),
-        Secret("env", "PGPASSWORD", REPORTING_DB_SECRET, "DB_PASSWORD"),
-    ],
 }
 
 dag = DAG(

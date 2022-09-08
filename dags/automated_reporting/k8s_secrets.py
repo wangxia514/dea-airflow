@@ -83,7 +83,7 @@ reporting_master_db_secrets_for_backup = [
     Secret("env", "DB_NAME", "reporting-db-master", "DB_NAME"),
     Secret("env", "DB_PORT", "reporting-db-master", "DB_PORT"),
     Secret("env", "DB_USER", "reporting-db-master", "DB_USER"),
-    Secret("env", "DB_PASSWORD", "reporting-db-master", "DB_PASSWORD"),
+    Secret("env", "PGPASSWORD", "reporting-db-master", "DB_PASSWORD"),
 ]
 
 reporting_db_dev_secrets = [
