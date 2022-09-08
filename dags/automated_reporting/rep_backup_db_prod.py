@@ -61,7 +61,7 @@ with dag:
             "AWS_DEFAULT_REGION": "ap-southeast-2",
             "AWS_PAGER": "",
         },
-        secrets=k8s_secrets.s3_db_dump_bucket + k8s_secrets.iam_nemo_production_secrets,
+        secrets=k8s_secrets.s3_db_dump_bucket + k8s_secrets.iam_nemo_production_secrets + k8s_secrets.reporting_master_db_secrets_for_backup,
     )
     backup_reporting_db_dea = utilities.k8s_operator(
         dag=dag,
@@ -76,7 +76,7 @@ with dag:
             "AWS_DEFAULT_REGION": "ap-southeast-2",
             "AWS_PAGER": "",
         },
-        secrets=k8s_secrets.s3_db_dump_bucket + k8s_secrets.iam_nemo_production_secrets,
+        secrets=k8s_secrets.s3_db_dump_bucket + k8s_secrets.iam_nemo_production_secrets + k8s_secrets.reporting_master_db_secrets_for_backup,
     )
     backup_reporting_db_cophub = utilities.k8s_operator(
         dag=dag,
@@ -91,7 +91,7 @@ with dag:
             "AWS_DEFAULT_REGION": "ap-southeast-2",
             "AWS_PAGER": "",
         },
-        secrets=k8s_secrets.s3_db_dump_bucket + k8s_secrets.iam_nemo_production_secrets,
+        secrets=k8s_secrets.s3_db_dump_bucket + k8s_secrets.iam_nemo_production_secrets + k8s_secrets.reporting_master_db_secrets_for_backup,
     )
     backup_reporting_db_marine = utilities.k8s_operator(
         dag=dag,
@@ -121,7 +121,7 @@ with dag:
             "AWS_DEFAULT_REGION": "ap-southeast-2",
             "AWS_PAGER": "",
         },
-        secrets=k8s_secrets.s3_db_dump_bucket + k8s_secrets.iam_nemo_production_secrets,
+        secrets=k8s_secrets.s3_db_dump_bucket + k8s_secrets.iam_nemo_production_secrets + k8s_secrets.reporting_master_db_secrets_for_backup,
     )
     backup_reporting_db_public = utilities.k8s_operator(
         dag=dag,
@@ -136,7 +136,7 @@ with dag:
             "AWS_DEFAULT_REGION": "ap-southeast-2",
             "AWS_PAGER": "",
         },
-        secrets=k8s_secrets.s3_db_dump_bucket + k8s_secrets.iam_nemo_production_secrets,
+        secrets=k8s_secrets.s3_db_dump_bucket + k8s_secrets.iam_nemo_production_secrets + k8s_secrets.reporting_master_db_secrets_for_backup,
     )
     START = DummyOperator(task_id="backup-reporting-db")
     START >> backup_reporting_db_landsat
