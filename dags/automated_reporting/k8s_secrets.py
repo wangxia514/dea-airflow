@@ -37,8 +37,8 @@ iam_rep_secrets = [
 ]
 
 iam_nemo_production_secrets = [
-    Secret("env", "ACCESS_KEY", "reporting-iam-nemo-production", "ACCESS_KEY"),
-    Secret("env", "SECRET_KEY", "reporting-iam-nemo-production", "SECRET_KEY"),
+    Secret("env", "AWS_ACCESS_KEY_ID", "reporting-iam-nemo-production", "ACCESS_KEY"),
+    Secret("env", "AWS_SECRET_ACCESS_KEY", "reporting-iam-nemo-production", "SECRET_KEY"),
 ]
 
 uptime_robot_secret = [
