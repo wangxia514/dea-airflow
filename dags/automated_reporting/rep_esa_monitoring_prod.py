@@ -14,7 +14,7 @@ from automated_reporting import k8s_secrets, utilities
 
 ENV = "prod"
 ETL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.11.0"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.13.0"
 )
 
 default_args = {
@@ -56,7 +56,8 @@ with dag:
             "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
         },
         secrets=k8s_secrets.scihub_secrets
-        + k8s_secrets.s3_secrets
+        + k8s_secrets.s3_automated_operation_bucket
+        + k8s_secrets.iam_rep_secrets
         + k8s_secrets.db_secrets(ENV),
     )
 
@@ -73,7 +74,7 @@ with dag:
         env_vars={
             "S2_ACQ_XCOM": "{{ task_instance.xcom_pull(task_ids='scihub_s2_acquisitions', key='return_value') }}",
         },
-        secrets=k8s_secrets.s3_secrets + k8s_secrets.db_secrets(ENV),
+        secrets=k8s_secrets.s3_automated_operation_bucket + k8s_secrets.iam_rep_secrets + k8s_secrets.db_secrets(ENV),
     )
 
     L1_CONFIG = {

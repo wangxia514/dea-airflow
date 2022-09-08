@@ -3,10 +3,20 @@ Kubernetes Secrets used in Reporting Dags
 """
 from airflow.kubernetes.secret import Secret
 
-s3_secrets = [
-    Secret("env", "S3_ACCESS_KEY", "reporting-airflow", "ACCESS_KEY"),
-    Secret("env", "S3_BUCKET", "reporting-airflow", "BUCKET"),
-    Secret("env", "S3_SECRET_KEY", "reporting-airflow", "SECRET_KEY"),
+s3_automated_operation_bucket = [
+    Secret("env", "S3_BUCKET", "reporting-automated-operation-bucket", "BUCKET"),
+]
+
+s3_db_dump_bucket = [
+    Secret("env", "S3_BUCKET", "reporting-db-dump-bucket", "BUCKET"),
+]
+
+s3_server_access_log_bucket = [
+    Secret("env", "S3_BUCKET", "reporting-server-access-log-bucket", "BUCKET"),
+]
+
+s3_public_data_inventory_bucket = [
+    Secret("env", "S3_BUCKET", "reporting-public-data-inventory-bucket", "BUCKET"),
 ]
 
 iam_dea_dev_secrets = [
@@ -20,12 +30,27 @@ iam_dea_secrets = [
 ]
 
 iam_rep_secrets = [
-    Secret("env", "ACCESS_KEY", "reporting-iam-rep-s3", "ACCESS_KEY"),
-    Secret("env", "SECRET_KEY", "reporting-iam-rep-s3", "SECRET_KEY"),
+    Secret("env", "ACCESS_KEY", "reporting-airflow", "ACCESS_KEY"),
+    Secret("env", "SECRET_KEY", "reporting-airflow", "SECRET_KEY"),
+    Secret("env", "S3_ACCESS_KEY", "reporting-airflow", "ACCESS_KEY"),
+    Secret("env", "S3_SECRET_KEY", "reporting-airflow", "SECRET_KEY"),
+]
+
+iam_nemo_production_secrets = [
+    Secret("env", "ACCESS_KEY", "reporting-iam-nemo-production", "ACCESS_KEY"),
+    Secret("env", "SECRET_KEY", "reporting-iam-nemo-production", "SECRET_KEY"),
 ]
 
 uptime_robot_secret = [
     Secret("env", "API_KEY", "reporting-uptime-api", "UPTIME_KEY"),
+]
+
+aws_odc_secrets = [
+    Secret("env", "ODC_DB_HOST", "reporting-odc-db", "DB_HOST"),
+    Secret("env", "ODC_DB_NAME", "reporting-odc-db", "DB_NAME"),
+    Secret("env", "ODC_DB_PORT", "reporting-odc-db", "DB_PORT"),
+    Secret("env", "ODC_DB_USER", "reporting-odc-db", "DB_USER"),
+    Secret("env", "ODC_DB_PASSWORD", "reporting-odc-db", "DB_PASSWORD"),
 ]
 
 aws_odc_secrets = [
@@ -55,12 +80,12 @@ nci_command_secrets = [
     Secret("env", "NCI_TUNNEL_USER", "reporting-nci-tunnel", "NCI_USER"),
 ]
 
-reporting_db_secrets = [
-    Secret("env", "DB_HOST", "reporting-db", "DB_HOST"),
-    Secret("env", "DB_NAME", "reporting-db", "DB_NAME"),
-    Secret("env", "DB_PORT", "reporting-db", "DB_PORT"),
-    Secret("env", "DB_USER", "reporting-db", "DB_USER"),
-    Secret("env", "DB_PASSWORD", "reporting-db", "DB_PASSWORD"),
+reporting_master_db_secrets_for_backup = [
+    Secret("env", "DB_HOST", "reporting-db-master", "DB_HOST"),
+    Secret("env", "DB_NAME", "reporting-db-master", "DB_NAME"),
+    Secret("env", "DB_PORT", "reporting-db-master", "DB_PORT"),
+    Secret("env", "DB_USER", "reporting-db-master", "DB_USER"),
+    Secret("env", "PGPASSWORD", "reporting-db-master", "DB_PASSWORD"),
 ]
 
 reporting_db_dev_secrets = [

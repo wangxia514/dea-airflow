@@ -9,6 +9,7 @@ from datetime import datetime as dt, timedelta
 from airflow import DAG
 
 from automated_reporting import k8s_secrets, utilities
+from airflow.models import Variable
 
 ENV = "dev"
 ETL_IMAGE = (
@@ -18,7 +19,7 @@ ETL_IMAGE = (
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": dt(2020, 6, 15),
+    "start_date": dt(2022, 8, 28),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": True if ENV == "prod" else False,
     "email_on_retry": False,
@@ -42,20 +43,7 @@ UPTIME_ROBOT_JOB = [
 
 with dag:
 
-    monitoring_ids = [
-        785233301,
-        785236465,
-        785236456,
-        785233316,
-        785233317,
-        785233343,
-        785233341,
-        785251927,
-        785251954,
-        785252068,
-        785252069,
-        790085518,
-    ]
+    monitoring_ids = Variable.get("marine_uptime_monitoring", deserialize_json=True)
 
     def create_task(monitor_id):
         """Generate tasks based on list of query parameters"""

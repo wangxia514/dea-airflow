@@ -31,7 +31,7 @@ dag = DAG(
 
 ENV = "prod"
 ETL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.10.0"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.13.0"
 )
 
 
@@ -46,10 +46,7 @@ with dag:
             "s3-usage-year-ingestion",
         ],
         task_id="aws_s3_year_wise_scene_usage_ingestion",
-        env_vars={
-            "REPORTING_BUCKET": "s3-server-access-logs-schedule",
-        },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_dea_secrets
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.s3_server_access_log_bucket + k8s_secrets.iam_dea_secrets,
     )
     aws_s3_region_wise_scene_usage_ingestion = utilities.k8s_operator(
         dag=dag,
@@ -60,10 +57,7 @@ with dag:
             "s3-usage-region-ingestion",
         ],
         task_id="aws_s3_region_wise_scene_usage_ingestion",
-        env_vars={
-            "REPORTING_BUCKET": "s3-server-access-logs-schedule",
-        },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_dea_secrets
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.s3_server_access_log_bucket + k8s_secrets.iam_dea_secrets,
     )
     aws_s3_ip_requester_wise_scene_usage_ingestion = utilities.k8s_operator(
         dag=dag,
@@ -74,10 +68,7 @@ with dag:
             "s3-usage-ip-requester-ingestion",
         ],
         task_id="aws_s3_ip_requester_wise_scene_usage_ingestion",
-        env_vars={
-            "REPORTING_BUCKET": "s3-server-access-logs-schedule",
-        },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_dea_secrets,
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.s3_server_access_log_bucket + k8s_secrets.iam_dea_secrets,
     )
     START >> aws_s3_year_wise_scene_usage_ingestion
     START >> aws_s3_region_wise_scene_usage_ingestion

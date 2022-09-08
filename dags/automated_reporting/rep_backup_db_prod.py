@@ -14,13 +14,8 @@ This DAG is a scheduled run workflow to backup reporting DB into the nemo produc
 # pylint: disable=E0401
 from datetime import datetime as dt, timedelta
 from airflow import DAG
-from airflow.kubernetes.secret import Secret
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
-    KubernetesPodOperator,
-)
 from airflow.operators.dummy import DummyOperator
-from infra.variables import REPORTING_IAM_NEMO_PROD_SECRET
-from infra.variables import REPORTING_DB_SECRET
+from automated_reporting import k8s_secrets, utilities
 
 default_args = {
     "owner": "Ramkumar Ramagopalan",
@@ -31,14 +26,6 @@ default_args = {
     "email_on_retry": False,
     "retries": 3,
     "retry_delay": timedelta(days=1),
-    "secrets": [
-        Secret("env", "AWS_ACCESS_KEY_ID", REPORTING_IAM_NEMO_PROD_SECRET, "ACCESS_KEY"),
-        Secret("env", "AWS_SECRET_ACCESS_KEY", REPORTING_IAM_NEMO_PROD_SECRET, "SECRET_KEY"),
-        Secret("env", "DB_HOST", REPORTING_DB_SECRET, "DB_HOST"),
-        Secret("env", "DB_NAME", REPORTING_DB_SECRET, "DB_NAME"),
-        Secret("env", "DB_USER", REPORTING_DB_SECRET, "DB_USER"),
-        Secret("env", "PGPASSWORD", REPORTING_DB_SECRET, "DB_PASSWORD"),
-    ],
 }
 
 dag = DAG(
@@ -53,125 +40,95 @@ dag = DAG(
 BACKUP_RESTORE_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/automated-reporting-backup:latest"
 
 with dag:
-    JOBSLANDSAT = [
-        "echo db backup started: $(date)",
-        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n landsat | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/landsat-dump.sql",
-    ]
-    JOBSDEA = [
-        "echo db backup started: $(date)",
-        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n dea | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/dea-dump.sql",
-    ]
-    JOBSCOPHUB = [
-        "echo db backup started: $(date)",
-        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n cophub | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/cophub-dump.sql",
-    ]
-    JOBSMARINE = [
-        "echo db backup started: $(date)",
-        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n marine | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/marine-dump.sql",
-    ]
-    JOBSNCI = [
-        "echo db backup started: $(date)",
-        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n nci | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/nci-dump.sql",
-    ]
-    JOBSPUBLIC = [
-        "echo db backup started: $(date)",
-        "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n public | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$REPORTING_BUCKET/$EXECUTION_DATE/public-dump.sql",
-    ]
-    backup_reporting_db_landsat = KubernetesPodOperator(
-        namespace="processing",
+    backup_reporting_db_landsat = utilities.k8s_operator(
+        dag=dag,
         image=BACKUP_RESTORE_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(JOBSLANDSAT)],
-        name="backup_reporting_db_landsat",
-        is_delete_operator_pod=True,
-        in_cluster=True,
+        cmds=[
+            "echo db backup started: $(date)",
+            "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n landsat | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$S3_BUCKET/$EXECUTION_DATE/landsat-dump.sql",
+        ],
         task_id="backup_reporting_db_landsat",
-        get_logs=True,
         env_vars={
             "EXECUTION_DATE": "{{ ds }}",
             "AWS_DEFAULT_REGION": "ap-southeast-2",
             "AWS_PAGER": "",
-            "REPORTING_BUCKET": "automated-reporting-db-dump",
         },
+        secrets=k8s_secrets.s3_db_dump_bucket + k8s_secrets.iam_nemo_production_secrets + k8s_secrets.reporting_master_db_secrets_for_backup,
     )
-    backup_reporting_db_dea = KubernetesPodOperator(
-        namespace="processing",
+    backup_reporting_db_dea = utilities.k8s_operator(
+        dag=dag,
         image=BACKUP_RESTORE_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(JOBSDEA)],
-        name="backup_reporting_db_dea",
-        is_delete_operator_pod=True,
-        in_cluster=True,
+        cmds=[
+            "echo db backup started: $(date)",
+            "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n dea | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$S3_BUCKET/$EXECUTION_DATE/dea-dump.sql",
+        ],
         task_id="backup_reporting_db_dea",
-        get_logs=True,
         env_vars={
             "EXECUTION_DATE": "{{ ds }}",
             "AWS_DEFAULT_REGION": "ap-southeast-2",
             "AWS_PAGER": "",
-            "REPORTING_BUCKET": "automated-reporting-db-dump",
         },
+        secrets=k8s_secrets.s3_db_dump_bucket + k8s_secrets.iam_nemo_production_secrets + k8s_secrets.reporting_master_db_secrets_for_backup,
     )
-    backup_reporting_db_cophub = KubernetesPodOperator(
-        namespace="processing",
+    backup_reporting_db_cophub = utilities.k8s_operator(
+        dag=dag,
         image=BACKUP_RESTORE_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(JOBSCOPHUB)],
-        name="backup_reporting_db_cophub",
-        is_delete_operator_pod=True,
-        in_cluster=True,
+        cmds=[
+            "echo db backup started: $(date)",
+            "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n cophub | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$S3_BUCKET/$EXECUTION_DATE/cophub-dump.sql",
+        ],
         task_id="backup_reporting_db_cophub",
-        get_logs=True,
         env_vars={
             "EXECUTION_DATE": "{{ ds }}",
             "AWS_DEFAULT_REGION": "ap-southeast-2",
             "AWS_PAGER": "",
-            "REPORTING_BUCKET": "automated-reporting-db-dump",
         },
+        secrets=k8s_secrets.s3_db_dump_bucket + k8s_secrets.iam_nemo_production_secrets + k8s_secrets.reporting_master_db_secrets_for_backup,
     )
-    backup_reporting_db_marine = KubernetesPodOperator(
-        namespace="processing",
+    backup_reporting_db_marine = utilities.k8s_operator(
+        dag=dag,
         image=BACKUP_RESTORE_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(JOBSMARINE)],
-        name="backup_reporting_db_marine",
-        is_delete_operator_pod=True,
-        in_cluster=True,
+        cmds=[
+            "echo db backup started: $(date)",
+            "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n marine | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$S3_BUCKET/$EXECUTION_DATE/marine-dump.sql",
+        ],
         task_id="backup_reporting_db_marine",
-        get_logs=True,
         env_vars={
             "EXECUTION_DATE": "{{ ds }}",
             "AWS_DEFAULT_REGION": "ap-southeast-2",
             "AWS_PAGER": "",
-            "REPORTING_BUCKET": "automated-reporting-db-dump",
         },
+        secrets=k8s_secrets.s3_db_dump_bucket + k8s_secrets.iam_nemo_production_secrets,
     )
-    backup_reporting_db_nci = KubernetesPodOperator(
-        namespace="processing",
+    backup_reporting_db_nci = utilities.k8s_operator(
+        dag=dag,
         image=BACKUP_RESTORE_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(JOBSNCI)],
-        name="backup_reporting_db_nci",
-        is_delete_operator_pod=True,
-        in_cluster=True,
+        cmds=[
+            "echo db backup started: $(date)",
+            "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n nci | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$S3_BUCKET/$EXECUTION_DATE/nci-dump.sql",
+        ],
         task_id="backup_reporting_db_nci",
-        get_logs=True,
         env_vars={
             "EXECUTION_DATE": "{{ ds }}",
             "AWS_DEFAULT_REGION": "ap-southeast-2",
             "AWS_PAGER": "",
-            "REPORTING_BUCKET": "automated-reporting-db-dump",
         },
+        secrets=k8s_secrets.s3_db_dump_bucket + k8s_secrets.iam_nemo_production_secrets + k8s_secrets.reporting_master_db_secrets_for_backup,
     )
-    backup_reporting_db_public = KubernetesPodOperator(
-        namespace="processing",
+    backup_reporting_db_public = utilities.k8s_operator(
+        dag=dag,
         image=BACKUP_RESTORE_IMAGE,
-        arguments=["bash", "-c", " &&\n".join(JOBSPUBLIC)],
-        name="backup_reporting_db_public",
-        is_delete_operator_pod=True,
-        in_cluster=True,
+        cmds=[
+            "echo db backup started: $(date)",
+            "pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -n public | aws s3 cp --storage-class STANDARD_IA --sse aws:kms - s3://$S3_BUCKET/$EXECUTION_DATE/public-dump.sql",
+        ],
         task_id="backup_reporting_db_public",
-        get_logs=True,
         env_vars={
             "EXECUTION_DATE": "{{ ds }}",
             "AWS_DEFAULT_REGION": "ap-southeast-2",
             "AWS_PAGER": "",
-            "REPORTING_BUCKET": "automated-reporting-db-dump",
         },
+        secrets=k8s_secrets.s3_db_dump_bucket + k8s_secrets.iam_nemo_production_secrets + k8s_secrets.reporting_master_db_secrets_for_backup,
     )
     START = DummyOperator(task_id="backup-reporting-db")
     START >> backup_reporting_db_landsat

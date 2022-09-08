@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 
 """
-Automated Reporting - Uptime Robot Monitoring - DEA
+Automated Reporting - Uptime Robot Monitoring - Marine
 """
 from datetime import datetime as dt, timedelta
 
 # The DAG object; we'll need this to instantiate a DAG
 from airflow import DAG
-from airflow.models import Variable
 
 from automated_reporting import k8s_secrets, utilities
+from airflow.models import Variable
 
-ENV = "dev"
+ENV = "prod"
 ETL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls-dev:latest"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.13.0"
 )
 
 default_args = {
@@ -28,7 +28,7 @@ default_args = {
 }
 
 dag = DAG(
-    f"rep_uptime_robot_dea_{ENV}",
+    f"rep_uptime_robot_marine_{ENV}",
     description="DAG pulling stats from Uptime robot",
     tags=["reporting"] if ENV == "prod" else ["reporting_dev"],
     default_args=default_args,
@@ -38,12 +38,12 @@ dag = DAG(
 UPTIME_ROBOT_JOB = [
     "echo Reporting task started: $(date)",
     "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
-    "dea-uptime-monitoring",
+    "marine-uptime-monitoring",
 ]
 
 with dag:
 
-    monitoring_ids = Variable.get("dea_uptime_monitoring", deserialize_json=True)
+    monitoring_ids = Variable.get("marine_uptime_monitoring", deserialize_json=True)
 
     def create_task(monitor_id):
         """Generate tasks based on list of query parameters"""

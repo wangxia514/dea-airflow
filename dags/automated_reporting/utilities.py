@@ -30,7 +30,7 @@ NCI_TUNNEL_CMDS = configure_ssh_cmds("PORT_FORWARDER_KEY") + [
 
 
 def k8s_operator(
-    dag, image, task_id, cmds, env_vars, secrets=None, task_concurrency=None, xcom=False
+    dag, image, task_id, cmds, env_vars=None, secrets=None, task_concurrency=None, xcom=False
 ):
     """
     A helper function to save a few lines of code on the common kwargs for KubernetesPodOperator

@@ -7,7 +7,6 @@ cophub monthly dag for prod
 # The DAG object; we'll need this to instantiate a DAG
 from datetime import datetime, timedelta
 from airflow import DAG
-from airflow.models import Variable
 from airflow.operators.dummy import DummyOperator
 from automated_reporting import k8s_secrets, utilities
 
@@ -24,7 +23,7 @@ default_args = {
 
 ENV = "prod"
 ETL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.10.0"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.13.0"
 )
 
 dag = DAG(
@@ -59,9 +58,8 @@ with dag:
         task_id="sara_history_ingestion",
         env_vars={
             "REPORTING_MONTH": "{{  dag_run.data_interval_start | ds }}",
-            "REPORTING_BUCKET": Variable.get("reporting_s3_bucket"),
         },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.s3_automated_operation_bucket + k8s_secrets.iam_rep_secrets
     )
     sara_history_processing = utilities.k8s_operator(
         dag=dag,
@@ -88,9 +86,8 @@ with dag:
         task_id="archie_ingestion",
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-            "REPORTING_BUCKET": Variable.get("reporting_s3_bucket"),
         },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.s3_automated_operation_bucket + k8s_secrets.iam_rep_secrets
     )
     archie_processing_sattoesa = utilities.k8s_operator(
         dag=dag,
