@@ -79,7 +79,7 @@ with dag:
         + k8s_secrets.db_secrets(ENV),
     )
 
-    ODC_COMPLETENESS_TASK = [
+    AWS_ODC_COMPLETENESS_TASK = [
         "echo Compute S2 ODC Completeness: $(date)",
         "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
         "esa-odc-completeness",
@@ -104,7 +104,7 @@ with dag:
             dag=dag,
             image=ETL_IMAGE,
             task_id=f"completeness-{product_def['reporting_id']}",
-            cmds=ODC_COMPLETENESS_TASK,
+            cmds=AWS_ODC_COMPLETENESS_TASK,
             env_vars={
                 "PRODUCT": json.dumps(product_def),
                 "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
@@ -115,6 +115,13 @@ with dag:
         for product_def in AWS_ODC_PRODUCT_DEFS
     ]
 
+    NCI_ODC_COMPLETENESS_TASK = [
+        "echo Compute S2 ODC Completeness: $(date)",
+        "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+        "export ODC_DB_HOST=localhost",
+        "export ODC_DB_PORT=54320",
+        "esa-odc-completeness",
+    ]
     NCI_ODC_PRODUCT_DEFS = [
         {
             "product_id": "s2a_level1c_granule",
@@ -159,13 +166,13 @@ with dag:
             dag=dag,
             image=ETL_IMAGE,
             task_id=f"completeness-{product_def['reporting_id']}",
-            cmds=ODC_COMPLETENESS_TASK,
+            cmds=utilities.NCI_TUNNEL_CMDS + NCI_ODC_COMPLETENESS_TASK,
             env_vars={
                 "PRODUCT": json.dumps(product_def),
                 "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
                 "DAYS": "30",
             },
-            secrets=k8s_secrets.aws_odc_secrets + k8s_secrets.db_secrets(ENV),
+            secrets=k8s_secrets.nci_odc_secrets + k8s_secrets.db_secrets(ENV),
         )
         for product_def in NCI_ODC_PRODUCT_DEFS
     ]
