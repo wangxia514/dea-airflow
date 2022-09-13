@@ -177,4 +177,6 @@ with dag:
         for product_def in NCI_ODC_PRODUCT_DEFS
     ]
 
-    scihub_s2_acquisitions >> insert_s2_acquisitions >> [aws_odc_tasks, nci_odc_tasks]
+    scihub_s2_acquisitions >> insert_s2_acquisitions
+    insert_s2_acquisitions >> aws_odc_tasks
+    insert_s2_acquisitions >> nci_odc_tasks
