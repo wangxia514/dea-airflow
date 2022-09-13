@@ -117,7 +117,6 @@ with dag:
 
     NCI_ODC_COMPLETENESS_TASK = [
         "echo Compute S2 ODC Completeness: $(date)",
-        "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
         "export ODC_DB_HOST=localhost",
         "export ODC_DB_PORT=54320",
         "esa-odc-completeness",
