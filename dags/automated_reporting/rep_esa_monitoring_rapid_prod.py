@@ -5,7 +5,7 @@ Operational monitoring of ESA production systems
 """
 
 # The DAG object; we'll need this to instantiate a DAG
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 import json
 
 from airflow import DAG
@@ -21,7 +21,7 @@ ETL_IMAGE = (
 default_args = {
     "owner": "Tom McAdam",
     "depends_on_past": False,
-    "start_date": datetime(2022, 9, 13, 22, 30, 0, tzinfo=timezone.utc),
+    "start_date": datetime(2022, 9, 14),
     "email": ["tom.mcadam@ga.gov.au"],
     "email_on_failure": True if ENV == "prod" else False,
     "email_on_retry": False,
