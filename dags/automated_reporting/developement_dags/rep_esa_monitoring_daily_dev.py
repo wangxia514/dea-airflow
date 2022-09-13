@@ -108,7 +108,7 @@ with dag:
             env_vars={
                 "PRODUCT": json.dumps(product_def),
                 "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
-                "DAYS": "30",
+                "DAYS": "90",
             },
             secrets=k8s_secrets.aws_odc_secrets + k8s_secrets.db_secrets(ENV),
         )
@@ -169,7 +169,7 @@ with dag:
             env_vars={
                 "PRODUCT": json.dumps(product_def),
                 "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
-                "DAYS": "30",
+                "DAYS": "90",
             },
             secrets=k8s_secrets.nci_odc_secrets + k8s_secrets.db_secrets(ENV),
         )
