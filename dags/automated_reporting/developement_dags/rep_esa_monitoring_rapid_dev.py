@@ -203,6 +203,5 @@ with dag:
 
     syn_l1_nrt_download >> syn_l1_nrt_ingestion
     scihub_s2_acquisitions >> insert_s2_acquisitions
-    cross_downstream(
-        [syn_l1_nrt_ingestion, insert_s2_acquisitions], sqs_tasks + odc_tasks
-    )
+    insert_s2_acquisitions >> odc_tasks
+    cross_downstream([syn_l1_nrt_ingestion, insert_s2_acquisitions], sqs_tasks)
