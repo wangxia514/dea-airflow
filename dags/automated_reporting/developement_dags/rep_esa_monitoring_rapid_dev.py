@@ -200,6 +200,8 @@ with dag:
         for product_def in ODC_PRODUCT_DEFS
     ]
 
+    completeness_tasks = sqs_tasks + odc_tasks
+
     syn_l1_nrt_download >> syn_l1_nrt_ingestion
     scihub_s2_acquisitions >> insert_s2_acquisitions
-    [syn_l1_nrt_ingestion, insert_s2_acquisitions] >> (sqs_tasks + odc_tasks)
+    [syn_l1_nrt_ingestion, insert_s2_acquisitions] >> completeness_tasks
