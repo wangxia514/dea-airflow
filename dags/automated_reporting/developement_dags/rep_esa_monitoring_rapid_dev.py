@@ -112,7 +112,7 @@ with dag:
     )
 
     SQS_COMPLETENESS_TASK = [
-        "echo Compute S2 L1 Completeness(SQS): $(date)",
+        "echo Compute S2 SQS Completeness: $(date)",
         "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
         "esa-sqs-completeness",
     ]
@@ -148,7 +148,7 @@ with dag:
     ]
 
     ODC_COMPLETENESS_TASK = [
-        "echo Compute S2 Completeness: $(date)",
+        "echo Compute S2 ODC Completeness: $(date)",
         "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
         "esa-odc-completeness",
     ]
@@ -190,7 +190,7 @@ with dag:
             dag=dag,
             image=ETL_IMAGE,
             task_id=f"completeness-{product_def['reporting_id']}",
-            cmds=SQS_COMPLETENESS_TASK,
+            cmds=ODC_COMPLETENESS_TASK,
             env_vars={
                 "PRODUCT": json.dumps(product_def),
                 "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
