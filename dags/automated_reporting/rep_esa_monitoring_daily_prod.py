@@ -87,13 +87,13 @@ with dag:
     AWS_ODC_PRODUCT_DEFS = [
         {
             "product_id": "s2a_ard_granule",
-            "reporting_id": "s2a_ard_granule",
+            "reporting_id": "s2a_ard_granule-aws",
             "environment": "aws-odc",
             "platform": "s2a",
         },
         {
             "product_id": "s2b_ard_granule",
-            "reporting_id": "s2b_ard_granule",
+            "reporting_id": "s2b_ard_granule-aws",
             "environment": "aws-odc",
             "platform": "s2b",
         },
@@ -124,37 +124,37 @@ with dag:
     NCI_ODC_PRODUCT_DEFS = [
         {
             "product_id": "s2a_level1c_granule",
-            "reporting_id": "s2a_level1c_granule-nci",
+            "reporting_id": "s2a_level1c_granule",
             "environment": "nci-odc",
             "platform": "s2a",
         },
         {
             "product_id": "s2b_level1c_granule",
-            "reporting_id": "s2b_level1c_granule-nci",
+            "reporting_id": "s2b_level1c_granule",
             "environment": "nci-odc",
             "platform": "s2b",
         },
         {
             "product_id": "s2a_ard_granule",
-            "reporting_id": "s2a_ard_granule-nci",
+            "reporting_id": "s2a_ard_granule",
             "environment": "nci-odc",
             "platform": "s2a",
         },
         {
             "product_id": "s2b_ard_granule",
-            "reporting_id": "s2b_ard_granule-nci",
+            "reporting_id": "s2b_ard_granule",
             "environment": "nci-odc",
             "platform": "s2b",
         },
         {
             "product_id": "ga_s2am_ard_3",
-            "reporting_id": "ga_s2am_ard_3-nci",
+            "reporting_id": "ga_s2am_ard_3",
             "environment": "nci-odc",
             "platform": "s2a",
         },
         {
             "product_id": "ga_s2bm_ard_3",
-            "reporting_id": "ga_s2bm_ard_3-nci",
+            "reporting_id": "ga_s2bm_ard_3",
             "environment": "nci-odc",
             "platform": "s2b",
         },
