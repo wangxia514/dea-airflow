@@ -1,0 +1,23 @@
+{
+    "db_odc_reader": {
+        "conn_type": "ssh",
+        "host": "localhost",
+        "login": "USERNAME",
+        "password": "PASS",
+        "port": 25
+    },
+    "db_rep_writer_prod": {
+        "conn_type": "ssh",
+        "host": "localhost",
+        "login": "USERNAME",
+        "password": "PASS",
+        "port": 25
+    },
+    "db_rep_writer_dev": {
+        "conn_type": "ssh",
+        "host": "localhost",
+        "login": "USERNAME",
+        "password": "PASS",
+        "port": 25
+    }
+}
