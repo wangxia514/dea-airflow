@@ -1,0 +1,28 @@
+# for creating new opendatacube.sql dump
+
+version: '3.4'
+
+services:
+  postgres:
+    # clean postgis db
+    image: kartoza/postgis:13-3.1
+    environment:
+      POSTGRES_USER: opendatacubeusername
+      POSTGRES_PASSWORD: opendatacubepassword
+      POSTGRES_DB: opendatacube
+    restart: always
+
+  index:
+    image: opendatacube/datacube-index:latest
+    environment:
+      DB_HOSTNAME: postgres
+      DB_PORT: 5432
+      DB_USERNAME: opendatacubeusername
+      DB_PASSWORD: opendatacubepassword
+      DB_DATABASE: opendatacube
+    restart: always
+    depends_on:
+      - postgres
+    command: tail -f /dev/null
+    volumes:
+      - ./dbsetup.sh:/dbsetup.sh
