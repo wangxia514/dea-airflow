@@ -22,7 +22,9 @@ default_args = {
 }
 
 ENV = "prod"
-ETL_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.13.0"
+ETL_IMAGE = (
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.13.0"
+)
 
 dag = DAG(
     "rep_expire_completeness_prod",
@@ -37,6 +39,7 @@ with dag:
     products_list = [
         "s2a_nrt_granule",
         "s2b_nrt_granule",
+        "usgs_ls9c_level1_nrt_c2",
         "usgs_ls8c_level1_nrt_c2",
         "usgs_ls7e_level1_nrt_c2",
         "ga_s2am_ard_provisional_3",
