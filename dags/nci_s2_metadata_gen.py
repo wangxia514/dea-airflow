@@ -72,9 +72,9 @@ if aws_develop:
         params[
             "config_arg"
         ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf"
-        #params["index"] = "--index "
+        # params["index"] = "--index "
         params["index"] = " "   # no indexing
-        #params["dry_run"] = " " # produce yamls
+        # params["dry_run"] = " " # produce yamls
         params["dry_run"] = "--dry-run "
 
     elif run_type == "indexing_test":
