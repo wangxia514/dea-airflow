@@ -23,3 +23,7 @@ datacube dataset add https://data.dea.ga.gov.au/baseline/ga_ls8c_ard_provisional
 # s2 provisional datasets
 datacube dataset add https://data.dea.ga.gov.au/baseline/ga_s2am_ard_provisional_3/52/LHL/2022/08/24_nrt/20220824T025056/ga_s2am_ard_provisional_3-2-1_52LHL_2022-08-24_nrt.odc-metadata.yaml --confirm-ignore-lineage
 datacube dataset add https://data.dea.ga.gov.au/baseline/ga_s2bm_ard_provisional_3/55/LDE/2022/08/31_nrt/20220831T012856/ga_s2bm_ard_provisional_3-2-1_55LDE_2022-08-31_nrt.odc-metadata.yaml --confirm-ignore-lineage
+
+# add revision s2 provisional dataset
+export AWS_NO_SIGN_REQUEST=YES
+datacube dataset update s3://dea-public-data/baseline/ga_s2bm_ard_provisional_3/55/LDE/2022/08/31_nrt/20220831T012856/ga_s2bm_ard_provisional_3-2-1_55LDE_2022-08-31_nrt.odc-metadata.yaml

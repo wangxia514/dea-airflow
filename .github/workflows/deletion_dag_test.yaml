@@ -17,6 +17,7 @@ on:
       - '.github/workflows/deletion_dag_test.yaml'
       - 'integration_test/check_deletion_dags_result.sh'
 
+
 jobs:
   build:
     runs-on: ubuntu-latest

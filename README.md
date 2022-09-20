@@ -107,7 +107,7 @@ docker-compose -f docker-compose.workflow.yaml up
 
 checking the `opendatacube` integration test database
 ```bash
-docker exec -it dea-airflow_opendatacube_1 bash
+docker exec -it dea-airflow-opendatacube-1 bash
 PGPASSWORD=opendatacubepassword psql -U opendatacubeusername -d opendatacube -p 5432 -h localhost
 ```
 
@@ -119,12 +119,13 @@ docker-compose -f docker-compose.workflow.yaml run airflow-worker airflow connec
 ```
 
 ### integration test database
-The integration test database contains selected number of products and datasets, if you need to add more products and datasets to the database, please update `dbsetup.sh` in `integration_tests` folder.
 
-Once the local database has been updated, create the dump for integration test
-```bash
-PGPASSWORD=opendatacubepassword pg_dump -U opendatacubeusername -h localhost opendatacube >> opendatacube.sql
-mv opendatacube.sql ~/dea-airflow/docker/database
+The integration test database contains selected number of products and datasets, if you need to add more products and datasets to the database, please update `dbsetup.sh` - [see further instructions](docker/database).
+
+Rebuild the opendatacube database using the updated `opendatacube.sql`
+```
+$ docker-compose -f docker-compose.workflow.yaml rm -f opendatacube
+$ docker-compose -f docker-compose.workflow.yaml build opendatacube --no-cache
 ```
 
 some basic sql for checking correctness

@@ -2,9 +2,9 @@
 
 ```
 docker-compose up -d
-docker-compose run index datacube system init
-docker-compose run index bash dbsetup.sh
+docker-compose exec index datacube system init
+docker-compose exec index bash dbsetup.sh
 
- docker exec -e PGPASSWORD=opendatacubepassword database-postgres-1 bash -c 'pg_dump -U opendatacubeusername -d opendatacube -p 5432 -h localhost' > opendatacube.sql
+docker-compose exec -e PGPASSWORD=opendatacubepassword postgres bash -c 'pg_dump -U opendatacubeusername -d opendatacube -p 5432 -h localhost' > opendatacube.sql
 ```
 
