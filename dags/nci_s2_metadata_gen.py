@@ -20,12 +20,12 @@ from sensors.pbs_job_complete_sensor import PBSJobSensor
 params = {
     "project": "v10",
     "queue": "normal",
-    "module": "eodatasets3",
+    "module": "eodatasets3/0.28.3",
     "index": " ",
     "months_back": "3 ",
     "jobs_para": "1",
     "config": "",
-    "output_base_para": "/g/data/ka08/ga/test_l1c_metadata",
+    "output_base_para": "/g/data/ka08/ga/l1c_metadata",
     "only_regions_in_para": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scene_select/data/Australian_tile_list_optimised.txt",
     "base_dir": "/g/data/v10/work/s2_c3_ard/",
     "l1_base": "/g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/",
@@ -57,7 +57,8 @@ if aws_develop:
     # run type
     # Options ['small_prod', 'pre_prod', 'indexing_test', 'no_indexing_test']
     # run_type = "indexing_test"
-    run_type = "indexing_ka08"
+    # run_type = "indexing_ka08"
+    run_type = "pre_prod"
     # Remember to blow away the db and rm old yamls
     if run_type == "small_prod":
         params["months_back"] = "1 "
@@ -71,9 +72,10 @@ if aws_develop:
         params[
             "config_arg"
         ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf"
-        params["index"] = "--index "
-        params["index"] = " "
-        params["dry_run"] = " "
+        #params["index"] = "--index "
+        params["index"] = " "   # no indexing
+        #params["dry_run"] = " " # produce yamls
+        params["dry_run"] = "--dry-run "
 
     elif run_type == "indexing_test":
         params[
@@ -112,6 +114,7 @@ if aws_develop:
         ] = "--config /g/data/u46/users/dsg547/sandbox/processingDEA/s2_pipeline/dsg547_dev.conf"
 
         params["index"] = "--index "
+        params["index"] = " "
         params["dry_run"] = " "
         # params["dry_run"] = "--dry-run "
 
