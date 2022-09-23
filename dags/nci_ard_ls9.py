@@ -24,7 +24,7 @@ params = {
     "config_arg": "",
     "scene_limit": "--scene-limit 400",
     "interim_days_wait": "--interim-days-wait 18",
-    "products_arg": """--products '["usgs_ls9e_level1_2"]'""",
+    "products_arg": """--products '["usgs_ls9c_level1_2"]'""",
     "pkgdir_arg": "/g/data/xu18/ga",
     "base_dir": "/g/data/v10/work/c3_ard/",
     "days_to_exclude_arg": "",
