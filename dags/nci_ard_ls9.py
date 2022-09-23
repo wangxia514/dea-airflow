@@ -88,7 +88,7 @@ if aws_develop:
         params["run_ard_arg"] = ""
 
     # A fail safe
-    params["scene_limit"] = "--scene-limit 1"
+    params["scene_limit"] = "--scene-limit 20"
 
 else:
     # run this from local dev
