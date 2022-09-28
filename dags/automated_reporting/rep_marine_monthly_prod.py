@@ -24,7 +24,7 @@ default_args = {
 }
 ENV = "prod"
 ETL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.13.0"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.16.0"
 )
 dag = DAG(
     "rep_marine_monthly_prod",
