@@ -197,10 +197,10 @@ with dag:
         dag=dag,
         image=ETL_IMAGE,
         cmds=[
-             "echo FJ7 user stats processing: $(date)",
-             "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
-             "user_stats_processing",
-         ],
+            "echo FJ7 user stats processing: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+            "user_stats_processing",
+        ],
         task_id="fj7_ungrouped_user_stats_processing",
         env_vars={
             "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fj7_ungrouped_user_stats_ingestion') }}",
