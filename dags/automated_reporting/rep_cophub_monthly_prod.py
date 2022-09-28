@@ -180,9 +180,9 @@ with dag:
         dag=dag,
         image=ETL_IMAGE,
         cmds=[
-           "echo FJ7 user stats ingestion: $(date)",
-           "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
-           "user_stats_ingestion",
+            "echo FJ7 user stats ingestion: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+            "user_stats_ingestion",
         ],
         xcom=True,
         task_id="fj7_ungrouped_user_stats_ingestion",
@@ -194,21 +194,21 @@ with dag:
         secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets + k8s_secrets.s3_automated_operation_bucket
     )
     fj7_ungrouped_user_stats_processing = utilities.k8s_operator(
-       dag=dag,
-       image=ETL_IMAGE,
+        dag=dag,
+        image=ETL_IMAGE,
         cmds=[
-           "echo FJ7 user stats processing: $(date)",
-           "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
-           "user_stats_processing",
-        ],
-       task_id="fj7_ungrouped_user_stats_processing",
-       env_vars={
+             "echo FJ7 user stats processing: $(date)",
+             "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+             "user_stats_processing",
+         ],
+        task_id="fj7_ungrouped_user_stats_processing",
+        env_vars={
            "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fj7_ungrouped_user_stats_ingestion') }}",
            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
            "SCHEMA" : "dea",
            "PROJECT": "fk4"
-       },
-       secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets
+        },
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets
     )
     START >> sara_history_ingestion >> sara_history_processing
     START >> fj7_ungrouped_user_stats_ingestion >> fj7_ungrouped_user_stats_processing
