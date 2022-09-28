@@ -24,7 +24,7 @@ default_args = {
 }
 ENV = "prod"
 ETL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.13.0"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.16.0"
 )
 dag = DAG(
     "rep_marine_monthly_prod",
@@ -36,130 +36,109 @@ dag = DAG(
 
 
 with dag:
-    # JOBS1 = [
-    #    "echo fk1 user stats ingestion: $(date)",
-    #    "pip install ga-reporting-etls==1.18.0",
-    #    "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fk1_user_stats_ingestion; fk1_user_stats_ingestion.task()'`",
-    #    "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
-    # ]
-    # JOBS2 = [
-    #    "echo fk1 user stats processing: $(date)",
-    #    "pip install ga-reporting-etls==1.18.0",
-    #    "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fk1_user_stats_processing; fk1_user_stats_processing.task()'`",
-    # ]
-    # JOBS3 = [
-    #    "echo iy57 user stats ingestion: $(date)",
-    #    "pip install ga-reporting-etls==1.18.0",
-    #    "jsonresult=`python3 -c 'from nemo_reporting.user_stats import iy57_user_stats_ingestion; iy57_user_stats_ingestion.task()'`",
-    #    "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
-    # ]
-    # JOBS4 = [
-    #    "echo iy57 user stats processing: $(date)",
-    #    "pip install ga-reporting-etls==1.18.0",
-    #    "jsonresult=`python3 -c 'from nemo_reporting.user_stats import iy57_user_stats_processing; iy57_user_stats_processing.task()'`",
-    # ]
-    # JOBS5 = [
-    #    "echo pw31 user stats ingestion: $(date)",
-    #    "pip install ga-reporting-etls==1.18.0",
-    #    "jsonresult=`python3 -c 'from nemo_reporting.user_stats import pw31_user_stats_ingestion; pw31_user_stats_ingestion.task()'`",
-    #    "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
-    # ]
-    # JOBS6 = [
-    #    "echo pw31 user stats processing: $(date)",
-    #    "pip install ga-reporting-etls==1.18.0",
-    #    "jsonresult=`python3 -c 'from nemo_reporting.user_stats import pw31_user_stats_processing; pw31_user_stats_processing.task()'`",
-    # ]
     START = DummyOperator(task_id="marine-monthly-stats")
-    # fk1_ingestion = KubernetesPodOperator(
-    #    namespace="processing",
-    #    image="python:3.8-slim-buster",
-    #    arguments=["bash", "-c", " &&\n".join(JOBS1)],
-    #    name="write-xcom",
-    #    do_xcom_push=True,
-    #    is_delete_operator_pod=True,
-    #    in_cluster=True,
-    #    task_id="fk1_ingestion",
-    #    get_logs=True,
-    #    env_vars={
-    #        "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-    #        "FILE_TO_PROCESS": "fk1",
-    #    },
-    # )
-    # fk1_processing = KubernetesPodOperator(
-    #    namespace="processing",
-    #    image="python:3.8-slim-buster",
-    #    arguments=["bash", "-c", " &&\n".join(JOBS2)],
-    #    name="fk1_processing",
-    #    do_xcom_push=False,
-    #    is_delete_operator_pod=True,
-    #    in_cluster=True,
-    #    task_id="fk1_processing",
-    #    get_logs=True,
-    #    env_vars={
-    #        "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fk1_ingestion') }}",
-    #        "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-    #    },
-    # )
-    # iy57_ingestion = KubernetesPodOperator(
-    #    namespace="processing",
-    #    image="python:3.8-slim-buster",
-    #    arguments=["bash", "-c", " &&\n".join(JOBS3)],
-    #    name="write-xcom",
-    #    do_xcom_push=True,
-    #    is_delete_operator_pod=True,
-    #    in_cluster=True,
-    #    task_id="iy57_ingestion",
-    #    get_logs=True,
-    #    env_vars={
-    #        "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-    #        "FILE_TO_PROCESS": "iy57",
-    #    },
-    # )
-    # iy57_processing = KubernetesPodOperator(
-    #    namespace="processing",
-    #    image="python:3.8-slim-buster",
-    #    arguments=["bash", "-c", " &&\n".join(JOBS4)],
-    #    name="iy57_processing",
-    #    do_xcom_push=False,
-    #    is_delete_operator_pod=True,
-    #    in_cluster=True,
-    #    task_id="iy57_processing",
-    #    get_logs=True,
-    #    env_vars={
-    #        "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='iy57_ingestion') }}",
-    #        "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-    #    },
-    # )
-    # pw31_ingestion = KubernetesPodOperator(
-    #    namespace="processing",
-    #    image="python:3.8-slim-buster",
-    #    arguments=["bash", "-c", " &&\n".join(JOBS5)],
-    #    name="write-xcom",
-    #    do_xcom_push=True,
-    #    is_delete_operator_pod=True,
-    #    in_cluster=True,
-    #    task_id="pw31_ingestion",
-    #    get_logs=True,
-    #    env_vars={
-    #        "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-    #        "FILE_TO_PROCESS": "pw31",
-    #    },
-    # )
-    # pw31_processing = KubernetesPodOperator(
-    #    namespace="processing",
-    #    image="python:3.8-slim-buster",
-    #    arguments=["bash", "-c", " &&\n".join(JOBS6)],
-    #    name="pw31_processing",
-    #    do_xcom_push=False,
-    #    is_delete_operator_pod=True,
-    #    in_cluster=True,
-    #    task_id="pw31_processing",
-    #    get_logs=True,
-    #    env_vars={
-    #        "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='pw31_ingestion') }}",
-    #        "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-    #    },
-    # )
+    fk1_ingestion = utilities.k8s_operator(
+        dag=dag,
+        image=ETL_IMAGE,
+        cmds=[
+            "echo fk1 user stats ingestion: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+            "user_stats_ingestion",
+        ],
+        xcom=True,
+        task_id="fk1_ingestion",
+        env_vars={
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
+            "SCHEMA"  : "marine",
+            "PROJECT" : "fk1"
+        },
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets + k8s_secrets.s3_automated_operation_bucket,
+    )
+    fk1_processing = utilities.k8s_operator(
+        dag=dag,
+        image=ETL_IMAGE,
+        cmds=[
+            "echo fk1 user stats processing: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+            "user_stats_processing",
+        ],
+        task_id="fk1_processing",
+        env_vars={
+            "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fk4_ingestion') }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
+            "SCHEMA" : "marine",
+            "PROJECT": "fk1"
+        },
+        secrets=k8s_secrets.db_secrets(ENV),
+    )
+    iy57_ingestion = utilities.k8s_operator(
+        dag=dag,
+        image=ETL_IMAGE,
+        cmds=[
+            "echo iy57 user stats ingestion: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+            "user_stats_ingestion",
+        ],
+        xcom=True,
+        task_id="iy57_ingestion",
+        env_vars={
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
+            "SCHEMA"  : "marine",
+            "PROJECT" : "iy57"
+        },
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets + k8s_secrets.s3_automated_operation_bucket,
+    )
+    iy57_processing = utilities.k8s_operator(
+        dag=dag,
+        image=ETL_IMAGE,
+        cmds=[
+            "echo iy57 user stats processing: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+            "user_stats_processing",
+        ],
+        task_id="iy57_processing",
+        env_vars={
+            "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fk4_ingestion') }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
+            "SCHEMA" : "marine",
+            "PROJECT": "iy57"
+        },
+        secrets=k8s_secrets.db_secrets(ENV),
+    )
+    pw31_ingestion = utilities.k8s_operator(
+        dag=dag,
+        image=ETL_IMAGE,
+        cmds=[
+            "echo pw31 user stats ingestion: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+            "user_stats_ingestion",
+        ],
+        xcom=True,
+        task_id="pw31_ingestion",
+        env_vars={
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
+            "SCHEMA"  : "marine",
+            "PROJECT" : "pw31"
+        },
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets + k8s_secrets.s3_automated_operation_bucket,
+    )
+    pw31_processing = utilities.k8s_operator(
+        dag=dag,
+        image=ETL_IMAGE,
+        cmds=[
+            "echo pw31 user stats processing: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+            "user_stats_processing",
+        ],
+        task_id="pw31_processing",
+        env_vars={
+            "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fk4_ingestion') }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
+            "SCHEMA" : "marine",
+            "PROJECT": "pw31"
+        },
+        secrets=k8s_secrets.db_secrets(ENV),
+    )
     elvis_ingestion = utilities.k8s_operator(
         dag=dag,
         image=ETL_IMAGE,
@@ -174,7 +153,7 @@ with dag:
         },
         secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.s3_automated_operation_bucket + k8s_secrets.iam_rep_secrets,
     )
-    # START >> fk1_ingestion >> fk1_processing
-    # START >> iy57_ingestion >> iy57_processing
-    # START >> pw31_ingestion >> pw31_processing
+    START >> fk1_ingestion >> fk1_processing
+    START >> iy57_ingestion >> iy57_processing
+    START >> pw31_ingestion >> pw31_processing
     START >> elvis_ingestion

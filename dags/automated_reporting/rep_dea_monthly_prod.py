@@ -32,7 +32,7 @@ dag = DAG(
 
 ENV = "prod"
 ETL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.13.0"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.16.0"
 )
 
 with dag:
@@ -43,16 +43,16 @@ with dag:
         cmds=[
             "echo fk4 user stats ingestion: $(date)",
             "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
-            "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fk4_user_stats_ingestion; fk4_user_stats_ingestion.task()'`",
-            "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
+            "user_stats_ingestion",
         ],
         xcom=True,
         task_id="fk4_ingestion",
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-            "FILE_TO_PROCESS": "fk4",
+            "SCHEMA"  : "dea",
+            "PROJECT" : "fk4"
         },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets,
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets + k8s_secrets.s3_automated_operation_bucket,
     )
     fk4_processing = utilities.k8s_operator(
         dag=dag,
@@ -60,12 +60,14 @@ with dag:
         cmds=[
             "echo fk4 user stats processing: $(date)",
             "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
-            "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fk4_user_stats_processing; fk4_user_stats_processing.task()'`",
+            "user_stats_processing",
         ],
         task_id="fk4_processing",
         env_vars={
             "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fk4_ingestion') }}",
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
+            "SCHEMA" : "dea",
+            "PROJECT": "fk4"
         },
         secrets=k8s_secrets.db_secrets(ENV),
     )
