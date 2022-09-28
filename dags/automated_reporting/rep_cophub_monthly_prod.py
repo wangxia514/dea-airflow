@@ -179,7 +179,7 @@ with dag:
     fj7_ungrouped_user_stats_ingestion = utilities.k8s_operator(
         dag=dag,
         image=ETL_IMAGE,
-        cmds = [
+        cmds=[
            "echo FJ7 user stats ingestion: $(date)",
            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
            "user_stats_ingestion",
@@ -196,7 +196,7 @@ with dag:
     fj7_ungrouped_user_stats_processing = utilities.k8s_operator(
        dag=dag,
        image=ETL_IMAGE,
-        cmds = [
+        cmds=[
            "echo FJ7 user stats processing: $(date)",
            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
            "user_stats_processing",
