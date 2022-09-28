@@ -187,9 +187,9 @@ with dag:
         xcom=True,
         task_id="fj7_ungrouped_user_stats_ingestion",
         env_vars={
-           "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-           "schema": "cophub",
-           "project": "fj7",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
+            "schema": "cophub",
+            "project": "fj7",
         },
         secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets + k8s_secrets.s3_automated_operation_bucket
     )
@@ -203,10 +203,10 @@ with dag:
          ],
         task_id="fj7_ungrouped_user_stats_processing",
         env_vars={
-           "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fj7_ungrouped_user_stats_ingestion') }}",
-           "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-           "SCHEMA" : "dea",
-           "PROJECT": "fk4"
+            "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fj7_ungrouped_user_stats_ingestion') }}",
+            "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
+            "SCHEMA" : "dea",
+            "PROJECT": "fk4"
         },
         secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets
     )
