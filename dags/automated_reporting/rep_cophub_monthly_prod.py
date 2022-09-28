@@ -23,7 +23,7 @@ default_args = {
 
 ENV = "prod"
 ETL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.13.0"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.16.0"
 )
 
 dag = DAG(
@@ -35,17 +35,6 @@ dag = DAG(
 )
 
 with dag:
-    # JOBS11 = [
-    #    "echo FJ7 user stats ingestion: $(date)",
-    #    "pip install ga-reporting-etls==1.21.8",
-    #    "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fj7_user_stats_ingestion; fj7_user_stats_ingestion.task()'`",
-    #    "mkdir -p /airflow/xcom/; echo $jsonresult > /airflow/xcom/return.json",
-    # ]
-    # JOBS12 = [
-    #    "echo FJ7 user stats processing: $(date)",
-    #    "pip install ga-reporting-etls==1.21.8",
-    #    "jsonresult=`python3 -c 'from nemo_reporting.user_stats import fj7_user_stats_processing; fj7_user_stats_processing.task()'`",
-    # ]
     START = DummyOperator(task_id="nci-monthly-stats")
     sara_history_ingestion = utilities.k8s_operator(
         dag=dag,
@@ -179,7 +168,7 @@ with dag:
         cmds=[
             "echo FJ7 disk usage download and processing: $(date)",
             "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
-            "jsonresult=`python3 -c 'from nemo_reporting.fj7_storage import fj7_disk_usage; fj7_disk_usage.task()'`",
+            "jsonresult=`python3 -c 'from reporting_etls.fj7_storage import fj7_disk_usage; fj7_disk_usage.task()'`",
         ],
         task_id="fj7_disk_usage",
         env_vars={
@@ -187,38 +176,42 @@ with dag:
         },
         secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets
     )
-    # fj7_ungrouped_user_stats_ingestion = utilities.k8s_operator(
-    #    namespace="processing",
-    #    image=ETL_IMAGE,
-    #    arguments=["bash", "-c", " &&\n".join(JOBS11)],
-    #    name="write-xcom",
-    #    do_xcom_push=True,
-    #    is_delete_operator_pod=True,
-    #    in_cluster=True,
-    #    task_id="fj7_ungrouped_user_stats_ingestion",
-    #    get_logs=True,
-    #    env_vars={
-    #        "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-    #        "FILE_TO_PROCESS": "fj7",
-    #    },
-    # )
-    # fj7_ungrouped_user_stats_processing = utilities.k8s_operator(
-    #    namespace="processing",
-    #    image=ETL_IMAGE,
-    #    arguments=["bash", "-c", " &&\n".join(JOBS12)],
-    #    name="fj7_ungrouped_user_stats_processing",
-    #    do_xcom_push=False,
-    #    is_delete_operator_pod=True,
-    #    in_cluster=True,
-    #    task_id="fj7_ungrouped_user_stats_processing",
-    #    get_logs=True,
-    #    env_vars={
-    #        "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fj7_ungrouped_user_stats_ingestion') }}",
-    #        "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-    #    },
-    # )
+    fj7_ungrouped_user_stats_ingestion = utilities.k8s_operator(
+        dag=dag,
+        image=ETL_IMAGE,
+        cmds = [
+           "echo FJ7 user stats ingestion: $(date)",
+           "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+           "user_stats_ingestion",
+        ],
+        xcom=True,
+        task_id="fj7_ungrouped_user_stats_ingestion",
+        env_vars={
+           "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
+           "schema": "cophub",
+           "project": "fj7",
+        },
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets + k8s_secrets.s3_automated_operation_bucket
+    )
+    fj7_ungrouped_user_stats_processing = utilities.k8s_operator(
+       dag=dag,
+       image=ETL_IMAGE,
+        cmds = [
+           "echo FJ7 user stats processing: $(date)",
+           "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+           "user_stats_processing",
+        ],
+       task_id="fj7_ungrouped_user_stats_processing",
+       env_vars={
+           "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fj7_ungrouped_user_stats_ingestion') }}",
+           "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
+           "SCHEMA" : "dea",
+           "PROJECT": "fk4"
+       },
+       secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets
+    )
     START >> sara_history_ingestion >> sara_history_processing
-    # START >> fj7_ungrouped_user_stats_ingestion >> fj7_ungrouped_user_stats_processing
+    START >> fj7_ungrouped_user_stats_ingestion >> fj7_ungrouped_user_stats_processing
     START >> archie_ingestion
     START >> fj7_disk_usage
     archie_ingestion >> archie_processing_sattoesa
