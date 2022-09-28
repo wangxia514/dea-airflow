@@ -182,7 +182,7 @@ with dag:
         cmds=[
             "echo FJ7 user stats ingestion: $(date)",
             "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
-            "user_stats_ingestion",
+            "user-stats-ingestion",
         ],
         xcom=True,
         task_id="fj7_ungrouped_user_stats_ingestion",
@@ -199,7 +199,7 @@ with dag:
         cmds=[
             "echo FJ7 user stats processing: $(date)",
             "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
-            "user_stats_processing",
+            "user-stats-processing",
         ],
         task_id="fj7_ungrouped_user_stats_processing",
         env_vars={
