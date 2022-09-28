@@ -43,7 +43,7 @@ with dag:
         cmds=[
             "echo fk1 user stats ingestion: $(date)",
             "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
-            "user_stats_ingestion",
+            "user-stats-ingestion",
         ],
         xcom=True,
         task_id="fk1_ingestion",
@@ -60,7 +60,7 @@ with dag:
         cmds=[
             "echo fk1 user stats processing: $(date)",
             "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
-            "user_stats_processing",
+            "user-stats-processing",
         ],
         task_id="fk1_processing",
         env_vars={
@@ -77,7 +77,7 @@ with dag:
         cmds=[
             "echo iy57 user stats ingestion: $(date)",
             "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
-            "user_stats_ingestion",
+            "user-stats-ingestion",
         ],
         xcom=True,
         task_id="iy57_ingestion",
@@ -94,7 +94,7 @@ with dag:
         cmds=[
             "echo iy57 user stats processing: $(date)",
             "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
-            "user_stats_processing",
+            "user-stats-processing",
         ],
         task_id="iy57_processing",
         env_vars={
@@ -111,7 +111,7 @@ with dag:
         cmds=[
             "echo pw31 user stats ingestion: $(date)",
             "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
-            "user_stats_ingestion",
+            "user-stats-ingestion",
         ],
         xcom=True,
         task_id="pw31_ingestion",
@@ -128,7 +128,7 @@ with dag:
         cmds=[
             "echo pw31 user stats processing: $(date)",
             "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
-            "user_stats_processing",
+            "user-stats-processing",
         ],
         task_id="pw31_processing",
         env_vars={

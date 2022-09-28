@@ -43,7 +43,7 @@ with dag:
         cmds=[
             "echo fk4 user stats ingestion: $(date)",
             "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
-            "user_stats_ingestion",
+            "user-stats-ingestion",
         ],
         xcom=True,
         task_id="fk4_ingestion",
@@ -60,7 +60,7 @@ with dag:
         cmds=[
             "echo fk4 user stats processing: $(date)",
             "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
-            "user_stats_processing",
+            "user-stats-processing",
         ],
         task_id="fk4_processing",
         env_vars={
