@@ -8,7 +8,7 @@ from automated_reporting import k8s_secrets, utilities
 
 ENV = "prod"
 ETL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.13.0"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.17.2"
 )
 
 default_args = {
@@ -43,12 +43,15 @@ with rapid_dag:
             "echo Running command in NCI via SSH",
             'ssh -o StrictHostKeyChecking=no -o "IdentitiesOnly=yes" -i ~/.ssh/identity_file.pem \
                 $NCI_TUNNEL_USER@$NCI_TUNNEL_HOST cat $NCI_DATA_CSV > $STORAGE_DATA_FILE',
+            'ssh -o StrictHostKeyChecking=no -o "IdentitiesOnly=yes" -i ~/.ssh/identity_file.pem \
+                $NCI_TUNNEL_USER@$NCI_TUNNEL_HOST stat -c %y $NCI_DATA_CSV | cut -f1-2 -d" " | head --bytes -4 > $STORAGE_DATA_TIMESTAMP_FILE',
             "echo NCI Storage Ingestion job started: $(date)",
             "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
             "nci-storage-ingestion",
         ],
         env_vars={
             "STORAGE_DATA_FILE": "/tmp/storage.csv",
+            "STORAGE_DATA_TIMESTAMP_FILE": "/tmp/storate_timestamp.csv",
             "NCI_DATA_CSV": "/scratch/v10/usage_reports/ga_storage_usage_latest.csv",
         },
         secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.nci_command_secrets,
