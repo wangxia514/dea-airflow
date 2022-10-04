@@ -48,7 +48,7 @@ DEFAULT_ARGS = {
     "retry_delay": timedelta(minutes=5),
     "index_sqs_queue": C3_INDEXING_SQS_QUEUE_NAME,
     "archive_sqs_queue": C3_ARCHIVAL_SQS_QUEUE_NAME,
-    "products": "ga_ls5t_ard_3 ga_ls7e_ard_3 ga_ls8c_ard_3",
+    "products": "ga_ls5t_ard_3 ga_ls7e_ard_3 ga_ls8c_ard_3 ga_ls9c_ard_3",
     "env_vars": {
         "DB_HOSTNAME": DB_HOSTNAME,
         "DB_DATABASE": DB_DATABASE,
