@@ -33,7 +33,7 @@ from airflow.providers.ssh.operators.ssh import SSHOperator
 
 local_tz = pendulum.timezone("Australia/Canberra")
 
-collection3_products = ["ga_ls5t_ard_3", "ga_ls7e_ard_3", "ga_ls8c_ard_3"]
+collection3_products = ["ga_ls5t_ard_3", "ga_ls7e_ard_3", "ga_ls8c_ard_3", "ga_ls9c_ard_3"]
 
 # Split embedded SQL and Shell Script hunks to enable fancy IDE highlighting and error checking
 # language=SQL
