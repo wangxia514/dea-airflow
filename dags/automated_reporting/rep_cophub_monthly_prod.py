@@ -188,8 +188,8 @@ with dag:
         task_id="fj7_ungrouped_user_stats_ingestion",
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-            "SCHEMA": "cophub",
-            "PROJECT": "fj7",
+            "SCHEMA_TO_PROCESS": "cophub",
+            "PROJECT_TO_PROCESS": "fj7",
         },
         secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets + k8s_secrets.s3_automated_operation_bucket
     )
