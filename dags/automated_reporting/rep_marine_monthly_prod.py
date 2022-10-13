@@ -43,7 +43,8 @@ with dag:
         cmds=[
             "echo fk1 user stats ingestion: $(date)",
             "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
-            "user-stats-ingestion",
+            "mkdir -p /airflow/xcom/",
+            "user-stats-ingestion /airflow/xcom/return.json",
         ],
         xcom=True,
         task_id="fk1_ingestion",
@@ -77,7 +78,8 @@ with dag:
         cmds=[
             "echo iy57 user stats ingestion: $(date)",
             "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
-            "user-stats-ingestion",
+            "mkdir -p /airflow/xcom/",
+            "user-stats-ingestion /airflow/xcom/return.json",
         ],
         xcom=True,
         task_id="iy57_ingestion",
@@ -111,7 +113,8 @@ with dag:
         cmds=[
             "echo pw31 user stats ingestion: $(date)",
             "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
-            "user-stats-ingestion",
+            "mkdir -p /airflow/xcom/",
+            "user-stats-ingestion /airflow/xcom/return.json",
         ],
         xcom=True,
         task_id="pw31_ingestion",
