@@ -43,7 +43,8 @@ with dag:
         cmds=[
             "echo fk4 user stats ingestion: $(date)",
             "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
-            "user-stats-ingestion",
+            "mkdir -p /airflow/xcom/",
+            "user-stats-ingestion /airflow/xcom/return.json",
         ],
         xcom=True,
         task_id="fk4_ingestion",

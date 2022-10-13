@@ -182,7 +182,8 @@ with dag:
         cmds=[
             "echo FJ7 user stats ingestion: $(date)",
             "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
-            "user-stats-ingestion",
+            "mkdir -p /airflow/xcom/",
+            "user-stats-ingestion /airflow/xcom/return.json",
         ],
         xcom=True,
         task_id="fj7_ungrouped_user_stats_ingestion",
