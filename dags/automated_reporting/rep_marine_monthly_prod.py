@@ -65,7 +65,7 @@ with dag:
         ],
         task_id="fk1_processing",
         env_vars={
-            "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fk4_ingestion') }}",
+            "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fk1_ingestion') }}",
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
             "SCHEMA_TO_PROCESS" : "marine",
             "PROJECT_TO_PROCESS": "fk1"
@@ -100,7 +100,7 @@ with dag:
         ],
         task_id="iy57_processing",
         env_vars={
-            "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fk4_ingestion') }}",
+            "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='iy57_ingestion') }}",
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
             "SCHEMA_TO_PROCESS" : "marine",
             "PROJECT_TO_PROCESS": "iy57"
@@ -135,7 +135,7 @@ with dag:
         ],
         task_id="pw31_processing",
         env_vars={
-            "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fk4_ingestion') }}",
+            "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='pw31_ingestion') }}",
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
             "SCHEMA_TO_PROCESS" : "marine",
             "PROJECT_TO_PROCESS": "pw31"
