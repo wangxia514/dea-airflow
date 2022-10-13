@@ -49,8 +49,8 @@ with dag:
         task_id="fk1_ingestion",
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-            "SCHEMA"  : "marine",
-            "PROJECT" : "fk1"
+            "SCHEMA_TO_PROCESS"  : "marine",
+            "PROJECT_TO_PROCESS" : "fk1"
         },
         secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets + k8s_secrets.s3_automated_operation_bucket,
     )
@@ -66,8 +66,8 @@ with dag:
         env_vars={
             "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fk4_ingestion') }}",
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-            "SCHEMA" : "marine",
-            "PROJECT": "fk1"
+            "SCHEMA_TO_PROCESS" : "marine",
+            "PROJECT_TO_PROCESS": "fk1"
         },
         secrets=k8s_secrets.db_secrets(ENV),
     )
@@ -83,8 +83,8 @@ with dag:
         task_id="iy57_ingestion",
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-            "SCHEMA"  : "marine",
-            "PROJECT" : "iy57"
+            "SCHEMA_TO_PROCESS"  : "marine",
+            "PROJECT_TO_PROCESS" : "iy57"
         },
         secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets + k8s_secrets.s3_automated_operation_bucket,
     )
@@ -100,8 +100,8 @@ with dag:
         env_vars={
             "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fk4_ingestion') }}",
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-            "SCHEMA" : "marine",
-            "PROJECT": "iy57"
+            "SCHEMA_TO_PROCESS" : "marine",
+            "PROJECT_TO_PROCESS": "iy57"
         },
         secrets=k8s_secrets.db_secrets(ENV),
     )
@@ -117,8 +117,8 @@ with dag:
         task_id="pw31_ingestion",
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-            "SCHEMA"  : "marine",
-            "PROJECT" : "pw31"
+            "SCHEMA_TO_PROCESS"  : "marine",
+            "PROJECT_TO_PROCESS" : "pw31"
         },
         secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets + k8s_secrets.s3_automated_operation_bucket,
     )
@@ -134,8 +134,8 @@ with dag:
         env_vars={
             "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fk4_ingestion') }}",
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-            "SCHEMA" : "marine",
-            "PROJECT": "pw31"
+            "SCHEMA_TO_PROCESS" : "marine",
+            "PROJECT_TO_PROCESS": "pw31"
         },
         secrets=k8s_secrets.db_secrets(ENV),
     )
