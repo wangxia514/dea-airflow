@@ -107,11 +107,12 @@ def upsert_rows(pghook, table, rows, target_fields, commit_every=1000):
 
                 sql = f"""
                 INSERT INTO {table} ({', '.join(target_fields)})
-                VALUES ({', '.join(['%' * len(target_fields)])})
+                VALUES ({', '.join(['%s' * len(target_fields)])})
                 ON CONFLICT DO NOTHING;
                 """
 
-                task_logger.debug("Generated sql: %s", sql)
+                if i == 1 or i % 100 == 0:
+                    task_logger.info("Generated sql: %s", sql)
 
                 cur.execute(sql, row)
                 if commit_every and i % commit_every == 0:
