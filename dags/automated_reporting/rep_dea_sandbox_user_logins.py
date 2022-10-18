@@ -28,7 +28,7 @@ NS = 1e9  # Loki records all it's timestamps in nanoseconds since the epoch!
 
 
 class LoginRecord(NamedTuple):
-    time: datetime
+    login_time: datetime
     email: str
 
 
@@ -51,14 +51,14 @@ def extract_logins_to_db(data_interval_start=None, data_interval_end=None):
 
     logins = [
         LoginRecord(
-            time=datetime.fromtimestamp(int(res["values"][0][0]) / NS),
+            login_time=datetime.fromtimestamp(int(res["values"][0][0]) / NS),
             email=res["stream"]["email"],
         )
         for res in response.json()["data"]["result"]
     ]
     reporting_db = PostgresHook(postgres_conn_id="db_rep_writer_prod")
     reporting_db.insert_rows(
-        "dea.sandbox_logins", logins, target_fields=("time", "email")
+        "dea.sandbox_logins", logins, target_fields=("login_time", "email")
     )
 
 
