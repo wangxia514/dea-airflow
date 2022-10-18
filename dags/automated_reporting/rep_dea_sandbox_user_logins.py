@@ -107,7 +107,7 @@ def upsert_rows(pghook, table, rows, target_fields, commit_every=1000):
 
                 sql = f"""
                 INSERT INTO {table} ({', '.join(target_fields)})
-                VALUES ({', '.join(['%s' * len(target_fields)])})
+                VALUES ({', '.join(['%s'] * len(target_fields))})
                 ON CONFLICT DO NOTHING;
                 """
 
