@@ -29,14 +29,14 @@ NS = 1e9  # Loki records all it's timestamps in nanoseconds since the epoch!
 
 class LoginRecord(NamedTuple):
     time: datetime
-    user: str
+    email: str
 
 
 @task()
-def extract_user_logins_to_db(data_interval_start=None, data_interval_end=None):
+def extract_logins_to_db(data_interval_start=None, data_interval_end=None):
     loki_query_params = {
         "query": '{namespace="sandbox", container="hub"} |~ "User logged in" '
-        '| regexp ".*User logged in: (?P<user>.*)"',
+        '| regexp ".*User logged in: (?P<email>.*)"',
         "start": int(data_interval_start.timestamp() * NS),
         "end": int(data_interval_end.timestamp() * NS),
     }
@@ -52,13 +52,13 @@ def extract_user_logins_to_db(data_interval_start=None, data_interval_end=None):
     logins = [
         LoginRecord(
             time=datetime.fromtimestamp(int(res["values"][0][0]) / NS),
-            user=res["stream"]["user"],
+            email=res["stream"]["email"],
         )
         for res in response.json()["data"]["result"]
     ]
     reporting_db = PostgresHook(postgres_conn_id="db_rep_writer_prod")
     reporting_db.insert_rows(
-        "dea.sandbox_logins", logins, target_fields=("time", "user")
+        "dea.sandbox_logins", logins, target_fields=("time", "email")
     )
 
 
@@ -71,4 +71,4 @@ with DAG(
     catchup=False,
     doc_md=__doc__,
 ) as dag:
-    extract_user_logins_to_db()
+    extract_logins_to_db()
