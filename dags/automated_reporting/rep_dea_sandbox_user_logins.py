@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from typing import NamedTuple
 
 import requests
-from airflow import DAG
+from airflow import DAG, AirflowException
 from airflow.decorators import task
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 
@@ -37,13 +37,17 @@ def extract_user_logins_to_db(data_interval_start=None, data_interval_end=None):
     loki_query_params = {
         "query": '{namespace="sandbox", container="hub"} |~ "User logged in" '
         '| regexp ".*User logged in: (?P<user>.*)"',
-        "start": data_interval_start.timestamp() * NS,
-        "end": data_interval_end.timestamp() * NS,
+        "start": int(data_interval_start.timestamp() * NS),
+        "end": int(data_interval_end.timestamp() * NS),
     }
     response = requests.get(
         "http://loki-stack.monitoring.svc.cluster.local:3100/loki/api/v1/query_range",
         params=loki_query_params,
     )
+    if response.status_code != 200:
+        raise AirflowException(
+            f"Invalid response from Loki ({response.status_code}): {response.text}"
+        )
 
     logins = [
         LoginRecord(
