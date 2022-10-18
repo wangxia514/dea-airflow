@@ -9,13 +9,15 @@ a table in the Reporting Database
 from datetime import datetime, timedelta
 from typing import NamedTuple
 
+import pendulum
 import requests
 from airflow import DAG, AirflowException
 from airflow.decorators import task
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 
+local_tz = pendulum.timezone("Australia/Canberra")
 default_args = {
-    "start_date": datetime(2020, 1, 1),
+    "start_date": datetime(2020, 1, 1, tzinfo=local_tz),
     "email": ["damien@omad.net"],
     "email_on_failure": True,
     "email_on_retry": False,
