@@ -28,7 +28,7 @@ rapid_dag = DAG(
     description="DAG for monitoring resource usage on the NCI",
     tags=["reporting"] if ENV == "prod" else ["reporting_dev"],
     default_args=default_args,
-    schedule_interval="15 */2 * * *",
+    schedule_interval="5 */2 * * *",
 )
 
 with rapid_dag:
@@ -38,19 +38,20 @@ with rapid_dag:
         image=ETL_IMAGE,
         task_id="nci-storage-ingestion",
         task_concurrency=1,
-        cmds=[
-            "echo Configuring SSH",
-            "mkdir -p ~/.ssh",
-            "cat /var/secrets/lpgs/LPGS_COMMAND_KEY > ~/.ssh/identity_file.pem",
-            "chmod 0400 ~/.ssh/identity_file.pem",
-            "echo SSH Key Generated",
+        cmds=utilities.configure_ssh_cmds("LPGS_COMMAND_KEY")
+        + [
+            "echo Running command in NCI via SSH",
             'ssh -o StrictHostKeyChecking=no -o "IdentitiesOnly=yes" -i ~/.ssh/identity_file.pem \
                 $NCI_TUNNEL_USER@$NCI_TUNNEL_HOST cat $NCI_DATA_CSV > $STORAGE_DATA_FILE',
+            'ssh -o StrictHostKeyChecking=no -o "IdentitiesOnly=yes" -i ~/.ssh/identity_file.pem \
+                $NCI_TUNNEL_USER@$NCI_TUNNEL_HOST stat -c %y $NCI_DATA_CSV | cut -f1-2 -d" " | head --bytes -4 > $STORAGE_DATA_TIMESTAMP_FILE',
             "echo NCI Storage Ingestion job started: $(date)",
+            "parse-uri $REP_DB_URI /tmp/env; source /tmp/env",
             "nci-storage-ingestion",
         ],
         env_vars={
             "STORAGE_DATA_FILE": "/tmp/storage.csv",
+            "STORAGE_DATA_TIMESTAMP_FILE": "/tmp/storate_timestamp.csv",
             "NCI_DATA_CSV": "/scratch/v10/usage_reports/ga_storage_usage_latest.csv",
         },
         secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.nci_command_secrets,
@@ -61,15 +62,13 @@ with rapid_dag:
         image=ETL_IMAGE,
         task_id="nci-compute-ingestion",
         task_concurrency=1,
-        cmds=[
-            "echo Configuring SSH",
-            "mkdir -p ~/.ssh",
-            "cat /var/secrets/lpgs/LPGS_COMMAND_KEY > ~/.ssh/identity_file.pem",
-            "chmod 0400 ~/.ssh/identity_file.pem",
-            "echo SSH Key Generated",
+        cmds=utilities.configure_ssh_cmds("LPGS_COMMAND_KEY")
+        + [
+            "echo Running command in NCI via SSH",
             'ssh -o StrictHostKeyChecking=no -o "IdentitiesOnly=yes" -i ~/.ssh/identity_file.pem \
                 $NCI_TUNNEL_USER@$NCI_TUNNEL_HOST cat $NCI_DATA_CSV > $COMPUTE_DATA_FILE',
             "echo NCI Compute Ingestion job started: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
             "nci-compute-ingestion",
         ],
         env_vars={
