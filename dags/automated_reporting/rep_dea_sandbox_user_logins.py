@@ -11,9 +11,14 @@ from typing import NamedTuple
 
 import pendulum
 import requests
-from airflow import DAG, AirflowException
+from airflow import DAG
+from airflow.exceptions import AirflowException
 from airflow.decorators import task
 from airflow.providers.postgres.hooks.postgres import PostgresHook
+import logging
+
+# get the airflow.task logger
+task_logger = logging.getLogger("airflow.task")
 
 local_tz = pendulum.timezone("Australia/Canberra")
 default_args = {
@@ -59,8 +64,12 @@ def extract_logins_to_db(data_interval_start=None, data_interval_end=None):
         for res in response.json()["data"]["result"]
     ]
     reporting_db = PostgresHook(postgres_conn_id="db_rep_writer_prod")
-    reporting_db.insert_rows(
-        "dea.sandbox_logins", logins, target_fields=("login_time", "email")
+
+    upsert_rows(
+        reporting_db,
+        "dea.sandbox_logins",
+        logins,
+        target_fields=("login_time", "email"),
     )
 
 
@@ -74,3 +83,40 @@ with DAG(
     doc_md=__doc__,
 ) as dag:
     extract_logins_to_db()
+
+
+def upsert_rows(pghook, table, rows, target_fields, commit_every=1000):
+    """
+    Insert rows into a PostgreSQL table and ignore any conflicts.
+
+    This is a replacement function for :method:`airflow.hooks.DbApiHook.insert_rows()`.
+    It does support a `replace` argument, but with the PostgresHook it only works if
+    only some of the rows can conflict, not all of them.
+
+    See that method for documentation.
+    """
+
+    with pghook.get_conn() as conn:
+        if pghook.supports_autocommit:
+            pghook.set_autocommit(conn, False)
+
+        conn.commit()
+
+        with conn.cursor() as cur:
+            for i, row in enumerate(rows, 1):
+
+                sql = f"""
+                INSERT INTO {table} ({', '.join(target_fields)})
+                VALUES ({', '.join(['%' * len(target_fields)])})
+                ON CONFLICT DO NOTHING;
+                """
+
+                task_logger.debug("Generated sql: %s", sql)
+
+                cur.execute(sql, row)
+                if commit_every and i % commit_every == 0:
+                    conn.commit()
+                    task_logger.info("Loaded %s rows into %s so far", i, table)
+
+        conn.commit()
+    task_logger.info("Done loading. Loaded a total of %s rows", i)
