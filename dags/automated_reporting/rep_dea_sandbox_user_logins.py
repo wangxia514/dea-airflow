@@ -96,6 +96,7 @@ def upsert_rows(pghook, table, rows, target_fields, commit_every=1000):
     See that method for documentation.
     """
 
+    i = 0
     with pghook.get_conn() as conn:
         if pghook.supports_autocommit:
             pghook.set_autocommit(conn, False)
