@@ -36,7 +36,7 @@ with dag:
         cd digitalearthau/nci_environment
 
         git status
-        module load python3/3.7.4
+        module load python3/3.8.5
         pip3 install --user pyyaml jinja2
 
         ./build_environment_module.py dea/modulespec.yaml

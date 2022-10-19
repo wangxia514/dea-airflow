@@ -40,7 +40,7 @@ with dag:
         git clone --depth 1 https://github.com/GeoscienceAustralia/digitalearthau
         cd digitalearthau/nci_environment/
 
-        module load python3/3.7.4
+        module load python3/3.8.5
         pip3 install --user pyyaml jinja2
 
         rm -rf /g/data/v10/public/modules/dea/unstable/

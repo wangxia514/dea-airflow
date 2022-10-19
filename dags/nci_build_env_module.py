@@ -36,7 +36,7 @@ with dag:
         cd digitalearthau/nci_environment/
 
         git status
-        module load python3/3.7.4
+        module load python3/3.8.5
         pip3 install --user pyyaml jinja2
 
         rm -rf /g/data/v10/public/modules/dea-env/$(date +%Y%m%d)/ /g/data/v10/public/modules/modulefiles/dea-env/$(date +%Y%m%d)
