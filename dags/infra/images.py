@@ -19,8 +19,8 @@ WAGL_IMAGE = (
 
 STAT_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/opendatacube/datacube-statistician:0.3.31"
 
-WAGL_IMAGE_S2_C3 = "geoscienceaustralia/dea-wagl-docker:0.1.30-9-g46c2b3f"
-WAGL_IMAGE_LS9 = "geoscienceaustralia/dea-wagl-docker:0.1.30-8-gafc5c6e"
+WAGL_IMAGE_S2_C3 = "geoscienceaustralia/dea-wagl-docker:0.1.30-10-g75a5403"
+WAGL_IMAGE_LS9 = "geoscienceaustralia/dea-wagl-docker:0.1.30-9-g56ea6da"
 
 S5CMD_IMAGE = "peakcom/s5cmd:v1.4.0"
 
