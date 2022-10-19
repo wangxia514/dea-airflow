@@ -41,28 +41,25 @@ class LoginRecord(NamedTuple):
 
 @task()
 def extract_logins_to_db(data_interval_start=None, data_interval_end=None):
+    # Query with log selectors which matches after mid 2022
     loki_query_params = {
         "query": '{namespace="sandbox", container="hub"} |~ "User logged in" '
         '| regexp ".*User logged in: (?P<email>.*)"',
         "start": int(data_interval_start.timestamp() * NS),
         "end": int(data_interval_end.timestamp() * NS),
     }
-    response = requests.get(
-        "http://loki-stack.monitoring.svc.cluster.local:3100/loki/api/v1/query_range",
-        params=loki_query_params,
-    )
-    if response.status_code != 200:
-        raise AirflowException(
-            f"Invalid response from Loki ({response.status_code}): {response.text}"
-        )
+    logins = find_log_lines_in_loki(loki_query_params)
 
-    logins = [
-        LoginRecord(
-            login_time=datetime.fromtimestamp(int(res["values"][0][0]) / NS),
-            email=res["stream"]["email"],
-        )
-        for res in response.json()["data"]["result"]
-    ]
+    # Query with log selectors for matching before mid 2022
+    logins += find_log_lines_in_loki(
+        {
+            "query": '{namespace_name="sandbox", container_name="hub"} |~ "User logged in" '
+            '| regexp ".*User logged in: (?P<email>.*)"',
+            "start": int(data_interval_start.timestamp() * NS),
+            "end": int(data_interval_end.timestamp() * NS),
+        }
+    )
+
     reporting_db = PostgresHook(postgres_conn_id="db_rep_writer_prod")
 
     upsert_rows(
@@ -71,6 +68,25 @@ def extract_logins_to_db(data_interval_start=None, data_interval_end=None):
         logins,
         target_fields=("login_time", "email"),
     )
+
+
+def find_log_lines_in_loki(loki_query_params):
+    response = requests.get(
+        "http://loki-stack.monitoring.svc.cluster.local:3100/loki/api/v1/query_range",
+        params=loki_query_params,
+    )
+    if response.status_code != 200:
+        raise AirflowException(
+            f"Invalid response from Loki ({response.status_code}): {response.text}"
+        )
+    logins = [
+        LoginRecord(
+            login_time=datetime.fromtimestamp(int(res["values"][0][0]) / NS),
+            email=res["stream"]["email"],
+        )
+        for res in response.json()["data"]["result"]
+    ]
+    return logins
 
 
 with DAG(
@@ -91,7 +107,7 @@ def upsert_rows(pghook, table, rows, target_fields, commit_every=1000):
 
     This is a replacement function for :method:`airflow.hooks.DbApiHook.insert_rows()`.
     It does support a `replace` argument, but with the PostgresHook it only works if
-    only some of the rows can conflict, not all of them.
+    only some rows can conflict, not all of them.
 
     See that method for documentation.
     """
