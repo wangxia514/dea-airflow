@@ -40,9 +40,9 @@ schedule_interval = "0 10 * * *"
 # without modifying the code below.
 
 # #/* The sed command below will remove this block of test code
-# sed '/#\/\*/,/#\*\// d' nci_ard.py > ../../nci_ard.py
-# sed '/#\/\*/,/#\*\// d' dags/nci_ard.py > ../nci_ard.py
-# mv ../nci_ard.py dags/nci_ard.py
+# sed '/#\/\*/,/#\*\// d' nci_ard_s2.py > ../../nci_ard_s2.py
+# sed '/#\/\*/,/#\*\// d' dags/nci_ard_s2.py > ../nci_ard_s2.py
+# mv ../nci_ard_s2.py dags/nci_ard_s2.py
 # params[""] =
 
 params["index_arg"] = ""  # No indexing
