@@ -65,7 +65,7 @@ with rapid_dag:
         + k8s_secrets.iam_rep_secrets,
         labels={
             "sub-system": "reporting",
-            "products": "usgs_ls8c_level1_nrt_c2,usgs_ls9c_level1_nrt_c2",
+            "products": "usgs_ls8c_level1_nrt_c2...usgs_ls9c_level1_nrt_c2",
         },
     )
 
@@ -88,7 +88,7 @@ with rapid_dag:
         + k8s_secrets.db_secrets(ENV),
         labels={
             "sub-system": "reporting",
-            "products": "usgs_ls8c_level1_nrt_c2,usgs_ls9c_level1_nrt_c2",
+            "products": "usgs_ls8c_level1_nrt_c2...usgs_ls9c_level1_nrt_c2",
         },
     )
 
@@ -111,7 +111,7 @@ with rapid_dag:
         + k8s_secrets.db_secrets(ENV),
         labels={
             "sub-system": "reporting",
-            "products": "usgs_ls8c_level1_nrt_c2,usgs_ls9c_level1_nrt_c2",
+            "products": "usgs_ls8c_level1_nrt_c2...usgs_ls9c_level1_nrt_c2",
         },
     )
 
@@ -243,7 +243,7 @@ with rapid_dag:
         secrets=k8s_secrets.sqs_secrets,
         labels={
             "sub-system": "reporting",
-            "products": "usgs_ls8c_level1_nrt_c2,usgs_ls9c_level1_nrt_c2",
+            "products": "usgs_ls8c_level1_nrt_c2...usgs_ls9c_level1_nrt_c2",
         },
     )
 
@@ -262,7 +262,7 @@ with rapid_dag:
         secrets=k8s_secrets.db_secrets(ENV),
         labels={
             "sub-system": "reporting",
-            "products": "usgs_ls8c_level1_nrt_c2,usgs_ls9c_level1_nrt_c2",
+            "products": "usgs_ls8c_level1_nrt_c2...usgs_ls9c_level1_nrt_c2",
         },
     )
 
