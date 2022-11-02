@@ -60,7 +60,13 @@ with rapid_dag:
             "CATEGORY": "nrt",
             "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
         },
-        secrets=k8s_secrets.m2m_api_secrets + k8s_secrets.s3_automated_operation_bucket + k8s_secrets.iam_rep_secrets,
+        secrets=k8s_secrets.m2m_api_secrets
+        + k8s_secrets.s3_automated_operation_bucket
+        + k8s_secrets.iam_rep_secrets,
+        labels={
+            "sub-system": "reporting",
+            "products": "usgs_ls8c_level1_nrt_c2,usgs_ls9c_level1_nrt_c2",
+        },
     )
 
     # Insert cached acquisitions into dea.usgs_acquisitions table
@@ -77,7 +83,13 @@ with rapid_dag:
             "USGS_ACQ_XCOM": "{{ task_instance.xcom_pull(task_ids=\
                 'usgs-acquisitions', key='return_value') }}",
         },
-        secrets=k8s_secrets.s3_automated_operation_bucket + k8s_secrets.iam_rep_secrets + k8s_secrets.db_secrets(ENV),
+        secrets=k8s_secrets.s3_automated_operation_bucket
+        + k8s_secrets.iam_rep_secrets
+        + k8s_secrets.db_secrets(ENV),
+        labels={
+            "sub-system": "reporting",
+            "products": "usgs_ls8c_level1_nrt_c2,usgs_ls9c_level1_nrt_c2",
+        },
     )
 
     # Insert cached acquisitions into high_granlarity.dataset table
@@ -94,7 +106,13 @@ with rapid_dag:
             "USGS_ACQ_XCOM": "{{ task_instance.xcom_pull(task_ids=\
                 'usgs-acquisitions', key='return_value') }}",
         },
-        secrets=k8s_secrets.s3_automated_operation_bucket + k8s_secrets.iam_rep_secrets + k8s_secrets.db_secrets(ENV),
+        secrets=k8s_secrets.s3_automated_operation_bucket
+        + k8s_secrets.iam_rep_secrets
+        + k8s_secrets.db_secrets(ENV),
+        labels={
+            "sub-system": "reporting",
+            "products": "usgs_ls8c_level1_nrt_c2,usgs_ls9c_level1_nrt_c2",
+        },
     )
 
     # Calculate USGS LS8 L1 NRT completeness, comparing LS8 RT acquisitions with S3 inventory
@@ -118,6 +136,7 @@ with rapid_dag:
             "PRODUCT": json.dumps(usgs_l1_completness_ls8_product),
         },
         secrets=k8s_secrets.db_secrets(ENV),
+        labels={"sub-system": "reporting", "products": "usgs_ls8c_level1_nrt_c2"},
     )
 
     # Calculate USGS LS9 L1 NRT completeness, comparing LS9 T1/T2 acquisitions with S3 inventory
@@ -143,6 +162,7 @@ with rapid_dag:
             "PRODUCT": json.dumps(usgs_l1_completness_ls9_product),
         },
         secrets=k8s_secrets.db_secrets(ENV),
+        labels={"sub-system": "reporting", "products": "usgs_ls9c_level1_nrt_c2"},
     )
 
     # Calculate USGS LS8 ARD NRT completeness, comparing acquisitions with ODC
@@ -164,6 +184,7 @@ with rapid_dag:
             "PRODUCT": json.dumps(usgs_ard_completness_ls8_product),
         },
         secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.aws_odc_secrets,
+        labels={"sub-system": "reporting", "products": "ga_ls8c_ard_provisional_3"},
     )
 
     # Generate USGS LS8 L1 NRT currency from the result of completness
@@ -183,6 +204,7 @@ with rapid_dag:
                 'usgs-completeness-ls8-l1', key='return_value') }}",
         },
         secrets=k8s_secrets.db_secrets(ENV),
+        labels={"sub-system": "reporting", "products": "usgs_ls8c_level1_nrt_c2"},
     )
 
     # Generate USGS LS9 L1 NRT currency from the result of completness
@@ -202,6 +224,7 @@ with rapid_dag:
                 'usgs-completeness-ls9-l1', key='return_value') }}",
         },
         secrets=k8s_secrets.db_secrets(ENV),
+        labels={"sub-system": "reporting", "products": "usgs_ls9c_level1_nrt_c2"},
     )
 
     usgs_l1_nrt_downloads = utilities.k8s_operator(
@@ -218,6 +241,10 @@ with rapid_dag:
             "QUEUE_NAME": "automated-reporting-ls-l1-nrt",
         },
         secrets=k8s_secrets.sqs_secrets,
+        labels={
+            "sub-system": "reporting",
+            "products": "usgs_ls8c_level1_nrt_c2,usgs_ls9c_level1_nrt_c2",
+        },
     )
 
     usgs_l1_nrt_inserts = utilities.k8s_operator(
@@ -233,6 +260,10 @@ with rapid_dag:
             "METRICS": "{{ task_instance.xcom_pull(task_ids='usgs_l1_nrt_downloads') }}",
         },
         secrets=k8s_secrets.db_secrets(ENV),
+        labels={
+            "sub-system": "reporting",
+            "products": "usgs_ls8c_level1_nrt_c2,usgs_ls9c_level1_nrt_c2",
+        },
     )
 
     usgs_l1_nrt_downloads >> usgs_l1_nrt_inserts
