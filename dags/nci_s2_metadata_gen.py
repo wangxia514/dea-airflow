@@ -20,7 +20,7 @@ from sensors.pbs_job_complete_sensor import PBSJobSensor
 params = {
     "project": "v10",
     "queue": "normal",
-    "module": "eodatasets3/0.28.3",
+    "module": "eodatasets3/0.29.5",
     "index": " ",
     "months_back": "3 ",
     "jobs_para": "1",
