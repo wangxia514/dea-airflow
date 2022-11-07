@@ -12,17 +12,12 @@ from airflow.operators.dummy import DummyOperator
 
 from sensors.pbs_job_complete_sensor import PBSJobSensor
 
-# Actual production values have been removed
-# Since production hasn't started yet
-# "index": "--index ",
-# "output_base_para": "/g/data/ka08/ga/l1c_metadata",
-
 params = {
     "project": "v10",
     "queue": "normal",
     "module": "eodatasets3/0.29.5",
-    "index": " ",
-    "months_back": "3 ",
+    "index": "--index  ",
+    "months_back": "1 ",
     "jobs_para": "1",
     "config": "",
     "output_base_para": "/g/data/ka08/ga/l1c_metadata",
