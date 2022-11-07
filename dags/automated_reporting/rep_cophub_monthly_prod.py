@@ -168,7 +168,7 @@ with dag:
         cmds=[
             "echo FJ7 disk usage download and processing: $(date)",
             "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
-            "jsonresult=`python3 -c 'from reporting_etls.fj7_storage import fj7_disk_usage; fj7_disk_usage.task()'`",
+            "fj7-disk-usage"
         ],
         task_id="fj7_disk_usage",
         env_vars={
