@@ -174,7 +174,7 @@ with dag:
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets + k8s_secrets.s3_automated_operation_bucket
     )
     fj7_ungrouped_user_stats_ingestion = utilities.k8s_operator(
         dag=dag,
