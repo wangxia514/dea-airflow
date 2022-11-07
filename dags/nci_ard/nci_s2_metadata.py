@@ -40,6 +40,7 @@ schedule_interval = "0 10 * * *"
 # sed '/#\/\*/,/#\*\// d' nci_s2_metadata.py > ../../../nci_s2_metadata.py
 # sed '/#\/\*/,/#\*\// d' dags/nci_ard/nci_s2_metadata.py > ../nci_s2_metadata.py
 # mv ../nci_s2_metadata.py dags/nci_ard/nci_s2_metadata.py
+# mv ../../../nci_s2_metadata.py .
 # params[""] =
 
 
