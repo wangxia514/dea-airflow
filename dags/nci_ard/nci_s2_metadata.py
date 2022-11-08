@@ -22,7 +22,7 @@ params = {
     "config_arg": "",
     "output_base_para": "/g/data/ka08/ga/l1c_metadata",
     "only_regions_in_para": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scene_select/data/Australian_tile_list_optimised.txt",
-    "base_dir": "/g/data/v10/work/s2_c3_ard/",
+    "base_dir": "/g/data/v10/work/s2_c3_metadata/",
     "l1_base": "/g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/",
     "dry_run": " ",
     "only-regions-in-file_para": "",
@@ -63,8 +63,8 @@ if aws_develop:
     elif run_type == "pre_prod":
         # Just test that the dry-run is working
         # Have these together.
-        params["pkgdir_arg"] = "/g/data/ka08/test_ga"
-        params["index"] = " "  # no indexing
+        # params["pkgdir_arg"] = "/g/data/ka08/test_ga"
+        # params["index"] = " "  # no indexing
 
         params["months_back"] = "1 "
         params["dry_run"] = "--dry-run "
