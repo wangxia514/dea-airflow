@@ -59,18 +59,22 @@ if aws_develop:
     # Remember to blow away the db and rm old yamls
     if run_type == "small_prod":
         params["months_back"] = "1 "
-        pass
+
     elif run_type == "pre_prod":
+        # Just test that the dry-run is working
         params["pkgdir_arg"] = "/g/data/ka08/test_ga"
 
         params["months_back"] = "1 "
+        params["dry_run"] = "--dry-run "
+
+    elif run_type == "dead code":
 
         # The ODC db used
         params[
             "config_arg"
         ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf"
         # params["index"] = "--index "
-        params["index"] = " "   # no indexing
+        params["index"] = " "  # no indexing
         # params["dry_run"] = " " # produce yamls
         params["dry_run"] = "--dry-run "
 
@@ -144,7 +148,7 @@ default_args = {
 }
 
 dag = DAG(
-    "nci_metadata_gen",
+    "nci_s2_metadata",
     doc_md=__doc__,
     default_args=default_args,
     catchup=False,
