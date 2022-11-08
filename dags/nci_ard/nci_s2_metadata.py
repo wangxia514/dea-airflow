@@ -19,7 +19,7 @@ params = {
     "index": "--index  ",
     "months_back": "1 ",
     "jobs_para": "1",
-    "config": "",
+    "config_arg": "",
     "output_base_para": "/g/data/ka08/ga/l1c_metadata",
     "only_regions_in_para": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scene_select/data/Australian_tile_list_optimised.txt",
     "base_dir": "/g/data/v10/work/s2_c3_ard/",
