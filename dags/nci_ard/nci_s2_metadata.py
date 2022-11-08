@@ -62,7 +62,9 @@ if aws_develop:
 
     elif run_type == "pre_prod":
         # Just test that the dry-run is working
+        # Have these together.
         params["pkgdir_arg"] = "/g/data/ka08/test_ga"
+        params["index"] = " "  # no indexing
 
         params["months_back"] = "1 "
         params["dry_run"] = "--dry-run "
