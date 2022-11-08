@@ -88,14 +88,13 @@ with dag:
                   ls {{ params.base_dir }}; \
                   "
         """,
-        timeout=60 * 20,
         do_xcom_push=True,
     )
 
     wait_for_completion = PBSJobSensor(
         task_id="wait_for_completion",
-        pbs_job_id="{{ ti.xcom_pull(task_ids='%s') }}" % submit_task_id,
-        timeout=60 * 60 * 24 * 7,
+        ssh_conn_id="lpgs_gadi",
+        pbs_job_id="{{ ti.xcom_pull(task_ids='submit_pbs_job') }}",
     )
 
     start >> submit_test >> wait_for_completion >> completed
