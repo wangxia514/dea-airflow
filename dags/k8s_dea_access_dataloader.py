@@ -58,7 +58,7 @@ default_args = {
 # Docker images
 CURL_SVC_IMAGE = "curlimages/curl:7.70.0"
 EGGLOADER_SVC_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dea-access/egg-dataloader:latest"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dea-access/egg-dataloader-develop:latest"
 )
 
 # [START instantiate_dag]
