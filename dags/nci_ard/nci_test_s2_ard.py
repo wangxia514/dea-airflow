@@ -26,7 +26,7 @@ params = {
     "interim_days_wait": "",
     "products_arg": """--products '["esa_s2am_level1_0", "esa_s2bm_level1_0"]'""",
     "pkgdir_arg": "/g/data/ka08/ga",
-    "base_dir": "/g/data/u46/users/dsg547/test_data/s2_pipeline",
+    "base_dir": "/g/data/v10/Landsat-Collection-3-ops/scene_select_test_s2/",
     "days_to_exclude_arg": "--days-to-exclude '[\"2015-01-01:2022-08-31\"]'",
     "run_ard_arg": "--run-ard",
     "yamldir": " --yamls-dir /g/data/ka08/ga/l1c_metadata",
