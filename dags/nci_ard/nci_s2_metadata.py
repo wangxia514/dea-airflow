@@ -30,7 +30,7 @@ params = {
 
 ssh_conn_id = "lpgs_gadi"
 
-schedule_interval = None #"0 10 * * *"
+schedule_interval = None
 
 # Having the info above as variables and some empty values
 # means I can easily test by adding some test code here
