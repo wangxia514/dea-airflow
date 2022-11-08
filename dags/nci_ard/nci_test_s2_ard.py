@@ -26,7 +26,7 @@ params = {
     "interim_days_wait": "",
     "products_arg": """--products '["esa_s2am_level1_0", "esa_s2bm_level1_0"]'""",
     "pkgdir_arg": "/g/data/ka08/ga",
-    "base_dir": "/g/data/v10/work/s2_c3_ard/",
+    "base_dir": "/g/data/u46/users/dsg547/test_data/s2_pipeline",
     "days_to_exclude_arg": "--days-to-exclude '[\"2015-01-01:2022-08-31\"]'",
     "run_ard_arg": "--run-ard",
     "yamldir": " --yamls-dir /g/data/ka08/ga/l1c_metadata",
@@ -66,8 +66,7 @@ with dag:
 
     COMMON = """
         #  ts_nodash timestamp no dashes.
-        {% set log_ext = ts_nodash + '/logdir' %}
-        {% set work_ext = ts_nodash + '/workdir' %}
+        {% set log_ext = ts_nodash  %}
         """
 
     submit_task_id = "submit_test"
@@ -75,7 +74,6 @@ with dag:
         task_id=submit_task_id,
         command=COMMON
         + """
-        mkdir -p {{ params.base_dir }}{{ work_ext }}
         mkdir -p {{ params.base_dir }}{{ log_ext }}
         qsub -N ard_scene_select \
               -q  {{ params.queue }}  \
@@ -87,7 +85,7 @@ with dag:
                   "module use /g/data/v10/public/modules/modulefiles/; \
                   module use /g/data/v10/private/modules/modulefiles/; \
                   module load {{ params.module_ass }}; \
-                  ls {{ params.base_dir }}{{ log_ext }} \
+                  ls {{ params.base_dir }}; \
                   "
         """,
         timeout=60 * 20,
