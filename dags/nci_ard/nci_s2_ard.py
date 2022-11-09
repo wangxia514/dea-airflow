@@ -126,7 +126,7 @@ default_args = {
 }
 
 dag = DAG(
-    "nci_ard_s2",
+    "nci_s2_ard",
     doc_md=__doc__,
     default_args=default_args,
     catchup=False,
