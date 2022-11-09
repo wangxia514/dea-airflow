@@ -44,7 +44,7 @@ COMMON = dedent(
 default_args = {
     "owner": "James Miller",
     "start_date": datetime(
-        2022, 11, 7, tzinfo=local_tz
+        2022, 11, 8, tzinfo=local_tz
     ),  # earliest date in nci DB is 2016-06-29
     "retries": 0,
     "retry_delay": timedelta(minutes=5),
@@ -108,8 +108,8 @@ with dag:
                 INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id
                 INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref
                 WHERE dst.name='$product_name'
-                  AND ((ds.added BETWEEN '{{ prev_execution_date }}' AND '{{ execution_date.add(days=1) }}')
-                  OR (ds.archived BETWEEN '{{ prev_execution_date }}' AND '{{ execution_date.add(days=1) }}'));
+                  AND ((ds.added BETWEEN '{{ prev_execution_date }}' AND '{{ execution_date }}')
+                  OR (ds.archived BETWEEN '{{ prev_execution_date }}' AND '{{ execution_date }}'));
             EOF
             done
             echo -n Num Datasets to upload:
