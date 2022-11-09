@@ -62,6 +62,7 @@ dag = DAG(
     tags=["nci", "s2_c3"],
 )
 
+# kick off running ard-scene-select on NCI
 with dag:
     start = DummyOperator(task_id="start")
     completed = DummyOperator(task_id="completed")
