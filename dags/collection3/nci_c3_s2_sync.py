@@ -108,8 +108,8 @@ with dag:
                 INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id
                 INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref
                 WHERE dst.name='$product_name'
-                  AND (ds.added BETWEEN '{{ prev_execution_date }}' AND '{{ execution_date.add(days=1) }}')
-                  OR ds.archived BETWEEN '{{ prev_execution_date }}' AND '{{ execution_date.add(days=1) }}';
+                  AND ((ds.added BETWEEN '{{ prev_execution_date }}' AND '{{ execution_date.add(days=1) }}')
+                  OR (ds.archived BETWEEN '{{ prev_execution_date }}' AND '{{ execution_date.add(days=1) }}'));
             EOF
             done
             echo -n Num Datasets to upload:
@@ -142,44 +142,4 @@ with dag:
         timeout=20 * MINUTES,
     )
 
-    # TODO remove dry run when happy with outputs
-    # Perform the syncing process
-    execute_upload = SSHOperator(
-        task_id="execute_upload",
-        # language="Shell Script"
-        command=dedent(
-            COMMON
-            + """
-            {% set aws_creds = params.aws_hook.get_credentials() -%}
-            # Export AWS Access key/secret from Airflow connection module
-            export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
-            export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
-            time ~/bin/s5cmd --stat --dry-run run {{ work_dir }}/commands.txt
-            """
-        ),
-        remote_host="gadi-dm.nci.org.au",
-        params={"aws_hook": aws_hook},
-        timeout=10 * HOURS,
-    )
-
-    # Check all files have been sucessfully synced
-    data_verification_check = SSHOperator(
-        task_id="data_verification_check",
-        # language="Shell Script"
-        command=dedent(
-            COMMON
-            + """
-            {% set aws_creds = params.aws_hook.get_credentials() -%}
-            # Export AWS Access key/secret from Airflow connection module
-            export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
-            export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
-            python '{{ work_dir }}/nci_c3_s2_data_verification_aws.py' \
-            --data_check_path '{{ work_dir }}/data_check.txt'
-            """
-        ),
-        remote_host="gadi-dm.nci.org.au",
-        params={"aws_hook": aws_hook},
-        timeout=20 * MINUTES,
-    )
-
-    upload_uploader_script >> upload_data_verification
+    [upload_uploader_script, upload_data_verification, generate_list_of_s2_to_upload] >> generate_commands
