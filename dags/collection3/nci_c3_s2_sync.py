@@ -59,7 +59,7 @@ dag = DAG(
     "nci_c3_s3_sync",
     doc_md=__doc__,
     default_args=default_args,
-    catchup=False,
+    catchup=True,
     schedule_interval="@daily",
     max_active_runs=1,
     default_view="tree",
