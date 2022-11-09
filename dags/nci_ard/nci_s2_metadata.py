@@ -199,7 +199,8 @@ eo3-prepare sentinel-l1  \
 {{ params.l1_base }} \
 "
         """,
-        timeout=60 * 20,
+        cmd_timeout=60 * 20,
+        conn_timeout=60 * 20,
         do_xcom_push=True,
     )
     # --limit-regions-file test_dont_generate.txt \

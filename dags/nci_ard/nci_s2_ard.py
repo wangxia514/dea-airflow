@@ -27,12 +27,13 @@ params = {
     "products_arg": """--products '["esa_s2am_level1_0", "esa_s2bm_level1_0"]'""",
     "pkgdir_arg": "/g/data/ka08/ga",
     "base_dir": "/g/data/v10/work/s2_c3_ard/",
-    "days_to_exclude_arg": "--days-to-exclude '[\"2015-01-01:2022-08-31\"]'",
+    "days_to_exclude_arg": "--days-to-exclude '[\"2015-01-01:2023-08-31\"]'",
     "run_ard_arg": "--run-ard",
     "yamldir": " --yamls-dir /g/data/ka08/ga/l1c_metadata",
 }
 
 ssh_conn_id = "lpgs_gadi"
+schedule_interval = None
 schedule_interval = "0 10 * * *"
 
 # Having the info above as variables and some empty values
@@ -50,7 +51,8 @@ params["index_arg"] = ""  # No indexing
 # "" means no ard is produced.
 params["run_ard_arg"] = ""
 
-use_test_db = True
+# use_test_db = True
+use_test_db = False
 if use_test_db:
     params[
         "index_arg"
@@ -65,7 +67,8 @@ if use_test_db:
 # params["days_to_exclude_arg"] = ""
 #  if you use it it looks like """--days-to-exclude '["2020-06-26:2020-06-26"]'"""
 
-aws_develop = True
+# aws_develop = True
+aws_develop = False
 if aws_develop:
     # run this from airflow dev
     ssh_conn_id = "lpgs_gadi"
@@ -141,8 +144,8 @@ with dag:
 
     COMMON = """
         #  ts_nodash timestamp no dashes.
-        {% set log_ext = ts_nodash + '/logdir' %}
-        {% set work_ext = ts_nodash + '/workdir' %}
+        {% set log_ext = ts_nodash + '_ard/logdir' %}
+        {% set work_ext = ts_nodash + '_ard/workdir' %}
         """
 
     submit_task_id = "submit_ard"
@@ -178,7 +181,8 @@ with dag:
                   {{ params.yamldir }} \
                   {{ params.run_ard_arg }} "
         """,
-        timeout=60 * 20,
+        cmd_timeout=60 * 20,
+        conn_timeout=60 * 20,
         do_xcom_push=True,
     )
 
