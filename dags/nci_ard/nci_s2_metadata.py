@@ -159,6 +159,7 @@ dag = DAG(
     tags=["nci", "s2_c3"],
 )
 
+# kick off running  eo3-prepare on NCI
 with dag:
     start = DummyOperator(task_id="start")
     completed = DummyOperator(task_id="completed")
