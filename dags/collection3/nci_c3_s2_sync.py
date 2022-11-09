@@ -108,8 +108,8 @@ with dag:
                 INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id
                 INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref
                 WHERE dst.name='$product_name'
-                  AND ((ds.added BETWEEN '{{ prev_execution_date }}' AND '{{ execution_date }}')
-                  OR (ds.archived BETWEEN '{{ prev_execution_date }}' AND '{{ execution_date }}'));
+                  AND ((ds.added BETWEEN '2022-11-05' AND '2022-11-06')
+                  OR (ds.archived BETWEEN '2022-11-05' AND '2022-11-06'));
             EOF
             done
             echo -n Num Datasets to upload:
