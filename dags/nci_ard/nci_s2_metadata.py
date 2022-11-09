@@ -167,7 +167,7 @@ with dag:
 
     COMMON = """
         #  ts_nodash timestamp no dashes.
-        {% set log_ext = ts_nodash %}
+        {% set log_ext = ts_nodash + '_metadata'  %}
         """
 
     submit_task_id = "submit_metadata_gen"
