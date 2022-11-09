@@ -56,6 +56,7 @@ dag = DAG(
     default_args=default_args,
     catchup=False,
     schedule_interval=schedule_interval,
+    template_searchpath="templates/",
     default_view="tree",
     tags=["nci", "s2_c3"],
 )
@@ -72,6 +73,7 @@ with dag:
     submit_task_id = "submit_test"
     submit_test = SSHOperator(
         task_id=submit_task_id,
+        ssh_conn_id="lpgs_gadi",
         command=COMMON
         + """
         mkdir -p {{ params.base_dir }}{{ log_ext }}
