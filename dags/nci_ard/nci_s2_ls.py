@@ -83,7 +83,8 @@ with dag:
                   ls {{ params.base_dir }}; \
                   "
         """,
-        timeout=60 * 20,
+        cmd_timeout=60 * 20,
+        conn_timeout=60 * 20,
         do_xcom_push=True,
     )
 
