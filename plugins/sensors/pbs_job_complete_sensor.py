@@ -8,8 +8,7 @@ from logging import getLogger
 import json
 from airflow import AirflowException
 from airflow.configuration import conf
-from airflow.sensors.base_sensor_operator import BaseSensorOperator
-from airflow.utils.decorators import apply_defaults
+from airflow.sensors.base import BaseSensorOperator
 
 from dea_airflow_common.ssh import SSHRunMixin
 
@@ -46,19 +45,31 @@ class PBSJobSensor(SSHRunMixin, BaseSensorOperator):
 
     template_fields = ("pbs_job_id",)
 
-    @apply_defaults
     def __init__(
         self,
         pbs_job_id: str = None,
         poke_interval: int = 5 * 60,
         mode="reschedule",
         timeout: int = 24 * 60 * 60,
+        ssh_conn_id=None,
+        ssh_hook=None,
         *args,
         **kwargs,
     ):
-        super().__init__(
-            mode=mode, poke_interval=poke_interval, timeout=timeout, *args, **kwargs
+
+        BaseSensorOperator.__init__(
+            self,
+            mode=mode,
+            poke_interval=poke_interval,
+            timeout=timeout,
+            *args,
+            **kwargs,
         )
+
+        self.timeout = timeout
+        self.ssh_hook = ssh_hook
+        self.ssh_conn_id = ssh_conn_id
+
         self.log.info("Inside PBSJobSensor Init Function")
 
         self.pbs_job_id = pbs_job_id
