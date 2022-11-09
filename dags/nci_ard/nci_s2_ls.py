@@ -33,7 +33,7 @@ params = {
 }
 
 ssh_conn_id = "lpgs_gadi"
-schedule_interval = "0 10 * * *"
+schedule_interval = None
 
 default_args = {
     "owner": "Duncan Gray",
@@ -61,7 +61,8 @@ with dag:
 
     COMMON = """
         #  ts_nodash timestamp no dashes.
-        {% set log_ext = ts_nodash  %}
+        {% set log_ext = ts_nodash + '_ard' %}
+        {% set work_ext = ts_nodash + '_ard/work' %}
         """
 
     submit_task_id = "submit_ard"
@@ -69,6 +70,7 @@ with dag:
         task_id=submit_task_id,
         command=COMMON
         + """
+        mkdir -p {{ params.base_dir }}{{ work_ext }}
         mkdir -p {{ params.base_dir }}{{ log_ext }}
         qsub -N nci_s2_ls \
               -q  {{ params.queue }}  \
