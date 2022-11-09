@@ -142,4 +142,4 @@ with dag:
         timeout=20 * MINUTES,
     )
 
-    [upload_uploader_script, upload_data_verification, generate_list_of_s2_to_upload] >> generate_commands
+    upload_uploader_script >> upload_data_verification >> generate_list_of_s2_to_upload >> generate_commands
