@@ -48,6 +48,7 @@ default_args = {
     "retry_delay": timedelta(minutes=1),
     "ssh_conn_id": ssh_conn_id,
     "params": params,
+    "timeout": 90,  # For running SSH Commands
 }
 
 dag = DAG(
