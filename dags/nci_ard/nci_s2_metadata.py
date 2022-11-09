@@ -22,7 +22,7 @@ params = {
     "config_arg": "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/datacube.conf",
     "output_base_para": "/g/data/ka08/ga/l1c_metadata",
     "only_regions_in_para": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scene_select/data/Australian_tile_list_optimised.txt",
-    "base_dir": "/g/data/v10/work/s2_c3_metadata/",
+    "base_dir": "/g/data/v10/work/s2_c3/",
     "l1_base": "/g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/",
     "dry_run": " ",
     "only-regions-in-file_para": "",
@@ -30,7 +30,8 @@ params = {
 
 ssh_conn_id = "lpgs_gadi"
 
-schedule_interval = "0 10 * * *"
+# schedule_interval = "0 10 * * *"
+schedule_interval = None
 
 # Having the info above as variables and some empty values
 # means I can easily test by adding some test code here
