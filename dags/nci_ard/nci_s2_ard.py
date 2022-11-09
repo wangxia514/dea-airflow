@@ -144,7 +144,7 @@ with dag:
 
     COMMON = """
         #  ts_nodash timestamp no dashes.
-        {% set log_ext = ts_nodash + '_ard/logdir' %}
+        {% set log_ext = ts_nodash + '_ard' %}
         {% set work_ext = ts_nodash + '_ard/workdir' %}
         """
 
