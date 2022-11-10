@@ -174,7 +174,8 @@ with dag:
             export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
             export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
             python '{{ work_dir }}/nci_c3_s2_data_verification_aws.py' \
-            --data_check_path '{{ work_dir }}/data_check.txt'
+            --data_check_path '{{ work_dir }}/data_check.txt' \
+            --missing_file_path '{{ work_dir }}/missing_file.txt'
             """
         ),
         remote_host="gadi-dm.nci.org.au",
