@@ -19,10 +19,10 @@ params = {
     "index": "--index  ",
     "months_back": "1 ",
     "jobs_para": "1",
-    "config": "",
+    "config_arg": "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/datacube.conf",
     "output_base_para": "/g/data/ka08/ga/l1c_metadata",
     "only_regions_in_para": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scene_select/data/Australian_tile_list_optimised.txt",
-    "base_dir": "/g/data/v10/work/s2_c3_ard/",
+    "base_dir": "/g/data/v10/work/s2_c3/",
     "l1_base": "/g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/",
     "dry_run": " ",
     "only-regions-in-file_para": "",
@@ -30,6 +30,7 @@ params = {
 
 ssh_conn_id = "lpgs_gadi"
 
+# schedule_interval = "0 10 * * *"
 schedule_interval = None
 
 # Having the info above as variables and some empty values
@@ -48,7 +49,7 @@ default_args = {
 }
 
 dag = DAG(
-    "nci_metadata_gen",
+    "nci_s2_metadata",
     doc_md=__doc__,
     default_args=default_args,
     catchup=False,
@@ -57,13 +58,14 @@ dag = DAG(
     tags=["nci", "s2_c3"],
 )
 
+# kick off running  eo3-prepare on NCI
 with dag:
     start = DummyOperator(task_id="start")
     completed = DummyOperator(task_id="completed")
 
     COMMON = """
         #  ts_nodash timestamp no dashes.
-        {% set log_ext = ts_nodash %}
+        {% set log_ext = ts_nodash + '_metadata'  %}
         """
 
     submit_task_id = "submit_metadata_gen"
@@ -97,7 +99,8 @@ eo3-prepare sentinel-l1  \
 {{ params.l1_base }} \
 "
         """,
-        timeout=60 * 20,
+        cmd_timeout=60 * 20,
+        conn_timeout=60 * 20,
         do_xcom_push=True,
     )
     # --limit-regions-file test_dont_generate.txt \
