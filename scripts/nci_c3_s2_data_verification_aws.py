@@ -5,7 +5,10 @@ Script to perform data verification checks
 import csv
 import argparse
 import boto3
+import os
 from botocore.errorfactory import ClientError
+from botocore import UNSIGNED
+from botocore.config import Config
 
 
 s3_bucket = 'dea-public-data-dev'
@@ -17,7 +20,7 @@ def data_verification(data_check_path):
     :param data_check_path: path for the data_check.txt. contains listing of files to check
     :return: list of missing files
     """
-    s3 = boto3.client('s3')
+    s3 = boto3.client('s3', config=Config(signature_version=UNSIGNED))
 
     missing_files = []
 
@@ -25,11 +28,15 @@ def data_verification(data_check_path):
         data_check_reader = csv.reader(data_check_file, delimiter=',')
         for row in data_check_reader:
             try:
-                s3.head_object(Bucket=s3_bucket, Key=row[0])
-            except ClientError:
-                print('{} not found in {}'.format(row, s3_bucket))
+                key_path = os.path.relpath(row[0], f"s3://{s3_bucket}")
+                s3.head_object(Bucket=s3_bucket, Key=key_path)
+            except ClientError as error:
+                print(f"Error {error}. {key_path} not found in {s3_bucket}")
                 missing_files.append(row[0])
                 pass
+
+    missing_file_count = len(missing_files)
+    print(f"Missing file count {missing_file_count}.")
 
     return missing_files
 
