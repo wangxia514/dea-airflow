@@ -154,7 +154,7 @@ with dag:
             # Export AWS Access key/secret from Airflow connection module
             export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
             export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
-            time ~/bin/s5cmd --stat --dry-run run {{ work_dir }}/commands.txt
+            time ~/bin/s5cmd --stat run {{ work_dir }}/commands.txt
             """
         ),
         remote_host="gadi-dm.nci.org.au",
