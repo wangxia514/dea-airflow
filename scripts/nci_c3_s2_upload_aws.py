@@ -5,10 +5,12 @@ Script to convert granule_id.txt to s5cmd commands and create a text file for po
 import csv
 import argparse
 import json
+import os
 
 
 s3_bucket = 's3://dea-public-data-dev'
 product_path = 'baseline'
+nci_directory = '/g/data/ka08/ga'
 
 
 def gen_s5cmd_commands(granule_id_location, output_path, data_check_path):
@@ -19,60 +21,48 @@ def gen_s5cmd_commands(granule_id_location, output_path, data_check_path):
     :param data_check_path: location of the output data_check.txt file. This is used for data verification checks
     post data syncing
     """
-    with open(granule_id_location, "r") as granule_id_file:
+    with open(granule_id_location, "r") as granule_id_file, open(output_path, mode='w') as s5cmd_file, open(
+            data_check_path, mode='w') as data_check_file:
         granule_id_reader = csv.reader(granule_id_file, delimiter=',')
-        with open(output_path, mode='w') as s5cmd_file:
-            with open(data_check_path, mode='w') as data_check_file:
-                for row in granule_id_reader:
-                    metadata_path = row[0]
-                    archived_date = row[1]
-                    added_date = row[2]
-                    metadata = row[3]
 
-                    metadata_json = json.loads(metadata)
-                    measurements = metadata_json["measurements"]
+        for row in granule_id_reader:
+            metadata_path = row[0]
+            archived_date = row[1]
+            added_date = row[2]
+            metadata = row[3]
 
-                    granule_file_listing = []
+            metadata_json = json.loads(metadata)
+            measurements = metadata_json["measurements"]
 
-                    # create dict of items in granule from metadata
-                    for item in measurements:
-                        granule_file_listing.append(measurements[item]["path"])
+            granule_file_listing = []
 
-                    # parse nci listing for folder locations
-                    end_path_index = metadata_path.rfind("/")
-                    file_path_index = metadata_path.rfind("/ga/") + 4
+            # create dict of items in granule from metadata
+            for item in measurements:
+                granule_file_listing.append(measurements[item]["path"])
 
-                    # generate copy commands if not archived otherwise remove data
-                    if archived_date is None or archived_date == '':
-                        s5cmd_file.write('cp {0}/* {1}/{2}/{3}/\n'.format(metadata_path[2:end_path_index], s3_bucket,
-                                                                          product_path,
-                                                                          metadata_path[file_path_index:end_path_index])
-                                         )
+            # parse nci listing for folder locations
+            nci_path = os.path.dirname(metadata_path)
+            nci_path_prefix = os.path.relpath(nci_path, nci_directory)
+            s3_path = f"{s3_bucket}/{product_path}/{nci_path_prefix}"
 
-                        # create list of files to check after syncing complete
-                        for item in granule_file_listing:
-                            data_check_file.write('{0}/{1}/{2}\n'.format(product_path,
-                                                                         metadata_path[file_path_index:end_path_index],
-                                                                         item))
+            # generate copy commands if not archived otherwise remove data
+            if archived_date is None or archived_date == '':
+                s5cmd_file.write(f"cp {nci_path}/* {s3_path}/\n")
 
-                        # eo3 metadata file not contained in metadata json from ODC - need to add it in
-                        data_check_file.write('{0}/{1}\n'.format(product_path, metadata_path[file_path_index:]))
-                        # also need to add stac metadata file to the data verification checks
-                        stac_path_index = metadata_path.rfind("odc-metadata.yaml")
-                        data_check_file.write('{0}/{1}stac-item.json\n'.format(
-                            product_path, metadata_path[file_path_index:stac_path_index]))
+                # create list of files to check after syncing complete
+                for item in granule_file_listing:
+                    data_check_file.write(f"{s3_path}/{item}\n")
 
-                    else:
-                        # need to update indexing to be able to archive from s3 event first before enabling below
-                        """
-                        s5cmd_file.write('rm {0}/* {1}/{2}/{3}/\n'.format(metadata_path[2:end_path_index], s3_bucket,
-                                                                          product_path,
-                                                                          metadata_path[file_path_index:end_path_index])
-                                         )
-                        """
+                nci_metadata_path_prefix = os.path.relpath(metadata_path, nci_directory)
+                data_check_file.write(f"{s3_bucket}/{product_path}/{nci_metadata_path_prefix}\n")
+                stac_metadata_path = nci_metadata_path_prefix.replace("odc-metadata.yaml", "stac-item.json")
+                data_check_file.write(f"{s3_bucket}/{product_path}/{stac_metadata_path}\n")
 
-            data_check_file.close()
-        s5cmd_file.close()
+            else:
+                # need to update indexing to be able to archive from s3 event first before enabling below
+                """
+                s5cmd_file.write(f"rm {nci_path}/* {s3_path}/\n")
+                """
 
 
 if __name__ == '__main__':
