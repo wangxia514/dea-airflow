@@ -16,6 +16,7 @@ OWS_UPDATE_LIST = (
     "s2_nrt_provisional_granule_nbar_t",
     "ga_s2_ba_provisional_3",
     "ga_s2_wo_provisional_3",
+    "ga_s2m_ard_3",
 )
 
 EXPLORER_UPDATE_LIST = (
@@ -35,4 +36,6 @@ EXPLORER_UPDATE_LIST = (
     "ga_s2bm_ard_provisional_3",
     "ga_s2_ba_provisional_3",
     "ga_s2_wo_provisional_3",
+    "ga_s2am_ard_3",
+    "ga_s2bm_ard_3",
 )
