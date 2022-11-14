@@ -98,7 +98,7 @@ with dag:
                   --logdir {{ params.base_dir }}{{ log_ext }} \
                   --env {{ params.wagl_env }}  \
                   --project {{ params.project }} \
-                  --walltime 10:00:00 \
+                  --walltime 20:00:00 \
                   {{ params.index_arg }} \
                   {{ params.scene_limit }} \
                   {{ params.interim_days_wait }} \
