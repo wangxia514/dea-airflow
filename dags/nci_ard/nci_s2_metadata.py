@@ -14,9 +14,7 @@ from sensors.pbs_job_complete_sensor import PBSJobSensor
 
 params = {
     "project": "v10",
-    "queue": "normal",
     "module": "eodatasets3/0.29.5",
-    "index": "--index  ",
     "months_back": "1 ",
     "jobs_para": "1",
     "config_arg": "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/datacube.conf",
@@ -24,9 +22,23 @@ params = {
     "only_regions_in_para": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scene_select/data/Australian_tile_list_optimised.txt",
     "base_dir": "/g/data/v10/work/s2_c3_ard/",
     "l1_base": "/g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/",
-    "dry_run": " ",
+    "dry_run": "",
     "only-regions-in-file_para": "",
 }
+
+if params["dry_run"] == "":
+    params["index"] = "--index  "
+    params["ncpus"] = "48 "
+    params["mem"] = "192GB"
+    params["walltime"] = "08:00:00"
+    params["queue"] = "normal"
+else:
+    params["dry_run"] == "--dry-run"
+    params["index"] = " "
+    params["ncpus"] = "1 "
+    params["mem"] = "19GB"
+    params["walltime"] = "00:30:00"
+    params["queue"] = "express"
 
 ssh_conn_id = "lpgs_gadi"
 
@@ -181,13 +193,13 @@ a_year=$(date +%Y -d ' 1  month ago')
 qsub -N nci_metadata_gen \
 -q  {{ params.queue }}  \
 -W umask=33 \
--l wd,walltime=8:00:00,mem=192GB,ncpus=48 -m abe \
+-l wd,walltime={{ params.walltime }},mem={{ params.mem }},ncpus={{ params.ncpus }} -m abe \
 -l storage=gdata/v10+scratch/v10+gdata/ka08+scratch/ka08+gdata/fj7+scratch/fj7+gdata/u46+scratch/u46 \
 -P  {{ params.project }} -o {{ params.base_dir }}{{ log_ext }} -e {{ params.base_dir }}{{ log_ext }}  \
 -- /bin/bash -l -c \
 "module use /g/data/v10/public/modules/modulefiles/; \
 module use /g/data/v10/private/modules/modulefiles/; \
-module load {{ params.module }}; \
+#module load {{ params.module }}; \
 set -x; \
 eo3-prepare sentinel-l1  \
 --jobs {{ params.jobs_para }}  \
