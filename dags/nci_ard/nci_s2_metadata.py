@@ -3,6 +3,12 @@ Produce ODC metadata yaml's for S2 l1 scenes and index the scenes.
 Search on NCI /g/data/fj7 for the S2 l1 scenes to index.
 
 The logs are written to NCI.
+
+Use  params["dry_run"] == "--dry-run" to do a dry run.
+For dry-run's set:
+    params["ncpus"] = "1 "
+    params["mem"] = "19GB"
+    params["walltime"] = "00:30:00"
 """
 from datetime import datetime, timedelta
 
@@ -24,7 +30,10 @@ params = {
     "only_regions_in_para": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scene_select/data/Australian_tile_list_optimised.txt",
     "base_dir": "/g/data/v10/work/s2_c3_ard/",
     "l1_base": "/g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/",
-    "dry_run": " ",
+    "dry_run": "",
+    "ncpus": "48 ",
+    "mem": "192GB",
+    "walltime": "08:00:00",
     "only-regions-in-file_para": "",
 }
 
@@ -33,15 +42,10 @@ ssh_conn_id = "lpgs_gadi"
 # schedule_interval = "0 10 * * *"
 schedule_interval = None
 
-# Having the info above as variables and some empty values
-# means I can easily test by adding some test code here
-# without modifying the code below.
-
-
 default_args = {
     "owner": "Duncan Gray",
     "depends_on_past": False,  # Very important, will cause a single failure to propagate forever
-    "start_date": datetime(2022, 5, 10),
+    "start_date": datetime(2022, 11, 10),
     "retries": 0,
     "retry_delay": timedelta(minutes=1),
     "ssh_conn_id": ssh_conn_id,
@@ -79,7 +83,7 @@ a_year=$(date +%Y -d ' 1  month ago')
 qsub -N nci_metadata_gen \
 -q  {{ params.queue }}  \
 -W umask=33 \
--l wd,walltime=8:00:00,mem=192GB,ncpus=48 -m abe \
+-l wd,walltime={{ params.walltime }},mem={{ params.mem }},ncpus={{ params.ncpus }} -m abe \
 -l storage=gdata/v10+scratch/v10+gdata/ka08+scratch/ka08+gdata/fj7+scratch/fj7+gdata/u46+scratch/u46 \
 -P  {{ params.project }} -o {{ params.base_dir }}{{ log_ext }} -e {{ params.base_dir }}{{ log_ext }}  \
 -- /bin/bash -l -c \
