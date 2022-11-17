@@ -58,8 +58,6 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 )
 from airflow.operators.dummy_operator import DummyOperator
 from infra.projects.dea_access import DEA_ACCESS_RESTO_API_ADMIN_SECRET
-import requests
-import csv
 
 # [END import_module]
 
@@ -124,8 +122,6 @@ SECRET_ENV_JWT_PASSPHRASE = Secret(
     # Key of a secret stored in this Secret object
     key="JWT_PASSPHRASE",
 )
-
-
 
 # [START instantiate_dag]
 pipeline = DAG(
@@ -194,8 +190,6 @@ with pipeline:
     # TODO: How do we check success? Keep as dummy manual checking for now.
     task_final_ingester_check = DummyOperator(task_id="task_final_ingester_check")
 
-
-
     # [START task_*_*_collection_id]
     ingester_task = KubernetesPodOperator(
         namespace="processing",
@@ -226,11 +220,8 @@ with pipeline:
     )
 
     # [Setting up Dependencies]
-    (
-        [
-            task_http_itag_svc_sensor_check,
-            task_http_resto_svc_sensor_check,
-        ]
-        >> ingester_task
-        >> task_final_ingester_check
-    )
+    [
+        task_http_itag_svc_sensor_check,
+        task_http_resto_svc_sensor_check,
+    ]
+    >> ingester_task
