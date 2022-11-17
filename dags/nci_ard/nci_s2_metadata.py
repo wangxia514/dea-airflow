@@ -33,7 +33,7 @@ if params["dry_run"] == "":
     params["walltime"] = "08:00:00"
     params["queue"] = "normal"
 else:
-    params["dry_run"] == "--dry-run"
+    params["dry_run"] = "--dry-run"
     params["index"] = " "
     params["ncpus"] = "1 "
     params["mem"] = "19GB"
