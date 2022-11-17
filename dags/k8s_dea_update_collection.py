@@ -60,7 +60,7 @@ default_args = {
 # [END default_args]
 
 # Docker images
-UPDATE_COLLECTION_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dea-access/update-collection:latest"
+UPDATE_COLLECTION_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dea-access/update-collection:develop"
 
 SECRET_ENV_API_USERID = Secret(
     deploy_type="env",
