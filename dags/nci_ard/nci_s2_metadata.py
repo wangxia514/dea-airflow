@@ -30,7 +30,6 @@ params = {
     "only_regions_in_para": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scene_select/data/Australian_tile_list_optimised.txt",
     "base_dir": "/g/data/v10/work/s2_c3_ard/",
     "l1_base": "/g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/",
-    "uncomment": "eodatasets",
     "dry_run": "",
     "ncpus": "48 ",
     "mem": "192GB",
