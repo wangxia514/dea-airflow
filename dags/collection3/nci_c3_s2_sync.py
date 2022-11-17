@@ -99,6 +99,7 @@ with dag:
             rm -f granule_ids.txt
             rm -f commands.txt
             rm -f data_check.txt
+            rm -f missing_file.txt
             for product_name in ga_s2am_ard_3 ga_s2bm_ard_3; do
                 echo Searching for $product_name datasets.
             psql --variable=ON_ERROR_STOP=1 --csv --quiet --tuples-only --no-psqlrc \
@@ -183,8 +184,28 @@ with dag:
         timeout=20 * MINUTES,
     )
 
+    # Perform the syncing process for missing files
+    execute_missing_files_upload = SSHOperator(
+        task_id="execute_missing_files_upload",
+        # language="Shell Script"
+        command=dedent(
+            COMMON
+            + """
+            {% set aws_creds = params.aws_hook.get_credentials() -%}
+            # Export AWS Access key/secret from Airflow connection module
+            export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
+            export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
+            time ~/bin/s5cmd --stat --numworkers 20 run {{ work_dir }}/missing_file.txt
+            """
+        ),
+        remote_host="gadi-dm.nci.org.au",
+        params={"aws_hook": aws_hook},
+        timeout=10 * HOURS,
+    )
+
     upload_uploader_script >> upload_data_verification
     upload_data_verification >> generate_list_of_s2_to_upload
     generate_list_of_s2_to_upload >> generate_commands
     generate_commands >> execute_upload
     execute_upload >> data_verification_check
+    data_verification_check >> execute_missing_files_upload

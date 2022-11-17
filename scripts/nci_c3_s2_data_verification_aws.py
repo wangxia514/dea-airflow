@@ -12,6 +12,8 @@ from botocore.config import Config
 
 
 s3_bucket = 'dea-public-data-dev'
+product_path = 'baseline'
+nci_directory = '///g/data/ka08/ga'
 
 
 def data_verification(data_check_path, missing_file_path):
@@ -25,15 +27,18 @@ def data_verification(data_check_path, missing_file_path):
 
     missing_files = []
 
-    with open(data_check_path, "r") as data_check_file, open(missing_file_path, "a") as missing_file:
+    with open(data_check_path, "r") as data_check_file, open(missing_file_path, "w") as missing_file:
         data_check_reader = csv.reader(data_check_file, delimiter=',')
         for row in data_check_reader:
+            key_path = os.path.relpath(row[0], f"s3://{s3_bucket}")
             try:
-                key_path = os.path.relpath(row[0], f"s3://{s3_bucket}")
                 s3.head_object(Bucket=s3_bucket, Key=key_path)
             except ClientError as error:
                 print(f"Error {error}. {key_path} not found in {s3_bucket}")
-                missing_file.write(f"{row[0]}\n")
+
+                # create new s5cmd copy command for missing files and convert s3 back to nci path
+                nci_path = os.path.relpath(key_path, product_path)
+                missing_file.write(f"cp {nci_directory}/{nci_path} {row[0]}\n")
                 missing_files.append(row[0])
                 pass
 
