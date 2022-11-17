@@ -3,6 +3,12 @@ Produce ODC metadata yaml's for S2 l1 scenes and index the scenes.
 Search on NCI /g/data/fj7 for the S2 l1 scenes to index.
 
 The logs are written to NCI.
+
+Use  params["dry_run"] == "--dry-run" to do a dry run.
+For dry-run's set:
+    params["ncpus"] = "1 "
+    params["mem"] = "19GB"
+    params["walltime"] = "00:30:00"
 """
 from datetime import datetime, timedelta
 
@@ -14,7 +20,9 @@ from sensors.pbs_job_complete_sensor import PBSJobSensor
 
 params = {
     "project": "v10",
+    "queue": "normal",
     "module": "eodatasets3/0.29.5",
+    "index": "--index  ",
     "months_back": "1 ",
     "jobs_para": "1",
     "config_arg": "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/datacube.conf",
@@ -22,140 +30,23 @@ params = {
     "only_regions_in_para": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scene_select/data/Australian_tile_list_optimised.txt",
     "base_dir": "/g/data/v10/work/s2_c3_ard/",
     "l1_base": "/g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/",
+    "uncomment": "eodatasets",
     "dry_run": "",
+    "ncpus": "48 ",
+    "mem": "192GB",
+    "walltime": "08:00:00",
     "only-regions-in-file_para": "",
 }
-
-if params["dry_run"] == "":
-    params["index"] = "--index  "
-    params["ncpus"] = "48 "
-    params["mem"] = "192GB"
-    params["walltime"] = "08:00:00"
-    params["queue"] = "normal"
-else:
-    params["dry_run"] = "--dry-run"
-    params["index"] = " "
-    params["ncpus"] = "1 "
-    params["mem"] = "19GB"
-    params["walltime"] = "00:30:00"
-    params["queue"] = "express"
 
 ssh_conn_id = "lpgs_gadi"
 
 # schedule_interval = "0 10 * * *"
 schedule_interval = None
 
-# Having the info above as variables and some empty values
-# means I can easily test by adding some test code here
-# without modifying the code below.
-
-# #/* The sed command below will remove this block of test code
-# sed '/#\/\*/,/#\*\// d' nci_s2_metadata.py > ../../../nci_s2_metadata.py
-# sed '/#\/\*/,/#\*\// d' dags/nci_ard/nci_s2_metadata.py > ../nci_s2_metadata.py
-# mv ../nci_s2_metadata.py dags/nci_ard/nci_s2_metadata.py
-# mv ../../../nci_s2_metadata.py .
-# params[""] =
-
-
-aws_develop = True
-if aws_develop:
-    # run this from airflow dev
-    ssh_conn_id = "lpgs_gadi"
-    # schedule_interval = "15 08 * * *"
-    schedule_interval = None
-
-    # run type
-    # Options ['small_prod', 'pre_prod', 'indexing_test', 'no_indexing_test']
-    # run_type = "indexing_test"
-    # run_type = "indexing_ka08"
-    run_type = "pre_prod"
-    # Remember to blow away the db and rm old yamls
-    if run_type == "small_prod":
-        params["months_back"] = "1 "
-
-    elif run_type == "pre_prod":
-        # Just test that the dry-run is working
-        # Have these together.
-        # params["pkgdir_arg"] = "/g/data/ka08/test_ga"
-        # params["index"] = " "  # no indexing
-
-        params["months_back"] = "1 "
-        params["dry_run"] = "--dry-run "
-
-    elif run_type == "dead code":
-
-        # The ODC db used
-        params[
-            "config_arg"
-        ] = "--config /g/data/v10/projects/c3_ard/dea-ard-scene-select/tests/scripts/airflow/dsg547_dev.conf"
-        # params["index"] = "--index "
-        params["index"] = " "  # no indexing
-        # params["dry_run"] = " " # produce yamls
-        params["dry_run"] = "--dry-run "
-
-    elif run_type == "indexing_test":
-        params[
-            "base_dir"
-        ] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test_s2/"
-        params["output_base_para"] = params["base_dir"] + "yaml_airflow"
-        params["base_dir"] = params["base_dir"] + "/logdir/"
-        params[
-            "only_regions_in_para"
-        ] = "/g/data/u46/users/dsg547/sandbox/processingDEA/s2_pipeline/53JQK.txt"
-
-        # The ODC db used
-        params[
-            "config_arg"
-        ] = "--config /g/data/u46/users/dsg547/sandbox/processingDEA/s2_pipeline/pipeline_test.conf"
-
-        params["index"] = "--index "
-        params["dry_run"] = " "
-        params["months_back"] = "1 "
-
-    elif run_type == "indexing_ka08":
-        params[
-            "base_dir"
-        ] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test_s2/"
-        params["output_base_para"] = "/g/data/ka08/ga/ga_test/l1c_metadata"
-        params["base_dir"] = params["base_dir"] + "/logdir/"
-        params[
-            "only_regions_in_para"
-        ] = "/g/data/u46/users/dsg547/sandbox/processingDEA/s2_pipeline/53JQK.txt"
-        params["months_back"] = "1 "
-        # params["l1_base"] = "/g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/2022/2022-05/25S135E-30S140E"
-        params["l1_base"] = "/g/data/fj7/Copernicus/Sentinel-2/MSI/L1C/"
-        # The ODC db used
-        params[
-            "config_arg"
-        ] = "--config /g/data/u46/users/dsg547/sandbox/processingDEA/s2_pipeline/dsg547_dev.conf"
-
-        params["index"] = "--index "
-        params["index"] = " "
-        params["dry_run"] = " "
-        # params["dry_run"] = "--dry-run "
-
-    else:  # no indexing and typos go here # elif run_type == "no_indexing_test":
-        params[
-            "base_dir"
-        ] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test_s2/"
-        params["output_base_para"] = params["base_dir"] + "yaml_airflow"
-        params["base_dir"] = params["base_dir"] + "/logdir/"
-        params[
-            "only_regions_in_para"
-        ] = "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scene_select/data/region_used_by_s2_l1_yaml_gen_testing.txt"
-
-        params["index"] = ""  # No indexing
-        params["dry_run"] = "--dry-run "
-        params["months_back"] = "1 "
-
-else:
-    pass
-# #*/ The end of the sed removed block of code
-
 default_args = {
     "owner": "Duncan Gray",
     "depends_on_past": False,  # Very important, will cause a single failure to propagate forever
-    "start_date": datetime(2022, 5, 10),
+    "start_date": datetime(2022, 11, 10),
     "retries": 0,
     "retry_delay": timedelta(minutes=1),
     "ssh_conn_id": ssh_conn_id,
