@@ -220,8 +220,9 @@ with pipeline:
     )
 
     # [Setting up Dependencies]
-    [
-        task_http_itag_svc_sensor_check,
-        task_http_resto_svc_sensor_check,
-    ]
-    >> ingester_task
+    (
+        [
+            task_http_itag_svc_sensor_check, task_http_resto_svc_sensor_check
+        ]
+        >> ingester_task
+    )
