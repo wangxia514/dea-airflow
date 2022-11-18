@@ -35,8 +35,7 @@ params = {
 
 ssh_conn_id = "lpgs_gadi"
 
-# schedule_interval = "0 10 * * *"
-schedule_interval = None
+schedule_interval = "0 9 * * *"
 
 default_args = {
     "owner": "Duncan Gray",
