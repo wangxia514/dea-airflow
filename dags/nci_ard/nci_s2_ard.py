@@ -22,12 +22,13 @@ params = {
     "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
     "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl-s2.env",
     "config_arg": "",
-    "scene_limit": "--scene-limit 400",
     "interim_days_wait": "",
     "products_arg": """--products '["esa_s2am_level1_0", "esa_s2bm_level1_0"]'""",
     "pkgdir_arg": "/g/data/ka08/ga",
     "base_dir": "/g/data/v10/work/s2_c3_ard/",
-    "days_to_exclude_arg": """--days-to-exclude '["2015-01-01:2023-08-31"]'""",
+    "walltime": "10:00:00",
+    "days_to_exclude_arg": """--days-to-exclude '["2015-01-01:2022-08-31"]'""",
+    "scene_limit": "--scene-limit 1000",
     "run_ard_arg": "--run-ard",
     "yamldir": " --yamls-dir /g/data/ka08/ga/l1c_metadata",
 }
@@ -136,7 +137,7 @@ dag = DAG(
     catchup=False,
     schedule_interval=schedule_interval,
     default_view="tree",
-    tags=["nci", "s2_c3"],
+    tags=["nci", "s2_c3", "ard", "sentinel-2", "definitive"],
 )
 
 # kick off running ard-scene-select on NCI
@@ -175,7 +176,7 @@ with dag:
                   --logdir {{ params.base_dir }}{{ log_ext }} \
                   --env {{ params.wagl_env }}  \
                   --project {{ params.project }} \
-                  --walltime 20:00:00 \
+                  --walltime {{ params.walltime }} \
                   {{ params.index_arg }} \
                   {{ params.scene_limit }} \
                   {{ params.interim_days_wait }} \
