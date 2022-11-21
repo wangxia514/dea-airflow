@@ -10,6 +10,7 @@ For dry-run's set:
     params["mem"] = "19GB"
     params["walltime"] = "00:30:00"
 """
+from os import environ
 from datetime import datetime, timedelta
 
 from airflow import DAG
@@ -39,8 +40,21 @@ params = {
 
 ssh_conn_id = "lpgs_gadi"
 
-# schedule_interval = "0 19 * * *"
-schedule_interval = None
+# This is a bit hacky, but the main airflow task executes Bash code on NCI.
+# Taking advantage of the airflow Variable object would be a bigger change.
+if (
+    environ.get("AIRFLOW__WEBSERVER__BASE_URL")
+    == "https://airflow.sandbox.dea.ga.gov.au"
+):
+    # Production
+    schedule_interval = "0 19 * * *"
+else:
+    # develop
+    schedule_interval = None
+    params["dry_run"] == "--dry-run"
+    params["ncpus"] = "1 "
+    params["mem"] = "19GB"
+    params["walltime"] = "00:30:00"
 
 default_args = {
     "owner": "Duncan Gray",
