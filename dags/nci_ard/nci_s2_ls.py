@@ -32,7 +32,9 @@ params = {
     "run_ard_arg": "--run-ard",
     "yamldir": " --yamls-dir /g/data/ka08/ga/l1c_metadata",
 }
-# https://airflow.dev.dea.ga.gov.au
+
+# This is a bit hacky, but the main airflow task executes Bash code on NCI.
+# Taking advantage of the airflow Variable object would be a bigger change.
 if (
     os.environ.get("AIRFLOW__WEBSERVER__BASE_URL")
     == "https://airflow.sandbox.dea.ga.gov.au"
