@@ -13,6 +13,7 @@ from airflow.providers.ssh.operators.ssh import SSHOperator
 from airflow.operators.dummy import DummyOperator
 
 from sensors.pbs_job_complete_sensor import PBSJobSensor
+import os
 
 params = {
     "project": "v10",
@@ -31,6 +32,8 @@ params = {
     "run_ard_arg": "--run-ard",
     "yamldir": " --yamls-dir /g/data/ka08/ga/l1c_metadata",
 }
+
+params["queue"] = str(os.environ.items())
 
 ssh_conn_id = "lpgs_gadi"
 schedule_interval = None
