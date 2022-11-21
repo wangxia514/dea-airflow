@@ -51,7 +51,7 @@ if (
 else:
     # develop
     schedule_interval = None
-    params["dry_run"] == "--dry-run"
+    params["dry_run"] = "--dry-run"
     params["ncpus"] = "1 "
     params["mem"] = "19GB"
     params["walltime"] = "00:30:00"
