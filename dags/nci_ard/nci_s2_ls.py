@@ -13,6 +13,7 @@ from airflow.providers.ssh.operators.ssh import SSHOperator
 from airflow.operators.dummy import DummyOperator
 
 from sensors.pbs_job_complete_sensor import PBSJobSensor
+import os
 
 params = {
     "project": "v10",
@@ -31,9 +32,20 @@ params = {
     "run_ard_arg": "--run-ard",
     "yamldir": " --yamls-dir /g/data/ka08/ga/l1c_metadata",
 }
+# https://airflow.dev.dea.ga.gov.au
+if (
+    os.environ.get("AIRFLOW__WEBSERVER__BASE_URL")
+    == "https://airflow.sandbox.dea.ga.gov.au"
+):
+    # Production
+    params["deploy"] = "prod"
+else:
+    # dev
+    params["deploy"] = "dev"
+    params["base_dir"] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test/"
 
 ssh_conn_id = "lpgs_gadi"
-schedule_interval = "0 10 * * *"
+schedule_interval = None
 
 default_args = {
     "owner": "Duncan Gray",
@@ -61,7 +73,7 @@ with dag:
 
     COMMON = """
         #  ts_nodash timestamp no dashes.
-        {% set log_ext = ts_nodash  %}
+        {% set log_ext = ts_nodash %}
         """
 
     submit_task_id = "submit_ard"
@@ -80,7 +92,7 @@ with dag:
                   "module use /g/data/v10/public/modules/modulefiles/; \
                   module use /g/data/v10/private/modules/modulefiles/; \
                   module load {{ params.module_ass }}; \
-                  ls {{ params.base_dir }}; \
+                  ls {{ params.base_dir }} # {{ params.deploy }}; \
                   "
         """,
         cmd_timeout=60 * 20,
