@@ -4,7 +4,7 @@ Search on NCI /g/data/fj7 for the S2 l1 scenes to index.
 
 The logs are written to NCI.
 
-Use  params["dry_run"] == "--dry-run" to do a dry run.
+Use  params["dry_run"] = "--dry-run" to do a dry run.
 For dry-run's set:
     params["ncpus"] = "1 "
     params["mem"] = "19GB"
