@@ -38,10 +38,11 @@ if (
     == "https://airflow.sandbox.dea.ga.gov.au"
 ):
     # Production
-    params["queue"] = "prod"
+    params["deploy"] = "prod"
 else:
     # dev
-    params["queue"] = "dev"
+    params["deploy"] = "dev"
+    params["base_dir"] = "/g/data/v10/Landsat-Collection-3-ops/scene_select_test/"
 
 ssh_conn_id = "lpgs_gadi"
 schedule_interval = None
@@ -93,7 +94,7 @@ with dag:
                   "module use /g/data/v10/public/modules/modulefiles/; \
                   module use /g/data/v10/private/modules/modulefiles/; \
                   module load {{ params.module_ass }}; \
-                  ls {{ params.base_dir }}; \
+                  ls {{ params.base_dir }} # {{ params.deploy }}; \
                   "
         """,
         cmd_timeout=60 * 20,
