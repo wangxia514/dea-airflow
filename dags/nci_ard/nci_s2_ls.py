@@ -32,8 +32,16 @@ params = {
     "run_ard_arg": "--run-ard",
     "yamldir": " --yamls-dir /g/data/ka08/ga/l1c_metadata",
 }
-
-params["queue"] = str(os.environ.items())
+# https://airflow.dev.dea.ga.gov.au
+if (
+    os.environ.get("AIRFLOW__WEBSERVER__BASE_URL")
+    == "https://airflow.sandbox.dea.ga.gov.au"
+):
+    # Production
+    params["queue"] = "prod"
+else:
+    # dev
+    params["queue"] = "dev"
 
 ssh_conn_id = "lpgs_gadi"
 schedule_interval = None
