@@ -103,7 +103,7 @@ qsub -N nci_metadata_gen \
 -- /bin/bash -l -c \
 "module use /g/data/v10/public/modules/modulefiles/; \
 module use /g/data/v10/private/modules/modulefiles/; \
-# module load {{ params.module }}; \
+module load {{ params.module }}; \
 set -x; \
 eo3-prepare sentinel-l1  \
 --jobs {{ params.jobs_para }}  \
