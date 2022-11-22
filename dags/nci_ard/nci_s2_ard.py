@@ -42,7 +42,7 @@ if (
     == "https://airflow.sandbox.dea.ga.gov.au"
 ):
     # Production
-    schedule_interval = "0 19 * * *"
+    schedule_interval = "0 9 * * *"
 else:
     # develop
     schedule_interval = None
