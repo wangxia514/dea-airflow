@@ -6,6 +6,7 @@ It also starts the ARD processing.  ARD processing indexes the ARD output scenes
 
 The logs are written to NCI.
 """
+from os import environ
 from datetime import datetime, timedelta
 
 from airflow import DAG
@@ -35,7 +36,16 @@ params = {
 
 ssh_conn_id = "lpgs_gadi"
 
-schedule_interval = "0 9 * * *"
+# Probably should have a more stable variable to use.
+if (
+    environ.get("AIRFLOW__WEBSERVER__BASE_URL")
+    == "https://airflow.sandbox.dea.ga.gov.au"
+):
+    # Production
+    schedule_interval = "0 19 * * *"
+else:
+    # develop
+    schedule_interval = None
 
 default_args = {
     "owner": "Duncan Gray",
