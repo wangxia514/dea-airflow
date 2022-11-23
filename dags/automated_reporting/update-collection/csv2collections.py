@@ -31,44 +31,7 @@ OPTICAL_COLLECTIONS = [
 with open(csv_file) as csvfile:
     colreader = csv.reader(csvfile, delimiter=',', quotechar='"')
     next(colreader)
-    #
-    # Current row order 
-    #    0: Product Number
-    #    1: Catalogue Title
-    #    2: Collection Title
-    #    3: Collection Description
-    #    4: Collection Theme
-    #    5: Explorer Title
-    #    6: Explorer Description
-    #    7: Explorer Link
-    #    8: Explorer Collection,
-    #    9: YAML / metadata
-    #    10: Thumbnail
-    #    11: THREDDS Endpoint
-    #    12: NCI File Location
-    #    
-    # Row order before June 25th
-    #    0: Product Number
-    #    1: Catalogue Description
-    #    2: Collection Title
-    #    3: Collection Description
-    #    4: Catalogue Tag
-    #    5: Catalogue Label
-    #    6: Theme Label
-    #    7: Product Name = Explorer Title
-    #    8: Explorer Link,
-    #    9: Explorer Collection,
-    #    10:YAML / metadata,
-    #    11: Explorer Description
-    #    12: THREDDS Endpoint,
-    #    13: NCI File Location
-    #
-    # Row orders
-    # 
-    #
-    #
-    for row in colreader:
-        
+    for row in colreader:     
         with open(COL_TEMPLATE) as templ:
             col = json.load(templ)
         
@@ -134,8 +97,8 @@ with open(csv_file) as csvfile:
 
             # Append to keywords
             keywords = [
-                "label:" + row[4],
-                "catalog:" + row[1]
+                "label: " + row[4],
+                "catalog: " + row[1]
             ]
             if "keywords" in col:
                 col["keywords"].extend(keywords)

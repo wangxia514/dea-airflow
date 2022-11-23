@@ -15,5 +15,5 @@ payload = {
 
 encoded_jwt = jwt.encode(payload, jwt_passphrase , algorithm='HS256')
 encoded_jwt_split = encoded_jwt.split(".")
-token  =  encoded_jwt_split[0] + "." + encoded_jwt_split[1]
+token = encoded_jwt_split[0] + "." + encoded_jwt_split[1]
 print(token)
