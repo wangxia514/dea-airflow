@@ -38,7 +38,7 @@ def data_verification(data_check_path, missing_file_path):
 
                 # create new s5cmd copy command for missing files and convert s3 back to nci path
                 nci_path = os.path.relpath(key_path, product_path)
-                missing_file.write(f"cp {nci_directory}/{nci_path} {row[0]}\n")
+                missing_file.write(f"cp -acl bucket-owner-full-control {nci_directory}/{nci_path} {row[0]}\n")
                 missing_files.append(row[0])
                 pass
 
