@@ -98,4 +98,7 @@ with pipeline:
     task_collection_updater = BashOperator(
         task_id="task_collection_updater",  # task_0_0_fc_percentile_albers_annual
         bash_command="echo ${API_ADMIN_USERID}",
+        secrets=[
+            SECRET_ENV_API_USERID,
+        ],
     )
