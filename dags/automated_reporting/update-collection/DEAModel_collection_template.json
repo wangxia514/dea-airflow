@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "model": "DEAModel",
+  "rights": {
+    "download": 1,
+    "visualize": 1
+  },
+  "licenseId": "proprietary",
+  "keywords": [
+    "Digital Earth Australia",
+    "Public Data"
+  ],
+  "osDescription": {
+    "en": {
+      "Tags": "Digital Earth Australia Public Data",
+      "Developer": "Mike Peters",
+      "Contact": "Mike.Peters@ga.gov.au",
+      "Query": "Australia",
+      "Attribution": "Geoscience Australia"
+    }
+  },
+  "providers": [
+    {
+      "name": "Geoscience Australia",
+      "roles": [
+        "producer",
+        "licensor"
+      ],
+      "url": "https://dea.ga.gov.au"
+    }
+  ],
+  "links": [
+    {
+      "rel": "license",
+      "href": "https://dea.ga.gov.au/licence.pdf",
+      "title": "Legal notice on the use of Geoscience Australia data"
+    }
+  ]
+}
