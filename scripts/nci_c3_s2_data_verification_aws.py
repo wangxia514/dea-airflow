@@ -11,7 +11,7 @@ from botocore import UNSIGNED
 from botocore.config import Config
 
 
-s3_bucket = 'dea-public-data-dev'
+s3_bucket = 'dea-public-data'
 product_path = 'baseline'
 nci_directory = '/g/data/ka08/ga'
 
