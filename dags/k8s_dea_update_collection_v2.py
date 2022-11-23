@@ -79,7 +79,7 @@ SECRET_ENV_JWT_PASSPHRASE = Secret(
 
 # [START instantiate_dag]
 pipeline = DAG(
-    "Collection Updater V2",
+    "Collection_Updater_V2",
     doc_md=__doc__,
     default_args=default_args,
     description="Collection Updater V2",
