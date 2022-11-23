@@ -31,10 +31,9 @@ OPTICAL_COLLECTIONS = [
 with open(csv_file) as csvfile:
     colreader = csv.reader(csvfile, delimiter=',', quotechar='"')
     next(colreader)
-    for row in colreader:     
+    for row in colreader:
         with open(COL_TEMPLATE) as templ:
             col = json.load(templ)
-        
             if row[5] == BAD_NAME:
                 print("skipping collection without Explorer Title")
                 continue
@@ -76,15 +75,14 @@ with open(csv_file) as csvfile:
                 col["links"].extend(links)
             else:
                 col["links"] = links
-
             # Append to assets
             assets = {
-                "thredds":{
+                "thredds": {
                     "rel": "data",
                     "type": "application/xml",
                     "href": row[11]
                 },
-                "nci_location":{
+                "nci_location": {
                     "rel": "data",
                     "type": "application/octet-stream",
                     "href": "file://" + row[12]
@@ -104,9 +102,7 @@ with open(csv_file) as csvfile:
                 col["keywords"].extend(keywords)
             else:
                 col["keywords"] = keywords
-            
             with open(os.path.join(out_dir, "%s.json" % col["id"]), 'w') as outfile:
                 print("writing collection as json: %s" % col["id"])
                 json.dump(col, outfile, indent=4)
-
 print('Collection file(s) written to %s' % out_dir)
