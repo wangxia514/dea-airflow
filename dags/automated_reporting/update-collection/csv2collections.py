@@ -5,8 +5,6 @@
 # https://docs.google.com/spreadsheets/d/1FEVotW1laipjstxZmO7weD1cAyA0KB6IRBH_HuHuvCM/edit#gid=0
 #
 #
-
-import sys
 import csv
 import json
 import os
@@ -33,8 +31,6 @@ OPTICAL_COLLECTIONS = [
 with open(csv_file) as csvfile:
     colreader = csv.reader(csvfile, delimiter=',', quotechar='"')
     next(colreader)
-
-
     #
     # Current row order 
     #    0: Product Number
@@ -96,22 +92,21 @@ with open(csv_file) as csvfile:
                 col["properties"].update(properties)
             else:
                 col["properties"] = properties
-
             # Append to links
             links = [
                 {
-                    "rel":"alternate",
-                    "type":"text/html",
-                    "title":"DEA Explorer collection",
-                    "description":row[6],
-                    "href":row[7]
+                    "rel": "alternate",
+                    "type": "text/html",
+                    "title": "DEA Explorer collection",
+                    "description": row[6],
+                    "href": row[7]
                 },
                 {
-                    "rel":"derived_from",
-                    "type":"application/json",
-                    "title":"DEA Explorer collection",
-                    "description":row[6],
-                    "href":row[8]
+                    "rel": "derived_from",
+                    "type": "application/json",
+                    "title": "DEA Explorer collection",
+                    "description": row[6],
+                    "href": row[8]
                 }
             ]
             if "links" in col:
@@ -122,14 +117,14 @@ with open(csv_file) as csvfile:
             # Append to assets
             assets = {
                 "thredds":{
-                    "rel":"data",
-                    "type":"application/xml",
-                    "href":row[11]
+                    "rel": "data",
+                    "type": "application/xml",
+                    "href": row[11]
                 },
                 "nci_location":{
-                    "rel":"data",
-                    "type":"application/octet-stream",
-                    "href":"file://" + row[12]
+                    "rel": "data",
+                    "type": "application/octet-stream",
+                    "href": "file://" + row[12]
                 }
             }
             if "assets" in col:
@@ -140,7 +135,7 @@ with open(csv_file) as csvfile:
             # Append to keywords
             keywords = [
                 "label:" + row[4],
-                "catalog:" +  row[1]
+                "catalog:" + row[1]
             ]
             if "keywords" in col:
                 col["keywords"].extend(keywords)
