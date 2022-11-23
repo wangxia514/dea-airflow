@@ -26,7 +26,7 @@ from airflow import DAG
 from airflow.kubernetes.secret import Secret
 
 # Operators; we need this to operate!
-from airflow.providers.ssh.operators.bash import BashOperator
+from airflow.operators.bash import BashOperator
 
 from infra.projects.dea_access import DEA_ACCESS_RESTO_API_ADMIN_SECRET
 
