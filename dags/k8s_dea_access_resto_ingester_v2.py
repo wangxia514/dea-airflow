@@ -90,7 +90,7 @@ default_args = {
 # Docker images
 CURL_SVC_IMAGE = "curlimages/curl:7.71.1"
 STAC2RESTO_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dea-access/stac-to-resto:latest"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/dea-access/stac-to-resto:develop"
 )
 
 # Set kubernetes secret
