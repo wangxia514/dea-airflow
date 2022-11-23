@@ -34,7 +34,7 @@ mkdir -p ./data/collections
 ./csv2collections.py
 
 #Generate Bearer token based on secrets from DAG/K8s
-TOKEN=`./generateAuthToken  -i ${API_ADMIN_USERID} -d 1000 -p ${JWT_PASSPHRASE}`
+TOKEN=`./generateAuthToken.py`
 
 #For each collection item post collection to Resto
 for collection in ./data/collections/*.json; do

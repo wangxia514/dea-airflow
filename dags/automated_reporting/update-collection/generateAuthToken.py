@@ -1,11 +1,11 @@
+import os
 import jwt
 from datetime import datetime, timedelta
 
 api_admin_userid = os.getenv("API_ADMIN_USERID")
 jwt_passphrase = os.getenv("JWT_PASSPHRASE")
-
 JWT_ALGORITHM = 'HS256'
-JWT_EXP_DELTA_SECONDS = 86400  * 10
+JWT_EXP_DELTA_SECONDS = 86400 * 10
 
 payload = {
     'sub': api_admin_userid,
