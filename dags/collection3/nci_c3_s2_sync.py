@@ -181,7 +181,7 @@ with dag:
         ),
         remote_host="gadi-dm.nci.org.au",
         params={"aws_hook": aws_hook},
-        timeout=20 * MINUTES,
+        timeout=2 * HOURS,
     )
 
     # Perform the syncing process for missing files
