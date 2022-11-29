@@ -15,7 +15,7 @@ from automated_reporting import k8s_secrets, utilities
 
 ENV = "prod"
 ETL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.14.0"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.17.9"
 )
 
 default_args = {
@@ -106,7 +106,7 @@ with dag:
         ],
         task_id="syn_l1_nrt_ingestion",
         env_vars={
-            "METRICS": "{{ task_instance.xcom_pull(task_ids='syn_l1_nrt_download') }}",
+            "SQS_DOWNLOADS": "{{ task_instance.xcom_pull(task_ids='syn_l1_nrt_download') }}",
         },
         secrets=k8s_secrets.db_secrets(ENV),
     )
