@@ -9,7 +9,8 @@ from datetime import datetime, timedelta
 import json
 
 from airflow import DAG
-from airflow.models.baseoperator import cross_downstream
+
+# from airflow.models.baseoperator import cross_downstream
 
 from automated_reporting import k8s_secrets, utilities
 
@@ -106,7 +107,7 @@ with dag:
         ],
         task_id="syn_l1_nrt_ingestion",
         env_vars={
-            "METRICS": "{{ task_instance.xcom_pull(task_ids='syn_l1_nrt_download') }}",
+            "SQS_DOWNLOADS": "{{ task_instance.xcom_pull(task_ids='syn_l1_nrt_download') }}",
         },
         secrets=k8s_secrets.db_secrets(ENV),
     )
@@ -202,5 +203,5 @@ with dag:
     ]
 
     syn_l1_nrt_download >> syn_l1_nrt_ingestion
-    scihub_s2_acquisitions >> insert_s2_acquisitions >> odc_tasks
-    cross_downstream([syn_l1_nrt_ingestion, insert_s2_acquisitions], sqs_tasks)
+    # scihub_s2_acquisitions >> insert_s2_acquisitions >> odc_tasks
+    # cross_downstream([syn_l1_nrt_ingestion, insert_s2_acquisitions], sqs_tasks)
