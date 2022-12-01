@@ -38,9 +38,6 @@ if (
     environ.get("AIRFLOW__WEBSERVER__BASE_URL")
     == "https://airflow.sandbox.dea.ga.gov.au"
 ):
-    # **** REMOVE *******
-    schedule_interval = None
-
     # Production
     schedule_interval = "0 10 * * *"
 else:
