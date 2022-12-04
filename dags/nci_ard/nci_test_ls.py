@@ -52,14 +52,14 @@ default_args = {
 }
 
 dag = DAG(
-    "nci_test_s2_ard",
+    "nci_test_ls",
     doc_md=__doc__,
     default_args=default_args,
     catchup=False,
     schedule_interval=schedule_interval,
     template_searchpath="templates/",
     default_view="tree",
-    tags=["nci", "s2_c3"],
+    tags=["nci", "definitive", "test"],
 )
 
 # kick off running ard-scene-select on NCI
