@@ -72,8 +72,8 @@ with dag:
 
     COMMON = """
         #  ts_nodash timestamp no dashes.
-        {% set log_ext = ts_nodash + '/logdir' %}
-        {% set work_ext = ts_nodash + '/workdir' %}
+        {% set log_ext = '/logdir' + ts_nodash %}
+        {% set work_ext = '/workdir' + ts_nodash %}
         """
 
     submit_task_id = "submit_ard"
