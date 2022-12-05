@@ -98,7 +98,7 @@ ADD_METADATA_TYPE_CMD = [
     "-c",
     dedent(
         """
-        datacube metadata add https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/a4f39b485b33608a016032d9987251881fec4b6f/workspaces/sandbox-metadata.yaml --allow-unsafe
+        datacube metadata add https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/a4f39b485b33608a016032d9987251881fec4b6f/workspaces/sandbox-metadata.yaml
         """
     ),
 ]
