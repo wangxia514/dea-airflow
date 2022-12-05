@@ -91,7 +91,7 @@ with dag:
         task_id="syn_l1_nrt_download",
         xcom=True,
         env_vars={
-            "QUEUE_NAME": "dea-sandbox-eks-automated-reporting-sqs",
+            "QUEUE_NAME": "automated-reporting-s2-l1-nrt",
         },
         secrets=k8s_secrets.sqs_secrets,
     )
