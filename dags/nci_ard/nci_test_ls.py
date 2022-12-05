@@ -96,7 +96,7 @@ with dag:
 
     wait_for_completion = PBSJobSensor(
         task_id="wait_for_completion",
-        pbs_job_id="{{ ti.xcom_pull(task_ids='submit_pbs_job') }}",
+        pbs_job_id="{{ ti.xcom_pull(task_ids='%s') }}" % submit_task_id,
         timeout=60 * 60 * 24 * 7,
     )
 
