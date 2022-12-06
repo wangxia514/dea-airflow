@@ -44,7 +44,7 @@ COMMON = dedent(
 default_args = {
     "owner": "James Miller",
     "start_date": datetime(
-        2022, 11, 6, tzinfo=local_tz
+        2022, 12, 6, tzinfo=local_tz
     ),  # earliest date in nci DB is 2016-06-29
     "retries": 0,
     "retry_delay": timedelta(minutes=5),
