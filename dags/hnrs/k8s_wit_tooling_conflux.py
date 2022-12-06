@@ -64,7 +64,7 @@ DEFAULT_PARAMS = dict(
 # Requested memory. Memory limit is twice this.
 CONFLUX_POD_MEMORY_MB = 40000
 
-EC2_NUM = 8
+EC2_NUM = 50
 
 
 # DAG CONFIGURATION
