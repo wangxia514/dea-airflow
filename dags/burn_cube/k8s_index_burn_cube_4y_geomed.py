@@ -93,40 +93,6 @@ ADD_PRODUCTS_CMD = [
 ]
 
 
-ADD_METADATA_TYPE_CMD = [
-    "bash",
-    "-c",
-    dedent(
-        """
-        datacube metadata add https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/a4f39b485b33608a016032d9987251881fec4b6f/workspaces/sandbox-metadata.yaml
-        """
-    ),
-]
-
-
-def add_metadata_type(dag):
-    return KubernetesPodOperator(
-        namespace="processing",
-        image=INDEXER_IMAGE,
-        image_pull_policy="IfNotPresent",
-        labels={"step": "add-metadata-type"},
-        arguments=ADD_METADATA_TYPE_CMD,
-        name="elvis-lidar-add-metadata-type",
-        task_id="elvis-lidar-add-metadata-type",
-        get_logs=True,
-        affinity=ONDEMAND_NODE_AFFINITY,
-        is_delete_operator_pod=True,
-        secrets=[
-            Secret(
-                "env", "DB_USERNAME", SECRET_HNRS_DC_ADMIN_NAME, "postgres-username"
-            ),
-            Secret(
-                "env", "DB_PASSWORD", SECRET_HNRS_DC_ADMIN_NAME, "postgres-password"
-            ),
-        ],
-    )
-
-
 def add_products(dag):
     return KubernetesPodOperator(
         namespace="processing",
@@ -166,7 +132,6 @@ def index_dataset(dag):
 
 
 with dag:
-    add_metadata_type = add_metadata_type(dag)
     add_products = add_products(dag)
     index_dataset = index_dataset(dag)
-    add_metadata_type >> add_products >> index_dataset
+    add_products >> index_dataset
