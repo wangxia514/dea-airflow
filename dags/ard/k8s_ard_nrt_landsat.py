@@ -1,5 +1,5 @@
 """
-Run ARD NRT provisional pipeline for Landsat in Airflow.
+Run ARD NRT pipeline for Landsat in Airflow.
 """
 import logging
 from datetime import datetime, timedelta
@@ -15,8 +15,8 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 
 from infra.images import WAGL_IMAGE_LS9
 from infra.pools import WAGL_TASK_POOL
-from infra.sns_topics import PUBLISH_ARD_NRT_LS_SNS_PROVISIONAL
-from infra.sqs_queues import ARD_NRT_LS_PROCESS_SCENE_QUEUE_PROVISIONAL
+from infra.sns_topics import PUBLISH_ARD_NRT_LS_SNS
+from infra.sqs_queues import ARD_NRT_LS_PROCESS_SCENE_QUEUE
 from infra.variables import ARD_NRT_LS_CREDS
 
 _LOG = logging.getLogger()
@@ -84,23 +84,23 @@ ancillary_volume = V1Volume(
 )
 
 pipeline = DAG(
-    "k8s_ard_nrt_landsat_provisional",
+    "k8s_ard_nrt_landsat",
     doc_md=__doc__,
     default_args=default_args,
-    description="DEA Landsat ARD NRT processing (provisional)",
+    description="DEA Landsat ARD NRT processing",
     concurrency=MAX_ACTIVE_RUNS,
     max_active_runs=MAX_ACTIVE_RUNS,
     catchup=False,
     params={},
     schedule_interval=timedelta(minutes=5),
-    tags=["k8s", "dea", "psc", "ard", "wagl", "nrt", "landsat", "provisional"],
+    tags=["k8s", "dea", "psc", "ard", "wagl", "nrt", "landsat"],
 )
 
 with pipeline:
     RUN = KubernetesPodOperator(
         namespace="processing",
-        name="dea-ard-nrt-landsat-provisional",
-        task_id="dea-ard-nrt-landsat-provisional",
+        name="dea-ard-nrt-landsat",
+        task_id="dea-ard-nrt-landsat",
         image_pull_policy="Always",
         image=WAGL_IMAGE_LS9,
         affinity=affinity,
@@ -108,9 +108,9 @@ with pipeline:
         startup_timeout_seconds=600,
         cmds=["/scripts/aws-process-scene-landsat.sh"],
         arguments=[
-            ARD_NRT_LS_PROCESS_SCENE_QUEUE_PROVISIONAL,
+            ARD_NRT_LS_PROCESS_SCENE_QUEUE,
             S3_PREFIX,
-            PUBLISH_ARD_NRT_LS_SNS_PROVISIONAL,
+            PUBLISH_ARD_NRT_LS_SNS,
             EXPLORER_URL,
         ],
         labels={
