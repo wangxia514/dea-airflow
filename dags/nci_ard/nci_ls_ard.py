@@ -40,6 +40,9 @@ if (
 ):
     # Production
     schedule_interval = "0 10 * * *"
+
+    # This will be removed after some testing
+    params["run_ard_arg"] = ""
 else:
     # develop
     schedule_interval = None
