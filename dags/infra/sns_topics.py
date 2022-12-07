@@ -1,5 +1,5 @@
 """ SNS notification services. """
-PUBLISH_S2_NRT_SNS = "arn:aws:sns:ap-southeast-2:451924316694:dea-dev-eks-wagl-s2-nrt"
+PUBLISH_S2_NRT_SNS = "arn:aws:sns:ap-southeast-2:451924316694:dea-dev-eks-ard-nrt-s2"
 
 PUBLISH_ARD_NRT_S2_PROVISIONAL_SNS = (
     "arn:aws:sns:ap-southeast-2:451924316694:dea-dev-eks-ard-nrt-s2-provisional"
