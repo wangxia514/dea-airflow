@@ -13,7 +13,7 @@ SENTINEL_2_ARD_INDEXING_SQS_QUEUE_NAME_ODC_DB = Variable.get(
 )  # qa
 
 
-ARD_NRT_S2_PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-ard-nrt-s2--process-scene"
+ARD_NRT_S2_PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-ard-nrt-s2-process-scene"
 ARD_NRT_S2_PROVISIONAL_PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-ard-nrt-s2-provisional-process-scene"
 ARD_NRT_LS_PROCESS_SCENE_QUEUE = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-ard-nrt-ls-process-scene"
 ARD_NRT_LS_PROCESS_SCENE_QUEUE_PROVISIONAL = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-wagl-ls-nrt-process-scene"
