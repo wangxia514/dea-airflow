@@ -71,3 +71,8 @@ REPORTING_DB_SECRET = Variable.get("reporting_db_secret", default_var="reporting
 
 STATSD_HOST = Variable.get("statsd_host", default_var="localhost")
 STATSD_PORT = Variable.get("statsd_port", default_var="8125")
+
+# dea-access
+DEA_ACCESS_RESTO_API_ADMIN_SECRET = Variable.get(
+    "dea_access_resto_api_admin_secret", default_var="dea-access-resto-api-admin"
+)  # qa
