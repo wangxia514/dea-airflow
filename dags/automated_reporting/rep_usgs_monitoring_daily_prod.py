@@ -60,7 +60,9 @@ with daily_dag:
             "CATEGORY": "def",  # query for definitive acquisitions
             "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
         },
-        secrets=k8s_secrets.s3_automated_operation_bucket + k8s_secrets.iam_rep_secrets + k8s_secrets.m2m_api_secrets,
+        secrets=k8s_secrets.s3_automated_operation_bucket
+        + k8s_secrets.iam_rep_secrets
+        + k8s_secrets.m2m_api_secrets,
     )
 
     # Insert cached acquisitions into dea.usgs_acquisitions table
@@ -77,7 +79,9 @@ with daily_dag:
             "USGS_ACQ_XCOM": "{{ task_instance.xcom_pull(task_ids=\
                 'usgs-acquisitions', key='return_value') }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.s3_automated_operation_bucket + k8s_secrets.iam_rep_secrets,
+        secrets=k8s_secrets.db_secrets(ENV)
+        + k8s_secrets.s3_automated_operation_bucket
+        + k8s_secrets.iam_rep_secrets,
     )
 
     # NB. Not inserting cached acquisitions into high_granlarity.dataset table for
@@ -107,7 +111,29 @@ with daily_dag:
         secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.nci_odc_secrets,
     )
 
-    # usgs_ls9_l1_nci_completeness (not indexed yet)
+    # usgs_ls9_l1_nci_completeness
+    # Calculate USGS LS9 L1 Definitive completeness, comparing acquisitions with NCI ODC
+    usgs_ls9_l1_nci_product = dict(
+        acq_code="LC9%", acq_categories=("T1", "T2"), odc_code="usgs_ls9c_level1_2"
+    )
+    usgs_ls9_l1_nci_completeness = utilities.k8s_operator(
+        dag=daily_dag,
+        image=ETL_IMAGE,
+        task_id="completeness-ls9-l1-nci",
+        cmds=utilities.NCI_TUNNEL_CMDS
+        + [
+            "echo DEA USGS Completeness Job: $(date)",
+            "export ODC_DB_HOST=localhost",
+            "export ODC_DB_PORT=54320",
+            "usgs-odc-completeness",
+        ],
+        env_vars={
+            "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
+            "DAYS": "90",
+            "PRODUCT": json.dumps(usgs_ls9_l1_nci_product),
+        },
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.nci_odc_secrets,
+    )
 
     # usgs_ls8_ard_nci_completeness
     # Calculate USGS LS8 ARD Definitive completeness, comparing acquisitions with NCI ODC
@@ -129,6 +155,30 @@ with daily_dag:
             "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
             "DAYS": "90",
             "PRODUCT": json.dumps(usgs_ls8_ard_nci_product),
+        },
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.nci_odc_secrets,
+    )
+
+    # usgs_ls9_ard_nci_completeness
+    # Calculate USGS LS9 ARD Definitive completeness, comparing acquisitions with NCI ODC
+    usgs_ls9_ard_nci_product = dict(
+        acq_code="LC9%", acq_categories=("T1", "T2"), odc_code="ga_ls9c_ard_3"
+    )
+    usgs_ls9_ard_nci_completeness = utilities.k8s_operator(
+        dag=daily_dag,
+        image=ETL_IMAGE,
+        task_id="completeness-ls9-ard-nci",
+        cmds=utilities.NCI_TUNNEL_CMDS
+        + [
+            "echo DEA USGS Completeness Job: $(date)",
+            "export ODC_DB_HOST=localhost",
+            "export ODC_DB_PORT=54320",
+            "usgs-odc-completeness",
+        ],
+        env_vars={
+            "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
+            "DAYS": "90",
+            "PRODUCT": json.dumps(usgs_ls9_ard_nci_product),
         },
         secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.nci_odc_secrets,
     )
@@ -158,7 +208,35 @@ with daily_dag:
         secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.aws_odc_secrets,
     )
 
+    # usgs_ls9_ard_aws_completeness
+    # Calculate USGS LS9 ARD Definitive completeness, comparing acquisitions with AWS ODC
+    usgs_ls9_ard_aws_product = dict(
+        acq_code="LC9%",
+        acq_categories=("T1", "T2"),
+        odc_code="ga_ls9c_ard_3",
+        suffix="aws",
+    )
+    usgs_ls9_ard_aws_completeness = utilities.k8s_operator(
+        dag=daily_dag,
+        image=ETL_IMAGE,
+        task_id="completeness-ls9-ard-aws",
+        cmds=[
+            "echo DEA USGS Completeness Job: $(date)",
+            "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
+            "usgs-odc-completeness",
+        ],
+        env_vars={
+            "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
+            "DAYS": "90",
+            "PRODUCT": json.dumps(usgs_ls9_ard_aws_product),
+        },
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.aws_odc_secrets,
+    )
+
     usgs_acquisitions >> usgs_inserts
     usgs_inserts >> usgs_ls8_l1_nci_completeness
     usgs_inserts >> usgs_ls8_ard_nci_completeness
     usgs_inserts >> usgs_ls8_ard_aws_completeness
+    usgs_inserts >> usgs_ls9_l1_nci_completeness
+    usgs_inserts >> usgs_ls9_ard_nci_completeness
+    usgs_inserts >> usgs_ls9_ard_aws_completeness

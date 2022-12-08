@@ -44,7 +44,7 @@ COMMON = dedent(
 default_args = {
     "owner": "James Miller",
     "start_date": datetime(
-        2022, 10, 12, tzinfo=local_tz
+        2022, 12, 6, tzinfo=local_tz
     ),  # earliest date in nci DB is 2016-06-29
     "retries": 0,
     "retry_delay": timedelta(minutes=5),
@@ -143,7 +143,6 @@ with dag:
         timeout=20 * MINUTES,
     )
 
-    # TODO remove dry run when happy with outputs
     # Perform the syncing process
     execute_upload = SSHOperator(
         task_id="execute_upload",
