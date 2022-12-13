@@ -93,7 +93,9 @@ with dag:
         env_vars={
             "QUEUE_NAME": "automated-reporting-s2-l1-nrt",
         },
-        secrets=k8s_secrets.s3_automated_operation_bucket + k8s_secrets.sqs_secrets,
+        secrets=k8s_secrets.s3_automated_operation_bucket
+        + k8s_secrets.iam_rep_secrets
+        + k8s_secrets.sqs_secrets,
     )
 
     syn_l1_nrt_ingestion = utilities.k8s_operator(
@@ -108,7 +110,9 @@ with dag:
         env_vars={
             "S2_ACQ_XCOM": "{{ task_instance.xcom_pull(task_ids='syn_l1_nrt_download', key='return_value') }}"
         },
-        secrets=k8s_secrets.s3_automated_operation_bucket + k8s_secrets.db_secrets(ENV),
+        secrets=k8s_secrets.s3_automated_operation_bucket
+        + k8s_secrets.iam_rep_secrets
+        + k8s_secrets.db_secrets(ENV),
     )
 
     SQS_COMPLETENESS_TASK = [
