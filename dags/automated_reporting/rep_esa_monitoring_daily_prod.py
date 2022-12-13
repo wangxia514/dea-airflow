@@ -97,6 +97,18 @@ with dag:
             "environment": "aws-odc",
             "platform": "s2b",
         },
+        {
+            "product_id": "ga_s2am_ard_3",
+            "reporting_id": "ga_s2am_ard_3-aws",
+            "environment": "aws-odc",
+            "platform": "s2a",
+        },
+        {
+            "product_id": "ga_s2bm_ard_3",
+            "reporting_id": "ga_s2bm_ard_3-aws",
+            "environment": "aws-odc",
+            "platform": "s2b",
+        },
     ]
 
     aws_odc_tasks = [
