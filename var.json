@@ -1,5 +1,7 @@
 {
     "rep_currency_product_list_nci_odc": [{"product_id":"product_id","rate":"daily"}],
+    "rep_dataset_counts_aws": ["product_id_1", "product_id_2"],
+    "rep_dataset_counts_nci": ["product_id_1", "product_id_2"],
     "reporting_s3_bucket": "bucket-name",
     "reporting_s3_secret": {"pass":"PASS"},
     "copernicus_api_password": {"pass":"PASS"},
