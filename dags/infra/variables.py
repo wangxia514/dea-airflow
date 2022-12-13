@@ -59,7 +59,7 @@ SENTINEL_2_ARD_INDEXING_AWS_USER_SECRET = Variable.get(
 
 # automated-reporting
 AWS_STORAGE_STATS_POD_COUNT = Variable.get(
-    "AWS_STORAGE_STATS_POD_COUNT", default_var="10"
+    "AWS_STORAGE_STATS_POD_COUNT", default_var="30"
 )
 REPORTING_DB_DEV_SECRET = Variable.get(
     "reporting_db_dev_secret", default_var="reporting-db-dev"
