@@ -15,7 +15,7 @@ from automated_reporting import k8s_secrets, utilities
 
 ENV = "prod"
 ETL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.17.14"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.18.0"
 )
 
 default_args = {
@@ -93,7 +93,7 @@ with dag:
         env_vars={
             "QUEUE_NAME": "automated-reporting-s2-l1-nrt",
         },
-        secrets=k8s_secrets.sqs_secrets,
+        secrets=k8s_secrets.s3_automated_operation_bucket + k8s_secrets.sqs_secrets,
     )
 
     syn_l1_nrt_ingestion = utilities.k8s_operator(
@@ -106,9 +106,9 @@ with dag:
         ],
         task_id="syn_l1_nrt_ingestion",
         env_vars={
-            "SQS_DOWNLOADS": "{{ task_instance.xcom_pull(task_ids='syn_l1_nrt_download') }}",
+            "S2_ACQ_XCOM": "{{ task_instance.xcom_pull(task_ids='syn_l1_nrt_download', key='return_value') }}"
         },
-        secrets=k8s_secrets.db_secrets(ENV),
+        secrets=k8s_secrets.s3_automated_operation_bucket + k8s_secrets.db_secrets(ENV),
     )
 
     SQS_COMPLETENESS_TASK = [
