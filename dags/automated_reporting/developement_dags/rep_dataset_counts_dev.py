@@ -51,7 +51,7 @@ with dag:
             task_id=f"dataset_counts-{product_id}-aws",
             cmds=AWS_DATASET_COUNT_TASK,
             env_vars={
-                "PRODUCT": json.dumps(product_id),
+                "PRODUCT": product_id,
                 "PLATFORM": "aws",
                 "DATA_INTERVAL_END": "{{  dag_run.data_interval_end | ts  }}",
             },
