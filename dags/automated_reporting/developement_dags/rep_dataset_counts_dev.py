@@ -43,12 +43,12 @@ with dag:
         "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
         "dataset-count",
     ]
-    aws_product_ids = Variable.get("rep_dataset_counts_aws")
+    aws_product_ids = json.loads(Variable.get("rep_dataset_counts_aws"))
     aws_odc_tasks = [
         utilities.k8s_operator(
             dag=dag,
             image=ETL_IMAGE,
-            task_id=f"dataset_counts-{product_id}[aws]",
+            task_id=f"dataset_counts-{product_id}-aws",
             cmds=AWS_DATASET_COUNT_TASK,
             env_vars={
                 "PRODUCT": json.dumps(product_id),
@@ -66,12 +66,12 @@ with dag:
         "export ODC_DB_PORT=54320",
         "dataset-count",
     ]
-    nci_product_ids = Variable.get("rep_dataset_counts_nci")
+    nci_product_ids = json.loads(Variable.get("rep_dataset_counts_nci"))
     nci_odc_tasks = [
         utilities.k8s_operator(
             dag=dag,
             image=ETL_IMAGE,
-            task_id=f"dataset_count-{product_id}[nci]",
+            task_id=f"dataset_count-{product_id}-nci",
             cmds=utilities.NCI_TUNNEL_CMDS + NCI_DATSET_COUNT_TASK,
             env_vars={
                 "PRODUCT": product_id,
