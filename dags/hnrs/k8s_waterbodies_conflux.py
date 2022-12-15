@@ -177,7 +177,7 @@ dag = DAG(
     "k8s_waterbodies_conflux",
     doc_md=__doc__,
     default_args=DEFAULT_ARGS,
-    schedule_interval=timedelta(hours=84),  # run every 3.5 days (84 hours)
+    schedule_interval=timedelta(hours=48),  # run every 2 days (48 hours)
     catchup=False,
     concurrency=128,
     tags=["k8s", "landsat", "waterbodies", "conflux"],
