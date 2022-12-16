@@ -15,7 +15,7 @@ from automated_reporting import k8s_secrets, utilities
 
 ENV = "prod"
 ETL_IMAGE = (
-    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.17.15"
+    "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/ga-reporting-etls:v2.19.0"
 )
 
 default_args = {
@@ -49,6 +49,8 @@ with daily_dag:
         "ga_ls9c_ard_3",
         "s2a_ard_granule",
         "s2b_ard_granule",
+        "ga_s2am_ard_3",
+        "ga_s2bm_ard_3",
         # Derivavtives
         "ga_ls_wo_3",
         "ga_ls_fc_3",
