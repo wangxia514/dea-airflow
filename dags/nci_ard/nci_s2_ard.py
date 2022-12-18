@@ -23,7 +23,7 @@ params = {
     "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
     "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl-s2.env",
     "config_arg": "",
-    "interim_days_wait": "",
+    "interim_days_wait": "--interim-days-wait 18",
     "products_arg": """--products '["esa_s2am_level1_0", "esa_s2bm_level1_0"]'""",
     "pkgdir_arg": "/g/data/ka08/ga",
     "base_dir": "/g/data/v10/work/s2_c3_ard/",
