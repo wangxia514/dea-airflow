@@ -46,6 +46,7 @@ if (
 else:
     # develop
     schedule_interval = None
+    params["run_ard_arg"] = ""
 
 default_args = {
     "owner": "Duncan Gray",
