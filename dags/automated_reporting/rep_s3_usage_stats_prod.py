@@ -10,10 +10,10 @@ from datetime import datetime as dt, timedelta
 from automated_reporting import k8s_secrets, utilities
 
 default_args = {
-    "owner": "Ramkumar Ramagopalan",
+    "owner": utilities.REPORTING_OWNERS,
     "depends_on_past": False,
     "start_date": dt(2022, 3, 19),
-    "email": ["ramkumar.ramagopalan@ga.gov.au"],
+    "email": utilities.REPORTING_ADMIN_EMAILS,
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 1,
@@ -43,6 +43,8 @@ with dag:
             "aws-usage-ingestion",
         ],
         task_id="aws_s3_usage_stats_ingestion",
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_dea_secrets + k8s_secrets.s3_server_access_log_bucket,
+        secrets=k8s_secrets.db_secrets(ENV)
+        + k8s_secrets.iam_dea_secrets
+        + k8s_secrets.s3_server_access_log_bucket,
     )
     aws_s3_usage_stats_ingestion

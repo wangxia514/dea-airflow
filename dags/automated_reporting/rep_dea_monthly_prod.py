@@ -12,10 +12,10 @@ from airflow.operators.dummy import DummyOperator
 from automated_reporting import utilities, k8s_secrets
 
 default_args = {
-    "owner": "Ramkumar Ramagopalan",
+    "owner": utilities.REPORTING_OWNERS,
     "depends_on_past": True,
     "start_date": datetime(2021, 9, 1),
-    "email": ["ramkumar.ramagopalan@ga.gov.au"],
+    "email": utilities.REPORTING_ADMIN_EMAILS,
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 90,
@@ -50,10 +50,12 @@ with dag:
         task_id="fk4_ingestion",
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-            "SCHEMA_TO_PROCESS"  : "dea",
-            "PROJECT_TO_PROCESS" : "fk4"
+            "SCHEMA_TO_PROCESS": "dea",
+            "PROJECT_TO_PROCESS": "fk4",
         },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets + k8s_secrets.s3_automated_operation_bucket,
+        secrets=k8s_secrets.db_secrets(ENV)
+        + k8s_secrets.iam_rep_secrets
+        + k8s_secrets.s3_automated_operation_bucket,
     )
     fk4_processing = utilities.k8s_operator(
         dag=dag,
@@ -67,8 +69,8 @@ with dag:
         env_vars={
             "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fk4_ingestion') }}",
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-            "SCHEMA_TO_PROCESS" : "dea",
-            "PROJECT_TO_PROCESS": "fk4"
+            "SCHEMA_TO_PROCESS": "dea",
+            "PROJECT_TO_PROCESS": "fk4",
         },
         secrets=k8s_secrets.db_secrets(ENV),
     )

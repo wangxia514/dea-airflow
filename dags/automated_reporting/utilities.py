@@ -6,6 +6,9 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
     KubernetesPodOperator,
 )
 
+REPORTING_OWNERS = "Tom McAdam, Ramkumar Ramagopalan"
+REPORTING_ADMIN_EMAILS = ["tom.mcadam@ga.gov.au", "ramkumar.ramagopalan@ga.gov.au"]
+
 
 def configure_ssh_cmds(secret_key_name):
     """
