@@ -18,10 +18,10 @@ from airflow.operators.dummy import DummyOperator
 from automated_reporting import k8s_secrets, utilities
 
 default_args = {
-    "owner": "Ramkumar Ramagopalan",
+    "owner": utilities.REPORTING_OWNERS,
     "depends_on_past": False,
     "start_date": dt(2022, 5, 10),
-    "email": ["ramkumar.ramagopalan@ga.gov.au"],
+    "email": utilities.REPORTING_ADMIN_EMAILS,
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 3,
@@ -53,7 +53,9 @@ with dag:
             "AWS_DEFAULT_REGION": "ap-southeast-2",
             "AWS_PAGER": "",
         },
-        secrets=k8s_secrets.s3_db_dump_bucket + k8s_secrets.iam_nemo_production_secrets + k8s_secrets.reporting_master_db_secrets_for_backup,
+        secrets=k8s_secrets.s3_db_dump_bucket
+        + k8s_secrets.iam_nemo_production_secrets
+        + k8s_secrets.reporting_master_db_secrets_for_backup,
     )
     backup_reporting_db_dea = utilities.k8s_operator(
         dag=dag,
@@ -68,7 +70,9 @@ with dag:
             "AWS_DEFAULT_REGION": "ap-southeast-2",
             "AWS_PAGER": "",
         },
-        secrets=k8s_secrets.s3_db_dump_bucket + k8s_secrets.iam_nemo_production_secrets + k8s_secrets.reporting_master_db_secrets_for_backup,
+        secrets=k8s_secrets.s3_db_dump_bucket
+        + k8s_secrets.iam_nemo_production_secrets
+        + k8s_secrets.reporting_master_db_secrets_for_backup,
     )
     backup_reporting_db_cophub = utilities.k8s_operator(
         dag=dag,
@@ -83,7 +87,9 @@ with dag:
             "AWS_DEFAULT_REGION": "ap-southeast-2",
             "AWS_PAGER": "",
         },
-        secrets=k8s_secrets.s3_db_dump_bucket + k8s_secrets.iam_nemo_production_secrets + k8s_secrets.reporting_master_db_secrets_for_backup,
+        secrets=k8s_secrets.s3_db_dump_bucket
+        + k8s_secrets.iam_nemo_production_secrets
+        + k8s_secrets.reporting_master_db_secrets_for_backup,
     )
     backup_reporting_db_marine = utilities.k8s_operator(
         dag=dag,
@@ -113,7 +119,9 @@ with dag:
             "AWS_DEFAULT_REGION": "ap-southeast-2",
             "AWS_PAGER": "",
         },
-        secrets=k8s_secrets.s3_db_dump_bucket + k8s_secrets.iam_nemo_production_secrets + k8s_secrets.reporting_master_db_secrets_for_backup,
+        secrets=k8s_secrets.s3_db_dump_bucket
+        + k8s_secrets.iam_nemo_production_secrets
+        + k8s_secrets.reporting_master_db_secrets_for_backup,
     )
     backup_reporting_db_public = utilities.k8s_operator(
         dag=dag,
@@ -128,7 +136,9 @@ with dag:
             "AWS_DEFAULT_REGION": "ap-southeast-2",
             "AWS_PAGER": "",
         },
-        secrets=k8s_secrets.s3_db_dump_bucket + k8s_secrets.iam_nemo_production_secrets + k8s_secrets.reporting_master_db_secrets_for_backup,
+        secrets=k8s_secrets.s3_db_dump_bucket
+        + k8s_secrets.iam_nemo_production_secrets
+        + k8s_secrets.reporting_master_db_secrets_for_backup,
     )
     START = DummyOperator(task_id="backup-reporting-db")
     START >> backup_reporting_db_landsat

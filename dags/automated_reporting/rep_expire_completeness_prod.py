@@ -11,10 +11,10 @@ from airflow import DAG
 from automated_reporting import k8s_secrets, utilities
 
 default_args = {
-    "owner": "Tom McAdam",
+    "owner": utilities.REPORTING_OWNERS,
     "depends_on_past": False,
     "start_date": dt.now() - timedelta(hours=4),
-    "email": ["tom.mcadam@ga.gov.au"],
+    "email": utilities.REPORTING_ADMIN_EMAILS,
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 2,

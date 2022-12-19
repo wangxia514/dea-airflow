@@ -10,10 +10,10 @@ from datetime import datetime as dt, timedelta
 from automated_reporting import k8s_secrets, utilities
 
 default_args = {
-    "owner": "Ramkumar Ramagopalan",
+    "owner": utilities.REPORTING_OWNERS,
     "depends_on_past": False,
     "start_date": dt(2022, 4, 4),
-    "email": ["ramkumar.ramagopalan@ga.gov.au"],
+    "email": utilities.REPORTING_ADMIN_EMAILS,
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 1,

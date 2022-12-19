@@ -18,10 +18,10 @@ ETL_IMAGE = (
 )
 
 default_args = {
-    "owner": "Tom McAdam",
+    "owner": utilities.REPORTING_OWNERS,
     "depends_on_past": False,
     "start_date": dt(2020, 6, 15),
-    "email": ["tom.mcadam@ga.gov.au"],
+    "email": utilities.REPORTING_ADMIN_EMAILS,
     "email_on_failure": True if ENV == "prod" else False,
     "email_on_retry": False,
     "retries": 2,

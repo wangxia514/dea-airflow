@@ -13,13 +13,15 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
 )
 from airflow.kubernetes.secret import Secret
 
+from automated_reporting import utilities
+
 from infra.variables import SECRET_ODC_READER_NAME, DB_HOSTNAME, DB_PORT, DB_DATABASE
 
 default_args = {
-    "owner": "Tom McAdam",
+    "owner": utilities.REPORTING_OWNERS,
     "depends_on_past": False,
     "start_date": dt(2020, 6, 15),
-    "email": ["tom.mcadam@ga.gov.au"],
+    "email": utilities.REPORTING_ADMIN_EMAILS,
     "email_on_failure": False,
     "retries": 0,
     "secrets": [

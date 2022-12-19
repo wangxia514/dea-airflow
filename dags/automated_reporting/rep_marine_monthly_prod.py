@@ -13,10 +13,10 @@ from airflow.operators.dummy import DummyOperator
 from automated_reporting import k8s_secrets, utilities
 
 default_args = {
-    "owner": "Ramkumar Ramagopalan",
+    "owner": utilities.REPORTING_OWNERS,
     "depends_on_past": False,
     "start_date": datetime(2021, 9, 1),
-    "email": ["ramkumar.ramagopalan@ga.gov.au"],
+    "email": utilities.REPORTING_ADMIN_EMAILS,
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 90,
@@ -50,10 +50,12 @@ with dag:
         task_id="fk1_ingestion",
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-            "SCHEMA_TO_PROCESS"  : "marine",
-            "PROJECT_TO_PROCESS" : "fk1"
+            "SCHEMA_TO_PROCESS": "marine",
+            "PROJECT_TO_PROCESS": "fk1",
         },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets + k8s_secrets.s3_automated_operation_bucket,
+        secrets=k8s_secrets.db_secrets(ENV)
+        + k8s_secrets.iam_rep_secrets
+        + k8s_secrets.s3_automated_operation_bucket,
     )
     fk1_processing = utilities.k8s_operator(
         dag=dag,
@@ -67,8 +69,8 @@ with dag:
         env_vars={
             "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fk1_ingestion') }}",
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-            "SCHEMA_TO_PROCESS" : "marine",
-            "PROJECT_TO_PROCESS": "fk1"
+            "SCHEMA_TO_PROCESS": "marine",
+            "PROJECT_TO_PROCESS": "fk1",
         },
         secrets=k8s_secrets.db_secrets(ENV),
     )
@@ -85,10 +87,12 @@ with dag:
         task_id="iy57_ingestion",
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-            "SCHEMA_TO_PROCESS"  : "marine",
-            "PROJECT_TO_PROCESS" : "iy57"
+            "SCHEMA_TO_PROCESS": "marine",
+            "PROJECT_TO_PROCESS": "iy57",
         },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets + k8s_secrets.s3_automated_operation_bucket,
+        secrets=k8s_secrets.db_secrets(ENV)
+        + k8s_secrets.iam_rep_secrets
+        + k8s_secrets.s3_automated_operation_bucket,
     )
     iy57_processing = utilities.k8s_operator(
         dag=dag,
@@ -102,8 +106,8 @@ with dag:
         env_vars={
             "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='iy57_ingestion') }}",
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-            "SCHEMA_TO_PROCESS" : "marine",
-            "PROJECT_TO_PROCESS": "iy57"
+            "SCHEMA_TO_PROCESS": "marine",
+            "PROJECT_TO_PROCESS": "iy57",
         },
         secrets=k8s_secrets.db_secrets(ENV),
     )
@@ -120,10 +124,12 @@ with dag:
         task_id="pw31_ingestion",
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-            "SCHEMA_TO_PROCESS"  : "marine",
-            "PROJECT_TO_PROCESS" : "pw31"
+            "SCHEMA_TO_PROCESS": "marine",
+            "PROJECT_TO_PROCESS": "pw31",
         },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets + k8s_secrets.s3_automated_operation_bucket,
+        secrets=k8s_secrets.db_secrets(ENV)
+        + k8s_secrets.iam_rep_secrets
+        + k8s_secrets.s3_automated_operation_bucket,
     )
     pw31_processing = utilities.k8s_operator(
         dag=dag,
@@ -137,8 +143,8 @@ with dag:
         env_vars={
             "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='pw31_ingestion') }}",
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-            "SCHEMA_TO_PROCESS" : "marine",
-            "PROJECT_TO_PROCESS": "pw31"
+            "SCHEMA_TO_PROCESS": "marine",
+            "PROJECT_TO_PROCESS": "pw31",
         },
         secrets=k8s_secrets.db_secrets(ENV),
     )
@@ -154,7 +160,9 @@ with dag:
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.s3_automated_operation_bucket + k8s_secrets.iam_rep_secrets,
+        secrets=k8s_secrets.db_secrets(ENV)
+        + k8s_secrets.s3_automated_operation_bucket
+        + k8s_secrets.iam_rep_secrets,
     )
     START >> fk1_ingestion >> fk1_processing
     START >> iy57_ingestion >> iy57_processing

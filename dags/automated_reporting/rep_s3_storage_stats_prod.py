@@ -13,10 +13,10 @@ from infra.variables import AWS_STORAGE_STATS_POD_COUNT
 import json
 
 default_args = {
-    "owner": "Ramkumar Ramagopalan",
+    "owner": utilities.REPORTING_OWNERS,
     "depends_on_past": False,
     "start_date": dt(2021, 12, 1),
-    "email": ["ramkumar.ramagopalan@ga.gov.au"],
+    "email": utilities.REPORTING_ADMIN_EMAILS,
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 1,
@@ -38,7 +38,7 @@ ETL_IMAGE = (
 
 
 def aggregate_metrics_from_collections(task_instance):
-    """ pull metrics from the colletors, aggregate and xcom_push """
+    """pull metrics from the colletors, aggregate and xcom_push"""
     # Do a xcompull from 10 collectors based on the pod count
     latest_size_dict = {}
     old_size_dict = {}
@@ -100,14 +100,15 @@ with dag:
             "echo AWS Storage job started - download: $(date)",
             "mkdir -p /airflow/xcom/",
             "aws-storage-download /airflow/xcom/return.json",
-        ] ,
+        ],
         xcom=True,
         task_id="get_inventory_files",
         env_vars={
             "POD_COUNT": AWS_STORAGE_STATS_POD_COUNT,
             "REPORTING_DATE": "{{ ds }}",
         },
-        secrets=k8s_secrets.iam_dea_secrets + k8s_secrets.s3_public_data_inventory_bucket,
+        secrets=k8s_secrets.iam_dea_secrets
+        + k8s_secrets.s3_public_data_inventory_bucket,
     )
 
     aggregate_metrics = PythonOperator(
@@ -126,10 +127,12 @@ with dag:
         ],
         task_id="push_to_db",
         env_vars={
-            "METRICS" : "{{ task_instance.xcom_pull(task_ids='aggregate_metrics', key='metrics') }}",
+            "METRICS": "{{ task_instance.xcom_pull(task_ids='aggregate_metrics', key='metrics') }}",
             "REPORTING_DATE": "{{ ds }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_dea_secrets + k8s_secrets.s3_public_data_inventory_bucket,
+        secrets=k8s_secrets.db_secrets(ENV)
+        + k8s_secrets.iam_dea_secrets
+        + k8s_secrets.s3_public_data_inventory_bucket,
     )
 
     # k8s_task_download_inventory >> metrics_task1 >> metrics_task2 >> metrics_task3
@@ -147,9 +150,15 @@ with dag:
             xcom=True,
             task_id=f"collection{i}",
             env_vars={
-                "INVENTORY_FILE" : "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}",
-                "COUNTER" : counter,
+                "INVENTORY_FILE": "{{ task_instance.xcom_pull(task_ids='get_inventory_files', key='return_value') }}",
+                "COUNTER": counter,
             },
-            secrets=k8s_secrets.iam_dea_secrets + k8s_secrets.s3_public_data_inventory_bucket,
+            secrets=k8s_secrets.iam_dea_secrets
+            + k8s_secrets.s3_public_data_inventory_bucket,
         )
-        k8s_task_download_inventory >> metrics_tasks[i] >> aggregate_metrics >> push_to_db
+        (
+            k8s_task_download_inventory
+            >> metrics_tasks[i]
+            >> aggregate_metrics
+            >> push_to_db
+        )

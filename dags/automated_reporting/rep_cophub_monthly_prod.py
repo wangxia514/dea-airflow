@@ -11,10 +11,10 @@ from airflow.operators.dummy import DummyOperator
 from automated_reporting import k8s_secrets, utilities
 
 default_args = {
-    "owner": "Ramkumar Ramagopalan",
+    "owner": utilities.REPORTING_OWNERS,
     "depends_on_past": False,
     "start_date": datetime(2022, 3, 1),
-    "email": ["ramkumar.ramagopalan@ga.gov.au"],
+    "email": utilities.REPORTING_ADMIN_EMAILS,
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 90,
@@ -48,7 +48,9 @@ with dag:
         env_vars={
             "REPORTING_MONTH": "{{  dag_run.data_interval_start | ds }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.s3_automated_operation_bucket + k8s_secrets.iam_rep_secrets
+        secrets=k8s_secrets.db_secrets(ENV)
+        + k8s_secrets.s3_automated_operation_bucket
+        + k8s_secrets.iam_rep_secrets,
     )
     sara_history_processing = utilities.k8s_operator(
         dag=dag,
@@ -62,7 +64,7 @@ with dag:
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV)
+        secrets=k8s_secrets.db_secrets(ENV),
     )
     archie_ingestion = utilities.k8s_operator(
         dag=dag,
@@ -76,7 +78,9 @@ with dag:
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.s3_automated_operation_bucket + k8s_secrets.iam_rep_secrets
+        secrets=k8s_secrets.db_secrets(ENV)
+        + k8s_secrets.s3_automated_operation_bucket
+        + k8s_secrets.iam_rep_secrets,
     )
     archie_processing_sattoesa = utilities.k8s_operator(
         dag=dag,
@@ -90,7 +94,7 @@ with dag:
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV)
+        secrets=k8s_secrets.db_secrets(ENV),
     )
     archie_processing_esatoncitask = utilities.k8s_operator(
         dag=dag,
@@ -104,7 +108,7 @@ with dag:
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV)
+        secrets=k8s_secrets.db_secrets(ENV),
     )
     archie_processing_esatoncis1task = utilities.k8s_operator(
         dag=dag,
@@ -118,7 +122,7 @@ with dag:
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV)
+        secrets=k8s_secrets.db_secrets(ENV),
     )
     archie_processing_esatoncis2task = utilities.k8s_operator(
         dag=dag,
@@ -132,7 +136,7 @@ with dag:
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV)
+        secrets=k8s_secrets.db_secrets(ENV),
     )
     archie_processing_esatoncis3task = utilities.k8s_operator(
         dag=dag,
@@ -146,7 +150,7 @@ with dag:
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV)
+        secrets=k8s_secrets.db_secrets(ENV),
     )
     archie_processing_downloads = utilities.k8s_operator(
         dag=dag,
@@ -160,7 +164,7 @@ with dag:
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV)
+        secrets=k8s_secrets.db_secrets(ENV),
     )
     fj7_disk_usage = utilities.k8s_operator(
         dag=dag,
@@ -168,13 +172,15 @@ with dag:
         cmds=[
             "echo FJ7 disk usage download and processing: $(date)",
             "parse-uri ${REP_DB_URI} /tmp/env; source /tmp/env",
-            "fj7-disk-usage"
+            "fj7-disk-usage",
         ],
         task_id="fj7_disk_usage",
         env_vars={
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets + k8s_secrets.s3_automated_operation_bucket
+        secrets=k8s_secrets.db_secrets(ENV)
+        + k8s_secrets.iam_rep_secrets
+        + k8s_secrets.s3_automated_operation_bucket,
     )
     fj7_ungrouped_user_stats_ingestion = utilities.k8s_operator(
         dag=dag,
@@ -192,7 +198,9 @@ with dag:
             "SCHEMA_TO_PROCESS": "cophub",
             "PROJECT_TO_PROCESS": "fj7",
         },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets + k8s_secrets.s3_automated_operation_bucket
+        secrets=k8s_secrets.db_secrets(ENV)
+        + k8s_secrets.iam_rep_secrets
+        + k8s_secrets.s3_automated_operation_bucket,
     )
     fj7_ungrouped_user_stats_processing = utilities.k8s_operator(
         dag=dag,
@@ -206,10 +214,10 @@ with dag:
         env_vars={
             "AGGREGATION_MONTHS": "{{ task_instance.xcom_pull(task_ids='fj7_ungrouped_user_stats_ingestion') }}",
             "REPORTING_MONTH": "{{ dag_run.data_interval_start | ds }}",
-            "SCHEMA_TO_PROCESS" : "cophub",
-            "PROJECT_TO_PROCESS": "fj7"
+            "SCHEMA_TO_PROCESS": "cophub",
+            "PROJECT_TO_PROCESS": "fj7",
         },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets,
     )
     START >> sara_history_ingestion >> sara_history_processing
     START >> fj7_ungrouped_user_stats_ingestion >> fj7_ungrouped_user_stats_processing

@@ -15,17 +15,17 @@ from infra.variables import REPORTING_DB_DEV_SECRET
 from automated_reporting import k8s_secrets, utilities
 
 default_args = {
-    "owner": "Ramkumar Ramagopalan",
+    "owner": utilities.REPORTING_OWNERS,
     "depends": False,
     "start_date": dt(2022, 6, 7),
-    "email": ["ramkumar.ramagopalan@ga.gov.au"],
+    "email": utilities.REPORTING_ADMIN_EMAILS,
     "email_on_failure": True,
     "email_on_retry": False,
     "secrets": [
         Secret("env", "DB_HOST", REPORTING_DB_DEV_SECRET, "DB_HOST"),
         Secret("env", "DB_NAME", REPORTING_DB_DEV_SECRET, "DB_NAME"),
         Secret("env", "DB_USER", REPORTING_DB_DEV_SECRET, "DB_USER"),
-        Secret("env", "PGPASSWORD", REPORTING_DB_DEV_SECRET, "DB_PASSWORD")
+        Secret("env", "PGPASSWORD", REPORTING_DB_DEV_SECRET, "DB_PASSWORD"),
     ],
 }
 
@@ -35,7 +35,7 @@ dag = DAG(
     description="Restore develop db",
     tags=["reporting"],
     default_args=default_args,
-    schedule_interval=None
+    schedule_interval=None,
 )
 
 BACKUP_RESTORE_IMAGE = "538673716275.dkr.ecr.ap-southeast-2.amazonaws.com/automated-reporting-backup:latest"

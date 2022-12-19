@@ -11,10 +11,10 @@ from datetime import datetime as dt, timedelta
 from automated_reporting import k8s_secrets, utilities
 
 default_args = {
-    "owner": "Ramkumar Ramagopalan",
+    "owner": utilities.REPORTING_OWNERS,
     "depends_on_past": False,
     "start_date": dt(2022, 4, 29),
-    "email": ["ramkumar.ramagopalan@ga.gov.au"],
+    "email": utilities.REPORTING_ADMIN_EMAILS,
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 1,
@@ -46,7 +46,9 @@ with dag:
             "s3-usage-year-ingestion",
         ],
         task_id="aws_s3_year_wise_scene_usage_ingestion",
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.s3_server_access_log_bucket + k8s_secrets.iam_dea_secrets,
+        secrets=k8s_secrets.db_secrets(ENV)
+        + k8s_secrets.s3_server_access_log_bucket
+        + k8s_secrets.iam_dea_secrets,
     )
     aws_s3_region_wise_scene_usage_ingestion = utilities.k8s_operator(
         dag=dag,
@@ -57,7 +59,9 @@ with dag:
             "s3-usage-region-ingestion",
         ],
         task_id="aws_s3_region_wise_scene_usage_ingestion",
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.s3_server_access_log_bucket + k8s_secrets.iam_dea_secrets,
+        secrets=k8s_secrets.db_secrets(ENV)
+        + k8s_secrets.s3_server_access_log_bucket
+        + k8s_secrets.iam_dea_secrets,
     )
     aws_s3_ip_requester_wise_scene_usage_ingestion = utilities.k8s_operator(
         dag=dag,
@@ -68,7 +72,9 @@ with dag:
             "s3-usage-ip-requester-ingestion",
         ],
         task_id="aws_s3_ip_requester_wise_scene_usage_ingestion",
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.s3_server_access_log_bucket + k8s_secrets.iam_dea_secrets,
+        secrets=k8s_secrets.db_secrets(ENV)
+        + k8s_secrets.s3_server_access_log_bucket
+        + k8s_secrets.iam_dea_secrets,
     )
     START >> aws_s3_year_wise_scene_usage_ingestion
     START >> aws_s3_region_wise_scene_usage_ingestion
