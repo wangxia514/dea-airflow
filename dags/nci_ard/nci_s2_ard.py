@@ -5,6 +5,15 @@ The DAG starts ard_scene_select which filters the S2 l1 scenes to send to ARD to
 It also starts the ARD processing.  ARD processing indexes the ARD output scenes.
 
 The logs are written to NCI.
+
+Overall Git workflow, keep the develop and master files in sync.
+In detail, once a file has been tested in the development branch, copy it
+to a master branch with:
+  git checkout develop nci_s2_ard.py
+
+Check the update with:
+  git diff --cached
+
 """
 from os import environ
 from datetime import datetime, timedelta
@@ -29,7 +38,7 @@ params = {
     "base_dir": "/g/data/v10/work/s2_c3_ard/",
     "walltime": "10:00:00",
     "days_to_exclude_arg": """--days-to-exclude '["2015-01-01:2022-08-31"]'""",
-    "scene_limit": "--scene-limit 1000",
+    "scene_limit": "--scene-limit 5000",
     "run_ard_arg": "--run-ard",
     "yamldir": " --yamls-dir /g/data/ka08/ga/l1c_metadata",
 }
@@ -46,6 +55,7 @@ if (
 else:
     # develop
     schedule_interval = None
+    params["run_ard_arg"] = ""
 
 default_args = {
     "owner": "Duncan Gray",
