@@ -5,6 +5,8 @@ data from NCI to AWS S3 bucket. It:
  * Lists scenes to be uploaded to the S3 bucket, based on what is indexed in the NCI Database.
  * Uploads the `NCI C3 S2 Upload AWS` and 'NCI C3 S2 Data Verification' scripts to a temporary NCI work folder.
  * Executes the previously uploaded script, which performs the upload to S3 process.
+ * Performs data verification check post syncing
+ * Upload missing files
 """
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -44,7 +46,7 @@ COMMON = dedent(
 default_args = {
     "owner": "James Miller",
     "start_date": datetime(
-        2022, 11, 5, tzinfo=local_tz
+        2023, 11, 5, tzinfo=local_tz
     ),  # earliest date in nci DB is 2016-06-29
     "retries": 0,
     "retry_delay": timedelta(minutes=5),
@@ -109,8 +111,8 @@ with dag:
                 INNER JOIN agdc.dataset_type dst ON ds.dataset_type_ref = dst.id
                 INNER JOIN agdc.dataset_location dsl ON ds.id = dsl.dataset_ref
                 WHERE dst.name='$product_name'
-                  AND ((ds.added BETWEEN '2022-11-05' AND '2022-11-06')
-                  OR (ds.archived BETWEEN '2022-11-05' AND '2022-11-06'));
+                  AND ((ds.added BETWEEN '{{ prev_execution_date }}' AND '{{ execution_date }}')
+                  OR (ds.archived BETWEEN '{{ prev_execution_date }}' AND '{{ execution_date }}'));
             EOF
             done
             echo -n Num Datasets to upload:
@@ -143,7 +145,6 @@ with dag:
         timeout=20 * MINUTES,
     )
 
-    # TODO remove dry run when happy with outputs
     # Perform the syncing process
     execute_upload = SSHOperator(
         task_id="execute_upload",
@@ -155,7 +156,7 @@ with dag:
             # Export AWS Access key/secret from Airflow connection module
             export AWS_ACCESS_KEY_ID={{aws_creds.access_key}}
             export AWS_SECRET_ACCESS_KEY={{aws_creds.secret_key}}
-            time ~/bin/s5cmd --stat run {{ work_dir }}/commands.txt
+            time ~/bin/s5cmd --stat --numworkers 20 run {{ work_dir }}/commands.txt
             """
         ),
         remote_host="gadi-dm.nci.org.au",

@@ -47,7 +47,7 @@ def gen_s5cmd_commands(granule_id_location, output_path, data_check_path):
 
             # generate copy commands if not archived otherwise remove data
             if archived_date is None or archived_date == '':
-                s5cmd_file.write(f"cp {nci_path}/* {s3_path}/\n")
+                s5cmd_file.write(f"cp -acl bucket-owner-full-control {nci_path}/* {s3_path}/\n")
 
                 # create list of files to check after syncing complete
                 for item in granule_file_listing:
