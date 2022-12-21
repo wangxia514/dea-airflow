@@ -46,6 +46,6 @@ with dag:
         env_vars={
             "REPORTING_DATE": "{{ ds }}",
         },
-        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_rep_secrets,
+        secrets=k8s_secrets.db_secrets(ENV) + k8s_secrets.iam_nemo_production_secrets,
     )
     aws_s3_cost_stats_ingestion
