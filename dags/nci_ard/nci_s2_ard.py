@@ -27,7 +27,7 @@ from sensors.pbs_job_complete_sensor import PBSJobSensor
 params = {
     "project": "v10",
     "queue": "copyq",
-    "module_ass": "ard-scene-select-py3-dea/20221025",
+    "module_ass": "ard-scene-select-py3-dea/20221223",
     "index_arg": "--index-datacube-env "
     "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/index-datacube.env",
     "wagl_env": "/g/data/v10/projects/c3_ard/dea-ard-scene-select/scripts/prod/ard_env/prod-wagl-s2.env",
@@ -38,7 +38,7 @@ params = {
     "base_dir": "/g/data/v10/work/s2_c3_ard/",
     "walltime": "10:00:00",
     "days_to_exclude_arg": """--days-to-exclude '["2015-01-01:2022-08-31"]'""",
-    "scene_limit": "--scene-limit 5000",
+    "scene_limit": "--scene-limit 100",
     "run_ard_arg": "--run-ard",
     "yamldir": " --yamls-dir /g/data/ka08/ga/l1c_metadata",
 }
