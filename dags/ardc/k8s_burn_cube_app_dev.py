@@ -23,7 +23,6 @@ from infra.projects.hnrs import (
 
 
 from infra.variables import (
-    DB_DATABASE,
     DB_READER_HOSTNAME,
     AWS_DEFAULT_REGION,
     DB_HOSTNAME,
