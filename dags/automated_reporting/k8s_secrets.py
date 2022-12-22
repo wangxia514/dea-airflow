@@ -41,6 +41,11 @@ iam_nemo_production_secrets = [
     Secret("env", "AWS_SECRET_ACCESS_KEY", "reporting-iam-nemo-production", "SECRET_KEY"),
 ]
 
+iam_sandbox_secrets = [
+    Secret("env", "AWS_ACCESS_KEY_ID", "reporting-iam-sandbox", "ACCESS_KEY"),
+    Secret("env", "AWS_SECRET_ACCESS_KEY", "reporting-iam-sandbox", "SECRET_KEY"),
+]
+
 uptime_robot_secret = [
     Secret("env", "API_KEY", "reporting-uptime-api", "UPTIME_KEY"),
 ]
