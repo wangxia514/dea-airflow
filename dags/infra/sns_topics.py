@@ -14,4 +14,3 @@ SENTINEL_2_ARD_TOPIC_ARN = Variable.get(
 PUBLISH_ARD_NRT_LS_SNS = (
     "arn:aws:sns:ap-southeast-2:060378307146:dea-sandbox-eks-wagl-ls-nrt"
 )
-
