@@ -120,7 +120,7 @@ def k8s_bc_processing(dag, region_name):
         dedent(
             """
             echo "Using dea-burn-app image"
-            dea-burn-cube burn-cube-run -o s3://dea-public-data-dev/projects/WaterBodies/sai-test/burn-cube-app -r {region_name} -t Dec-21
+            dea-burn-cube burn-cube-run -o s3://dea-public-data-dev/projects/WaterBodies/sai-test/burn-cube-app -r {region_name} -t Dec-21 -v
             """.format(
                 region_name=region_name
             )
